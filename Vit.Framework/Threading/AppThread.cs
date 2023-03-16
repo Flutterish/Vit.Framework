@@ -3,8 +3,8 @@
 public class AppThread {
 	readonly Thread nativeThread;
 
-	public AppThread () {
-		nativeThread = new Thread( threadLoop );
+	public AppThread ( string name ) {
+		nativeThread = new Thread( threadLoop ) { Name = name };
 	}
 
 	void threadLoop () {

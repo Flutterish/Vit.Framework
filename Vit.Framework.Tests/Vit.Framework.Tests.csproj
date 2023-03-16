@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
+
+    <StartupObject>Vit.Framework.Tests.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,10 +23,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SDL2-CS" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vit.Framework.SdlWindowing\Vit.Framework.SdlWindowing.csproj" />
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
 
