@@ -11,15 +11,28 @@ public abstract class AppThread {
 	}
 
 	bool isInitialized;
+	bool isStopping;
+	bool isRunning;
 	void onThreadStart () {
+		isRunning = true;
 		if ( !isInitialized ) {
 			Initialize();
 			isInitialized = true;
 		}
 
-		while ( true ) {
+		while ( !isStopping ) {
 			Loop();
 		}
+		isRunning = false;
+		isStopping = false;
+		stopTask?.SetResult();
+	}
+
+	TaskCompletionSource? stopTask;
+	public Task Stop () {
+		stopTask = new();
+		isStopping = true;
+		return stopTask.Task;
 	}
 
 	protected abstract void Initialize ();

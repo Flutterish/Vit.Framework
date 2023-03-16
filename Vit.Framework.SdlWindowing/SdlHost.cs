@@ -1,5 +1,6 @@
 ﻿using SDL2;
 using System.Collections.Concurrent;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Windowing;
 
@@ -69,13 +70,19 @@ public class SdlHost : Host {
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
-	public override Window CreateWindow () {
-		var window = new SdlWindow( this );
+	public override Window CreateWindow ( RenderingApi renderingApi ) {
+		var window = new SdlWindow( this, renderingApi );
 		scheduledActions.Enqueue( () => {
 			window.Init();
 			windowsById[window.Id] = window;
 		} );
 		return window;
+	}
+
+	public override IEnumerable<RenderingApi> SupportedRenderingApis {
+		get {
+			yield return RenderingApi.OpenGl;
+		}
 	}
 
 	internal void destroyWindow ( SdlWindow window ) {

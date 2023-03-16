@@ -1,5 +1,7 @@
 ﻿using SDL2;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Math;
+using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 
 namespace Vit.Framework.SdlWindowing;
@@ -32,17 +34,26 @@ class SdlWindow : Window {
 	SdlHost host;
 	public nint Pointer;
 	public uint Id;
-	public SdlWindow ( SdlHost host ) {
+	RenderingApi renderingApi;
+	public SdlWindow ( SdlHost host, RenderingApi renderingApi ) {
+		this.renderingApi = renderingApi;
 		this.host = host;
 	}
 
+	AppThread? renderThread;
 	public void Init () {
-		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN );
-		if ( Pointer == IntPtr.Zero ) {
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
+
+		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN );
+		if ( Pointer == 0 ) {
 			SdlHost.ThrowSdl( "window creation failed" );
 		}
 
 		Id = SDL.SDL_GetWindowID( Pointer );
+
+		host.RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id})" ) );
 	}
 
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
@@ -67,8 +78,8 @@ class SdlWindow : Window {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		host.Shedule( () => {
+		renderThread?.Stop().ContinueWith( _ => host.Shedule( () => {
 			host.destroyWindow( this );
-		} );
+		} ) );
 	}
 }
