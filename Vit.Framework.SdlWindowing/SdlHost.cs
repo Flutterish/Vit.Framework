@@ -6,7 +6,10 @@ using Vit.Framework.Windowing;
 namespace Vit.Framework.SdlWindowing;
 
 public class SdlHost : Host {
-	internal ConcurrentQueue<Action> scheduledActions = new();
+	ConcurrentQueue<Action> scheduledActions = new();
+	internal void Shedule ( Action action ) {
+		scheduledActions.Enqueue( action );
+	}
 	Thread eventThread;
 	public SdlHost () {
 		eventThread = new( eventLoop ) { Name = "Sdl Event Thread" };
@@ -25,14 +28,39 @@ public class SdlHost : Host {
 			while ( scheduledActions.TryDequeue( out var action ) )
 				action();
 
-			if ( SDL.SDL_PollEvent( out e ) == 0 )
+			if ( SDL.SDL_PollEvent( out e ) == 0 ) {
 				Thread.Sleep( 1 );
+				continue;
+			}
 
 			if ( e.type == SDL.SDL_EventType.SDL_WINDOWEVENT ) {
 				var @event = e.window;
-				if ( @event.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE ) {
-					windowsById.Remove( @event.windowID, out var window );
-					window?.Dispose();
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEMOTION ) {
+				var @event = e.motion;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEWHEEL ) {
+				var @event = e.wheel;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type is SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL.SDL_EventType.SDL_MOUSEBUTTONUP ) {
+				var @event = e.button;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
+				var @event = e.key;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
 				}
 			}
 		}
@@ -40,14 +68,20 @@ public class SdlHost : Host {
 		isRunning = false;
 	}
 
-	Dictionary<uint, Window> windowsById = new();
+	Dictionary<uint, SdlWindow> windowsById = new();
 	public override Window CreateWindow () {
-		var window = new SdlWindow();
+		var window = new SdlWindow( this );
 		scheduledActions.Enqueue( () => {
 			window.Init();
 			windowsById[window.Id] = window;
 		} );
 		return window;
+	}
+
+	internal void destroyWindow ( SdlWindow window ) {
+		windowsById.Remove( window.Id );
+		SDL.SDL_DestroyWindow( window.Pointer );
+		window.Pointer = 0;
 	}
 
 	bool isRunning;

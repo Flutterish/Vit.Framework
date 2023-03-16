@@ -3,16 +3,11 @@
 namespace Vit.Framework.Windowing;
 
 public abstract class Window : IDisposable {
-	public abstract int Width { get; set; }
-	public abstract int Height { get; set; }
+	public abstract string Title { get; set; }
+	public int Width { get => Size.Width; set => Size = Size with { Width = value }; }
+	public int Height { get => Size.Height; set => Size = Size with { Height = value }; }
 
-	public Size2<int> Size {
-		get => new( Width, Height );
-		set {
-			Width = value.Width;
-			Height = value.Height;
-		}
-	}
+	public abstract Size2<int> Size { get; set; }
 
 	public bool IsClosed { get; private set; }
 	protected abstract void Dispose ( bool disposing );
@@ -22,6 +17,9 @@ public abstract class Window : IDisposable {
 		IsClosed = true;
 	}
 
+	public void Quit () {
+		Dispose();
+	}
 	public void Dispose () {
 		Dispose( disposing: true );
 		IsClosed = true;

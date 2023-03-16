@@ -1,13 +1,27 @@
 ﻿namespace Vit.Framework.Threading;
 
-public class AppThread {
-	readonly Thread nativeThread;
+public abstract class AppThread {
+	public readonly string Name;
+	Thread? nativeThread;
 
 	public AppThread ( string name ) {
-		nativeThread = new Thread( threadLoop ) { Name = name };
+		Name = name;
+		nativeThread = new Thread( onThreadStart ) { Name = name };
+		nativeThread.Start();
 	}
 
-	void threadLoop () {
+	bool isInitialized;
+	void onThreadStart () {
+		if ( !isInitialized ) {
+			Initialize();
+			isInitialized = true;
+		}
 
+		while ( true ) {
+			Loop();
+		}
 	}
+
+	protected abstract void Initialize ();
+	protected abstract void Loop ();
 }
