@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
+using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 
 namespace Vit.Framework.SdlWindowing;
@@ -11,66 +12,75 @@ public class SdlHost : Host {
 	internal void Shedule ( Action action ) {
 		scheduledActions.Enqueue( action );
 	}
-	Thread eventThread;
+
+	SdlEventThread eventThread;
 	public SdlHost () {
-		eventThread = new( eventLoop ) { Name = "Sdl Event Thread" };
-		eventThread.Start();
+		eventThread = new( this );
+		RegisterThread( eventThread );
 	}
 
-	void eventLoop () {
-		if ( SDL.SDL_Init( SDL.SDL_INIT_VIDEO ) < 0 ) {
-			ThrowSdl( "sdl initialisation failed" );
+	class SdlEventThread : AppThread {
+		SdlHost host;
+		ConcurrentQueue<Action> scheduledActions => host.scheduledActions;
+		Dictionary<uint, SdlWindow> windowsById => host.windowsById;
+		public SdlEventThread ( SdlHost host ) : base( "SDL Event Thread" ) {
+			this.host = host;
 		}
 
-		isRunning = true;
+		protected override void Initialize () {
+			if ( SDL.SDL_Init( SDL.SDL_INIT_VIDEO ) < 0 ) {
+				ThrowSdl( "sdl initialisation failed" );
+			}
+		}
 
-		SDL.SDL_Event e;
-		while ( !isQuitting ) {
+		protected override void Loop () {
+			SDL.SDL_Event e;
+
 			while ( scheduledActions.TryDequeue( out var action ) )
 				action();
 
-			if ( SDL.SDL_PollEvent( out e ) == 0 ) {
-				Thread.Sleep( 1 );
-				continue;
+			while ( SDL.SDL_PollEvent( out e ) != 0 ) {
+				if ( e.type == SDL.SDL_EventType.SDL_WINDOWEVENT ) {
+					var @event = e.window;
+					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+						window.OnEvent( @event );
+					}
+				}
+				else if ( e.type == SDL.SDL_EventType.SDL_MOUSEMOTION ) {
+					var @event = e.motion;
+					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+						window.OnEvent( @event );
+					}
+				}
+				else if ( e.type == SDL.SDL_EventType.SDL_MOUSEWHEEL ) {
+					var @event = e.wheel;
+					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+						window.OnEvent( @event );
+					}
+				}
+				else if ( e.type is SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL.SDL_EventType.SDL_MOUSEBUTTONUP ) {
+					var @event = e.button;
+					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+						window.OnEvent( @event );
+					}
+				}
+				else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
+					var @event = e.key;
+					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+						window.OnEvent( @event );
+					}
+				}
 			}
 
-			if ( e.type == SDL.SDL_EventType.SDL_WINDOWEVENT ) {
-				var @event = e.window;
-				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-					window.OnEvent( @event );
-				}
-			}
-			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEMOTION ) {
-				var @event = e.motion;
-				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-					window.OnEvent( @event );
-				}
-			}
-			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEWHEEL ) {
-				var @event = e.wheel;
-				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-					window.OnEvent( @event );
-				}
-			}
-			else if ( e.type is SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL.SDL_EventType.SDL_MOUSEBUTTONUP ) {
-				var @event = e.button;
-				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-					window.OnEvent( @event );
-				}
-			}
-			else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
-				var @event = e.key;
-				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-					window.OnEvent( @event );
-				}
-			}
+			Thread.Sleep( 1 );
 		}
-
-		isRunning = false;
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
 	public override Window CreateWindow ( RenderingApi renderingApi ) {
+		if ( isDisposed )
+			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
+
 		var window = new SdlWindow( this, renderingApi );
 		scheduledActions.Enqueue( () => {
 			window.Init();
@@ -91,14 +101,20 @@ public class SdlHost : Host {
 		window.Pointer = 0;
 	}
 
-	bool isRunning;
-	bool isQuitting;
+	bool isDisposed;
 	public override void Dispose () {
-		isQuitting = true;
-		while ( isRunning ) { };
+		isDisposed = true;
 		foreach ( var i in windowsById )
 			i.Value.Dispose();
-		SDL.SDL_Quit();
+
+		Task.Run( async () => {
+			while ( windowsById.Any() )
+				await Task.Delay( 1 );
+
+			await eventThread.StopAsync();
+			SDL.SDL_Quit();
+		} );
+
 		GC.SuppressFinalize( this );
 	}
 

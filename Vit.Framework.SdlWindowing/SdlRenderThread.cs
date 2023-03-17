@@ -26,8 +26,8 @@ class SdlGlRenderThread : AppThread {
 		if ( glContext == 0 )
 			SdlHost.ThrowSdl( "gl context creation" );
 
-		GL.ClearColor( 1, 0, 1, 1 );
-		SDL.SDL_GL_MakeCurrent( 0, 0 );
+		var rng = new Random();
+		GL.ClearColor( rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), 1 );
 	}
 
 	protected override void Loop () {
@@ -38,7 +38,6 @@ class SdlGlRenderThread : AppThread {
 		SDL.SDL_GL_SwapWindow( window.Pointer );
 		GL.Finish();
 
-		SDL.SDL_GL_MakeCurrent( 0, 0 );
 		Thread.Sleep( 1 );
 	}
 

@@ -78,7 +78,7 @@ class SdlWindow : Window {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		renderThread?.Stop().ContinueWith( _ => host.Shedule( () => {
+		renderThread?.StopAsync().ContinueWith( _ => host.Shedule( () => {
 			host.destroyWindow( this );
 		} ) );
 	}

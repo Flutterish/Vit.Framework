@@ -6,35 +6,77 @@ public abstract class AppThread {
 
 	public AppThread ( string name ) {
 		Name = name;
-		nativeThread = new Thread( onThreadStart ) { Name = name };
-		nativeThread.Start();
+	}
+
+	object runLock = new();
+	public ThreadState State { get; private set; }
+	public void Start () {
+		lock ( runLock ) {
+			if ( State != ThreadState.Stopped ) {
+				throw new InvalidOperationException( "Cannot start an already running app thread" );
+			}
+
+			State = ThreadState.Running;
+
+			nativeThread = new Thread( onThreadStart ) { Name = Name };
+			nativeThread.Start( haltTaskSource = new() );
+		}
 	}
 
 	bool isInitialized;
-	bool isStopping;
-	bool isRunning;
-	void onThreadStart () {
-		isRunning = true;
+	void onThreadStart ( object? haltTaskSource ) {
 		if ( !isInitialized ) {
 			Initialize();
 			isInitialized = true;
 		}
 
-		while ( !isStopping ) {
+		while ( State != ThreadState.Halting ) {
 			Loop();
 		}
-		isRunning = false;
-		isStopping = false;
-		stopTask?.SetResult();
+		nativeThread = null;
+		State = ThreadState.Stopped;
+		(haltTaskSource as TaskCompletionSource)?.SetResult();
 	}
 
-	TaskCompletionSource? stopTask;
-	public Task Stop () {
-		stopTask = new();
-		isStopping = true;
-		return stopTask.Task;
+	public void RunOnce () {
+		lock ( runLock ) {
+			if ( State != ThreadState.Stopped ) {
+				throw new InvalidOperationException( "Cannot single-thread an already running app thread" );
+			}
+
+			State = ThreadState.Running;
+		}
+
+		if ( !isInitialized ) {
+			Initialize();
+			isInitialized = true;
+		}
+
+		Loop();
+		State = ThreadState.Stopped;
+	}
+
+	TaskCompletionSource? haltTaskSource;
+	public Task StopAsync () {
+		lock ( runLock ) {
+			if ( State != ThreadState.Running )
+				return Task.CompletedTask;
+
+			State = ThreadState.Halting;
+			return haltTaskSource?.Task ?? Task.CompletedTask;
+		}
+	}
+
+	public void Stop () {
+		StopAsync().Wait();
 	}
 
 	protected abstract void Initialize ();
 	protected abstract void Loop ();
+}
+
+public enum ThreadState : byte {
+	Stopped,
+	Running,
+	Halting
 }
