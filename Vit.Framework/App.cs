@@ -1,5 +1,7 @@
-﻿namespace Vit.Framework;
+﻿using Vit.Framework.Platform;
 
-public class App {
+namespace Vit.Framework;
 
+public abstract class App {
+	public abstract void Initialize ( Host host );
 }
