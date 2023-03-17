@@ -54,6 +54,7 @@ public abstract class AppThread {
 
 		Loop();
 		State = ThreadState.Stopped;
+		haltTaskSource?.TrySetResult();
 	}
 
 	TaskCompletionSource? haltTaskSource;

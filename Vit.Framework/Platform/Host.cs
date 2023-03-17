@@ -23,10 +23,15 @@ public abstract class Host : IDisposable {
 		appThreads.Add( thread );
 	}
 
+	App? primaryApp;
+	public App? PrimaryApp => primaryApp;
 	public void Run ( App app ) {
+		if ( Interlocked.CompareExchange( ref primaryApp, app, null ) != null )
+			throw new InvalidOperationException( "Host can only run 1 primary app at a time" );
+
 		app.Initialize( this );
 		
-		while ( true ) {
+		while ( !HasQuit ) {
 			var threadCount = appThreads.Count;
 			var threads = ArrayPool<AppThread>.Shared.Rent( threadCount );
 			appThreads.CopyTo( threads, 0 );
@@ -49,14 +54,31 @@ public abstract class Host : IDisposable {
 			if ( mode == ThreadingMode.Multithreaded )
 				Thread.Sleep( 10 );
 		}
+
+		foreach ( var i in appThreads.ToArray() )
+			i.StopAsync();
 	}
 
 	public abstract Window CreateWindow ( RenderingApi renderingApi );
 
 	public abstract IEnumerable<RenderingApi> SupportedRenderingApis { get; }
 
+	public bool HasQuit { get; private set; }
 	public void Quit () {
 		Dispose();
 	}
-	public abstract void Dispose ();
+	public void Dispose () {
+		if ( HasQuit )
+			return;
+
+		GC.SuppressFinalize( this );
+		Dispose( true );
+		HasQuit = true;
+	}
+	public abstract void Dispose ( bool isDisposing );
+
+	~Host () {
+		Dispose( false );
+		HasQuit = true;
+	}
 }

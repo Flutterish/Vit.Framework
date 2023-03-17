@@ -78,7 +78,7 @@ public class SdlHost : Host {
 
 	Dictionary<uint, SdlWindow> windowsById = new();
 	public override Window CreateWindow ( RenderingApi renderingApi ) {
-		if ( isDisposed )
+		if ( HasQuit )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
 		var window = new SdlWindow( this, renderingApi );
@@ -101,9 +101,7 @@ public class SdlHost : Host {
 		window.Pointer = 0;
 	}
 
-	bool isDisposed;
-	public override void Dispose () {
-		isDisposed = true;
+	public override void Dispose ( bool isDisposing ) {
 		foreach ( var i in windowsById )
 			i.Value.Dispose();
 

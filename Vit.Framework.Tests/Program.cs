@@ -17,5 +17,12 @@ public class Program : App {
 		b.Title = "Window B";
 		var c = host.CreateWindow( RenderingApi.OpenGl );
 		c.Title = "Window C";
+
+		Task.Run( async () => {
+			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )
+				await Task.Delay( 1 );
+
+			host.Quit();
+		} );
 	}
 }
