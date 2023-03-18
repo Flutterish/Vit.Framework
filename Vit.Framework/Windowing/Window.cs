@@ -21,6 +21,9 @@ public abstract class Window : IDisposable {
 		Dispose();
 	}
 	public void Dispose () {
+		if ( IsClosed )
+			return;
+
 		Dispose( disposing: true );
 		IsClosed = true;
 		GC.SuppressFinalize( this );
