@@ -14,9 +14,9 @@ public class SdlHost : Host {
 	}
 
 	SdlEventThread eventThread;
-	public SdlHost () {
+	public SdlHost ( App primaryApp ) : base( primaryApp ) {
 		eventThread = new( this );
-		RegisterThread( eventThread );
+		PrimaryApp.ThreadRunner.RegisterThread( eventThread );
 	}
 
 	class SdlEventThread : AppThread {
@@ -72,13 +72,13 @@ public class SdlHost : Host {
 				}
 			}
 
-			Thread.Sleep( 1 );
+			Sleep( 1 );
 		}
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
 	public override Window CreateWindow ( RenderingApi renderingApi ) {
-		if ( HasQuit )
+		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
 		var window = new SdlWindow( this, renderingApi );

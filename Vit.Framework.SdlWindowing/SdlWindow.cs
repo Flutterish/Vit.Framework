@@ -53,7 +53,7 @@ class SdlWindow : Window {
 
 		Id = SDL.SDL_GetWindowID( Pointer );
 
-		host.RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id})" ) );
+		RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id})" ) );
 	}
 
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
@@ -78,7 +78,7 @@ class SdlWindow : Window {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		renderThread?.StopAsync().ContinueWith( _ => host.Shedule( () => {
+		renderThread?.DisposeAsync().AsTask().ContinueWith( _ => host.Shedule( () => {
 			host.destroyWindow( this );
 		} ) );
 	}

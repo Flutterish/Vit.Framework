@@ -38,7 +38,7 @@ class SdlGlRenderThread : AppThread {
 		SDL.SDL_GL_SwapWindow( window.Pointer );
 		GL.Finish();
 
-		Thread.Sleep( 1 );
+		Sleep( 1 );
 	}
 
 	private static void InitializeGlBindings () {
