@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 
-public record MultiVector<T> where T : INumber<T> {
+public partial record MultiVector<T> where T : INumber<T> {
 	public ImmutableArray<SimpleBlade<T>> Components { get; init; }
 	public MultiVector ( ReadOnlySpan<SimpleBlade<T>> components ) {
 		var count = 0;

@@ -13,23 +13,16 @@ public class Program : App {
 		var w = new BasisVector<float>( "ŵ", square: 1 );
 		var e0 = new BasisVector<float>( "e₀", square: 0 );
 
-		var A = (x + z).OuterProduct(w);
-
-		var a = new Vector<float>( 1, 0, 1 );
-		var b = new Vector<float>( 0, 1, 0, 1, 1, 1 );
-		var ab = a.Cross( b );
-
-		var Adot = a.Dot( ab );
-		var Bdot = b.Dot( ab );
-
-		var matA = new Matrix<float>( new float[,] {
-			{ 1, 2, 3 },
-			{ 4, 5, 6 },
-			{ 7, 8, 9 }
+		var matA = new Matrix<MultiVector<float>>( new MultiVector<float>[,] {
+			{  1,  2,  3, e0 },
+			{  4,  5,  6, e0 },
+			{  7,  8,  9, e0 },
+			{ e0, e0, e0, e0 }
 		} );
-		var matB = (Matrix<float>)new Vector<float>( 1, 2, 3, 4 );
+		var matB = (Matrix<MultiVector<float>>)new Vector<MultiVector<float>>( x, y, z, w );
 
 		var res = matA * matB;
+		var res2 = matB * matA;
 		//using var host = new SdlHost();
 		//host.Run( new Program() );
 	}
