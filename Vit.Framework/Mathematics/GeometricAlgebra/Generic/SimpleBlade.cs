@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Vit.Framework.Math.GeometricAlgebra.Generic;
+namespace Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 
 public record SimpleBlade<T> : IComparable<SimpleBlade<T>> where T : INumber<T> {
 	public T Scale { get; init; }
@@ -82,7 +82,7 @@ public record SimpleBlade<T> : IComparable<SimpleBlade<T>> where T : INumber<T> 
 		return new SimpleBlade<T>( left.Scale * right.Scale, bases, count );
 	}
 
-	public static explicit operator MultiVector<T> ( SimpleBlade<T> value ) {
+	public static implicit operator MultiVector<T> ( SimpleBlade<T> value ) {
 		return new MultiVector<T>( MemoryMarshal.CreateReadOnlySpan( ref value, 1 ) );
 	}
 
@@ -127,12 +127,15 @@ public record SimpleBlade<T> : IComparable<SimpleBlade<T>> where T : INumber<T> 
 
 	public string ToString ( bool showSign ) {
 		var scale = showSign ? Scale : T.Abs( Scale );
+		if ( Bases.Length == 0 )
+			return $"{scale}";
+
 		string bases = string.Join( "", Bases.Select( x => x.Name ) );
-		if ( scale == T.One )
+		if ( scale == T.MultiplicativeIdentity )
 			return bases;
-		else if ( scale == -T.One )
+		else if ( scale == -T.MultiplicativeIdentity )
 			return $"-{bases}";
-		else if ( scale == T.Zero )
+		else if ( scale == T.AdditiveIdentity )
 			return $"{scale}";
 		else
 			return $"{scale}{bases}";

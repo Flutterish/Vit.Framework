@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Vit.Framework.Math;
+namespace Vit.Framework.Mathematics;
 
 public struct Size2<T> where T : struct, INumber<T> {
 	public T Width;

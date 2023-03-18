@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Vit.Framework.Math.GeometricAlgebra.Generic;
+namespace Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 
 public class BasisVector<T> where T : INumber<T> {
 	public readonly string Name;
@@ -20,7 +20,7 @@ public class BasisVector<T> where T : INumber<T> {
 
 	public BasisVector ( string name ) {
 		Name = name;
-		Square = T.Zero;
+		Square = T.MultiplicativeIdentity;
 		SortingOrder = order++;
 	}
 
@@ -55,10 +55,10 @@ public class BasisVector<T> where T : INumber<T> {
 		return (MultiVector<T>)left - (MultiVector<T>)right;
 	}
 
-	public static explicit operator SimpleBlade<T> ( BasisVector<T> basis )
+	public static implicit operator SimpleBlade<T> ( BasisVector<T> basis )
 		=> new( T.One, MemoryMarshal.CreateReadOnlySpan( ref basis, 1 ) );
 
-	public static explicit operator MultiVector<T> ( BasisVector<T> basis ) {
+	public static implicit operator MultiVector<T> ( BasisVector<T> basis ) {
 		var blade = (SimpleBlade<T>)basis;
 		return new MultiVector<T>( MemoryMarshal.CreateReadOnlySpan( ref blade, 1 ) );
 	}

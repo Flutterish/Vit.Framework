@@ -1,6 +1,6 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Math;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 

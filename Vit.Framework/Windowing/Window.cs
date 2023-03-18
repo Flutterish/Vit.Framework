@@ -1,4 +1,4 @@
-﻿using Vit.Framework.Math;
+﻿using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing;
 

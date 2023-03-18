@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Vit.Framework.Math.GeometricAlgebra.Generic;
+namespace Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 
 public record MultiVector<T> where T : INumber<T> {
 	public ImmutableArray<SimpleBlade<T>> Components { get; init; }
@@ -28,7 +28,7 @@ public record MultiVector<T> where T : INumber<T> {
 		}
 
 		for ( int i = count - 1; i >= 0; i-- ) {
-			if ( rented[i].Scale != T.Zero )
+			if ( rented[i].Scale != T.AdditiveIdentity )
 				continue;
 
 			for ( int j = i; j < count - 1; j++ ) {
@@ -60,9 +60,9 @@ public record MultiVector<T> where T : INumber<T> {
 	public T InnerProduct ( MultiVector<T> other ) {
 		other = this * other;
 		if ( other.Components.Length == 0 )
-			return T.Zero;
+			return T.AdditiveIdentity;
 		if ( other.Components[0].Bases.Length != 0 )
-			return T.Zero;
+			return T.AdditiveIdentity;
 		return other.Components[0].Scale;
 	}
 
@@ -102,7 +102,7 @@ public record MultiVector<T> where T : INumber<T> {
 
 	public override string ToString () {
 		if ( Components.Length == 0 )
-			return "0";
+			return $"{T.AdditiveIdentity}";
 
 		StringBuilder sb = new();
 
