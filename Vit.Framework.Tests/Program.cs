@@ -1,13 +1,20 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Math.GeometricAlgebra.Generic;
 using Vit.Framework.Platform;
-using Vit.Framework.SdlWindowing;
 
 namespace Vit.Framework.Tests;
 
 public class Program : App {
 	public static void Main () {
-		using var host = new SdlHost();
-		host.Run( new Program() );
+		var x = new BasisVector<float>( "x̂", square: 1 );
+		var y = new BasisVector<float>( "ŷ", square: 1 );
+		var z = new BasisVector<float>( "ẑ", square: 1 );
+		var e0 = new BasisVector<float>( "e₀", square: 0 );
+
+		var A = (y - e0) * (x - e0) * (z - e0);
+
+		//using var host = new SdlHost();
+		//host.Run( new Program() );
 	}
 
 	public override void Initialize ( Host host ) {
