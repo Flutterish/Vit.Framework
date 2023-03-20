@@ -3,9 +3,8 @@ using System.Collections.Concurrent;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
-using Vit.Framework.Windowing;
 
-namespace Vit.Framework.SdlWindowing;
+namespace Vit.Framework.Windowing.Sdl;
 
 public class SdlHost : Host {
 	ConcurrentQueue<Action> scheduledActions = new();
@@ -89,11 +88,9 @@ public class SdlHost : Host {
 		return window;
 	}
 
-	public override IEnumerable<RenderingApi> SupportedRenderingApis {
-		get {
-			yield return RenderingApi.OpenGl;
-		}
-	}
+	public override IEnumerable<RenderingApi> SupportedRenderingApis { get; } = new[] { 
+		RenderingApi.OpenGl 
+	};
 
 	internal void destroyWindow ( SdlWindow window ) {
 		windowsById.Remove( window.Id );

@@ -3,7 +3,7 @@ using SDL2;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Threading;
 
-namespace Vit.Framework.SdlWindowing;
+namespace Vit.Framework.Windowing.Sdl;
 
 class SdlGlRenderThread : AppThread {
 	SdlWindow window;

@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
-using Vit.Framework.SdlWindowing;
+using Vit.Framework.Windowing.Sdl;
 
 namespace Vit.Framework.Tests;
 

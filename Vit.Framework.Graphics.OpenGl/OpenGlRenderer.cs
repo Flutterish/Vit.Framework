@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering.Buffers;
 
 namespace Vit.Framework.Graphics.OpenGl;
+
 public class OpenGlRenderer : Renderer {
 	public OpenGlRenderer () : base( RenderingApi.OpenGl ) { }
 

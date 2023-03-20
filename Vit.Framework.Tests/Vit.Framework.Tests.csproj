@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vit.Framework.SdlWindowing\Vit.Framework.SdlWindowing.csproj" />
+    <ProjectReference Include="..\Vit.Framework.Windowing.Sdl\Vit.Framework.Windowing.Sdl.csproj" />
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
 

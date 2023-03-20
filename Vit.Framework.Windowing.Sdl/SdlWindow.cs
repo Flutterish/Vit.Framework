@@ -2,9 +2,8 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Threading;
-using Vit.Framework.Windowing;
 
-namespace Vit.Framework.SdlWindowing;
+namespace Vit.Framework.Windowing.Sdl;
 
 class SdlWindow : Window {
 	string title = "New Window";

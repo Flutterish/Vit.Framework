@@ -3,17 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33103.201
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework", "Vit.Framework\Vit.Framework.csproj", "{EADD0795-0CFD-493C-9628-21FBD8DC7E7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework", "Vit.Framework\Vit.Framework.csproj", "{EADD0795-0CFD-493C-9628-21FBD8DC7E7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.OpenGLRenderer", "Vit.Framework.OpenGLRenderer\Vit.Framework.OpenGLRenderer.csproj", "{0661402F-42D2-483C-94CD-EED27DD2C79D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.OpenGl", "Vit.Framework.Graphics.OpenGl\Vit.Framework.Graphics.OpenGl.csproj", "{0661402F-42D2-483C-94CD-EED27DD2C79D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Tests", "Vit.Framework.Tests\Vit.Framework.Tests.csproj", "{39C04C0B-9E31-4557-BC57-9A7CA62BFB56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Tests", "Vit.Framework.Tests\Vit.Framework.Tests.csproj", "{39C04C0B-9E31-4557-BC57-9A7CA62BFB56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.TwoD", "Vit.Framework.TwoD\Vit.Framework.TwoD.csproj", "{C10741F5-E75B-4CAA-9431-7E1068D99DA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.TwoD", "Vit.Framework.Graphics.TwoD\Vit.Framework.Graphics.TwoD.csproj", "{C10741F5-E75B-4CAA-9431-7E1068D99DA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.SdlWindowing", "Vit.Framework.SdlWindowing\Vit.Framework.SdlWindowing.csproj", "{2F9112D8-9F73-4B41-BB65-59D8C7715820}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Windowing.Sdl", "Vit.Framework.Windowing.Sdl\Vit.Framework.Windowing.Sdl.csproj", "{2F9112D8-9F73-4B41-BB65-59D8C7715820}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Benchmarks", "Vit.Framework.Benchmarks\Vit.Framework.Benchmarks.csproj", "{71113A14-74B7-4365-BEEE-37DBBCD28AA9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Benchmarks", "Vit.Framework.Benchmarks\Vit.Framework.Benchmarks.csproj", "{71113A14-74B7-4365-BEEE-37DBBCD28AA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Graphics.Vulkan", "Vit.Framework.Graphics.Vulkan\Vit.Framework.Graphics.Vulkan.csproj", "{B133C993-8DF0-4657-9321-DAC5BE9F7017}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{71113A14-74B7-4365-BEEE-37DBBCD28AA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71113A14-74B7-4365-BEEE-37DBBCD28AA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71113A14-74B7-4365-BEEE-37DBBCD28AA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B133C993-8DF0-4657-9321-DAC5BE9F7017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B133C993-8DF0-4657-9321-DAC5BE9F7017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B133C993-8DF0-4657-9321-DAC5BE9F7017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B133C993-8DF0-4657-9321-DAC5BE9F7017}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
