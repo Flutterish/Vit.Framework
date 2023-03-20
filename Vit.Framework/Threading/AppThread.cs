@@ -68,6 +68,11 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		}
 
 		Loop();
+
+		if ( IsBeingDisposed ) {
+			Dispose( disposing: true );
+			IsDisposed = true;
+		}
 		State = ThreadState.Stopped;
 		haltTaskSource?.TrySetResult();
 		return true;
@@ -106,33 +111,45 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 
 	DateTime sleepsUntil = DateTime.MinValue;
 
+	public bool IsBeingDisposed { get; private set; }
 	public bool IsDisposed { get; private set; }
-	protected virtual void Dispose ( bool disposing ) { }
-
-	~AppThread () {
-	    Dispose(disposing: false);
-		IsDisposed = true;
-		StopAsync();
-	}
+	protected virtual void Dispose ( bool disposing ) { } // TODO this should dispose on its own thread
 
 	public void Dispose () {
-		if ( IsDisposed )
+		if ( IsBeingDisposed )
 			return;
 
+		IsBeingDisposed = true;
 		GC.SuppressFinalize( this );
-		Dispose( disposing: true );
-		IsDisposed = true;
-		StopAsync();
+		StopAsync().ContinueWith( _ => {
+			if ( !IsDisposed ) {
+				Dispose( disposing: true );
+				IsDisposed = true;
+			}
+		} );
 	}
 
 	public ValueTask DisposeAsync () {
 		if ( IsDisposed )
-			return new ValueTask(  );
+			return ValueTask.CompletedTask;
 
+		if ( IsBeingDisposed )
+			return new ValueTask( StopAsync() );
+
+		IsBeingDisposed = true;
 		GC.SuppressFinalize( this );
-		Dispose( disposing: true );
+		return new ValueTask( StopAsync().ContinueWith( _ => {
+			if ( !IsDisposed ) {
+				Dispose( disposing: true );
+				IsDisposed = true;
+			}
+		} ) );
+	}
+
+	~AppThread () {
+		Dispose( disposing: false );
 		IsDisposed = true;
-		return new ValueTask( StopAsync() );
+		StopAsync();
 	}
 }
 
