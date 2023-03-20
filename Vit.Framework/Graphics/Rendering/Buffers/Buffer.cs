@@ -1,7 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿namespace Vit.Framework.Graphics.Rendering.Buffers;
 
-namespace Vit.Framework.Graphics.Rendering.Buffers;
-
-public abstract class Buffer<T> where T : unmanaged {
-	public static readonly int Stride = Marshal.SizeOf<T>();
+public abstract class Buffer<T, TBuffer> where T : unmanaged where TBuffer : INativeBuffer<T> {
+	protected TBuffer? NativeBuffer { get; private set; }
+	protected abstract TBuffer CreateNativeBuffer ( Renderer renderer );
 }

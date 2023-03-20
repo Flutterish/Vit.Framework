@@ -4,11 +4,15 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Vit.Framework</RootNamespace>
+    <RootNamespace>Vit.Framework.Graphics.OpenGl</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTK.Graphics" Version="4.7.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
 
 </Project>

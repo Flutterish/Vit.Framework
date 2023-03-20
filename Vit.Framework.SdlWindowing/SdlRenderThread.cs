@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.ES30;
 using SDL2;
-using Vit.Framework.OpenGLRenderer;
+using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Threading;
 
 namespace Vit.Framework.SdlWindowing;

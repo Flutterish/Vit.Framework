@@ -18,13 +18,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using Microsoft.Win32.SafeHandles;
 using OpenTK;
 
-namespace Vit.Framework.OpenGLRenderer;
+namespace Vit.Framework.Graphics.OpenGl;
 
 public class WglBindingsContext : IBindingsContext {
 	[DllImport( "opengl32.dll", CharSet = CharSet.Ansi )]
@@ -53,13 +51,10 @@ public class WglBindingsContext : IBindingsContext {
 		public static extern IntPtr GetProcAddress ( ModuleSafeHandle hModule, string procName );
 	}
 
-	[SecurityPermission( SecurityAction.InheritanceDemand, UnmanagedCode = true )]
-	[SecurityPermission( SecurityAction.Demand, UnmanagedCode = true )]
 	private class ModuleSafeHandle : SafeHandleZeroOrMinusOneIsInvalid {
 		public ModuleSafeHandle () : base( true ) {
 		}
 
-		[ReliabilityContract( Consistency.WillNotCorruptState, Cer.MayFail )]
 		protected override bool ReleaseHandle () {
 			return Kernel32.FreeLibrary( handle );
 		}

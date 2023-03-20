@@ -9,6 +9,6 @@ public abstract class Renderer {
 		API = api;
 	}
 
-	public abstract INativeIndexBuffer<T> CreateNativeIndexBuffer<T> () where T : unmanaged;
-	public abstract INativeVertexBuffer<T> CreateNativeVertexBuffer<T> () where T : unmanaged;
+	public abstract INativeIndexBuffer<T> CreateIndexBuffer<T> () where T : unmanaged;
+	public abstract INativeVertexBuffer<T> CreateVertexBuffer<T> () where T : unmanaged;
 }
