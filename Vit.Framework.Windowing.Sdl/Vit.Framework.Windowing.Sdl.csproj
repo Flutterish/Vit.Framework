@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vit.Framework.Graphics.OpenGl\Vit.Framework.Graphics.OpenGl.csproj" />
+    <ProjectReference Include="..\Vit.Framework.Graphics.Vulkan\Vit.Framework.Graphics.Vulkan.csproj" />
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
 

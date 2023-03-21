@@ -89,7 +89,8 @@ public class SdlHost : Host {
 	}
 
 	public override IEnumerable<RenderingApi> SupportedRenderingApis { get; } = new[] { 
-		RenderingApi.OpenGl 
+		RenderingApi.OpenGl,
+		RenderingApi.Vulkan
 	};
 
 	internal void destroyWindow ( SdlWindow window ) {

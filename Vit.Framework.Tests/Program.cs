@@ -9,20 +9,21 @@ public class Program : App {
 
 	public static void Main () {
 		var app = new Program();
+		app.ThreadRunner.ThreadingMode = Threading.ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );
 		app.Run( host );
 	}
 
 	protected override void Initialize ( Host host ) {
-		var a = host.CreateWindow( RenderingApi.OpenGl, this );
-		a.Title = "Window A";
+		var a = host.CreateWindow( RenderingApi.Vulkan, this );
+		a.Title = "Window A [Vulkan]";
 		var b = host.CreateWindow( RenderingApi.OpenGl, this );
-		b.Title = "Window B";
-		var c = host.CreateWindow( RenderingApi.OpenGl, this );
-		c.Title = "Window C";
+		b.Title = "Window B [OpenGL]";
+		//var c = host.CreateWindow( RenderingApi.OpenGl, this );
+		//c.Title = "Window C";
 
 		Task.Run( async () => {
-			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )
+			while ( !a.IsClosed || !b.IsClosed /*|| !c.IsClosed*/ )
 				await Task.Delay( 1 );
 
 			Quit();

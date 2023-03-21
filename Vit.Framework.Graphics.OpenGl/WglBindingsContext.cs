@@ -26,7 +26,7 @@ namespace Vit.Framework.Graphics.OpenGl;
 
 public class WglBindingsContext : IBindingsContext {
 	[DllImport( "opengl32.dll", CharSet = CharSet.Ansi )]
-	private static extern IntPtr wglGetProcAddress ( string procName );
+	private static extern IntPtr wglGetProcAddress ( [MarshalAs( UnmanagedType.LPStr )] string procName );
 
 	private readonly ModuleSafeHandle _openGlHandle;
 

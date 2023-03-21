@@ -41,18 +41,35 @@ class SdlWindow : Window {
 
 	AppThread? renderThread;
 	public void Init () {
-		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1 );
-		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
+		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+		if ( renderingApi == RenderingApi.OpenGl ) {
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
 
-		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN );
+			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+		}
+		else if ( renderingApi == RenderingApi.Vulkan ) {
+			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+		}
+		else {
+			throw new InvalidOperationException( $"Unsupported rendering api: {renderingApi}" );
+		}
+		
+
+		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, windowFlags );
 		if ( Pointer == 0 ) {
 			SdlHost.ThrowSdl( "window creation failed" );
 		}
 
 		Id = SDL.SDL_GetWindowID( Pointer );
 
-		RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id})" ) );
+		if ( renderingApi == RenderingApi.OpenGl ) {
+			RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id}) [OpenGL]" ) );
+		}
+		else {
+			RegisterThread( renderThread = new SdlVulkanRenderThread( this, $"Render Thread (Window {Id}) [Vulkan]" ) );
+		}
 	}
 
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
