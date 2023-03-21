@@ -39,6 +39,11 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		while ( State != ThreadState.Halting ) {
 			Loop();
 		}
+
+		if ( IsBeingDisposed ) {
+			Dispose( disposing: true );
+			IsDisposed = true;
+		}
 		nativeThread = null;
 		State = ThreadState.Stopped;
 		(haltTaskSource as TaskCompletionSource)?.SetResult();
