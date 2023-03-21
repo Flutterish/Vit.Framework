@@ -1,8 +1,11 @@
-﻿using Vulkan;
+﻿using System.Buffers;
+using System.Runtime.InteropServices;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
-public class PhysicalDevice {
+public unsafe class PhysicalDevice {
+	VulkanInstance instance;
 	public VkPhysicalDevice Source;
 	public VkPhysicalDeviceProperties Properties;
 	public VkQueueFamilyProperties[] Queues;
@@ -11,7 +14,8 @@ public class PhysicalDevice {
 
 	public string[] Extensions;
 
-	public PhysicalDevice ( VkPhysicalDevice source ) {
+	public PhysicalDevice ( VulkanInstance instance, VkPhysicalDevice source ) {
+		this.instance = instance;
 		Source = source;
 		Vk.vkGetPhysicalDeviceProperties( source, out Properties );
 		Queues = VulkanExtensions.Out<VkQueueFamilyProperties>.Enumerate( Source, Vk.vkGetPhysicalDeviceQueueFamilyProperties );
@@ -23,8 +27,14 @@ public class PhysicalDevice {
 			if ( QueuesByCapabilities[i].Length == 0 )
 				QueuesByCapabilities.Remove( i );
 		}
-		Extensions = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( Source, (nint)0, Vk.vkEnumerateDeviceExtensionProperties )
-			.Select( x => x.extensionName.GetString() ).ToArray();
+		var props = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( Source, (byte*)0, Vk.vkEnumerateDeviceExtensionProperties ).ToArray();
+		Extensions = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( Source, (byte*)0, Vk.vkEnumerateDeviceExtensionProperties )
+			.Select( extensionNameToString ).ToArray();
+	}
+
+	string extensionNameToString ( VkExtensionProperties props ) {
+		var str = Marshal.PtrToStringUTF8( (nint)(&props) );
+		return str;
 	}
 
 	public bool QueueSupportsSurface ( VkSurfaceKHR surface, uint index ) {
@@ -32,34 +42,32 @@ public class PhysicalDevice {
 		return supported;
 	}
 
-	public VkDevice CreateLogicalDevice ( string[] extensions, uint[] queues ) {
+	public VkDevice CreateLogicalDevice ( CString[] extensions, uint[] queues ) {
 		var unique = queues.Distinct();
-		floatCollectionPtr priorities = new float[] { 1f };
+		var priorities = 1f;
+		var prioritiesPtr = &priorities;
 
 		VkDeviceQueueCreateInfo[] queueInfos = unique.Select( x => new VkDeviceQueueCreateInfo {
 			sType = VkStructureType.DeviceQueueCreateInfo,
 			queueFamilyIndex = x,
 			queueCount = 1,
-			pQueuePriorities = priorities
+			pQueuePriorities = prioritiesPtr
 		} ).ToArray();
 
-		using var _ = VulkanExtensions.CreatePointerArray( extensions, out var extensionsPtr );
+		var extensionPtrs = extensions.MakeArray();
 		var features = new VkPhysicalDeviceFeatures() {
 
 		};
-		using VkDeviceCreateInfo info = new() {
+		VkDeviceCreateInfo info = new() {
 			sType = VkStructureType.DeviceCreateInfo,
-			pQueueCreateInfos = queueInfos,
+			pQueueCreateInfos = queueInfos.Data(),
 			queueCreateInfoCount = (uint)queueInfos.Length,
-			pEnabledFeatures = features,
+			pEnabledFeatures = &features,
 			enabledExtensionCount = (uint)extensions.Length,
-			ppEnabledExtensionNames = extensionsPtr
+			ppEnabledExtensionNames = extensionPtrs.Data()
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateDevice( Source, info, 0, out var device ) );
-		foreach ( var i in queueInfos ) {
-			i.Dispose();
-		} 
+		VulkanExtensions.Validate( Vk.vkCreateDevice( Source, &info, instance.Allocator, out var device ) );
 		return device;
 	}
 

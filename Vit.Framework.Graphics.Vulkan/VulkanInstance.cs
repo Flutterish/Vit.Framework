@@ -1,47 +1,52 @@
 ﻿using Vulkan;
-using Version = global::Vulkan.Version;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
-public class VulkanInstance : IDisposable {
+public unsafe class VulkanInstance : IDisposable {
 	public readonly VkInstance Instance;
+	public VkAllocationCallbacks* Allocator => (VkAllocationCallbacks*)0;
 
-	public delegate bool ExtensionSelector ( string[] available, out string[] selected );
-	public VulkanInstance ( ExtensionSelector extensionSelector, ExtensionSelector layerSelector ) {
-		using VkApplicationInfo appinfo = new( new Version( 1, 2, 0 ), new Version( 1, 2, 0 ), new Version( 1, 3, 0 ) );
+	public delegate bool ExtensionSelector ( string[] available, out CString[] selected );
+	public unsafe VulkanInstance ( ExtensionSelector extensionSelector, ExtensionSelector layerSelector ) {
+		VkApplicationInfo appinfo = new() {
+			sType = VkStructureType.ApplicationInfo,
+			apiVersion = new Version( 1, 3, 0 ),
+			applicationVersion = new Version( 1, 2, 0 ),
+			engineVersion = new Version( 1, 2, 0 )
+		};
 
-		var availableExtensions = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (nint)0, Vk.vkEnumerateInstanceExtensionProperties )
-			.Select( x => x.extensionName.GetString() ).ToArray();
+		var availableExtensions = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)0, Vk.vkEnumerateInstanceExtensionProperties )
+			.Select( x => VulkanExtensions.GetString( x.extensionName ) ).ToArray();
 		if ( !extensionSelector( availableExtensions, out var extensions ) )
 			throw new InvalidOperationException( "Available vulkan extensions are not acceptable" );
 
 		var availableLayers = VulkanExtensions.Out<VkLayerProperties>.Enumerate( Vk.vkEnumerateInstanceLayerProperties )
-			.Select( x => x.layerName.GetString() ).ToArray();
+			.Select( x => VulkanExtensions.GetString( x.layerName ) ).ToArray();
 		if ( !layerSelector( availableLayers, out var layers ) )
 			throw new InvalidOperationException( "Available vulkan layers are not acceptable" );
 
-		using var _ = VulkanExtensions.CreatePointerArray( extensions, out var extensionsPtr );
-		using var __ = VulkanExtensions.CreatePointerArray( layers, out var layersPtr );
-		using VkInstanceCreateInfo createInfo = new() {
+		var extensionPtrs = extensions.MakeArray();
+		var layerPtrs = layers.MakeArray();
+		VkInstanceCreateInfo createInfo = new() {
 			sType = VkStructureType.InstanceCreateInfo,
-			pApplicationInfo = appinfo,
+			pApplicationInfo = &appinfo,
 			enabledExtensionCount = (uint)extensions.Length,
-			ppEnabledExtensionNames = extensionsPtr,
+			ppEnabledExtensionNames = extensionPtrs.Data(),
 			enabledLayerCount = (uint)layers.Length,
-			ppEnabledLayerNames = layersPtr
+			ppEnabledLayerNames = layerPtrs.Data()
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateInstance( createInfo, IntPtr.Zero, out Instance ) );
-		Vk.LoadInstanceFunctionPointers( Instance );
+		VulkanExtensions.Validate( Vk.vkCreateInstance( &createInfo, Allocator, out Instance ) );
+		//Vk.LoadInstanceFunctionPointers( Instance );
 	}
 
 	public PhysicalDevice[] GetAllPhysicalDevices () {
-		return VulkanExtensions.Out<VkPhysicalDevice>.Enumerate( Instance, Vk.vkEnumeratePhysicalDevices ).Select( x => new PhysicalDevice( x ) ).ToArray();
+		return VulkanExtensions.Out<VkPhysicalDevice>.Enumerate( Instance, Vk.vkEnumeratePhysicalDevices ).Select( x => new PhysicalDevice( this, x ) ).ToArray();
 	}
 
 	private bool isDisposed;
 	protected virtual void Dispose ( bool disposing ) {
-		Vk.vkDestroyInstance( Instance, 0 );
+		Vk.vkDestroyInstance( Instance, Allocator );
 	}
 
 	~VulkanInstance () {

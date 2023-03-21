@@ -1,14 +1,15 @@
 ﻿using SDL2;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Threading;
 using Vortice.ShaderCompiler;
 using Vulkan;
+using Vk = Vulkan.VulkanNative;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-class SdlVulkanRenderThread : AppThread {
+unsafe class SdlVulkanRenderThread : AppThread {
 	SdlWindow window;
 	public SdlVulkanRenderThread ( SdlWindow window, string name ) : base( name ) {
 		this.window = window;
@@ -31,17 +32,19 @@ class SdlVulkanRenderThread : AppThread {
 	VkCommandPool commnadPool;
 	VkCommandBuffer commandBuffer;
 	VkClearValue clearValue;
-	string[] requiredDeviceExtensions = { "VK_KHR_swapchain" };
-	string[] validationLayers = { "VK_LAYER_KHRONOS_validation" };
+	CString[] requiredDeviceExtensions = { "VK_KHR_swapchain" };
+	CString[] validationLayers = { "VK_LAYER_KHRONOS_validation" };
 	protected override void Initialize () {
-		vulkan = new VulkanInstance( ( string[] availableExtensions, out string[] selected ) => {
-			selected = VulkanExtensions.Out<nint>.Enumerate( window.Pointer, SDL.SDL_Vulkan_GetInstanceExtensions )
-				.Select( x => x.GetString() ).ToArray();
+		vulkan = new VulkanInstance( ( string[] availableExtensions, out CString[] selected ) => {
+			SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
+			nint[] pointers = new nint[count];
+			SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );
+			selected = pointers.Select( x => new CString( x ) ).ToArray();
 
-			return !selected.Except( availableExtensions ).Any();
-		}, ( string[] availableLayers, out string[] selected ) => {
+			return !selected.Select( x => x.ToString() ).Except( availableExtensions ).Any();
+		}, ( string[] availableLayers, out CString[] selected ) => {
 			selected = validationLayers;
-			if ( selected.Except( availableLayers ).Any() )
+			if ( selected.Select( x => x.ToString() ).Except( availableLayers ).Any() )
 				throw new Exception( "Not all required validation layers are present in a debug build" );
 
 			return true;
@@ -49,7 +52,7 @@ class SdlVulkanRenderThread : AppThread {
 
 		surface = createSurface();
 		var (physicalDevice, swapchain) = vulkan.GetAllPhysicalDevices().Where( x => {
-			return !requiredDeviceExtensions.Except( x.Extensions ).Any()
+			return !requiredDeviceExtensions.Select( x => x.ToString() ).Except( x.Extensions ).Any()
 				&& x.QueuesByCapabilities.ContainsKey( VkQueueFlags.Graphics )
 				&& x.QueueIndices.Any( i => x.QueueSupportsSurface( surface, i ) );
 		} ).Select( x => (device: x, swapchain: x.GetSwapChainDetails(surface)) ).Where( x => {
@@ -105,21 +108,20 @@ class SdlVulkanRenderThread : AppThread {
 		if ( graphicsQueue != presentQueue ) {
 			swapchainInfo.imageSharingMode = VkSharingMode.Concurrent;
 			swapchainInfo.queueFamilyIndexCount = 2;
-			swapchainInfo.pQueueFamilyIndices = queues;
+			swapchainInfo.pQueueFamilyIndices = queues.Data();
 		}
 		else {
 			swapchainInfo.imageSharingMode = VkSharingMode.Exclusive;
 		}
 
-		VulkanExtensions.Validate( Vk.vkCreateSwapchainKHR( device, swapchainInfo, 0, out this.swapchain ) );
-		swapchainInfo.Dispose();
+		VulkanExtensions.Validate( Vk.vkCreateSwapchainKHR( device, &swapchainInfo, vulkan.Allocator, out this.swapchain ) );
 
 		images = VulkanExtensions.Out<VkImage>.Enumerate( device, this.swapchain, Vk.vkGetSwapchainImagesKHR );
 		imageViews = images.Select( x => {
 			VkImageViewCreateInfo info = new() {
 				sType = VkStructureType.ImageViewCreateInfo,
 				image = x,
-				viewType = VkImageViewType.ImageView2D,
+				viewType = VkImageViewType.Image2D,
 				format = swapChainFormat,
 				components = new() {
 					r = VkComponentSwizzle.Identity,
@@ -136,24 +138,24 @@ class SdlVulkanRenderThread : AppThread {
 				}
 			};
 
-			VulkanExtensions.Validate( Vk.vkCreateImageView( device, info, 0, out var view ) );
+			VulkanExtensions.Validate( Vk.vkCreateImageView( device, &info, vulkan.Allocator, out var view ) );
 			return view;
 		} ).ToArray();
 
 		initPipeline();
 
 		framebuffers = imageViews.Select( x => {
-			using VkFramebufferCreateInfo info = new() {
+			VkFramebufferCreateInfo info = new() {
 				sType = VkStructureType.FramebufferCreateInfo,
 				renderPass = renderPass,
 				attachmentCount = 1,
-				pAttachments = x,
+				pAttachments = &x,
 				width = swapchainSize.width,
 				height = swapchainSize.height,
 				layers = 1
 			};
 
-			VulkanExtensions.Validate( Vk.vkCreateFramebuffer( device, info, 0, out var fb ) );
+			VulkanExtensions.Validate( Vk.vkCreateFramebuffer( device, &info, vulkan.Allocator, out var fb ) );
 			return fb;
 		} ).ToArray();
 
@@ -163,7 +165,7 @@ class SdlVulkanRenderThread : AppThread {
 			queueFamilyIndex = queues[0]
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateCommandPool( device, poolInfo, 0, out commnadPool ) );
+		VulkanExtensions.Validate( Vk.vkCreateCommandPool( device, &poolInfo, vulkan.Allocator, out commnadPool ) );
 
 		VkCommandBufferAllocateInfo bufferInfo = new() {
 			sType = VkStructureType.CommandBufferAllocateInfo,
@@ -172,7 +174,7 @@ class SdlVulkanRenderThread : AppThread {
 			commandBufferCount = 1
 		};
 
-		VulkanExtensions.Validate( Vk.vkAllocateCommandBuffers( device, bufferInfo, out commandBuffer ) );
+		VulkanExtensions.Validate( Vk.vkAllocateCommandBuffers( device, &bufferInfo, out commandBuffer ) );
 
 		var rng = new Random();
 		clearValue = new() {
@@ -185,15 +187,15 @@ class SdlVulkanRenderThread : AppThread {
 		VkFenceCreateInfo fenceInfo = new() {
 			sType = VkStructureType.FenceCreateInfo
 		};
-		VulkanExtensions.Validate( Vk.vkCreateSemaphore( device, semaphoreInfo, 0, out imageAvailableSemaphore ) );
-		VulkanExtensions.Validate( Vk.vkCreateSemaphore( device, semaphoreInfo, 0, out renderFinishedSemaphore ) );
-		VulkanExtensions.Validate( Vk.vkCreateFence( device, fenceInfo, 0, out inFlightFence ) );
+		VulkanExtensions.Validate( Vk.vkCreateSemaphore( device, &semaphoreInfo, vulkan.Allocator, out imageAvailableSemaphore ) );
+		VulkanExtensions.Validate( Vk.vkCreateSemaphore( device, &semaphoreInfo, vulkan.Allocator, out renderFinishedSemaphore ) );
+		VulkanExtensions.Validate( Vk.vkCreateFence( device, &fenceInfo, vulkan.Allocator, out inFlightFence ) );
 	}
 
 	void initPipeline () {
 		Options options = new();
 		options.SetSourceLanguage( SourceLanguage.GLSL );
-		using var compiler = new Compiler(options);
+		var compiler = new Compiler(options);
 
 		var vs = compiler.Compile( @"#version 450
 			layout(location = 0) out vec3 fragColor;
@@ -227,22 +229,22 @@ class SdlVulkanRenderThread : AppThread {
 		var vsModule = createShader( vs.GetBytecode() );
 		var fsModule = createShader( fs.GetBytecode() );
 
-		using VkPipelineShaderStageCreateInfo vertInfo = new() {
+		VkPipelineShaderStageCreateInfo vertInfo = new() {
 			sType = VkStructureType.PipelineShaderStageCreateInfo,
 			stage = VkShaderStageFlags.Vertex,
 			module = vsModule,
-			pName = "main"
+			pName = (CString)"main"
 		};
-		using VkPipelineShaderStageCreateInfo fragInfo = new() {
+		VkPipelineShaderStageCreateInfo fragInfo = new() {
 			sType = VkStructureType.PipelineShaderStageCreateInfo,
 			stage = VkShaderStageFlags.Fragment,
 			module = fsModule,
-			pName = "main"
+			pName = (CString)"main"
 		};
 
 		var stages = new VkPipelineShaderStageCreateInfo[] { vertInfo, fragInfo };
 
-		using VkPipelineVertexInputStateCreateInfo vertexFormat = new() {
+		VkPipelineVertexInputStateCreateInfo vertexFormat = new() {
 			sType = VkStructureType.PipelineVertexInputStateCreateInfo,
 			vertexBindingDescriptionCount = 0,
 			vertexAttributeDescriptionCount = 0
@@ -259,13 +261,13 @@ class SdlVulkanRenderThread : AppThread {
 			VkDynamicState.Scissor
 		};
 
-		using VkPipelineDynamicStateCreateInfo dynamicStateInfo = new() {
+		VkPipelineDynamicStateCreateInfo dynamicStateInfo = new() {
 			sType = VkStructureType.PipelineDynamicStateCreateInfo,
 			dynamicStateCount = (uint)dynamicState.Length,
-			pDynamicStates = dynamicState
+			pDynamicStates = dynamicState.Data()
 		};
 
-		using VkPipelineViewportStateCreateInfo viewportInfo = new() {
+		VkPipelineViewportStateCreateInfo viewportInfo = new() {
 			sType = VkStructureType.PipelineViewportStateCreateInfo,
 			viewportCount = 1,
 			scissorCount = 1
@@ -282,10 +284,10 @@ class SdlVulkanRenderThread : AppThread {
 			depthBiasEnable = false
 		};
 
-		using VkPipelineMultisampleStateCreateInfo multisampleInfo = new() {
+		VkPipelineMultisampleStateCreateInfo multisampleInfo = new() {
 			sType = VkStructureType.PipelineMultisampleStateCreateInfo,
 			sampleShadingEnable = false,
-			rasterizationSamples = VkSampleCountFlags.SampleCount1,
+			rasterizationSamples = VkSampleCountFlags.Count1,
 			minSampleShading = 1
 		};
 
@@ -294,16 +296,16 @@ class SdlVulkanRenderThread : AppThread {
 			blendEnable = false
 		};
 
-		using VkPipelineColorBlendStateCreateInfo blendInfo = new() {
+		VkPipelineColorBlendStateCreateInfo blendInfo = new() {
 			sType = VkStructureType.PipelineColorBlendStateCreateInfo,
 			logicOpEnable = false,
 			attachmentCount = 1,
-			pAttachments = blend
+			pAttachments = &blend
 		};
 
 		VkAttachmentDescription colorAttachment = new() {
 			format = swapChainFormat,
-			samples = VkSampleCountFlags.SampleCount1,
+			samples = VkSampleCountFlags.Count1,
 			loadOp = VkAttachmentLoadOp.Clear,
 			storeOp = VkAttachmentStoreOp.Store,
 			stencilLoadOp = VkAttachmentLoadOp.DontCare,
@@ -317,13 +319,13 @@ class SdlVulkanRenderThread : AppThread {
 			layout = VkImageLayout.ColorAttachmentOptimal
 		};
 
-		using VkSubpassDescription subpass = new() {
+		VkSubpassDescription subpass = new() {
 			pipelineBindPoint = VkPipelineBindPoint.Graphics,
 			colorAttachmentCount = 1,
-			pColorAttachments = colorAttachmentRef
+			pColorAttachments = &colorAttachmentRef
 		};
 
-		using VkPipelineLayoutCreateInfo layoutInfo = new() {
+		VkPipelineLayoutCreateInfo layoutInfo = new() {
 			sType = VkStructureType.PipelineLayoutCreateInfo
 		};
 
@@ -336,39 +338,39 @@ class SdlVulkanRenderThread : AppThread {
 			dstAccessMask = VkAccessFlags.ColorAttachmentWrite
 		};
 
-		using VkRenderPassCreateInfo renderPassInfo = new() {
+		VkRenderPassCreateInfo renderPassInfo = new() {
 			sType = VkStructureType.RenderPassCreateInfo,
 			attachmentCount = 1,
-			pAttachments = colorAttachment,
+			pAttachments = &colorAttachment,
 			subpassCount = 1,
-			pSubpasses = subpass,
+			pSubpasses = &subpass,
 			dependencyCount = 1,
-			pDependencies = dependency
+			pDependencies = &dependency
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateRenderPass( device, renderPassInfo, 0, out renderPass ) );
-		VulkanExtensions.Validate( Vk.vkCreatePipelineLayout( device, layoutInfo, 0, out pipelineLayout ) );
+		VulkanExtensions.Validate( Vk.vkCreateRenderPass( device, &renderPassInfo, vulkan.Allocator, out renderPass ) );
+		VulkanExtensions.Validate( Vk.vkCreatePipelineLayout( device, &layoutInfo, vulkan.Allocator, out pipelineLayout ) );
 
-		using VkGraphicsPipelineCreateInfo pipelineInfo = new() {
+		VkGraphicsPipelineCreateInfo pipelineInfo = new() {
 			sType = VkStructureType.GraphicsPipelineCreateInfo,
 			stageCount = 2,
-			pStages = stages,
-			pVertexInputState = vertexFormat,
-			pInputAssemblyState = inputInfo,
-			pViewportState = viewportInfo,
-			pRasterizationState = rasterInfo,
-			pMultisampleState = multisampleInfo,
-			pColorBlendState = blendInfo,
-			pDynamicState = dynamicStateInfo,
+			pStages = stages.Data(),
+			pVertexInputState = &vertexFormat,
+			pInputAssemblyState = &inputInfo,
+			pViewportState = &viewportInfo,
+			pRasterizationState = &rasterInfo,
+			pMultisampleState = &multisampleInfo,
+			pColorBlendState = &blendInfo,
+			pDynamicState = &dynamicStateInfo,
 			layout = pipelineLayout,
 			renderPass = renderPass,
 			subpass = 0
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateGraphicsPipelines( device, 0, 1, pipelineInfo, 0, out pipeline ) );
+		VulkanExtensions.Validate( Vk.vkCreateGraphicsPipelines( device, 0, 1, &pipelineInfo, vulkan.Allocator, out pipeline ) );
 
-		Vk.vkDestroyShaderModule( device, vsModule, 0 );
-		Vk.vkDestroyShaderModule( device, fsModule, 0 );
+		Vk.vkDestroyShaderModule( device, vsModule, vulkan.Allocator );
+		Vk.vkDestroyShaderModule( device, fsModule, vulkan.Allocator );
 	}
 
 	VkSurfaceKHR createSurface () {
@@ -388,15 +390,14 @@ class SdlVulkanRenderThread : AppThread {
 		};
 	}
 
-	VkShaderModule createShader ( ReadOnlySpan<byte> spirv ) {
-		var data = MemoryMarshal.Cast<byte, uint>( spirv ).ToArray(); // NOTE: yuck - can we change the bindings to just let us use pointers?
-		using VkShaderModuleCreateInfo info = new() {
+	VkShaderModule createShader ( Span<byte> spirv ) {
+		VkShaderModuleCreateInfo info = new() {
 			sType = VkStructureType.ShaderModuleCreateInfo,
 			codeSize = (uint)spirv.Length,
-			pCode = data
+			pCode = (uint*)Unsafe.AsPointer( ref MemoryMarshal.AsRef<uint>( spirv ) )
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateShaderModule( device, info, 0, out var shader ) );
+		VulkanExtensions.Validate( Vk.vkCreateShaderModule( device, &info, vulkan.Allocator, out var shader ) );
 		return shader;
 	}
 
@@ -404,48 +405,57 @@ class SdlVulkanRenderThread : AppThread {
 	VkSemaphore renderFinishedSemaphore;
 	VkFence inFlightFence;
 	protected override void Loop () {
-		Vk.vkAcquireNextImageKHR( device, swapchain, ulong.MaxValue, imageAvailableSemaphore, VkFence.Null, out var index );
+		VkSemaphore imageAvailableSemaphore = this.imageAvailableSemaphore;
+		VkSemaphore renderFinishedSemaphore = this.renderFinishedSemaphore;
+		VkFence inFlightFence = this.inFlightFence;
+		VkCommandBuffer commandBuffer = this.commandBuffer;
+		VkSwapchainKHR swapchain = this.swapchain;
+
+		uint index = 0;
+		Vk.vkAcquireNextImageKHR( device, swapchain, ulong.MaxValue, imageAvailableSemaphore, VkFence.Null, ref index );
 		Vk.vkResetCommandBuffer( commandBuffer, 0 );
 		record( commandBuffer, index );
 
-		using VkSubmitInfo submitInfo = new() { 
+		VkPipelineStageFlags flags = VkPipelineStageFlags.ColorAttachmentOutput;
+		VkSubmitInfo submitInfo = new() { 
 			sType = VkStructureType.SubmitInfo,
 			waitSemaphoreCount = 1,
-			pWaitSemaphores = imageAvailableSemaphore,
-			pWaitDstStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
+			pWaitSemaphores = &imageAvailableSemaphore,
+			pWaitDstStageMask = &flags,
 			commandBufferCount = 1,
-			pCommandBuffers = commandBuffer,
+			pCommandBuffers = &commandBuffer,
 			signalSemaphoreCount = 1,
-			pSignalSemaphores = renderFinishedSemaphore
+			pSignalSemaphores = &renderFinishedSemaphore
 		};
 
-		VulkanExtensions.Validate( Vk.vkQueueSubmit( graphicsQueue, 1, submitInfo, inFlightFence ) );
+		VulkanExtensions.Validate( Vk.vkQueueSubmit( graphicsQueue, 1, &submitInfo, inFlightFence ) );
 
-		using VkPresentInfoKHR presentInfo = new() {
+		VkPresentInfoKHR presentInfo = new() {
 			sType = VkStructureType.PresentInfoKHR,
 			waitSemaphoreCount = 1,
-			pWaitSemaphores = renderFinishedSemaphore,
+			pWaitSemaphores = &renderFinishedSemaphore,
 			swapchainCount = 1,
-			pSwapchains = swapchain,
-			pImageIndices = index
+			pSwapchains = &swapchain,
+			pImageIndices = &index
 		};
 
-		Vk.vkQueuePresentKHR( presentQueue, presentInfo );
+		Vk.vkQueuePresentKHR( presentQueue, &presentInfo );
 
-		Vk.vkWaitForFences( device, 1, inFlightFence, true, ulong.MaxValue );
-		Vk.vkResetFences( device, 1, inFlightFence );
+		Vk.vkWaitForFences( device, 1, &inFlightFence, true, ulong.MaxValue );
+		Vk.vkResetFences( device, 1, &inFlightFence );
 
 		Sleep( 1 );
 	}
 
 	void record ( VkCommandBuffer buffer, uint imageIndex ) {
-		using VkCommandBufferBeginInfo info = new() {
+		VkCommandBufferBeginInfo info = new() {
 			sType = VkStructureType.CommandBufferBeginInfo
 		};
 
-		VulkanExtensions.Validate( Vk.vkBeginCommandBuffer( buffer, info ) );
+		VulkanExtensions.Validate( Vk.vkBeginCommandBuffer( buffer, &info ) );
 
-		using VkRenderPassBeginInfo beginInfo = new() {
+		VkClearValue clearValue = this.clearValue;
+		VkRenderPassBeginInfo beginInfo = new() {
 			sType = VkStructureType.RenderPassBeginInfo,
 			renderPass = renderPass,
 			framebuffer = framebuffers[imageIndex],
@@ -454,10 +464,10 @@ class SdlVulkanRenderThread : AppThread {
 				extent = swapchainSize
 			},
 			clearValueCount = 1,
-			pClearValues = clearValue
+			pClearValues = &clearValue
 		};
 
-		Vk.vkCmdBeginRenderPass( buffer, beginInfo, VkSubpassContents.Inline );
+		Vk.vkCmdBeginRenderPass( buffer, &beginInfo, VkSubpassContents.Inline );
 		Vk.vkCmdBindPipeline( buffer, VkPipelineBindPoint.Graphics, pipeline );
 
 		VkViewport viewport = new() {
@@ -474,8 +484,8 @@ class SdlVulkanRenderThread : AppThread {
 			extent = swapchainSize
 		};
 
-		Vk.vkCmdSetViewport( buffer, 0, 1, viewport );
-		Vk.vkCmdSetScissor( buffer, 0, 1, scissor );
+		Vk.vkCmdSetViewport( buffer, 0, 1, &viewport );
+		Vk.vkCmdSetScissor( buffer, 0, 1, &scissor );
 
 		Vk.vkCmdDraw( buffer, 3, 1, 0, 0 );
 		Vk.vkCmdEndRenderPass( buffer );
@@ -484,20 +494,20 @@ class SdlVulkanRenderThread : AppThread {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		Vk.vkDestroySemaphore( device, imageAvailableSemaphore, 0 );
-		Vk.vkDestroySemaphore( device, renderFinishedSemaphore, 0 );
-		Vk.vkDestroyFence( device, inFlightFence, 0 );
-		Vk.vkDestroyCommandPool( device, commnadPool, 0 );
+		Vk.vkDestroySemaphore( device, imageAvailableSemaphore, vulkan.Allocator );
+		Vk.vkDestroySemaphore( device, renderFinishedSemaphore, vulkan.Allocator );
+		Vk.vkDestroyFence( device, inFlightFence, vulkan.Allocator );
+		Vk.vkDestroyCommandPool( device, commnadPool, vulkan.Allocator );
 		foreach ( var i in framebuffers )
-			Vk.vkDestroyFramebuffer( device, i, 0 );
-		Vk.vkDestroyPipeline( device, pipeline, 0 );
-		Vk.vkDestroyPipelineLayout( device, pipelineLayout, 0 );
-		Vk.vkDestroyRenderPass( device, renderPass, 0 );
+			Vk.vkDestroyFramebuffer( device, i, vulkan.Allocator );
+		Vk.vkDestroyPipeline( device, pipeline, vulkan.Allocator );
+		Vk.vkDestroyPipelineLayout( device, pipelineLayout, vulkan.Allocator );
+		Vk.vkDestroyRenderPass( device, renderPass, vulkan.Allocator );
 		foreach ( var i in imageViews )
-			Vk.vkDestroyImageView( device, i, 0 );
-		Vk.vkDestroySwapchainKHR( device, swapchain, 0 );
-		Vk.vkDestroyDevice( device, 0 );
-		Vk.vkDestroySurfaceKHR( vulkan.Instance, surface, 0 );
+			Vk.vkDestroyImageView( device, i, vulkan.Allocator );
+		Vk.vkDestroySwapchainKHR( device, swapchain, vulkan.Allocator );
+		Vk.vkDestroyDevice( device, vulkan.Allocator );
+		Vk.vkDestroySurfaceKHR( vulkan.Instance, surface, vulkan.Allocator );
 		vulkan.Dispose();
 	}
 }

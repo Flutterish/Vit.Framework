@@ -19,11 +19,11 @@ public class Program : App {
 		a.Title = "Window A [Vulkan]";
 		var b = host.CreateWindow( RenderingApi.OpenGl, this );
 		b.Title = "Window B [OpenGL]";
-		//var c = host.CreateWindow( RenderingApi.OpenGl, this );
-		//c.Title = "Window C";
+		var c = host.CreateWindow( RenderingApi.Vulkan, this );
+		c.Title = "Window C [Vulkan]";
 
 		Task.Run( async () => {
-			while ( !a.IsClosed || !b.IsClosed /*|| !c.IsClosed*/ )
+			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )
 				await Task.Delay( 1 );
 
 			Quit();

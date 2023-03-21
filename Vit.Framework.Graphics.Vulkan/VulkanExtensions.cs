@@ -1,97 +1,80 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using Vit.Framework.Allocation;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
 public static class VulkanExtensions {
-	public static class Out<TOut> {
-		public delegate K ParamUCounter<K, P> ( P param, out uint count, TOut[]? values );
-		public delegate K HandleParamUCounter<K, P> ( P param, out uint count, nint values );
-		public delegate void HandleParamUCounter<P> ( P param, out uint count, nint values );
-		public delegate K Handle2ParamUCounter<K, P, P2> ( P param1, P2 param2, out uint count, nint values );
-		public delegate K HandleUCounter<K> ( out uint count, nint values );
+	public static unsafe class Out<T> where T : unmanaged {
+		public delegate VkResult PtrParamResultEnumerator<P> ( P* param, ref uint count, T* array ) where P : unmanaged;
+		public static unsafe T[] Enumerate<P> ( P* param, PtrParamResultEnumerator<P> enumerator ) where P : unmanaged {
+			uint count = 0;
+			Validate( enumerator( param, ref count, (T*)0 ) );
+			T[] array = new T[count];
+			Validate( enumerator( param, ref count, array.Data() ) );
+			return array;
+		}
 
-		public static TOut[] Enumerate<K, P> ( P param, ParamUCounter<K, P> counter ) {
-			counter( param, out var count, null );
-			TOut[] values = new TOut[count];
-			counter( param, out count, values );
-			return values;
+		public delegate VkResult ParamResultEnumerator<P> ( P param, ref uint count, T* array );
+		public static T[] Enumerate<P> ( P param, ParamResultEnumerator<P> enumerator ) {
+			uint count = 0;
+			Validate( enumerator( param, ref count, (T*)0 ) );
+			T[] array = new T[count];
+			Validate( enumerator( param, ref count, array.Data() ) );
+			return array;
 		}
-		public static TOut[] Enumerate<K, P> ( P param, HandleParamUCounter<K, P> counter ) {
-			counter( param, out var count, 0 );
-			TOut[] values = new TOut[count];
-			using ( var hanle = new PinnedHandle( values ) )
-				counter( param, out count, hanle );
-			return values;
-		}
-		public static TOut[] Enumerate<K, P, P2> ( P param1, P2 param2, Handle2ParamUCounter<K, P, P2> counter ) {
-			counter( param1, param2, out var count, 0 );
-			TOut[] values = new TOut[count];
-			using ( var hanle = new PinnedHandle( values ) )
-				counter( param1, param2, out count, hanle );
-			return values;
-		}
-		public static TOut[] Enumerate<P> ( P param, HandleParamUCounter<P> counter ) {
-			counter( param, out var count, 0 );
-			TOut[] values = new TOut[count];
-			using ( var hanle = new PinnedHandle( values ) )
-				counter( param, out count, hanle );
-			return values;
-		}
-		public static TOut[] Enumerate<K> ( HandleUCounter<K> counter ) {
-			counter( out var count, 0 );
-			TOut[] values = new TOut[count];
-			using ( var hanle = new PinnedHandle( values ) )
-				counter( out count, hanle );
-			return values;
-		}
-	}
 
-	public static string GetString ( this nint ptr ) {
-		return Marshal.PtrToStringUTF8( ptr ) ?? string.Empty;
-	}
-	public static string GetString ( this ExtensionName_char_proxy value ) {
-		var str = value.ToString();
-		return str.Substring( 0, str.IndexOf( '\0' ) );
-	}
-	public static string GetString ( this Description_char_proxy value ) {
-		var str = value.ToString();
-		return str.Substring( 0, str.IndexOf( '\0' ) );
-	}
-	public static string GetString ( this PhysicalDeviceName_char_proxy value ) {
-		var str = value.ToString();
-		return str.Substring( 0, str.IndexOf( '\0' ) );
+		public delegate void VoidParamResultEnumerator<P> ( P param, ref uint count, T* array );
+		public static T[] Enumerate<P> ( P param, VoidParamResultEnumerator<P> enumerator ) {
+			uint count = 0;
+			enumerator( param, ref count, (T*)0 );
+			T[] array = new T[count];
+			enumerator( param, ref count, array.Data() );
+			return array;
+		}
+
+		public delegate VkResult ResultEnumerator ( ref uint count, T* array );
+		public static unsafe T[] Enumerate ( ResultEnumerator enumerator ) {
+			uint count = 0;
+			Validate( enumerator( ref count, (T*)0 ) );
+			T[] array = new T[count];
+			Validate( enumerator( ref count, array.Data() ) );
+			return array;
+		}
+
+		public delegate VkResult ParamPtrParamResultEnumerator<P, P2> ( P param, P2* param2, ref uint count, T* array ) where P2 : unmanaged;
+		public static unsafe T[] Enumerate<P, P2> ( P param, P2* param2, ParamPtrParamResultEnumerator<P, P2> enumerator ) where P2 : unmanaged {
+			uint count = 0;
+			Validate( enumerator( param, param2, ref count, (T*)0 ) );
+			T[] array = new T[count];
+			Validate( enumerator( param, param2, ref count, array.Data() ) );
+			return array;
+		}
+
+		public delegate VkResult ParamParamResultEnumerator<P, P2> ( P param, P2 param2, ref uint count, T* array );
+		public static unsafe T[] Enumerate<P, P2> ( P param, P2 param2, ParamParamResultEnumerator<P, P2> enumerator ) {
+			uint count = 0;
+			Validate( enumerator( param, param2, ref count, (T*)0 ) );
+			T[] array = new T[count];
+			Validate( enumerator( param, param2, ref count, array.Data() ) );
+			return array;
+		}
 	}
 
-	public static DisposeAction<GCHandle[]> CreatePointerArray<T> ( IReadOnlyList<T> list, out nint pointer ) {
-		GCHandle[] handles = new GCHandle[ list.Count + 1 ];
-		nint[] pointers = new nint[list.Count];
-		for ( int i = 0; i < list.Count; i++ ) {
-			if ( list[i] is string str ) {
-				var data = Encoding.UTF8.GetBytes( str + '\0' );
-				handles[i] = GCHandle.Alloc( data, GCHandleType.Pinned );
-				pointers[i] = handles[i].AddrOfPinnedObject();
-			}
-			else {
-				handles[i] = GCHandle.Alloc( list[i], GCHandleType.Pinned );
-				pointers[i] = handles[i].AddrOfPinnedObject();
-			}
-		}
-		handles[^1] = GCHandle.Alloc( pointers, GCHandleType.Pinned );
-		pointer = handles[^1].AddrOfPinnedObject();
-
-		return new( handles, handles => {
-			foreach ( var i in handles ) {
-				i.Free();
-			}
-		} );
+	public static unsafe string GetString ( byte* cstr ) {
+		return Marshal.PtrToStringUTF8( (nint)cstr )!;
 	}
 
 	public static void Validate ( VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
 		if ( result != VkResult.Success )
 			throw new Exception( $"Operation failed: {result} at {expression}" );
+	}
+
+	public unsafe static T* Data<T> ( this T[] array ) where T : unmanaged {
+		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
+	}
+
+	public unsafe static T** Data<T> ( this T*[] array ) where T : unmanaged {
+		return (T**)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
 }
