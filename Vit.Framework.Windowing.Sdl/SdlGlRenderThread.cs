@@ -35,27 +35,36 @@ class SdlGlRenderThread : AppThread {
 		vbo = GL.GenBuffer();
 		GL.BindBuffer( BufferTarget.ArrayBuffer, vbo );
 		GL.BufferData( BufferTarget.ArrayBuffer, 6 * sizeof(float), new float[] {
-			-0.5f, -0.5f,
+			0, 0.5f,
 			0.5f, -0.5f,
-			0, 0.5f
+			-0.5f, -0.5f
 		}, BufferUsageHint.StaticDraw );
 
 		shader = GL.CreateProgram();
 		var vs = GL.CreateShader( ShaderType.VertexShader );
 		GL.ShaderSource( vs, @"#version 330 core
 			layout (location = 0) in vec2 pos;
+			out vec3 fc;
+
+			vec3 colors[3] = vec3[](
+				vec3(1.0, 0.0, 0.0),
+				vec3(0.0, 1.0, 0.0),
+				vec3(0.0, 0.0, 1.0)
+			);
 
 			void main () {
 				gl_Position = vec4(pos, 0, 1);
+				fc = colors[gl_VertexID];
 			}
 		" );
 		var fs = GL.CreateShader( ShaderType.FragmentShader );
 		GL.ShaderSource( fs, @"#version 330 core
 			out vec4 FragColor;
+			in vec3 fc;
 
 			void main()
 			{
-				FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+				FragColor = vec4(fc, 1.0f);
 			}
 		" );
 

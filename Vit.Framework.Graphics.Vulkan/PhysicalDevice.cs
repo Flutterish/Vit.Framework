@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
@@ -33,8 +34,7 @@ public unsafe class PhysicalDevice {
 	}
 
 	string extensionNameToString ( VkExtensionProperties props ) {
-		var str = Marshal.PtrToStringUTF8( (nint)(&props) );
-		return str;
+		return Marshal.PtrToStringUTF8( (nint)(&props) )!;
 	}
 
 	public bool QueueSupportsSurface ( VkSurfaceKHR surface, uint index ) {

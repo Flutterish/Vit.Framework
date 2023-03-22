@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Vit.Framework.Graphics.Vulkan;
+namespace Vit.Framework.Interop;
 
 public unsafe struct CString {
 	byte* ptr;

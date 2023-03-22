@@ -1,4 +1,5 @@
-﻿using Vulkan;
+﻿using Vit.Framework.Interop;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
@@ -7,23 +8,24 @@ public unsafe class VulkanInstance : IDisposable {
 	public VkAllocationCallbacks* Allocator => (VkAllocationCallbacks*)0;
 
 	public delegate bool ExtensionSelector ( string[] available, out CString[] selected );
-	public unsafe VulkanInstance ( ExtensionSelector extensionSelector, ExtensionSelector layerSelector ) {
+
+	public static string[] GetAvailableExtensions () {
+		return VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)0, Vk.vkEnumerateInstanceExtensionProperties )
+			.Select( x => InteropExtensions.GetString( x.extensionName ) ).ToArray();
+	}
+
+	public static string[] GetAvailableLayers () {
+		return VulkanExtensions.Out<VkLayerProperties>.Enumerate( Vk.vkEnumerateInstanceLayerProperties )
+			.Select( x => InteropExtensions.GetString( x.layerName ) ).ToArray();
+	}
+
+	public unsafe VulkanInstance ( CString[] extensions, CString[] layers ) {
 		VkApplicationInfo appinfo = new() {
 			sType = VkStructureType.ApplicationInfo,
 			apiVersion = new Version( 1, 3, 0 ),
 			applicationVersion = new Version( 1, 2, 0 ),
 			engineVersion = new Version( 1, 2, 0 )
 		};
-
-		var availableExtensions = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)0, Vk.vkEnumerateInstanceExtensionProperties )
-			.Select( x => VulkanExtensions.GetString( x.extensionName ) ).ToArray();
-		if ( !extensionSelector( availableExtensions, out var extensions ) )
-			throw new InvalidOperationException( "Available vulkan extensions are not acceptable" );
-
-		var availableLayers = VulkanExtensions.Out<VkLayerProperties>.Enumerate( Vk.vkEnumerateInstanceLayerProperties )
-			.Select( x => VulkanExtensions.GetString( x.layerName ) ).ToArray();
-		if ( !layerSelector( availableLayers, out var layers ) )
-			throw new InvalidOperationException( "Available vulkan layers are not acceptable" );
 
 		var extensionPtrs = extensions.MakeArray();
 		var layerPtrs = layers.MakeArray();
@@ -37,11 +39,56 @@ public unsafe class VulkanInstance : IDisposable {
 		};
 
 		VulkanExtensions.Validate( Vk.vkCreateInstance( &createInfo, Allocator, out Instance ) );
-		//Vk.LoadInstanceFunctionPointers( Instance );
 	}
 
 	public PhysicalDevice[] GetAllPhysicalDevices () {
 		return VulkanExtensions.Out<VkPhysicalDevice>.Enumerate( Instance, Vk.vkEnumeratePhysicalDevices ).Select( x => new PhysicalDevice( this, x ) ).ToArray();
+	}
+
+	static string[] requiredDeviceExtensions = { "VK_KHR_swapchain" };
+	public SurfaceParams GetBestParamsForSurface ( VkSurfaceKHR surface ) {
+		var (physicalDevice, swapchain) = GetAllPhysicalDevices().Where( x => {
+			return !requiredDeviceExtensions.Except( x.Extensions ).Any()
+				&& x.QueuesByCapabilities.ContainsKey( VkQueueFlags.Graphics )
+				&& x.QueueIndices.Any( i => x.QueueSupportsSurface( surface, i ) );
+		} ).Select( x => (device: x, swapchain: x.GetSwapChainDetails( surface )) ).Where( x => {
+			return x.swapchain.Formats.Any() && x.swapchain.PresentModes.Any();
+		} ).OrderBy( x => x.device.Properties.deviceType switch {
+			VkPhysicalDeviceType.DiscreteGpu => 1,
+			VkPhysicalDeviceType.IntegratedGpu => 2,
+			_ => 3
+		} ).First();
+
+		var format = swapchain.Formats.OrderBy( x => x switch { { format: VkFormat.B8g8r8a8Srgb, colorSpace: VkColorSpaceKHR.SrgbNonlinearKHR } => 1,
+			_ => 2
+		} ).First();
+		var presentMode = swapchain.PresentModes.OrderBy( x => x switch {
+			VkPresentModeKHR.MailboxKHR => 1,
+			VkPresentModeKHR.FifoKHR => 9,
+			VkPresentModeKHR.FifoRelaxedKHR => 10,
+			VkPresentModeKHR.ImmediateKHR or _ => 11
+		} ).First();
+
+		uint imageCount = Math.Min(
+			swapchain.Capabilities.minImageCount + 1,
+			swapchain.Capabilities.maxImageCount == 0 ? uint.MaxValue : swapchain.Capabilities.maxImageCount
+		);
+
+		return new() {
+			Device = physicalDevice,
+			Swapchain = swapchain,
+			Format = format,
+			PresentMode = presentMode,
+			OptimalImageCount = imageCount
+		};
+	}
+
+	public struct SurfaceParams {
+		public PhysicalDevice Device;
+		public PhysicalDevice.SwapchainDetails Swapchain;
+		public VkSurfaceFormatKHR Format;
+		public VkPresentModeKHR PresentMode;
+		public uint OptimalImageCount;
 	}
 
 	private bool isDisposed;

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Vit.Framework.Allocation;
+namespace Vit.Framework.Interop;
 
 public readonly ref struct PinnedHandle {
 	readonly GCHandle handle;

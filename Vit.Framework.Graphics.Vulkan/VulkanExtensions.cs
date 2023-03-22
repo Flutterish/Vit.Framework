@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
@@ -61,20 +61,8 @@ public static class VulkanExtensions {
 		}
 	}
 
-	public static unsafe string GetString ( byte* cstr ) {
-		return Marshal.PtrToStringUTF8( (nint)cstr )!;
-	}
-
 	public static void Validate ( VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
 		if ( result != VkResult.Success )
 			throw new Exception( $"Operation failed: {result} at {expression}" );
-	}
-
-	public unsafe static T* Data<T> ( this T[] array ) where T : unmanaged {
-		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
-	}
-
-	public unsafe static T** Data<T> ( this T*[] array ) where T : unmanaged {
-		return (T**)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
 }
