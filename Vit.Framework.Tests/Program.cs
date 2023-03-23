@@ -19,8 +19,8 @@ public class Program : App {
 		a.Title = "Window A [Vulkan]";
 		var b = host.CreateWindow( RenderingApi.OpenGl, this );
 		b.Title = "Window B [OpenGL]";
-		var c = host.CreateWindow( RenderingApi.Vulkan, this );
-		c.Title = "Window C [Vulkan]";
+		var c = host.CreateWindow( RenderingApi.Direct3D11, this );
+		c.Title = "Window C [DX11]";
 
 		Task.Run( async () => {
 			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )

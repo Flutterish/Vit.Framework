@@ -15,6 +15,10 @@ public static class InteropExtensions {
 		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
 
+	public unsafe static nint DataPtr<T> ( this T[] array ) where T : unmanaged {
+		return (nint)(T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
+	}
+
 	public unsafe static T** Data<T> ( this T*[] array ) where T : unmanaged {
 		return (T**)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}

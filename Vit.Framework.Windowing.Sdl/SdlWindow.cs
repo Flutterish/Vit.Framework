@@ -52,6 +52,9 @@ class SdlWindow : Window {
 		else if ( renderingApi == RenderingApi.Vulkan ) {
 			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
 		}
+		else if ( renderingApi == RenderingApi.Direct3D11 ) {
+			
+		}
 		else {
 			throw new InvalidOperationException( $"Unsupported rendering api: {renderingApi}" );
 		}
@@ -67,8 +70,11 @@ class SdlWindow : Window {
 		if ( renderingApi == RenderingApi.OpenGl ) {
 			RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id}) [OpenGL]" ) );
 		}
-		else {
+		else if( renderingApi == RenderingApi.Vulkan )  {
 			RegisterThread( renderThread = new SdlVulkanRenderThread( this, $"Render Thread (Window {Id}) [Vulkan]" ) );
+		}
+		else {
+			RegisterThread( renderThread = new SdlDirect3D11RenderThread( this, $"Render Thread (Window {Id}) [DX11]" ) );
 		}
 	}
 

@@ -118,7 +118,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 
 	public bool IsBeingDisposed { get; private set; }
 	public bool IsDisposed { get; private set; }
-	protected virtual void Dispose ( bool disposing ) { } // TODO this should dispose on its own thread
+	protected virtual void Dispose ( bool disposing ) { }
 
 	public void Dispose () {
 		if ( IsBeingDisposed )

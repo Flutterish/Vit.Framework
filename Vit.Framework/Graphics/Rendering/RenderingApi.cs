@@ -2,5 +2,6 @@
 
 public enum RenderingApi {
 	OpenGl,
-	Vulkan
+	Vulkan,
+	Direct3D11
 }
