@@ -80,7 +80,7 @@ public class SdlHost : Host {
 		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
-		var window = new SdlWindow( this, renderingApi );
+		var window = new SdlWindow( this, renderingApi == RenderingApi.Auto ? RenderingApi.OpenGl : renderingApi );
 		scheduledActions.Enqueue( () => {
 			window.Init();
 			windowsById[window.Id] = window;

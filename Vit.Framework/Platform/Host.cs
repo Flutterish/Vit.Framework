@@ -14,7 +14,7 @@ public abstract class Host : IDisposable {
 		window.ThreadCreated += app.ThreadRunner.RegisterThread;
 		return window;
 	}
-	public abstract Window CreateWindow ( RenderingApi renderingApi );
+	public abstract Window CreateWindow ( RenderingApi renderingApi = RenderingApi.Auto );
 
 	public abstract IEnumerable<RenderingApi> SupportedRenderingApis { get; }
 
