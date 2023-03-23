@@ -3,5 +3,6 @@
 public enum RenderingApi {
 	OpenGl,
 	Vulkan,
-	Direct3D11
+	Direct3D11,
+	Curses
 }
