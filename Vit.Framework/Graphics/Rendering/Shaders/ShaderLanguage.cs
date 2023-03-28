@@ -1,5 +1,6 @@
 ﻿namespace Vit.Framework.Graphics.Rendering.Shaders;
 
-public interface INativeShader {
-
+public enum ShaderLanguage {
+	GLSL,
+	HLSL
 }

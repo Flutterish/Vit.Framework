@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Interop;
@@ -19,11 +20,21 @@ public static class InteropExtensions {
 		return (nint)(T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
 
+	public unsafe static T* Data<T> ( this ImmutableArray<T> array ) where T : unmanaged {
+		fixed ( T* ptr = array.AsSpan() ) {
+			return ptr;
+		}
+	}
+
+	public unsafe static T* Data<T> ( this Span<T> span ) where T : unmanaged {
+		return (T*)Unsafe.AsPointer( ref MemoryMarshal.AsRef<T>( MemoryMarshal.Cast<T, byte>( span ) ) );
+	}
+
 	public unsafe static T** Data<T> ( this T*[] array ) where T : unmanaged {
 		return (T**)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
 
 	public unsafe static T* Data<T> ( this List<T> list ) where T : unmanaged {
-		return (T*)Unsafe.AsPointer( ref MemoryMarshal.AsRef<T>( MemoryMarshal.Cast<T, byte>( CollectionsMarshal.AsSpan( list ) ) ) );
+		return CollectionsMarshal.AsSpan( list ).Data();
 	}
 }

@@ -42,7 +42,7 @@ public unsafe class PhysicalDevice {
 		return supported;
 	}
 
-	public VkDevice CreateLogicalDevice ( CString[] extensions, uint[] queues ) {
+	public Device CreateLogicalDevice ( CString[] extensions, uint[] queues ) {
 		var unique = queues.Distinct();
 		var priorities = 1f;
 		var prioritiesPtr = &priorities;
@@ -68,7 +68,7 @@ public unsafe class PhysicalDevice {
 		};
 
 		VulkanExtensions.Validate( Vk.vkCreateDevice( Source, &info, instance.Allocator, out var device ) );
-		return device;
+		return new( device );
 	}
 
 	public SwapchainDetails GetSwapChainDetails ( VkSurfaceKHR surface ) {

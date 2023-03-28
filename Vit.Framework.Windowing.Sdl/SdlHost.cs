@@ -1,6 +1,9 @@
 ﻿using SDL2;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Interop;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 
@@ -80,12 +83,53 @@ public class SdlHost : Host {
 		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
-		var window = new SdlWindow( this, renderingApi == RenderingApi.Auto ? RenderingApi.OpenGl : renderingApi );
+		SdlWindow window = renderingApi switch {
+			RenderingApi.Vulkan => new VulkanWindow( this ),
+			//RenderingApi.Direct3D11 => new Direct3D11Window( this ),
+			//RenderingApi.OpenGl => new GlWindow( this ),
+			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
+		};
 		scheduledActions.Enqueue( () => {
 			window.Init();
 			windowsById[window.Id] = window;
 		} );
 		return window;
+	}
+
+	public override Renderer CreateRenderer ( RenderingApi api, IEnumerable<RenderingCapabilities> capabilities, CreateRendererParams @params ) => api switch {
+		//RenderingApi.OpenGl => new OpenGlRenderer( capabilities ),
+		RenderingApi.Vulkan => createVulkanRenderer( capabilities, @params ),
+		//RenderingApi.Direct3D11 => new Direct3D11Renderer( capabilities ),
+		_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof(api) )
+	};
+
+	VulkanRenderer createVulkanRenderer ( IEnumerable<RenderingCapabilities> capabilities, CreateRendererParams @params ) {
+		List<CString> layers = new();
+		List<CString> extensions = new();
+
+		if ( Debugger.IsAttached )
+			layers.Add( "VK_LAYER_KHRONOS_validation" );
+
+		foreach ( var i in capabilities ) {
+			switch ( i ) {
+				case RenderingCapabilities.RenderOffscreen:
+					break;
+
+				case RenderingCapabilities.DrawToWindow:
+					if ( @params.Window is not SdlWindow window )
+						throw new ArgumentException( "In order to render to a window, the target window must be specified", nameof(@params) );
+					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
+					nint[] pointers = new nint[count];
+					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );
+					extensions.AddRange( pointers.Select( x => new CString( x ) ) );
+					break;
+
+				default:
+					throw new ArgumentException( $"Capability not supported: {i}", nameof(capabilities) );
+			}
+		}
+
+		return new VulkanRenderer( new VulkanInstance( extensions, layers ), capabilities );
 	}
 
 	public override IEnumerable<RenderingApi> SupportedRenderingApis { get; } = new[] { 

@@ -45,9 +45,9 @@ public unsafe struct CString {
 }
 
 public static unsafe class CStringExtensions {
-	public static byte*[] MakeArray ( this CString[] array ) {
-		var data = new byte*[ array.Length ];
-		for ( int i = 0; i < array.Length; i++ )
+	public static byte*[] MakeArray ( this IReadOnlyList<CString> array ) {
+		var data = new byte*[array.Count];
+		for ( int i = 0; i < array.Count; i++ )
 			data[i] = array[i];
 		return data;
 	}

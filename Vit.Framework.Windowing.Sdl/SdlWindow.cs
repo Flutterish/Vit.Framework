@@ -1,11 +1,10 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Threading;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-class SdlWindow : Window {
+abstract class SdlWindow : Window {
 	string title = "New Window";
 	public override string Title {
 		get => title;
@@ -34,12 +33,11 @@ class SdlWindow : Window {
 	public nint Pointer;
 	public uint Id;
 	RenderingApi renderingApi;
-	public SdlWindow ( SdlHost host, RenderingApi renderingApi ) {
+	public SdlWindow ( SdlHost host, RenderingApi renderingApi ) : base( renderingApi ) {
 		this.renderingApi = renderingApi;
 		this.host = host;
 	}
 
-	AppThread? renderThread;
 	public void Init () {
 		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
 		if ( renderingApi == RenderingApi.OpenGl ) {
@@ -55,10 +53,6 @@ class SdlWindow : Window {
 		else if ( renderingApi == RenderingApi.Direct3D11 ) {
 			
 		}
-		else {
-			throw new InvalidOperationException( $"Unsupported rendering api: {renderingApi}" );
-		}
-		
 
 		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, windowFlags );
 		if ( Pointer == 0 ) {
@@ -66,16 +60,7 @@ class SdlWindow : Window {
 		}
 
 		Id = SDL.SDL_GetWindowID( Pointer );
-
-		if ( renderingApi == RenderingApi.OpenGl ) {
-			RegisterThread( renderThread = new SdlGlRenderThread( this, $"Render Thread (Window {Id}) [OpenGL]" ) );
-		}
-		else if( renderingApi == RenderingApi.Vulkan )  {
-			RegisterThread( renderThread = new SdlVulkanRenderThread( this, $"Render Thread (Window {Id}) [Vulkan]" ) );
-		}
-		else {
-			RegisterThread( renderThread = new SdlDirect3D11RenderThread( this, $"Render Thread (Window {Id}) [DX11]" ) );
-		}
+		OnInitialized();
 	}
 
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
@@ -100,8 +85,8 @@ class SdlWindow : Window {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		renderThread?.DisposeAsync().AsTask().ContinueWith( _ => host.Shedule( () => {
+		host.Shedule( () => {
 			host.destroyWindow( this );
-		} ) );
+		} );
 	}
 }

@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
+  </ItemGroup>
+
 </Project>

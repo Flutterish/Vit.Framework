@@ -62,7 +62,9 @@ public static class VulkanExtensions {
 	}
 
 	public static void Validate ( VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
-		if ( result != VkResult.Success )
+		if ( result < 0 )
 			throw new Exception( $"Operation failed: {result} at {expression}" );
 	}
+
+	public static unsafe VkAllocationCallbacks* TODO_Allocator => (VkAllocationCallbacks*)0;
 }

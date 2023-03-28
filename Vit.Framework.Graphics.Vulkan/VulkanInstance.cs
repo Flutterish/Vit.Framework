@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Interop;
 using Vulkan;
+using static Vit.Framework.Graphics.Vulkan.Queues.Swapchain;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
@@ -7,7 +8,8 @@ public unsafe class VulkanInstance : IDisposable {
 	public readonly VkInstance Instance;
 	public VkAllocationCallbacks* Allocator => (VkAllocationCallbacks*)0;
 
-	public delegate bool ExtensionSelector ( string[] available, out CString[] selected );
+	public string[] Extensions;
+	public string[] Layers;
 
 	public static string[] GetAvailableExtensions () {
 		return VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)0, Vk.vkEnumerateInstanceExtensionProperties )
@@ -19,7 +21,10 @@ public unsafe class VulkanInstance : IDisposable {
 			.Select( x => InteropExtensions.GetString( x.layerName ) ).ToArray();
 	}
 
-	public unsafe VulkanInstance ( CString[] extensions, CString[] layers ) {
+	public unsafe VulkanInstance ( IReadOnlyList<CString> extensions, IReadOnlyList<CString> layers ) {
+		Extensions = extensions.Select( x => x.ToString() ).ToArray();
+		Layers = layers.Select( x => x.ToString() ).ToArray();
+
 		VkApplicationInfo appinfo = new() {
 			sType = VkStructureType.ApplicationInfo,
 			apiVersion = new Version( 1, 3, 0 ),
@@ -32,9 +37,9 @@ public unsafe class VulkanInstance : IDisposable {
 		VkInstanceCreateInfo createInfo = new() {
 			sType = VkStructureType.InstanceCreateInfo,
 			pApplicationInfo = &appinfo,
-			enabledExtensionCount = (uint)extensions.Length,
+			enabledExtensionCount = (uint)extensions.Count,
 			ppEnabledExtensionNames = extensionPtrs.Data(),
-			enabledLayerCount = (uint)layers.Length,
+			enabledLayerCount = (uint)layers.Count,
 			ppEnabledLayerNames = layerPtrs.Data()
 		};
 
@@ -46,7 +51,7 @@ public unsafe class VulkanInstance : IDisposable {
 	}
 
 	static string[] requiredDeviceExtensions = { "VK_KHR_swapchain" };
-	public SurfaceParams GetBestParamsForSurface ( VkSurfaceKHR surface ) {
+	public SwapchainParams GetBestParamsForSurface ( VkSurfaceKHR surface ) {
 		var (physicalDevice, swapchain) = GetAllPhysicalDevices().Where( x => {
 			return !requiredDeviceExtensions.Except( x.Extensions ).Any()
 				&& x.QueuesByCapabilities.ContainsKey( VkQueueFlags.Graphics )
@@ -81,14 +86,6 @@ public unsafe class VulkanInstance : IDisposable {
 			PresentMode = presentMode,
 			OptimalImageCount = imageCount
 		};
-	}
-
-	public struct SurfaceParams {
-		public PhysicalDevice Device;
-		public PhysicalDevice.SwapchainDetails Swapchain;
-		public VkSurfaceFormatKHR Format;
-		public VkPresentModeKHR PresentMode;
-		public uint OptimalImageCount;
 	}
 
 	private bool isDisposed;

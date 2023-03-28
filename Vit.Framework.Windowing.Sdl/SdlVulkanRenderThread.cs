@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Interop;
 using Vit.Framework.Threading;
 using Vortice.ShaderCompiler;
@@ -18,7 +19,7 @@ unsafe class SdlVulkanRenderThread : AppThread {
 
 	VulkanInstance vulkan = null!;
 	VkSurfaceKHR surface;
-	VulkanInstance.SurfaceParams surfaceParams;
+	Swapchain.SwapchainParams surfaceParams;
 	struct Queue {
 		public VkQueue Instance;
 		public uint Index;
@@ -210,20 +211,6 @@ unsafe class SdlVulkanRenderThread : AppThread {
 			pName = (CString)"main"
 		};
 
-		var stages = new VkPipelineShaderStageCreateInfo[] { vertInfo, fragInfo };
-
-		VkPipelineVertexInputStateCreateInfo vertexFormat = new() {
-			sType = VkStructureType.PipelineVertexInputStateCreateInfo,
-			vertexBindingDescriptionCount = 0,
-			vertexAttributeDescriptionCount = 0
-		};
-
-		VkPipelineInputAssemblyStateCreateInfo inputInfo = new() {
-			sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,
-			topology = VkPrimitiveTopology.TriangleList,
-			primitiveRestartEnable = false
-		};
-
 		VkDynamicState[] dynamicState = {
 			VkDynamicState.Viewport,
 			VkDynamicState.Scissor
@@ -318,6 +305,20 @@ unsafe class SdlVulkanRenderThread : AppThread {
 
 		VulkanExtensions.Validate( Vk.vkCreateRenderPass( device, &renderPassInfo, vulkan.Allocator, out renderPass ) );
 		VulkanExtensions.Validate( Vk.vkCreatePipelineLayout( device, &layoutInfo, vulkan.Allocator, out pipelineLayout ) );
+
+		var stages = new VkPipelineShaderStageCreateInfo[] { vertInfo, fragInfo };
+
+		VkPipelineVertexInputStateCreateInfo vertexFormat = new() {
+			sType = VkStructureType.PipelineVertexInputStateCreateInfo,
+			vertexBindingDescriptionCount = 0,
+			vertexAttributeDescriptionCount = 0
+		};
+
+		VkPipelineInputAssemblyStateCreateInfo inputInfo = new() {
+			sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,
+			topology = VkPrimitiveTopology.TriangleList,
+			primitiveRestartEnable = false
+		};
 
 		VkGraphicsPipelineCreateInfo pipelineInfo = new() {
 			sType = VkStructureType.GraphicsPipelineCreateInfo,
