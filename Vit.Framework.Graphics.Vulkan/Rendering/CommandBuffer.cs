@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Vulkan.Textures;
+﻿using Vit.Framework.Graphics.Vulkan.Buffers;
+using Vit.Framework.Graphics.Vulkan.Textures;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
@@ -48,6 +49,12 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 
 	public void Bind ( Pipeline pipeline ) {
 		Vk.vkCmdBindPipeline( this, VkPipelineBindPoint.Graphics, pipeline );
+	}
+
+	public unsafe void Bind<T> ( VertexBuffer<T> buffer ) where T : unmanaged {
+		VkBuffer vkbuffer = buffer.Handle;
+		ulong offset = 0;
+		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
 	}
 
 	public unsafe void SetViewPort ( VkViewport viewport ) {

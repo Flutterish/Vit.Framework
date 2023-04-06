@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
@@ -80,6 +81,7 @@ public class Program : App {
 		RenderPass renderPass = null!;
 		Pipeline pipeline = null!;
 		CommandPool commandPool = null!;
+		VertexBuffer<float> buffer = null!;
 		VkClearColorValue bg;
 		protected override void Initialize () {
 			var surface = ( (IVulkanWindow)window ).GetSurface( vulkan );
@@ -93,27 +95,20 @@ public class Program : App {
 			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
 
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
-				vec2 positions[3] = vec2[](
-					vec2(0.0, -0.5),
-					vec2(0.5, 0.5),
-					vec2(-0.5, 0.5)
-				);
+				layout(location = 0) in vec2 inPosition;
+				layout(location = 1) in vec3 inColor;
 
 				layout(location = 0) out vec3 fragColor;
-				vec3 colors[3] = vec3[](
-					vec3(1.0, 0.0, 0.0),
-					vec3(0.0, 1.0, 0.0),
-					vec3(0.0, 0.0, 1.0)
-				);
 
 				void main() {
-					gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-					fragColor = colors[gl_VertexIndex];
+					gl_Position = vec4(inPosition, 0.0, 1.0);
+					fragColor = inColor;
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 
 			fragment = device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 fragColor;
+
 				layout(location = 0) out vec4 outColor;
 
 				void main() {
@@ -138,6 +133,13 @@ public class Program : App {
 
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
+
+			buffer = new( device );
+			buffer.Allocate( new float[] {
+				 0,   -0.5f, 1, 0, 0,
+				 0.5f, 0.5f, 0, 1, 0,
+				-0.5f, 0.5f, 0, 0, 1
+			} );
 		}
 
 		FrameInfo[] frameInfos = Array.Empty<FrameInfo>();
@@ -187,6 +189,7 @@ public class Program : App {
 			commands.SetScissor( new() {
 				extent = frame.Size
 			} );
+			commands.Bind( buffer );
 			commands.Draw( 3 );
 			commands.FinishRenderPass();
 			commands.Finish();
@@ -228,6 +231,7 @@ public class Program : App {
 			fragment.Dispose();
 			vertex.Dispose();
 			swapchain.Dispose();
+			buffer.Dispose();
 			device.Dispose();
 			renderer.Dispose();
 		}

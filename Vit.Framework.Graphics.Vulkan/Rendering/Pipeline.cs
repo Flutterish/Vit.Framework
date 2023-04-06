@@ -21,6 +21,29 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		};
 
 		var vert = shaders.First( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ).GetVertexInfo();
+		var vertexBinding = new VkVertexInputBindingDescription() {
+			binding = 0,
+			stride = sizeof( float ) * 5,
+			inputRate = VkVertexInputRate.Vertex
+		};
+		var vertexAttributes = new VkVertexInputAttributeDescription[] {
+			new() {
+				binding = 0,
+				location = 0,
+				format = VkFormat.R32g32Sfloat,
+				offset = 0
+			},
+			new() {
+				binding = 0,
+				location = 1,
+				format = VkFormat.R32g32b32Sfloat,
+				offset = sizeof(float) * 2
+			}
+		};
+		vert.vertexBindingDescriptionCount = 1;
+		vert.vertexAttributeDescriptionCount = (uint)vertexAttributes.Length;
+		vert.pVertexBindingDescriptions = &vertexBinding;
+		vert.pVertexAttributeDescriptions = vertexAttributes.Data();
 
 		var assembly = new VkPipelineInputAssemblyStateCreateInfo() {
 			sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,

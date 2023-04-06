@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Vulkan.Queues;
+﻿using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Interop;
 using Vulkan;
 
@@ -71,5 +72,20 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 	public unsafe (string name, string description)[] GetSupportedLayers () {
 		var props = VulkanExtensions.Out<VkLayerProperties>.Enumerate( Instance, Vk.vkEnumerateDeviceLayerProperties );
 		return props.Select( x => (x.GetName(), x.GetDescription()) ).ToArray();
+	}
+
+	public uint FindMemoryType ( uint filter, VkMemoryPropertyFlags properties ) {
+		Vk.vkGetPhysicalDeviceMemoryProperties( this, out var memoryProperties );
+
+		var types = MemoryMarshal.CreateSpan( ref memoryProperties.memoryTypes_0, 32 );
+		var heaps = MemoryMarshal.CreateSpan( ref memoryProperties.memoryHeaps_0, 16 );
+
+		for ( int i = 0; i < memoryProperties.memoryTypeCount; i++ ) {
+			if ( ( filter & ( 1 << i ) ) != 0 && ( types[i].propertyFlags & properties ) == properties ) {
+				return (uint)i;
+			}
+		}
+
+		throw new Exception( "idk no memory" );
 	}
 }
