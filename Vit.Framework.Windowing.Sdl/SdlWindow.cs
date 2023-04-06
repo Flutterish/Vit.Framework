@@ -25,7 +25,10 @@ abstract class SdlWindow : Window {
 			if ( Pointer == 0 )
 				return;
 
-			host.Shedule( () => SDL.SDL_SetWindowSize( Pointer, Width, Height ) );
+			host.Shedule( () => {
+				SDL.SDL_SetWindowSize( Pointer, Width, Height );
+				OnResized();
+			} );
 		}
 	}
 
@@ -39,7 +42,7 @@ abstract class SdlWindow : Window {
 	}
 
 	public void Init () {
-		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
 		if ( renderingApi == RenderingApi.OpenGl ) {
 			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
 			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1 );
@@ -66,6 +69,10 @@ abstract class SdlWindow : Window {
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
 		if ( e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE )
 			Quit();
+		else if ( e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED ) {
+			SDL.SDL_GetWindowSize( Pointer, out size.Width, out size.Height );
+			OnResized();
+		}
 	}
 
 	public void OnEvent ( SDL.SDL_MouseMotionEvent e ) {
@@ -82,6 +89,14 @@ abstract class SdlWindow : Window {
 
 	public void OnEvent ( SDL.SDL_KeyboardEvent e ) {
 		
+	}
+
+	public void CheckResize () {
+		SDL.SDL_GetWindowSize( Pointer, out var width, out var height );
+		if ( size != new Size2<int>( width, height ) ) {
+			size = new Size2<int>( width, height );
+			OnResized();
+		}
 	}
 
 	protected override void Dispose ( bool disposing ) {

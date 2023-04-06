@@ -1,59 +1,96 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vit.Framework.Graphics.Vulkan.Rendering;
+﻿using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Queues;
 
 public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 	public readonly Device Device;
-	public readonly VkSurfaceKHR Surface;
+	public VkSurfaceKHR Surface { get; private set; }
 	public readonly SwapchainFormat Format;
-	public readonly VkExtent2D Size;
+	public VkExtent2D Size { get; private set; }
 
-	public readonly VkImage[] Images;
-	public readonly VkImageView[] ImageViews;
+	VkImage[] images = Array.Empty<VkImage>();
+	VkImageView[] imageViews = Array.Empty<VkImageView>();
 	FrameBuffer[] frames = Array.Empty<FrameBuffer>();
-	public unsafe Swapchain ( Device device, VkSurfaceKHR surface, SwapchainFormat format, VkExtent2D size, IReadOnlyList<QueueFamily> queues ) {
+
+	VkSwapchainCreateInfoKHR createInfo;
+	uint[]? queueIndices;
+	public unsafe Swapchain ( Device device, VkSurfaceKHR surface, SwapchainFormat format, Size2<int> pixelSize, IReadOnlyList<QueueFamily> queues ) {
 		Device = device;
 		Surface = surface;
 		Format = format;
-		Size = size;
+		Vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR( device.PhysicalDevice, surface, out var capabilities ).Validate();
+		Size = getExtent( pixelSize, capabilities );
 
-		VkSwapchainCreateInfoKHR info = new() {
+		VkSwapchainCreateInfoKHR info = createInfo = new() {
 			sType = VkStructureType.SwapchainCreateInfoKHR,
 			surface = surface,
 			minImageCount = format.OptimalImageCount,
 			imageFormat = format.Format.format,
 			imageColorSpace = format.Format.colorSpace,
-			imageExtent = size,
+			imageExtent = Size,
 			imageArrayLayers = 1,
 			imageUsage = VkImageUsageFlags.ColorAttachment,
-			preTransform = format.Capabilities.currentTransform,
+			preTransform = capabilities.currentTransform,
 			compositeAlpha = VkCompositeAlphaFlagsKHR.OpaqueKHR,
 			presentMode = format.PresentMode,
 			clipped = true
 		};
 
 		if ( queues.Count > 1 ) {
-			var indices = queues.Select( x => x.Index ).ToArray();
+			queueIndices = queues.Select( x => x.Index ).ToArray();
 			info.imageSharingMode = VkSharingMode.Concurrent;
-			info.queueFamilyIndexCount = (uint)indices.Length;
-			info.pQueueFamilyIndices = indices.Data();
+			info.queueFamilyIndexCount = (uint)queueIndices.Length;
+			info.pQueueFamilyIndices = queueIndices.Data();
 		}
 		else {
 			info.imageSharingMode = VkSharingMode.Exclusive;
 		}
 
 		Vk.vkCreateSwapchainKHR( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
-		(Images, ImageViews) = createImageViews();
+		createImageViews();
+	}
+
+	public unsafe void Recreate ( Size2<int> pixelSize ) {
+		Vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR( Device.PhysicalDevice, Surface, out var capabilities ).Validate();
+		var size = getExtent( pixelSize, capabilities );
+
+		if ( size.width == 0 || size.height == 0 )
+			return;
+
+		Size = size;
+
+		foreach ( var i in frames ) {
+			i.Dispose();
+		}
+
+		var info = createInfo with {
+			preTransform = capabilities.currentTransform,
+			imageExtent = Size,
+			oldSwapchain = Instance
+		};
+
+		Vk.vkCreateSwapchainKHR( Device, &info, VulkanExtensions.TODO_Allocator, out var newInstance ).Validate();
+		Vk.vkDestroySwapchainKHR( Device, Instance, VulkanExtensions.TODO_Allocator ); // TODO give this to be destroyed after use (right now we wait for device to idle)
+		Instance = newInstance;
+
+		createImageViews();
+		if ( renderPass != null ) {
+			frames = Array.Empty<FrameBuffer>();
+			SetRenderPass( renderPass );
+		}
 	}
 	
-	unsafe (VkImage[], VkImageView[]) createImageViews () {
-		var images = VulkanExtensions.Out<VkImage>.Enumerate( Device.Handle, Instance, Vk.vkGetSwapchainImagesKHR );
-		var views = new VkImageView[images.Length];
-		var frameBuffers = new VkFramebuffer[images.Length];
+	unsafe void createImageViews () {
+		foreach ( var i in imageViews ) {
+			Vk.vkDestroyImageView( Device, i, VulkanExtensions.TODO_Allocator );
+		}
+
+		images = VulkanExtensions.Out<VkImage>.Enumerate( Device.Handle, Instance, Vk.vkGetSwapchainImagesKHR );
+		imageViews = new VkImageView[images.Length];
 
 		VkImageViewCreateInfo viewInfo = new() {
 			sType = VkStructureType.ImageViewCreateInfo,
@@ -69,10 +106,8 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		};
 		for ( int i = 0; i < images.Length; i++ ) {
 			viewInfo.image = images[i];
-			Vk.vkCreateImageView( Device, &viewInfo, VulkanExtensions.TODO_Allocator, out views[i] ).Validate();
+			Vk.vkCreateImageView( Device, &viewInfo, VulkanExtensions.TODO_Allocator, out imageViews[i] ).Validate();
 		}
-
-		return (images, views);
 	}
 
 	RenderPass renderPass = null!;
@@ -82,20 +117,20 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 			i.Dispose();
 		}
 
-		frames = new FrameBuffer[ImageViews.Length];
-		for ( int i = 0; i < ImageViews.Length; i++ ) {
-			frames[i] = new( ImageViews[i], Size, pass );
+		frames = new FrameBuffer[imageViews.Length];
+		for ( int i = 0; i < imageViews.Length; i++ ) {
+			frames[i] = new( imageViews[i], Size, pass );
 		}
 	}
 
-	public bool GetNextFrame ( Semaphore imageAvailable, [NotNullWhen(true)] out FrameBuffer? frame, out uint index ) {
+	public VkResult GetNextFrame ( Semaphore imageAvailable, out FrameBuffer frame, out uint index ) {
 		index = 0;
 		var result = Vk.vkAcquireNextImageKHR( Device, this, ulong.MaxValue, imageAvailable, VkFence.Null, ref index );
 		frame = frames[index];
-		return result >= 0;
+		return result;
 	}
 
-	public unsafe void Present ( VkQueue queue, uint index, VkSemaphore renderFinished ) {
+	public unsafe VkResult Present ( VkQueue queue, uint index, VkSemaphore renderFinished ) {
 		var swapChain = Instance;
 		var info = new VkPresentInfoKHR() {
 			sType = VkStructureType.PresentInfoKHR,
@@ -106,14 +141,25 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 			pImageIndices = &index
 		};
 
-		Vk.vkQueuePresentKHR( queue, &info );
+		return Vk.vkQueuePresentKHR( queue, &info );
+	}
+
+	VkExtent2D getExtent ( Size2<int> pixelSize, VkSurfaceCapabilitiesKHR capabilities ) {
+		if ( capabilities.currentExtent.width != uint.MaxValue ) {
+			return capabilities.currentExtent;
+		}
+
+		return new() {
+			width = (uint)Math.Clamp( pixelSize.Width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width ),
+			height = (uint)Math.Clamp( pixelSize.Height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height )
+		};
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		foreach ( var i in frames ) {
 			i.Dispose();
 		}
-		foreach ( var i in ImageViews ) {
+		foreach ( var i in imageViews ) {
 			Vk.vkDestroyImageView( Device, i, VulkanExtensions.TODO_Allocator );
 		}
 		Vk.vkDestroySwapchainKHR( Device, Instance, VulkanExtensions.TODO_Allocator );

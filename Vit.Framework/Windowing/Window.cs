@@ -20,6 +20,11 @@ public abstract class Window : IDisposable {
 	public int PixelHeight => PixelSize.Height;
 	public virtual Size2<int> PixelSize => Size;
 
+	protected void OnResized () {
+		Resized?.Invoke( this );
+	}
+	public event Action<Window>? Resized;
+
 	protected void RegisterThread ( AppThread thread ) {
 		ThreadCreated?.Invoke( thread );
 	}

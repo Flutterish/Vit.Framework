@@ -4,14 +4,17 @@ using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
 public class Device : DisposableVulkanObject<VkDevice> {
 	public readonly IReadOnlyList<QueueFamily> QueueFamilies;
+	public readonly PhysicalDevice PhysicalDevice;
 
-	public unsafe Device ( VkPhysicalDevice physicalDevice, IReadOnlyList<CString> extensions, IReadOnlyList<CString> layers, IEnumerable<QueueFamily> queues ) {
+	public unsafe Device ( PhysicalDevice physicalDevice, IReadOnlyList<CString> extensions, IReadOnlyList<CString> layers, IEnumerable<QueueFamily> queues ) {
+		PhysicalDevice = physicalDevice;
 		QueueFamilies = queues.Distinct().ToArray();
 		var distinctQueues = QueueFamilies.Select( x => x.Index ).ToArray();
 
@@ -49,8 +52,8 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		return queue;
 	}
 
-	public Swapchain CreateSwapchain ( VkSurfaceKHR surface, SwapchainFormat format, VkExtent2D size ) {
-		return new( this, surface, format, size, QueueFamilies );
+	public Swapchain CreateSwapchain ( VkSurfaceKHR surface, SwapchainFormat format, Size2<int> pixelSize ) {
+		return new( this, surface, format, pixelSize, QueueFamilies );
 	}
 
 	public ShaderModule CreateShaderModule ( SpirvBytecode bytecode ) {

@@ -32,19 +32,19 @@ public class Program : App {
 		a.Initialized += _ => {
 			ThreadRunner.RegisterThread( new RenderThread( a, host, a.Title ) );
 		};
-		var b = host.CreateWindow( RenderingApi.Vulkan, this );
-		b.Title = "Window B [Vulkan]";
-		b.Initialized += _ => {
-			ThreadRunner.RegisterThread( new RenderThread( b, host, b.Title ) );
-		};
-		var c = host.CreateWindow( RenderingApi.Vulkan, this );
-		c.Title = "Window C [Vulkan]";
-		c.Initialized += _ => {
-			ThreadRunner.RegisterThread( new RenderThread( c, host, c.Title ) );
-		};
+		//var b = host.CreateWindow( RenderingApi.Vulkan, this );
+		//b.Title = "Window B [Vulkan]";
+		//b.Initialized += _ => {
+		//	ThreadRunner.RegisterThread( new RenderThread( b, host, b.Title ) );
+		//};
+		//var c = host.CreateWindow( RenderingApi.Vulkan, this );
+		//c.Title = "Window C [Vulkan]";
+		//c.Initialized += _ => {
+		//	ThreadRunner.RegisterThread( new RenderThread( c, host, c.Title ) );
+		//};
 
 		Task.Run( async () => {
-			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )
+			while ( !a.IsClosed /*|| !b.IsClosed || !c.IsClosed*/ )
 				await Task.Delay( 1 );
 
 			Quit();
@@ -63,6 +63,13 @@ public class Program : App {
 				Window = window
 			} )!;
 			vulkan = renderer.Instance;
+
+			window.Resized += onWindowResized;
+		}
+
+		bool windowResized;
+		void onWindowResized ( Window _ ) {
+			windowResized = true;
 		}
 
 		Device device = null!;
@@ -83,7 +90,7 @@ public class Program : App {
 				info.GraphicsQueue,
 				info.PresentQueue
 			} );
-			swapchain = device.CreateSwapchain( surface, info.SelectBest(), info.GetSwapchainExtent( window ) );
+			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
 
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				vec2 positions[3] = vec2[](
@@ -133,9 +140,14 @@ public class Program : App {
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
 		}
 
-		FrameInfo[] frameInfos;
+		FrameInfo[] frameInfos = Array.Empty<FrameInfo>();
 		int frameIndex = -1;
 		protected override void Loop () {
+			if ( windowResized ) {
+				windowResized = false;
+				recreateSwapchain();
+			}
+
 			frameIndex = ( frameIndex + 1 ) % frameInfos.Length;
 			record( frameInfos[frameIndex] );
 		}
@@ -156,9 +168,11 @@ public class Program : App {
 			var commands = info.Commands;
 			info.InFlight.Wait();
 
-			if ( !swapchain.GetNextFrame( info.ImageAvailable, out var frame, out var index ) ) {
+			if ( !validateSwapchain( swapchain.GetNextFrame( info.ImageAvailable, out var frame, out var index ), recreateSuboptimal: false ) ) {
 				return;
 			}
+
+			info.InFlight.Reset();
 
 			commands.Reset();
 			commands.Begin();
@@ -177,14 +191,30 @@ public class Program : App {
 			commands.FinishRenderPass();
 			commands.Finish();
 
-			info.InFlight.Reset();
 			commands.Submit( device.GetQueue( swapchainInfo.GraphicsQueue ), info.ImageAvailable, info.RenderFinished, info.InFlight );
-			swapchain.Present( device.GetQueue( swapchainInfo.PresentQueue ), index, info.RenderFinished );
+			validateSwapchain( swapchain.Present( device.GetQueue( swapchainInfo.PresentQueue ), index, info.RenderFinished ), recreateSuboptimal: true );
 
 			Sleep( 1 );
 		}
 
+		bool validateSwapchain ( VkResult result, bool recreateSuboptimal ) {
+			if ( result >= 0 )
+				return true;
+
+			if ( (result == VkResult.ErrorOutOfDateKHR || (result == VkResult.SuboptimalKHR && recreateSuboptimal)) && !window.IsClosed ) {
+				recreateSwapchain();
+			}
+
+			return false;
+		}
+
+		void recreateSwapchain () {
+			device.WaitIdle();
+			swapchain.Recreate( window.PixelSize );
+		}
+
 		protected override void Dispose ( bool disposing ) {
+			window.Resized -= onWindowResized;
 			if ( !IsInitialized )
 				return;
 

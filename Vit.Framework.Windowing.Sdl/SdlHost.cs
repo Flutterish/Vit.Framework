@@ -33,48 +33,56 @@ public class SdlHost : Host {
 			if ( SDL.SDL_Init( SDL.SDL_INIT_VIDEO ) < 0 ) {
 				ThrowSdl( "sdl initialisation failed" );
 			}
+
+			SDL.SDL_AddEventWatch( eventFilter = new SDL.SDL_EventFilter( eventWatch ), 0 );
 		}
 
 		protected override void Loop () {
-			SDL.SDL_Event e;
-
 			while ( scheduledActions.TryDequeue( out var action ) )
 				action();
 
-			while ( SDL.SDL_PollEvent( out e ) != 0 ) {
-				if ( e.type == SDL.SDL_EventType.SDL_WINDOWEVENT ) {
-					var @event = e.window;
-					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-						window.OnEvent( @event );
-					}
-				}
-				else if ( e.type == SDL.SDL_EventType.SDL_MOUSEMOTION ) {
-					var @event = e.motion;
-					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-						window.OnEvent( @event );
-					}
-				}
-				else if ( e.type == SDL.SDL_EventType.SDL_MOUSEWHEEL ) {
-					var @event = e.wheel;
-					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-						window.OnEvent( @event );
-					}
-				}
-				else if ( e.type is SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL.SDL_EventType.SDL_MOUSEBUTTONUP ) {
-					var @event = e.button;
-					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-						window.OnEvent( @event );
-					}
-				}
-				else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
-					var @event = e.key;
-					if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
-						window.OnEvent( @event );
-					}
+			SDL.SDL_PumpEvents();
+			Sleep( 1 );
+		}
+
+		SDL.SDL_EventFilter eventFilter;
+		unsafe int eventWatch ( nint _, nint @event ) {
+			var ep = (SDL.SDL_Event*)@event;
+			CheckEvent( *ep );
+			return 1;
+		}
+
+		void CheckEvent ( SDL.SDL_Event e ) {
+			if ( e.type == SDL.SDL_EventType.SDL_WINDOWEVENT ) {
+				var @event = e.window;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
 				}
 			}
-
-			Sleep( 1 );
+			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEMOTION ) {
+				var @event = e.motion;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type == SDL.SDL_EventType.SDL_MOUSEWHEEL ) {
+				var @event = e.wheel;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type is SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN or SDL.SDL_EventType.SDL_MOUSEBUTTONUP ) {
+				var @event = e.button;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
+				var @event = e.key;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
 		}
 	}
 
