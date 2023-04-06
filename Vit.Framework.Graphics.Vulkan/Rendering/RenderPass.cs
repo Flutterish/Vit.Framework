@@ -1,21 +1,14 @@
-﻿using Vit.Framework.Allocation;
-using Vit.Framework.Graphics.Vulkan.Queues;
-using Vulkan;
+﻿using Vulkan;
 
-namespace Vit.Framework.Graphics.Vulkan;
+namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
-public class RenderPass : DisposableObject {
+public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 	public readonly VkDevice Device;
-	public readonly VkRenderPass Handle;
-
-	RenderPass ( VkDevice device, VkRenderPass handle ) {
+	public unsafe RenderPass ( VkDevice device, VkFormat format ) {
 		Device = device;
-		Handle = handle;
-	}
 
-	public static unsafe RenderPass CreateForDrawingToWindow ( VkDevice device, Swapchain.SwapchainParams @params ) {
-		VkAttachmentDescription colorAttachment = new() {
-			format = @params.Format.format,
+		var color = new VkAttachmentDescription() {
+			format = format,
 			samples = VkSampleCountFlags.Count1,
 			loadOp = VkAttachmentLoadOp.Clear,
 			storeOp = VkAttachmentStoreOp.Store,
@@ -25,18 +18,18 @@ public class RenderPass : DisposableObject {
 			finalLayout = VkImageLayout.PresentSrcKHR
 		};
 
-		VkAttachmentReference colorAttachmentRef = new() {
+		var colorRef = new VkAttachmentReference() {
 			attachment = 0,
 			layout = VkImageLayout.ColorAttachmentOptimal
 		};
 
-		VkSubpassDescription subpass = new() {
+		var subpass = new VkSubpassDescription() {
 			pipelineBindPoint = VkPipelineBindPoint.Graphics,
 			colorAttachmentCount = 1,
-			pColorAttachments = &colorAttachmentRef
+			pColorAttachments = &colorRef
 		};
 
-		VkSubpassDependency dependency = new() {
+		var dependency = new VkSubpassDependency() {
 			srcSubpass = ~0u,
 			dstSubpass = 0,
 			srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput,
@@ -45,22 +38,20 @@ public class RenderPass : DisposableObject {
 			dstAccessMask = VkAccessFlags.ColorAttachmentWrite
 		};
 
-		VkRenderPassCreateInfo renderPassInfo = new() {
+		var info = new VkRenderPassCreateInfo() {
 			sType = VkStructureType.RenderPassCreateInfo,
 			attachmentCount = 1,
-			pAttachments = &colorAttachment,
+			pAttachments = &color,
 			subpassCount = 1,
 			pSubpasses = &subpass,
 			dependencyCount = 1,
 			pDependencies = &dependency
 		};
 
-		VulkanExtensions.Validate( Vk.vkCreateRenderPass( device, &renderPassInfo, VulkanExtensions.TODO_Allocator, out var renderPass ) );
-
-		return new RenderPass( device, renderPass );
+		Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		Vk.vkDestroyRenderPass( Device, Handle, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroyRenderPass( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
 }

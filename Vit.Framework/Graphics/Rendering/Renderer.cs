@@ -11,7 +11,4 @@ public abstract class Renderer : DisposableObject {
 		API = api;
 		Capabilities = capabilities.ToImmutableArray();
 	}
-
-	//public abstract INativeIndexBuffer<T> CreateIndexBuffer<T> () where T : unmanaged;
-	//public abstract INativeVertexBuffer<T> CreateVertexBuffer<T> () where T : unmanaged;
 }

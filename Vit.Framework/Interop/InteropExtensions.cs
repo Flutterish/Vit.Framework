@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using Vit.Framework.Allocation;
 
 namespace Vit.Framework.Interop;
 
@@ -12,8 +14,21 @@ public static class InteropExtensions {
 		return Marshal.PtrToStringUTF8( (nint)cstr )!;
 	}
 
+	public static unsafe string GetString ( byte* cstr, int length ) {
+		var data = new Span<byte>( cstr, length );
+		var index = data.IndexOf( (byte)0 );
+		if ( index != -1 )
+			data = data[..index];
+
+		return Encoding.UTF8.GetString( data );
+	}
+
 	public unsafe static T* Data<T> ( this T[] array ) where T : unmanaged {
 		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
+	}
+
+	public unsafe static T* Data<T> ( this RentedArray<T> array ) where T : unmanaged {
+		return array.AsSpan().Data();
 	}
 
 	public unsafe static nint DataPtr<T> ( this T[] array ) where T : unmanaged {

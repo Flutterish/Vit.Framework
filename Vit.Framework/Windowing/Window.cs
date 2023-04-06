@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Threading;
 
@@ -32,8 +31,6 @@ public abstract class Window : IDisposable {
 		Initialized?.Invoke( this );
 	}
 	public event Action<Window>? Initialized;
-
-	public abstract (ISwapchain swapchain, IGraphicsDevice device) CreateSwapchain ( Renderer renderer );
 
 	public bool IsClosed { get; private set; }
 	protected abstract void Dispose ( bool disposing );

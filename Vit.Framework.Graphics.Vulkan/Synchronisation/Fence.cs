@@ -1,33 +1,28 @@
-﻿using Vit.Framework.Allocation;
-using Vit.Framework.Graphics.Rendering.Synchronisation;
-using Vulkan;
+﻿using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Synchronisation;
 
-public class Fence : DisposableObject, ICpuBarrier {
+public class Fence : DisposableVulkanObject<VkFence> {
 	public readonly VkDevice Device;
-	public readonly VkFence Handle;
-
-	public Fence ( VkDevice device, VkFence handle ) {
+	public unsafe Fence ( VkDevice device, bool signaled = false ) {
 		Device = device;
-		Handle = handle;
+		var info = new VkFenceCreateInfo() {
+			sType = VkStructureType.FenceCreateInfo,
+			flags = signaled ? VkFenceCreateFlags.Signaled : VkFenceCreateFlags.None
+		};
+
+		Vk.vkCreateFence( device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
 
-	public unsafe void Wait () {
-		var handle = Handle;
-		Vk.vkWaitForFences( Device, 1, &handle, true, ulong.MaxValue );
+	public void Wait () {
+		Vk.vkWaitForFences( Device, 1, ref Instance, true, ulong.MaxValue );
 	}
 
-	public unsafe void Reset () {
-		var handle = Handle;
-		Vk.vkResetFences( Device, 1, &handle );
+	public void Reset () {
+		Vk.vkResetFences( Device, 1, ref Instance );
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		Vk.vkDestroyFence( Device, Handle, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroyFence( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
-}
-
-public static class FenceExtensions {
-	public static VkFence Fence ( this ICpuBarrier? barrier ) => barrier == null ? VkFence.Null : ( (Fence)barrier )!.Handle;
 }

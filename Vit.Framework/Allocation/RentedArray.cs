@@ -13,6 +13,8 @@ public struct RentedArray<T> : IDisposable {
 		Length = size;
 		array = source.Rent( size );
 	}
+	public RentedArray ( uint size ) : this( (int)size, ArrayPool<T>.Shared ) { }
+	public RentedArray ( uint size, ArrayPool<T> pool ) : this( (int)size, pool ) { }
 
 	public RentedArray ( IReadOnlyList<T> source ) : this( source, ArrayPool<T>.Shared ) { }
 	public RentedArray ( IReadOnlyList<T> source, ArrayPool<T> pool ) {

@@ -107,8 +107,10 @@ public class SdlHost : Host {
 		List<CString> layers = new();
 		List<CString> extensions = new();
 
-		if ( Debugger.IsAttached )
+		if ( Debugger.IsAttached ) {
 			layers.Add( "VK_LAYER_KHRONOS_validation" );
+			extensions.Add( "VK_EXT_debug_utils" );
+		}
 
 		foreach ( var i in capabilities ) {
 			switch ( i ) {
@@ -134,12 +136,13 @@ public class SdlHost : Host {
 
 	public override IEnumerable<RenderingApi> SupportedRenderingApis { get; } = new[] { 
 		RenderingApi.OpenGl,
-		RenderingApi.Vulkan
+		RenderingApi.Vulkan,
+		RenderingApi.Direct3D11
 	};
 
 	internal void destroyWindow ( SdlWindow window ) {
-		windowsById.Remove( window.Id );
 		SDL.SDL_DestroyWindow( window.Pointer );
+		windowsById.Remove( window.Id );
 		window.Pointer = 0;
 	}
 

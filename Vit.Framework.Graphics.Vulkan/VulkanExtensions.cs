@@ -61,9 +61,21 @@ public static class VulkanExtensions {
 		}
 	}
 
-	public static void Validate ( VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
+	public static void Validate ( this VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
 		if ( result < 0 )
 			throw new Exception( $"Operation failed: {result} at {expression}" );
+	}
+
+	public static unsafe string GetName ( this VkExtensionProperties properties ) {
+		return InteropExtensions.GetString( properties.extensionName, 256 );
+	}
+
+	public static unsafe string GetName ( this VkLayerProperties properties ) {
+		return InteropExtensions.GetString( properties.layerName, 256 );
+	}
+
+	public static unsafe string GetDescription ( this VkLayerProperties properties ) {
+		return InteropExtensions.GetString( properties.description, 256 );
 	}
 
 	public static unsafe VkAllocationCallbacks* TODO_Allocator => (VkAllocationCallbacks*)0;

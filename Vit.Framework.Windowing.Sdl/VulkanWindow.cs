@@ -1,14 +1,13 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Vulkan;
-using Vit.Framework.Graphics.Vulkan.Queues;
+using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Mathematics;
 using Vulkan;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-class VulkanWindow : SdlWindow {
+class VulkanWindow : SdlWindow, IVulkanWindow {
 	public VulkanWindow ( SdlHost host ) : base( host, RenderingApi.Vulkan ) { }
 
 	public override Size2<int> PixelSize {
@@ -18,14 +17,8 @@ class VulkanWindow : SdlWindow {
 		}
 	}
 
-	public override (ISwapchain swapchain, IGraphicsDevice device) CreateSwapchain ( Renderer renderer ) {
-		var vulkan = ((VulkanRenderer)renderer)!.Instance;
-		var surface = createSurface( vulkan );
-		return Swapchain.Create( vulkan, surface, this );
-	}
-
-	VkSurfaceKHR createSurface ( VulkanInstance vulkan ) {
-		SDL.SDL_Vulkan_CreateSurface( Pointer, vulkan.Instance.Handle, out var surfacePtr );
-		return new( (ulong)surfacePtr );
+	public VkSurfaceKHR GetSurface ( VulkanInstance vulkan ) {
+		SDL.SDL_Vulkan_CreateSurface( Pointer, vulkan.Handle.Handle, out var surface );
+		return new VkSurfaceKHR( (ulong)surface );
 	}
 }

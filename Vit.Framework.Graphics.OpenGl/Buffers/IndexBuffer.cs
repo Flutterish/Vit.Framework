@@ -1,7 +1,7 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿//using Vit.Framework.Graphics.Rendering.Buffers;
 
-namespace Vit.Framework.Graphics.OpenGl.Buffers;
+//namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
-public class IndexBuffer<T> : Buffer<T>, INativeIndexBuffer<T> where T : unmanaged {
-	public IndexBuffer () : base( BufferTarget.ElementArrayBuffer ) { }
-}
+//public class IndexBuffer<T> : Buffer<T>, INativeIndexBuffer<T> where T : unmanaged {
+//	public IndexBuffer () : base( BufferTarget.ElementArrayBuffer ) { }
+//}

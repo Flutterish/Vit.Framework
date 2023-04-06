@@ -27,6 +27,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 	}
 
 	bool isInitialized;
+	public bool IsInitialized => isInitialized;
 	void onThreadStart ( object? haltTaskSource ) {
 		if ( DateTime.Now < sleepsUntil )
 			Sleep( sleepsUntil - DateTime.Now );

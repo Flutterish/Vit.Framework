@@ -16,7 +16,12 @@ public unsafe struct CString {
 		this.ptr = (byte*)ptr;
 	}
 
-	public CString ( string str ) {
+	public CString ( string? str ) {
+		if ( str == null ) {
+			ptr = (byte*)0;
+			return;
+		}
+
 		data = new byte[Encoding.UTF8.GetByteCount( str ) + 1];
 		Encoding.UTF8.GetBytes( str.AsSpan(), data.AsSpan( 0, data.Length - 1 ) );
 		data[^1] = 0;
@@ -31,7 +36,7 @@ public unsafe struct CString {
 	public static implicit operator string ( CString cstr )
 		=> Marshal.PtrToStringUTF8( (nint)cstr.ptr )!;
 
-	public static implicit operator CString ( string str )
+	public static implicit operator CString ( string? str )
 		=> new( str );
 
 	public static explicit operator CString ( byte* str )

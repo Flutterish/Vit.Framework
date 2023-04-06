@@ -1,23 +1,19 @@
-﻿using Vit.Framework.Allocation;
-using Vit.Framework.Graphics.Rendering.Synchronisation;
-using Vulkan;
+﻿using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Synchronisation;
 
-public class Semaphore : DisposableObject, IGpuBarrier {
+public class Semaphore : DisposableVulkanObject<VkSemaphore> {
 	public readonly VkDevice Device;
-	public readonly VkSemaphore Handle;
-
-	public Semaphore ( VkDevice device, VkSemaphore handle ) {
+	public unsafe Semaphore ( VkDevice device ) {
 		Device = device;
-		Handle = handle;
+		var info = new VkSemaphoreCreateInfo() {
+			sType = VkStructureType.SemaphoreCreateInfo
+		};
+
+		Vk.vkCreateSemaphore( device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		Vk.vkDestroySemaphore( Device, Handle, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroySemaphore( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
-}
-
-public static class SemaphoreExtensions {
-	public static VkSemaphore Semaphore ( this IGpuBarrier? barrier ) => barrier == null ? VkSemaphore.Null : ( (Semaphore)barrier )!.Handle;
 }

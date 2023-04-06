@@ -1,73 +1,79 @@
-﻿using Vit.Framework.Allocation;
-using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Synchronisation;
+﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan.Queues;
+using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
+using Vit.Framework.Graphics.Vulkan.Synchronisation;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
-public class Device : DisposableObject, IGraphicsDevice {
-	public readonly VkDevice Handle;
+public class Device : DisposableVulkanObject<VkDevice> {
+	public readonly IReadOnlyList<QueueFamily> QueueFamilies;
 
-	public Device ( VkDevice handle ) {
-		Handle = handle;
-	}
+	public unsafe Device ( VkPhysicalDevice physicalDevice, IReadOnlyList<CString> extensions, IReadOnlyList<CString> layers, IEnumerable<QueueFamily> queues ) {
+		QueueFamilies = queues.Distinct().ToArray();
+		var distinctQueues = QueueFamilies.Select( x => x.Index ).ToArray();
 
-	public unsafe IGpuBarrier CreateGpuBarrier () {
-		VkSemaphoreCreateInfo semaphoreInfo = new() {
-			sType = VkStructureType.SemaphoreCreateInfo
-		};
-		VulkanExtensions.Validate( Vk.vkCreateSemaphore( Handle, &semaphoreInfo, VulkanExtensions.TODO_Allocator, out var semaphore ) );
-
-		return new Synchronisation.Semaphore( Handle, semaphore );
-	}
-
-	public unsafe ICpuBarrier CreateCpuBarrier ( bool signaled = false ) {
-		VkFenceCreateInfo fenceInfo = new() {
-			sType = VkStructureType.FenceCreateInfo,
-			flags = signaled ? VkFenceCreateFlags.Signaled : VkFenceCreateFlags.None
-		};
-		VulkanExtensions.Validate( Vk.vkCreateFence( Handle, &fenceInfo, VulkanExtensions.TODO_Allocator, out var fence ) );
-
-		return new Synchronisation.Fence( Handle, fence );
-	}
-
-	Dictionary<(uint, uint), Queue> queues = new();
-	Dictionary<uint, VkCommandPool> commandPoolsByFamily = new();
-	public unsafe Queue GetQueue ( uint familyIndex, uint index = 0 ) {
-		if ( !queues.TryGetValue( (familyIndex, index), out var queue ) ) {
-			if ( !commandPoolsByFamily.TryGetValue( familyIndex, out var pool ) ) {
-				VkCommandPoolCreateInfo poolInfo = new() {
-					sType = VkStructureType.CommandPoolCreateInfo,
-					flags = VkCommandPoolCreateFlags.ResetCommandBuffer,
-					queueFamilyIndex = familyIndex
-				};
-
-				VulkanExtensions.Validate( Vk.vkCreateCommandPool( this, &poolInfo, VulkanExtensions.TODO_Allocator, out pool ) );
-				commandPoolsByFamily.Add( familyIndex, pool );
-			}
-
-			queues.Add( (familyIndex, index), queue = new(this, familyIndex, index, pool) );
+		float priority = 1;
+		var queueInfos = new VkDeviceQueueCreateInfo[distinctQueues.Length];
+		for ( int i = 0; i < distinctQueues.Length; i++ ) {
+			queueInfos[i] = new VkDeviceQueueCreateInfo() {
+				sType = VkStructureType.DeviceQueueCreateInfo,
+				queueFamilyIndex = distinctQueues[0],
+				queueCount = 1,
+				pQueuePriorities = &priority
+			};
 		}
 
+		VkPhysicalDeviceFeatures features = new() { };
+
+		var extensionNames = extensions.MakeArray();
+		var layerNames = layers.MakeArray();
+		VkDeviceCreateInfo info = new() {
+			sType = VkStructureType.DeviceCreateInfo,
+			pQueueCreateInfos = queueInfos.Data(),
+			queueCreateInfoCount = (uint)queueInfos.Length,
+			pEnabledFeatures = &features,
+			enabledLayerCount = (uint)layers.Count,
+			ppEnabledLayerNames = layerNames.Data(),
+			enabledExtensionCount = (uint)extensions.Count,
+			ppEnabledExtensionNames = extensionNames.Data()
+		};
+
+		Vk.vkCreateDevice( physicalDevice, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+	}
+
+	public VkQueue GetQueue ( QueueFamily family, uint index = 0 ) {
+		Vk.vkGetDeviceQueue( this, family.Index, index, out var queue );
 		return queue;
 	}
 
-	public static implicit operator VkDevice ( Device device ) => device.Handle;
+	public Swapchain CreateSwapchain ( VkSurfaceKHR surface, SwapchainFormat format, VkExtent2D size ) {
+		return new( this, surface, format, size, QueueFamilies );
+	}
+
+	public ShaderModule CreateShaderModule ( SpirvBytecode bytecode ) {
+		return new( this, bytecode );
+	}
+
+	public CommandPool CreateCommandPool ( QueueFamily queue ) {
+		return new( this, queue );
+	}
+
+	public Semaphore CreateSemaphore () {
+		return new Semaphore( this );
+	}
+
+	public Fence CreateFence ( bool signaled = false ) {
+		return new Fence( this, signaled );
+	}
+
+	public void WaitIdle () {
+		Vk.vkDeviceWaitIdle( this ).Validate();
+	}
+
 	protected override unsafe void Dispose ( bool disposing ) {
-		foreach ( var (_, i) in commandPoolsByFamily ) {
-			Vk.vkDestroyCommandPool( this, i, VulkanExtensions.TODO_Allocator );
-		}
-		Vk.vkDestroyDevice( Handle, VulkanExtensions.TODO_Allocator );
-	}
-
-	public unsafe IShaderPart CreateShaderPart ( SpirvBytecode spirv ) {
-		return new ShaderModule( this, spirv );
-	}
-
-	public IShader CreateShader ( IShaderPart[] parts ) {
-		return new PipelineShaderInfo( this, parts.Cast<ShaderModule>() );
+		Vk.vkDestroyDevice( Instance, VulkanExtensions.TODO_Allocator );
 	}
 }

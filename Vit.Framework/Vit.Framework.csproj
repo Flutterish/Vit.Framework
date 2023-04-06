@@ -12,4 +12,10 @@
     <PackageReference Include="Vortice.ShaderCompiler" Version="1.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Graphics\Rendering\Queues\" />
+    <Folder Include="Graphics\Rendering\Synchronisation\" />
+    <Folder Include="Graphics\Rendering\Textures\" />
+  </ItemGroup>
+
 </Project>
