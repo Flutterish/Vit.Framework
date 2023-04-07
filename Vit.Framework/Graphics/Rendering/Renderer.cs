@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Allocation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Rendering;
 

@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace Vit.Framework.Allocation;
+namespace Vit.Framework.Memory;
 
 public struct RentedArray<T> : IDisposable {
 	public readonly int Length;

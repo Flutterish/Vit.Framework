@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Numerics;
-using Vit.Framework.Allocation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra.Generic;
 

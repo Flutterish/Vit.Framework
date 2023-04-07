@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Allocation;
+﻿namespace Vit.Framework.Memory;
 
 public readonly ref struct DisposeAction {
 	readonly Action action;

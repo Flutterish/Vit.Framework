@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using Vit.Framework.Allocation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Interop;
 

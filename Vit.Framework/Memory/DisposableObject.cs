@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Vit.Framework.Allocation;
+namespace Vit.Framework.Memory;
 
 public abstract class DisposableObject : IDisposable {
 	public bool IsDisposed { get; private set; }

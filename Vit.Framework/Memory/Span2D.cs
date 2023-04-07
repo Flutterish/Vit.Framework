@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Vit.Framework.Allocation;
+namespace Vit.Framework.Memory;
 
 public readonly ref struct Span2D<T> {
 	public readonly Span<T> Flat;

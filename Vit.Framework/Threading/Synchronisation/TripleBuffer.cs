@@ -1,4 +1,4 @@
-﻿using Vit.Framework.Allocation;
+﻿using Vit.Framework.Memory;
 
 namespace Vit.Framework.Threading.Synchronisation;
 

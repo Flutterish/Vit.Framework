@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Numerics;
 using System.Text;
-using Vit.Framework.Allocation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra.Generic;
 

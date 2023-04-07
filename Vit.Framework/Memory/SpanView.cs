@@ -1,27 +1,27 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Vit.Framework.Allocation;
+namespace Vit.Framework.Memory;
 
-public readonly ref struct ReadOnlySpanView<T> {
-	readonly ReadOnlySpan<T> source;
+public readonly ref struct SpanView<T> {
+	readonly Span<T> source;
 	readonly int stride;
 	public readonly int Length;
 
-	public ReadOnlySpanView ( ReadOnlySpan<T> source, int stride ) {
+	public SpanView ( Span<T> source, int stride ) {
 		this.source = source;
 		this.stride = stride;
 		Length = source.Length / stride;
 	}
 
-	public T this[int i] => source[i * stride];
+	public ref T this[int i] => ref source[i * stride];
 
 	public Enumerator GetEnumerator () => new( this );
 
 	public ref struct Enumerator {
 		int index;
-		ReadOnlySpanView<T> view;
+		SpanView<T> view;
 
-		public Enumerator ( ReadOnlySpanView<T> view ) {
+		public Enumerator ( SpanView<T> view ) {
 			index = -1;
 			this.view = view;
 		}
@@ -32,9 +32,9 @@ public readonly ref struct ReadOnlySpanView<T> {
 			return index < view.Length;
 		}
 
-		public T Current {
+		public ref T Current {
 			[MethodImpl( MethodImplOptions.AggressiveInlining )]
-			get => view[index];
+			get => ref view[index];
 		}
 	}
 }

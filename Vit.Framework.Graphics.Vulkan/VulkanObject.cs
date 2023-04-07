@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Vit.Framework.Allocation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
