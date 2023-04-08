@@ -48,8 +48,12 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBeginRenderPass( this, &info, VkSubpassContents.Inline );
 	}
 
-	public void Bind ( Pipeline pipeline ) {
+	public void BindPipeline ( Pipeline pipeline ) {
 		Vk.vkCmdBindPipeline( this, VkPipelineBindPoint.Graphics, pipeline );
+	}
+
+	public unsafe void BindDescriptor ( VkPipelineLayout layout, VkDescriptorSet descriptor ) {
+		Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, 1, &descriptor, 0, 0 );
 	}
 
 	public unsafe void BindVertexBuffer<T> ( Buffer<T> buffer ) where T : unmanaged {

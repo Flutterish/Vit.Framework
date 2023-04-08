@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
@@ -82,8 +83,14 @@ public class Program : App {
 		Pipeline pipeline = null!;
 		CommandPool commandPool = null!;
 		CommandPool copyCommandPool = null!;
-		DeviceLocalBuffer<float> vertexBuffer = null!;
-		DeviceLocalBuffer<ushort> indexBuffer = null!;
+		DeviceBuffer<float> vertexBuffer = null!;
+		DeviceBuffer<ushort> indexBuffer = null!;
+		struct Matrices {
+			public Matrix4<float> Model;
+			public Matrix4<float> View;
+			public Matrix4<float> Projection;
+		}
+		HostBuffer<Matrices> uniforms = null!;
 		VkClearColorValue bg;
 
 		VkQueue graphicsQueue;
@@ -107,8 +114,14 @@ public class Program : App {
 
 				layout(location = 0) out vec3 fragColor;
 
+				layout(binding = 0) uniform Matrices {
+					mat4 model;
+					mat4 view;
+					mat4 projection;
+				} matrices;
+
 				void main() {
-					gl_Position = vec4(inPosition, 0.0, 1.0);
+					gl_Position = matrices.projection * matrices.view * matrices.model * vec4(inPosition, 0.0, 1.0);
 					fragColor = inColor;
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
@@ -129,15 +142,12 @@ public class Program : App {
 
 			commandPool = device.CreateCommandPool( info.GraphicsQueue );
 			copyCommandPool = device.CreateCommandPool( info.GraphicsQueue, VkCommandPoolCreateFlags.ResetCommandBuffer | VkCommandPoolCreateFlags.Transient );
-			frameInfos = new FrameInfo[2];
-			foreach ( ref var frame in frameInfos.AsSpan() ) {
-				frame = new() {
-					ImageAvailable = device.CreateSemaphore(),
-					RenderFinished = device.CreateSemaphore(),
-					InFlight = device.CreateFence( signaled: true ),
-					Commands = commandPool.CreateCommandBuffer()
-				};
-			}
+			frameInfo = new() {
+				ImageAvailable = device.CreateSemaphore(),
+				RenderFinished = device.CreateSemaphore(),
+				InFlight = device.CreateFence( signaled: true ),
+				Commands = commandPool.CreateCommandBuffer()
+			};
 
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
@@ -155,18 +165,21 @@ public class Program : App {
 				 0, 1, 2,
 				 2, 3, 0
 			}, copyCommandPool, graphicsQueue );
+
+			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
+			uniforms.Allocate( 1 );
+
+			pipeline.DescriptorSet.ConfigureUniforms( uniforms );
 		}
 
-		FrameInfo[] frameInfos = Array.Empty<FrameInfo>();
-		int frameIndex = -1;
+		FrameInfo frameInfo;
 		protected override void Loop () {
 			if ( windowResized ) {
 				windowResized = false;
 				recreateSwapchain();
 			}
 
-			frameIndex = ( frameIndex + 1 ) % frameInfos.Length;
-			record( frameInfos[frameIndex] );
+			record( frameInfo );
 		}
 
 		struct FrameInfo : IDisposable {
@@ -194,7 +207,7 @@ public class Program : App {
 			commands.Reset();
 			commands.Begin();
 			commands.BeginRenderPass( frame, new VkClearValue { color = bg } );
-			commands.Bind( pipeline );
+			commands.BindPipeline( pipeline );
 			commands.SetViewPort( new() {
 				minDepth = 0,
 				maxDepth = 1,
@@ -206,6 +219,12 @@ public class Program : App {
 			} );
 			commands.BindVertexBuffer( vertexBuffer );
 			commands.BindIndexBuffer( indexBuffer );
+			uniforms.Transfer( new Matrices() {
+				Model = Matrix4<float>.Identity,
+				View = Matrix4<float>.Identity,
+				Projection = Matrix4<float>.Identity
+			} );
+			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( 6 );
 			commands.FinishRenderPass();
 			commands.Finish();
@@ -239,8 +258,7 @@ public class Program : App {
 
 			device.WaitIdle();
 
-			foreach ( var i in frameInfos )
-				i.Dispose();
+			frameInfo.Dispose();
 			commandPool.Dispose();
 			copyCommandPool.Dispose();
 			pipeline.Dispose();
@@ -250,6 +268,7 @@ public class Program : App {
 			swapchain.Dispose();
 			vertexBuffer.Dispose();
 			indexBuffer.Dispose();
+			uniforms.Dispose();
 			device.Dispose();
 			renderer.Dispose();
 		}

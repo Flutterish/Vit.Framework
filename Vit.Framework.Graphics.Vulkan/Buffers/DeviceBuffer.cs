@@ -3,11 +3,11 @@ using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
-public class DeviceLocalBuffer<T> : Buffer<T> where T : unmanaged {
-	StagingBuffer<T> stagingBuffer;
+public class DeviceBuffer<T> : Buffer<T> where T : unmanaged {
+	HostBuffer<T> stagingBuffer;
 	VkBufferUsageFlags flags;
-	public DeviceLocalBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
-		stagingBuffer = new( device );
+	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
+		stagingBuffer = new( device, VkBufferUsageFlags.TransferSrc );
 		this.flags = flags;
 	}
 
@@ -21,6 +21,13 @@ public class DeviceLocalBuffer<T> : Buffer<T> where T : unmanaged {
 		commands.Finish();
 
 		return commands;
+	}
+
+	public unsafe void Allocate ( ReadOnlySpan<T> data, CommandBuffer commands ) {
+		stagingBuffer.Allocate( data );
+		Allocate( (ulong)data.Length, flags | VkBufferUsageFlags.TransferDst );
+
+		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length );
 	}
 
 	public void AllocateAndTransfer ( ReadOnlySpan<T> data, CommandPool pool, VkQueue queue ) {

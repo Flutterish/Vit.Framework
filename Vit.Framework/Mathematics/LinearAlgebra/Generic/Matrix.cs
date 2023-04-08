@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Numerics;
 using System.Text;
+using Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra.Generic;
@@ -104,5 +105,20 @@ public record Matrix<T> where T : INumber<T> {
 		sb.Append( ">" );
 
 		return sb.ToString();
+	}
+
+	public static string GenerateMultiplication ( int columns, int rows ) {
+		Matrix<MultiVector<T>> generateMatrix ( string name ) {
+			var data = new MultiVector<T>[columns, rows];
+			for ( int x = 0; x < columns; x++ ) {
+				for ( int y = 0; y < rows; y++ ) {
+					data[x, y] = new BasisVector<T>( $"{name}[{y * columns + x}]" );
+				}
+			}
+
+			return new( data );
+		}
+
+		return ( generateMatrix( "this" ) * generateMatrix( "other" ) ).ToString();
 	}
 }

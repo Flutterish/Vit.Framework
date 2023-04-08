@@ -62,7 +62,7 @@ public static class VulkanExtensions {
 	}
 
 	public static void Validate ( this VkResult result, [CallerArgumentExpression(nameof(result))] string? expression = null ) {
-		if ( result < 0 )
+		if ( result != VkResult.Success )
 			throw new Exception( $"Operation failed: {result} at {expression}" );
 	}
 

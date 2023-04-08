@@ -7,6 +7,9 @@ namespace Vit.Framework.Graphics.Vulkan.Rendering;
 public class Pipeline : DisposableVulkanObject<VkPipeline> {
 	public readonly VkDevice Device;
 	public readonly VkPipelineLayout Layout;
+	public readonly VkDescriptorSetLayout Uniforms;
+	public readonly DescriptorPool DescriptorPool;
+	public readonly DescriptorSet DescriptorSet;
 	public unsafe Pipeline ( VkDevice device, ShaderModule[] shaders, RenderPass renderPass ) {
 		Device = device;
 		var dynamicStates = new[] {
@@ -21,7 +24,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		};
 
 		var vert = shaders.First( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ).GetVertexInfo();
-		var vertexBinding = new VkVertexInputBindingDescription() {
+		var vertexBinding = new VkVertexInputBindingDescription() { // TODO this is hardcoded
 			binding = 0,
 			stride = sizeof( float ) * 5,
 			inputRate = VkVertexInputRate.Vertex
@@ -45,6 +48,21 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		vert.pVertexBindingDescriptions = &vertexBinding;
 		vert.pVertexAttributeDescriptions = vertexAttributes.Data();
 
+		var uniforms = new VkDescriptorSetLayoutBinding() { // TODO this is hardcoded
+			binding = 0,
+			descriptorType = VkDescriptorType.UniformBuffer,
+			descriptorCount = 1,
+			stageFlags = VkShaderStageFlags.Vertex
+		};
+		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
+			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
+			bindingCount = 1,
+			pBindings = &uniforms
+		};
+		Vk.vkCreateDescriptorSetLayout( Device, &uniformInfo, VulkanExtensions.TODO_Allocator, out this.Uniforms ).Validate();
+		DescriptorPool = new( device, VkDescriptorType.UniformBuffer, 1 );
+		DescriptorSet = DescriptorPool.CreateSet( this.Uniforms );
+
 		var assembly = new VkPipelineInputAssemblyStateCreateInfo() {
 			sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,
 			topology = VkPrimitiveTopology.TriangleList,
@@ -63,8 +81,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			rasterizerDiscardEnable = false,
 			polygonMode = VkPolygonMode.Fill,
 			lineWidth = 1,
-			cullMode = VkCullModeFlags.Back,
-			frontFace = VkFrontFace.Clockwise,
+			cullMode = VkCullModeFlags.None,
 			depthBiasEnable = false
 		};
 
@@ -86,8 +103,11 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pAttachments = &blendInfo
 		};
 
+		var unifomsHandle = this.Uniforms;
 		var layoutInfo = new VkPipelineLayoutCreateInfo() {
-			sType = VkStructureType.PipelineLayoutCreateInfo
+			sType = VkStructureType.PipelineLayoutCreateInfo,
+			setLayoutCount = 1,
+			pSetLayouts = &unifomsHandle
 		};
 
 		Vk.vkCreatePipelineLayout( Device, &layoutInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();
@@ -115,5 +135,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 	protected override unsafe void Dispose ( bool disposing ) {
 		Vk.vkDestroyPipeline( Device, Instance, VulkanExtensions.TODO_Allocator );
 		Vk.vkDestroyPipelineLayout( Device, Layout, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroyDescriptorPool( Device, DescriptorPool, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroyDescriptorSetLayout( Device, Uniforms, VulkanExtensions.TODO_Allocator );
 	}
 }
