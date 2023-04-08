@@ -20,9 +20,10 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkResetCommandBuffer( this, VkCommandBufferResetFlags.None );
 	}
 
-	public unsafe void Begin () {
+	public unsafe void Begin ( VkCommandBufferUsageFlags flags = VkCommandBufferUsageFlags.None ) {
 		var info = new VkCommandBufferBeginInfo() {
-			sType = VkStructureType.CommandBufferBeginInfo
+			sType = VkStructureType.CommandBufferBeginInfo,
+			flags = flags
 		};
 
 		Vk.vkBeginCommandBuffer( this, &info ).Validate();
@@ -51,7 +52,7 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindPipeline( this, VkPipelineBindPoint.Graphics, pipeline );
 	}
 
-	public unsafe void Bind<T> ( VertexBuffer<T> buffer ) where T : unmanaged {
+	public unsafe void Bind<T> ( DeviceLocalBuffer<T> buffer ) where T : unmanaged {
 		VkBuffer vkbuffer = buffer.Handle;
 		ulong offset = 0;
 		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
@@ -69,6 +70,16 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdDraw( this, vertexCount, instanceCount, 0, 0 );
 	}
 
+	public unsafe void Copy ( VkBuffer source, VkBuffer destination, ulong size, ulong srcOffset = 0, ulong dstOffset = 0 ) {
+		var region = new VkBufferCopy() {
+			size = size,
+			srcOffset = srcOffset,
+			dstOffset = dstOffset
+		};
+
+		Vk.vkCmdCopyBuffer( this, source, destination, 1, &region );
+	}
+
 	public void FinishRenderPass () {
 		Vk.vkCmdEndRenderPass( this );
 	}
@@ -77,18 +88,18 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkEndCommandBuffer( this ).Validate();
 	}
 
-	public unsafe void Submit ( VkQueue queue, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight ) {
+	public unsafe void Submit ( VkQueue queue, VkSemaphore waitUntil = default, VkSemaphore signal = default, VkFence inFlight = default ) {
 		VkPipelineStageFlags flags = VkPipelineStageFlags.ColorAttachmentOutput;
 		VkCommandBuffer buffer = this;
 		var info = new VkSubmitInfo() {
 			sType = VkStructureType.SubmitInfo,
-			waitSemaphoreCount = 1,
-			pWaitSemaphores = &imageAvailable,
+			waitSemaphoreCount = waitUntil == default ? 0u : 1,
+			pWaitSemaphores = &waitUntil,
 			pWaitDstStageMask = &flags,
 			commandBufferCount = 1,
 			pCommandBuffers = &buffer,
-			signalSemaphoreCount = 1,
-			pSignalSemaphores = &renderFinished
+			signalSemaphoreCount = signal == default ? 0u : 1,
+			pSignalSemaphores = &signal
 		};
 
 		Vk.vkQueueSubmit( queue, 1, &info, inFlight ).Validate();

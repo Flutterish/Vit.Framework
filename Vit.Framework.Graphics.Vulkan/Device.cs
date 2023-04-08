@@ -60,8 +60,8 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		return new( this, bytecode );
 	}
 
-	public CommandPool CreateCommandPool ( QueueFamily queue ) {
-		return new( this, queue );
+	public CommandPool CreateCommandPool ( QueueFamily queue, VkCommandPoolCreateFlags flags = VkCommandPoolCreateFlags.ResetCommandBuffer ) {
+		return new( this, queue, flags );
 	}
 
 	public Semaphore CreateSemaphore () {

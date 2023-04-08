@@ -81,8 +81,12 @@ public class Program : App {
 		RenderPass renderPass = null!;
 		Pipeline pipeline = null!;
 		CommandPool commandPool = null!;
-		VertexBuffer<float> buffer = null!;
+		CommandPool copyCommandPool = null!;
+		DeviceLocalBuffer<float> vertexBuffer = null!;
 		VkClearColorValue bg;
+
+		VkQueue graphicsQueue;
+		VkQueue presentQueue;
 		protected override void Initialize () {
 			var surface = ( (IVulkanWindow)window ).GetSurface( vulkan );
 			var (physicalDevice, info) = vulkan.GetBestDeviceInfo( surface );
@@ -92,6 +96,8 @@ public class Program : App {
 				info.GraphicsQueue,
 				info.PresentQueue
 			} );
+			graphicsQueue = device.GetQueue( swapchainInfo.GraphicsQueue );
+			presentQueue = device.GetQueue( swapchainInfo.PresentQueue );
 			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
 
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
@@ -121,6 +127,7 @@ public class Program : App {
 			swapchain.SetRenderPass( renderPass );
 
 			commandPool = device.CreateCommandPool( info.GraphicsQueue );
+			copyCommandPool = device.CreateCommandPool( info.GraphicsQueue, VkCommandPoolCreateFlags.ResetCommandBuffer | VkCommandPoolCreateFlags.Transient );
 			frameInfos = new FrameInfo[2];
 			foreach ( ref var frame in frameInfos.AsSpan() ) {
 				frame = new() {
@@ -134,12 +141,15 @@ public class Program : App {
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
 
-			buffer = new( device );
-			buffer.Allocate( new float[] {
+			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
+			var copy = vertexBuffer.Allocate( new float[] {
 				 0,   -0.5f, 1, 0, 0,
 				 0.5f, 0.5f, 0, 1, 0,
 				-0.5f, 0.5f, 0, 0, 1
-			} );
+			}, copyCommandPool );
+			copy.Submit( graphicsQueue );
+			VulkanNative.vkQueueWaitIdle( graphicsQueue );
+			copyCommandPool.FreeCommandBuffer( copy );
 		}
 
 		FrameInfo[] frameInfos = Array.Empty<FrameInfo>();
@@ -189,13 +199,13 @@ public class Program : App {
 			commands.SetScissor( new() {
 				extent = frame.Size
 			} );
-			commands.Bind( buffer );
+			commands.Bind( vertexBuffer );
 			commands.Draw( 3 );
 			commands.FinishRenderPass();
 			commands.Finish();
 
-			commands.Submit( device.GetQueue( swapchainInfo.GraphicsQueue ), info.ImageAvailable, info.RenderFinished, info.InFlight );
-			validateSwapchain( swapchain.Present( device.GetQueue( swapchainInfo.PresentQueue ), index, info.RenderFinished ), recreateSuboptimal: true );
+			commands.Submit( graphicsQueue, info.ImageAvailable, info.RenderFinished, info.InFlight );
+			validateSwapchain( swapchain.Present( presentQueue, index, info.RenderFinished ), recreateSuboptimal: true );
 
 			Sleep( 1 );
 		}
@@ -226,12 +236,13 @@ public class Program : App {
 			foreach ( var i in frameInfos )
 				i.Dispose();
 			commandPool.Dispose();
+			copyCommandPool.Dispose();
 			pipeline.Dispose();
 			renderPass.Dispose();
 			fragment.Dispose();
 			vertex.Dispose();
 			swapchain.Dispose();
-			buffer.Dispose();
+			vertexBuffer.Dispose();
 			device.Dispose();
 			renderer.Dispose();
 		}

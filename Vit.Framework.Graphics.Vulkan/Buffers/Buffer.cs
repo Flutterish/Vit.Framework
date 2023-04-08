@@ -12,6 +12,29 @@ public abstract class Buffer<T> : DisposableVulkanObject<VkBuffer> where T : unm
 		Device = device;
 	}
 
+	public static unsafe (VkBuffer buffer, VkDeviceMemory memory) CreateBuffer ( Device device, VkMemoryPropertyFlags flags, 
+		ulong length, VkBufferUsageFlags usage, VkSharingMode sharingMode = VkSharingMode.Exclusive ) 
+	{
+		VkBufferCreateInfo info = new() {
+			sType = VkStructureType.BufferCreateInfo,
+			size = Stride * length,
+			usage = usage,
+			sharingMode = sharingMode
+		};
+		Vk.vkCreateBuffer( device, &info, VulkanExtensions.TODO_Allocator, out var buffer ).Validate();
+
+		Vk.vkGetBufferMemoryRequirements( device, buffer, out var reqs );
+		VkMemoryAllocateInfo allocInfo = new() {
+			sType = VkStructureType.MemoryAllocateInfo,
+			allocationSize = reqs.size,
+			memoryTypeIndex = device.PhysicalDevice.FindMemoryType( reqs.memoryTypeBits, flags )
+		};
+		Vk.vkAllocateMemory( device, &allocInfo, VulkanExtensions.TODO_Allocator, out var memory ).Validate();
+		Vk.vkBindBufferMemory( device, buffer, memory, 0 );
+
+		return (buffer, memory);
+	}
+
 	protected unsafe void Allocate ( ulong length, VkBufferUsageFlags usage, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
 		Free();
 		VkBufferCreateInfo info = new() {
