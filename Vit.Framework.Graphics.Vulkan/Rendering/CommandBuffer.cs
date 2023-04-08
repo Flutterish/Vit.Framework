@@ -52,10 +52,20 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindPipeline( this, VkPipelineBindPoint.Graphics, pipeline );
 	}
 
-	public unsafe void Bind<T> ( DeviceLocalBuffer<T> buffer ) where T : unmanaged {
+	public unsafe void BindVertexBuffer<T> ( Buffer<T> buffer ) where T : unmanaged {
 		VkBuffer vkbuffer = buffer.Handle;
 		ulong offset = 0;
 		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
+	}
+
+	void bindIndexBuffer<T> ( Buffer<T> buffer, VkIndexType indexType ) where T : unmanaged {
+		Vk.vkCmdBindIndexBuffer( this, buffer, 0, indexType );
+	}
+	public unsafe void BindIndexBuffer ( Buffer<ushort> buffer ) {
+		bindIndexBuffer( buffer, VkIndexType.Uint16 );
+	}
+	public unsafe void BindIndexBuffer ( Buffer<uint> buffer ) {
+		bindIndexBuffer( buffer, VkIndexType.Uint32 );
 	}
 
 	public unsafe void SetViewPort ( VkViewport viewport ) {
@@ -68,6 +78,10 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 
 	public void Draw ( uint vertexCount, uint instanceCount = 1 ) {
 		Vk.vkCmdDraw( this, vertexCount, instanceCount, 0, 0 );
+	}
+
+	public void DrawIndexed ( uint indexCount, uint instanceCount = 1 ) {
+		Vk.vkCmdDrawIndexed( this, indexCount, instanceCount, 0, 0, 0 );
 	}
 
 	public unsafe void Copy ( VkBuffer source, VkBuffer destination, ulong size, ulong srcOffset = 0, ulong dstOffset = 0 ) {

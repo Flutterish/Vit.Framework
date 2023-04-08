@@ -83,6 +83,7 @@ public class Program : App {
 		CommandPool commandPool = null!;
 		CommandPool copyCommandPool = null!;
 		DeviceLocalBuffer<float> vertexBuffer = null!;
+		DeviceLocalBuffer<ushort> indexBuffer = null!;
 		VkClearColorValue bg;
 
 		VkQueue graphicsQueue;
@@ -142,14 +143,18 @@ public class Program : App {
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
 
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
-			var copy = vertexBuffer.Allocate( new float[] {
-				 0,   -0.5f, 1, 0, 0,
-				 0.5f, 0.5f, 0, 1, 0,
-				-0.5f, 0.5f, 0, 0, 1
-			}, copyCommandPool );
-			copy.Submit( graphicsQueue );
-			VulkanNative.vkQueueWaitIdle( graphicsQueue );
-			copyCommandPool.FreeCommandBuffer( copy );
+			vertexBuffer.AllocateAndTransfer( new float[] {
+				-0.5f, -0.5f, 1, 0, 0,
+				 0.5f, -0.5f, 0, 1, 0,
+				 0.5f,  0.5f, 0, 0, 1,
+				-0.5f,  0.5f, 1, 1, 1
+			}, copyCommandPool, graphicsQueue );
+
+			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
+			indexBuffer.AllocateAndTransfer( new ushort[] {
+				 0, 1, 2,
+				 2, 3, 0
+			}, copyCommandPool, graphicsQueue );
 		}
 
 		FrameInfo[] frameInfos = Array.Empty<FrameInfo>();
@@ -199,8 +204,9 @@ public class Program : App {
 			commands.SetScissor( new() {
 				extent = frame.Size
 			} );
-			commands.Bind( vertexBuffer );
-			commands.Draw( 3 );
+			commands.BindVertexBuffer( vertexBuffer );
+			commands.BindIndexBuffer( indexBuffer );
+			commands.DrawIndexed( 6 );
 			commands.FinishRenderPass();
 			commands.Finish();
 
@@ -243,6 +249,7 @@ public class Program : App {
 			vertex.Dispose();
 			swapchain.Dispose();
 			vertexBuffer.Dispose();
+			indexBuffer.Dispose();
 			device.Dispose();
 			renderer.Dispose();
 		}

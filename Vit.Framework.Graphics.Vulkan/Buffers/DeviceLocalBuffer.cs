@@ -23,6 +23,13 @@ public class DeviceLocalBuffer<T> : Buffer<T> where T : unmanaged {
 		return commands;
 	}
 
+	public void AllocateAndTransfer ( ReadOnlySpan<T> data, CommandPool pool, VkQueue queue ) {
+		var copy = Allocate( data, pool );
+		copy.Submit( queue );
+		Vk.vkQueueWaitIdle( queue );
+		pool.FreeCommandBuffer( copy );
+	}
+
 	protected override uint FindMemoryType ( VkMemoryRequirements requirements ) {
 		return Device.PhysicalDevice.FindMemoryType( requirements.memoryTypeBits, VkMemoryPropertyFlags.DeviceLocal );
 	}
