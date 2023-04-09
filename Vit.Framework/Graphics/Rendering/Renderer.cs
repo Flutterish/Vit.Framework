@@ -1,4 +1,6 @@
 ﻿using System.Collections.Immutable;
+using System.Numerics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Rendering;
@@ -11,4 +13,6 @@ public abstract class Renderer : DisposableObject {
 		API = api;
 		Capabilities = capabilities.ToImmutableArray();
 	}
+
+	public abstract Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : unmanaged, INumber<T>;
 }

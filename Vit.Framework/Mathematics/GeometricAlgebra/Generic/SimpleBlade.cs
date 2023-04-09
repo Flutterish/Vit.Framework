@@ -51,7 +51,8 @@ public record SimpleBlade<T> : IComparable<SimpleBlade<T>> where T : INumber<T> 
 				if ( bases[i].SortingOrder > bases[i + 1].SortingOrder ) {
 					isSorted = false;
 					(bases[i], bases[i + 1]) = (bases[i + 1], bases[i]);
-					scale = -scale;
+					if ( bases[i].SwapFlip && bases[i + 1].SwapFlip )
+						scale = -scale;
 				}
 			}
 

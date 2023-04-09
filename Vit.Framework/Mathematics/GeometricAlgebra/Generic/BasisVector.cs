@@ -8,6 +8,7 @@ public class BasisVector<T> where T : INumber<T> {
 	public readonly T Square;
 	public readonly bool CanSquare;
 	public readonly int SortingOrder;
+	public bool SwapFlip { get; init; }
 
 	static int order;
 
@@ -16,6 +17,7 @@ public class BasisVector<T> where T : INumber<T> {
 		Square = square;
 		CanSquare = true;
 		SortingOrder = order++;
+		SwapFlip = true;
 	}
 
 	public BasisVector ( string name ) {

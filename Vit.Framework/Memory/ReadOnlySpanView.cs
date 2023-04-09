@@ -10,7 +10,7 @@ public readonly ref struct ReadOnlySpanView<T> {
 	public ReadOnlySpanView ( ReadOnlySpan<T> source, int stride ) {
 		this.source = source;
 		this.stride = stride;
-		Length = source.Length / stride;
+		Length = (source.Length + stride - 1) / stride;
 	}
 
 	public T this[int i] => source[i * stride];

@@ -8,14 +8,14 @@ namespace Vit.Framework.Mathematics.LinearAlgebra.Generic;
 
 public record Matrix<T> where T : INumber<T> {
 	readonly ImmutableArray<T> components;
-	public ReadOnlySpan2D<T> Components => new( components.AsSpan(), Rows, Columns );
+	public ReadOnlySpan2D<T> Components => new( components.AsSpan(), Columns, Rows );
 	public readonly int Rows;
 	public readonly int Columns;
 
 	public ReadOnlySpan<T> GetRow ( int y ) => components.AsSpan( y * Columns, Columns );
 	public ReadOnlySpanView<T> GetColumn ( int x ) => new( components.AsSpan( x.. ), stride: Columns );
 
-	public T this[int x, int y] => x >= Columns || y >= Rows ? T.AdditiveIdentity : components[y * Columns + x];
+	public T this[int x, int y] => (x >= Columns || y >= Rows) ? T.AdditiveIdentity : components[y * Columns + x];
 
 	public Matrix ( ReadOnlySpan2D<T> values ) {
 		Rows = values.Height;
@@ -66,10 +66,21 @@ public record Matrix<T> where T : INumber<T> {
 		this.components = components.AsSpan().ToImmutableArray();
 	}
 
+	public Matrix<T> Transposed () {
+		using var data = new RentedArray<T>( components.Length );
+		for ( int x = 0; x < Columns; x++ ) {
+			for ( int y = 0; y < Rows; y++ ) {
+				data[x * Rows + y] = components[y * Columns + x];
+			}
+		}
+
+		return new Matrix<T>( new Span2D<T>( data, Rows, Columns ) );
+	}
+
 	public static Matrix<T> operator * ( Matrix<T> left, Matrix<T> right ) {
 		var rows = left.Rows;
 		var columns = right.Columns;
-		var length = Math.Max( left.Columns, right.Rows );
+		var length = Math.Min( left.Columns, right.Rows );
 		using var data = new RentedArray<T>( rows * columns );
 		for ( int x = 0; x < columns; x++ ) {
 			for ( int y = 0; y < rows; y++ ) {
@@ -86,10 +97,14 @@ public record Matrix<T> where T : INumber<T> {
 	}
 
 	public override string ToString () {
+		return ToString( Components );
+	}
+
+	public static string ToString ( ReadOnlySpan2D<T> data ) {
 		StringBuilder sb = new();
 		sb.AppendLine( "<" );
-		for ( int i = 0; i < Rows; i++ ) {
-			var row = GetRow( i );
+		for ( int i = 0; i < data.Height; i++ ) {
+			var row = data.GetRow( i );
 			sb.Append( "\t[" );
 			for ( int j = 0; j < row.Length; j++ ) {
 				sb.Append( row[j] );
@@ -97,7 +112,7 @@ public record Matrix<T> where T : INumber<T> {
 					sb.Append( "; " );
 			}
 
-			if ( i != Rows - 1 )
+			if ( i != data.Height - 1 )
 				sb.AppendLine( "]," );
 			else
 				sb.AppendLine( "]" );
@@ -107,18 +122,25 @@ public record Matrix<T> where T : INumber<T> {
 		return sb.ToString();
 	}
 
-	public static string GenerateMultiplication ( int columns, int rows ) {
-		Matrix<MultiVector<T>> generateMatrix ( string name ) {
-			var data = new MultiVector<T>[columns, rows];
-			for ( int x = 0; x < columns; x++ ) {
-				for ( int y = 0; y < rows; y++ ) {
-					data[x, y] = new BasisVector<T>( $"{name}[{y * columns + x}]" );
-				}
+	public static Matrix<MultiVector<T>> GenerateLabelMatrix ( string name, int columns, int rows ) {
+		var data = new MultiVector<T>[rows, columns];
+		for ( int x = 0; x < columns; x++ ) {
+			for ( int y = 0; y < rows; y++ ) {
+				data[y, x] = new BasisVector<T>( $"{name}[{x},{y}]" );
 			}
-
-			return new( data );
 		}
 
-		return ( generateMatrix( "this" ) * generateMatrix( "other" ) ).ToString();
+		return new( data );
+	}
+
+	public static Matrix<MultiVector<T>> GenerateLabelMatrix ( string name, int columns, int rows, string componentNames ) {
+		var data = new MultiVector<T>[rows, columns];
+		for ( int x = 0; x < columns; x++ ) {
+			for ( int y = 0; y < rows; y++ ) {
+				data[y, x] = new BasisVector<T>( $"{name}.{componentNames[x + y * columns]}" );
+			}
+		}
+
+		return new( data );
 	}
 }

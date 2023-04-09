@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
@@ -22,6 +23,12 @@ public class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
+		//var unitVector = new Matrix<MultiVector<float>>( new MultiVector<float>[,] {
+		//	{ new BasisVector<float>( "X" ), new BasisVector<float>( "Y" ), new BasisVector<float>( "Z" ), new SimpleBlade<float>( 1, Array.Empty<BasisVector<float>>() ) }
+		//} );
+		//var labelMatrix = Matrix<float>.GenerateLabelMatrix( "m", 4, 4 );
+		//var help = ( unitVector * labelMatrix ).ToString();
+
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );
@@ -58,7 +65,9 @@ public class Program : App {
 		VulkanInstance vulkan;
 		Host host;
 		Window window;
+		DateTime startTime;
 		public RenderThread ( Window window, Host host, string name ) : base( name ) {
+			startTime = DateTime.Now;
 			this.host = host;
 			this.window = window;
 			renderer = (VulkanRenderer)host.CreateRenderer( RenderingApi.Vulkan, new[] { RenderingCapabilities.DrawToWindow }, new() {
@@ -151,6 +160,7 @@ public class Program : App {
 
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
+			bg = new( 0, 0, 0 );
 
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
 			vertexBuffer.AllocateAndTransfer( new float[] {
@@ -219,10 +229,14 @@ public class Program : App {
 			} );
 			commands.BindVertexBuffer( vertexBuffer );
 			commands.BindIndexBuffer( indexBuffer );
-			uniforms.Transfer( new Matrices() {
-				Model = Matrix4<float>.Identity,
-				View = Matrix4<float>.Identity,
-				Projection = Matrix4<float>.Identity
+			var time = (float)( DateTime.Now - startTime ).TotalSeconds;
+			var axis = Vector3<float>.UnitZ.Lerp( Vector3<float>.UnitY, 0f );
+			Matrices matrices;
+			uniforms.Transfer( matrices = new Matrices() {
+				Model = Matrix4<float>.FromAxisAngle( axis.Normalized(), time * 90f.Degrees() ), // CreateLookAt( Vector3<float>.Zero, Vector3<float>.UnitZ + Vector3<float>.UnitY, Vector3<float>.UnitY )
+				View = Matrix4<float>.CreateTranslation( 0.1f, 0.1f, 2 ),
+				Projection = Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
+					* renderer.CreateLeftHandCorrectionMatrix<float>()
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( 6 );

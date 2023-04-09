@@ -81,9 +81,10 @@ public record Vector<T> where T : INumber<T> {
 	public static Vector<T> operator - ( Vector<T> vector )
 		=> -T.MultiplicativeIdentity * vector;
 
-	public static implicit operator Matrix<T> ( Vector<T> vector ) {
-		return new Matrix<T>( new ReadOnlySpan2D<T>( vector.Components.AsSpan(), 1, vector.Components.Length ) );
-	}
+	public static implicit operator Matrix<T> ( Vector<T> vector )
+		=> vector.ToMatrixHorizontal();
+	public Matrix<T> ToMatrixVertical () => new Matrix<T>( new ReadOnlySpan2D<T>( Components.AsSpan(), 1, Components.Length ) );
+	public Matrix<T> ToMatrixHorizontal () => new Matrix<T>( new ReadOnlySpan2D<T>( Components.AsSpan(), Components.Length, 1 ) );
 
 	public override string ToString () {
 		return $"[{string.Join("; ", Components)}]";
