@@ -3,7 +3,7 @@
 namespace Vit.Framework.Mathematics;
 
 public struct Size2<T> : IEquatable<Size2<T>>
-	where T : struct, INumber<T> 
+	where T : unmanaged, INumber<T> 
 {
 	public T Width;
 	public T Height;

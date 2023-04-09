@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Threading;
 
@@ -36,6 +37,23 @@ public abstract class Window : IDisposable {
 		Initialized?.Invoke( this );
 	}
 	public event Action<Window>? Initialized;
+
+	public Point2<double> CursorPosition { get; private set; }
+	protected void OnCursorMoved ( Point2<double> position ) {
+		CursorPosition = position;
+		CursorMoved?.Invoke( position );
+	}
+	public event Action<Point2<double>>? CursorMoved;
+
+	protected void OnPhysicalKeyDown ( Key key ) {
+		PhysicalKeyDown?.Invoke( key );
+	}
+	public event Action<Key>? PhysicalKeyDown;
+
+	protected void OnPhysicalKeyUp ( Key key ) {
+		PhysicalKeyUp?.Invoke( key );
+	}
+	public event Action<Key>? PhysicalKeyUp;
 
 	public bool IsClosed { get; private set; }
 	protected abstract void Dispose ( bool disposing );

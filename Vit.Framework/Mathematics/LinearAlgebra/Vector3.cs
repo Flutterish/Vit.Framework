@@ -59,6 +59,17 @@ public struct Vector3<T> where T : unmanaged, INumber<T> {
 	public Vector3<T> Cross ( Vector3<T> other )
 		=> Cross( this, other );
 
+	public override bool Equals ( object? obj ) {
+		return obj is Vector3<T> vector &&
+				EqualityComparer<T>.Default.Equals( X, vector.X ) &&
+				EqualityComparer<T>.Default.Equals( Y, vector.Y ) &&
+				EqualityComparer<T>.Default.Equals( Z, vector.Z );
+	}
+
+	public override int GetHashCode () {
+		return HashCode.Combine( X, Y, Z );
+	}
+
 	public static Vector3<T> operator - ( Vector3<T> left, Vector3<T> right ) {
 		return new() {
 			X = left.X - right.X,
@@ -100,6 +111,18 @@ public struct Vector3<T> where T : unmanaged, INumber<T> {
 			Y = -vector.Y,
 			Z = -vector.Z
 		};
+	}
+
+	public static bool operator == ( Vector3<T> left, Vector3<T> right ) {
+		return left.X == right.X
+			&& left.Y == right.Y
+			&& left.Z == right.Z;
+	}
+
+	public static bool operator != ( Vector3<T> left, Vector3<T> right ) {
+		return left.X != right.X
+			|| left.Y != right.Y
+			|| left.Z != right.Z;
 	}
 }
 

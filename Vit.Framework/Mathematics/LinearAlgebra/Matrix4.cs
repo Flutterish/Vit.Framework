@@ -144,6 +144,14 @@ public struct Matrix4<T> where T : unmanaged, INumber<T> {
 		};
 	}
 
+	public Vector3<T> Apply ( Vector3<T> vector ) {
+		return new() {
+			X = M03 + vector.X * M00 + vector.Y * M01 + vector.Z * M02,
+			Y = M13 + vector.X * M10 + vector.Y * M11 + vector.Z * M12,
+			Z = M23 + vector.X * M20 + vector.Y * M21 + vector.Z * M22
+		};
+	}
+
 	public override string ToString () {
 		return Matrix<T>.ToString( AsSpan2D() );
 	}

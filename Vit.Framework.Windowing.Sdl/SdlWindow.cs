@@ -1,5 +1,6 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing.Sdl;
@@ -76,7 +77,7 @@ abstract class SdlWindow : Window {
 	}
 
 	public void OnEvent ( SDL.SDL_MouseMotionEvent e ) {
-
+		OnCursorMoved( new( e.x, e.y ) );
 	}
 
 	public void OnEvent ( SDL.SDL_MouseButtonEvent e ) {
@@ -88,7 +89,12 @@ abstract class SdlWindow : Window {
 	}
 
 	public void OnEvent ( SDL.SDL_KeyboardEvent e ) {
-		
+		if ( KeyExtensions.GetKeyByScanCode( (int)e.keysym.scancode ) is Key key ) {
+			if ( e.state == 0 )
+				OnPhysicalKeyUp( key );
+			else
+				OnPhysicalKeyDown( key );
+		}
 	}
 
 	public void CheckResize () {

@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Windowing;
+using Vit.Framework.Input;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -66,8 +67,9 @@ public class Program : App {
 		Host host;
 		Window window;
 		DateTime startTime;
+		DateTime lastFrameTime;
 		public RenderThread ( Window window, Host host, string name ) : base( name ) {
-			startTime = DateTime.Now;
+			lastFrameTime = startTime = DateTime.Now;
 			this.host = host;
 			this.window = window;
 			renderer = (VulkanRenderer)host.CreateRenderer( RenderingApi.Vulkan, new[] { RenderingCapabilities.DrawToWindow }, new() {
@@ -76,12 +78,17 @@ public class Program : App {
 			vulkan = renderer.Instance;
 
 			window.Resized += onWindowResized;
+
+			window.PhysicalKeyDown += Keys.Add;
+			window.PhysicalKeyUp += Keys.Remove;
 		}
 
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;
 		}
+
+		BinaryStateTracker<Key> Keys = new();
 
 		Device device = null!;
 		SwapchainInfo swapchainInfo = null!;
@@ -204,6 +211,8 @@ public class Program : App {
 				InFlight.Dispose();
 			}
 		};
+
+		Point3<float> position;
 		void record ( FrameInfo info ) {
 			var commands = info.Commands;
 			info.InFlight.Wait();
@@ -229,14 +238,46 @@ public class Program : App {
 			} );
 			commands.BindVertexBuffer( vertexBuffer );
 			commands.BindIndexBuffer( indexBuffer );
-			var time = (float)( DateTime.Now - startTime ).TotalSeconds;
+			var now = DateTime.Now;
+			var deltaTime = (float)(now - lastFrameTime).TotalSeconds;
+
+			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * -180 )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * -360 );
+
+			var inverseCameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * 360 )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * 180 );
+
+			var deltaPosition = new Vector3<float>();
+			if ( Keys.IsActive( Key.W ) )
+				deltaPosition += Vector3<float>.UnitZ;
+			if ( Keys.IsActive( Key.S ) )
+				deltaPosition -= Vector3<float>.UnitZ;
+			if ( Keys.IsActive( Key.D ) )
+				deltaPosition += Vector3<float>.UnitX;
+			if ( Keys.IsActive( Key.A ) )
+				deltaPosition -= Vector3<float>.UnitX;
+			if ( Keys.IsActive( Key.Space ) )
+				deltaPosition += Vector3<float>.UnitY;
+			if ( Keys.IsActive( Key.LeftShift ) )
+				deltaPosition -= Vector3<float>.UnitY;
+
+			deltaPosition = cameraRotation.Apply( deltaPosition );
+			if ( deltaPosition != Vector3<float>.Zero ) {
+				position += deltaPosition * deltaTime;
+			}
+
+			var cameraMatrix = Matrix4<float>.CreateTranslation( -position.X, -position.Y, -position.Z )
+				* inverseCameraRotation;
+
+			lastFrameTime = now;
+			var time = (float)( now - startTime ).TotalSeconds;
 			var axis = Vector3<float>.UnitZ.Lerp( Vector3<float>.UnitY, 0f );
-			Matrices matrices;
-			uniforms.Transfer( matrices = new Matrices() {
+			uniforms.Transfer( new Matrices() {
 				Model = Matrix4<float>.FromAxisAngle( axis.Normalized(), time * 90f.Degrees() ), // CreateLookAt( Vector3<float>.Zero, Vector3<float>.UnitZ + Vector3<float>.UnitY, Vector3<float>.UnitY )
 				View = Matrix4<float>.CreateTranslation( 0.1f, 0.1f, 2 ),
-				Projection = Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
+				Projection = cameraMatrix
 					* renderer.CreateLeftHandCorrectionMatrix<float>()
+					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( 6 );
