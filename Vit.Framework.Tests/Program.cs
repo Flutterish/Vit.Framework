@@ -244,8 +244,7 @@ public class Program : App {
 			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * -180 )
 				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * -360 );
 
-			var inverseCameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * 360 )
-				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * 180 );
+			var inverseCameraRotation = cameraRotation.Inverse();
 
 			var deltaPosition = new Vector3<float>();
 			if ( Keys.IsActive( Key.W ) )
