@@ -55,15 +55,15 @@ public struct Matrix4<T> where T : unmanaged, INumber<T> {
 
 		return new() {
 			M00 = xx + ca * ( T.One - xx ),
-			M01 = xy - ca * xy + sa * z,
-			M02 = xz - ca * xz - sa * y,
+			M10 = xy - ca * xy + sa * z,
+			M20 = xz - ca * xz - sa * y,
 
-			M10 = xy - ca * xy - sa * z,
+			M01 = xy - ca * xy - sa * z,
 			M11 = yy + ca * ( T.One - yy ),
-			M12 = yz - ca * yz + sa * x,
+			M21 = yz - ca * yz + sa * x,
 
-			M20 = xz - ca * xz + sa * y,
-			M21 = yz - ca * yz - sa * x,
+			M02 = xz - ca * xz + sa * y,
+			M12 = yz - ca * yz - sa * x,
 			M22 = zz + ca * ( T.One - zz ),
 
 			M33 = T.MultiplicativeIdentity
@@ -87,35 +87,35 @@ public struct Matrix4<T> where T : unmanaged, INumber<T> {
 		};
 	}
 
-	public static Matrix4<TNumber> CreateLookAt<TNumber> ( Vector3<TNumber> cameraPosition, Vector3<TNumber> cameraTarget, Vector3<TNumber> cameraUpVector ) 
+	public static Matrix4<TNumber> CreateLookAt<TNumber> ( Vector3<TNumber> direction, Vector3<TNumber> upDirection ) 
 		where TNumber : unmanaged, IFloatingPointIeee754<TNumber> 
 	{
-		var forward = (cameraPosition - cameraTarget).Normalized();
-		var right = cameraUpVector.Cross( forward );
+		var forward = direction.Normalized();
+		var right = upDirection.Cross( forward );
 		if ( right.LengthSquared <= TNumber.Epsilon ) {
-			if ( TNumber.Abs( cameraUpVector.X ) < TNumber.Abs( cameraUpVector.Y ) )
-				cameraUpVector.X += TNumber.One;
+			if ( TNumber.Abs( upDirection.X ) < TNumber.Abs( upDirection.Y ) )
+				upDirection.X += TNumber.One;
 			else
-				cameraUpVector.Y += TNumber.One;
+				upDirection.Y += TNumber.One;
 
-			right = cameraUpVector.Cross( forward );
+			right = upDirection.Cross( forward );
 		}
 		right.Normalize();
 		var up = forward.Cross( right );
 
 		return new() {
-			M00 = right.X,
-			M10 = up.X,
-			M20 = forward.X,
-			M01 = right.Y,
-			M11 = up.Y,
-			M21 = forward.Y,
-			M02 = right.Z,
-			M12 = up.Z,
+			M02 = forward.X,
+			M12 = forward.Y,
 			M22 = forward.Z,
-			M03 = -right.Dot( cameraPosition ),
-			M13 = -up.Dot( cameraPosition ),
-			M23 = -forward.Dot( cameraPosition ),
+
+			M01 = up.X,
+			M11 = up.Y,
+			M21 = up.Z,
+
+			M00 = right.X,
+			M10 = right.Y,
+			M20 = right.Z,
+
 			M33 = TNumber.MultiplicativeIdentity
 		};
 	}

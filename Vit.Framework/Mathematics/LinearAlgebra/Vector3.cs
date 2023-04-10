@@ -135,7 +135,7 @@ public static class Vector3Extensions {
 		return vector / vector.GetLength();
 	}
 
-	public static void Normalize<T> ( this Vector3<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
+	public static void Normalize<T> ( this ref Vector3<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
 		var scale = T.MultiplicativeIdentity / vector.GetLength();
 		vector.X *= scale;
 		vector.Y *= scale;
@@ -149,7 +149,7 @@ public static class Vector3Extensions {
 	public static Vector3<T> NormalizedFast<T> ( this Vector3<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
 		return vector * T.ReciprocalSqrtEstimate( vector.LengthSquared );
 	}
-	public static void NormalizeFast<T> ( this Vector3<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
+	public static void NormalizeFast<T> ( this ref Vector3<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
 		var scale = T.ReciprocalSqrtEstimate( vector.LengthSquared );
 		vector.X *= scale;
 		vector.Y *= scale;

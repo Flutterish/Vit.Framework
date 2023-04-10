@@ -21,4 +21,20 @@ public struct Point3<T> where T : unmanaged, INumber<T> {
 			Z = left.Z + right.Z
 		};
 	}
+
+	public static Vector3<T> operator - ( Point3<T> left, Point3<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y,
+			Z = left.Z - right.Z
+		};
+	}
+
+	public Vector3<T> FromOrigin () {
+		return new Vector3<T> {
+			X = X,
+			Y = Y,
+			Z = Z
+		};
+	}
 }

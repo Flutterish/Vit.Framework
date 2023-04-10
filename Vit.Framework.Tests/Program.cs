@@ -241,8 +241,8 @@ public class Program : App {
 			var now = DateTime.Now;
 			var deltaTime = (float)(now - lastFrameTime).TotalSeconds;
 
-			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * -180 )
-				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * -360 );
+			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * 180 )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * 360 );
 
 			var inverseCameraRotation = cameraRotation.Inverse();
 
@@ -270,13 +270,11 @@ public class Program : App {
 
 			lastFrameTime = now;
 			var time = (float)( now - startTime ).TotalSeconds;
-			var axis = Vector3<float>.UnitZ.Lerp( Vector3<float>.UnitY, 0f );
+			var axis = Vector3<float>.UnitZ;
 			uniforms.Transfer( new Matrices() {
-				Model = Matrix4<float>.FromAxisAngle( axis.Normalized(), time * 90f.Degrees() ), // CreateLookAt( Vector3<float>.Zero, Vector3<float>.UnitZ + Vector3<float>.UnitY, Vector3<float>.UnitY )
-				View = Matrix4<float>.CreateTranslation( 0.1f, 0.1f, 2 ),
-				Projection = cameraMatrix
-					* renderer.CreateLeftHandCorrectionMatrix<float>()
-					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
+				Model = Matrix4<float>.FromAxisAngle( axis, time * 90f.Degrees() ) * Matrix4<float>.CreateLookAt( position.FromOrigin(), Vector3<float>.UnitY ),
+				View = cameraMatrix * renderer.CreateLeftHandCorrectionMatrix<float>(),
+				Projection = Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( 6 );
