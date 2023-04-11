@@ -1,4 +1,8 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Graphics.Vulkan.Buffers;
@@ -6,6 +10,7 @@ using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
+using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Input;
 using Vit.Framework.Interop;
@@ -16,6 +21,7 @@ using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
 using Vulkan;
+using Image = Vit.Framework.Graphics.Vulkan.Textures.Image;
 using Semaphore = Vit.Framework.Graphics.Vulkan.Synchronisation.Semaphore;
 
 namespace Vit.Framework.Tests;
@@ -101,12 +107,14 @@ public class Program : App {
 		CommandPool copyCommandPool = null!;
 		DeviceBuffer<float> vertexBuffer = null!;
 		DeviceBuffer<ushort> indexBuffer = null!;
+		Sampler sampler = null!;
 		struct Matrices {
 			public Matrix4<float> Model;
 			public Matrix4<float> View;
 			public Matrix4<float> Projection;
 		}
 		HostBuffer<Matrices> uniforms = null!;
+		Image texture = null!;
 		VkClearColorValue bg;
 
 		VkQueue graphicsQueue;
@@ -127,8 +135,10 @@ public class Program : App {
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPosition;
 				layout(location = 1) in vec3 inColor;
+				layout(location = 2) in vec2 inTexCoord;
 
 				layout(location = 0) out vec3 fragColor;
+				layout(location = 1) out vec2 fragTexCoord;
 
 				layout(binding = 0) uniform Matrices {
 					mat4 model;
@@ -139,16 +149,20 @@ public class Program : App {
 				void main() {
 					gl_Position = matrices.projection * matrices.view * matrices.model * vec4(inPosition, 0.0, 1.0);
 					fragColor = inColor;
+					fragTexCoord = inTexCoord;
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 
 			fragment = device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 fragColor;
+				layout(location = 1) in vec2 fragTexCoord;
 
 				layout(location = 0) out vec4 outColor;
 
+				layout(binding = 1) uniform sampler2D texSampler;
+
 				void main() {
-					outColor = vec4(fragColor, 1.0);
+					outColor = texture(texSampler, fragTexCoord) * vec4(fragColor, 1);
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
@@ -171,10 +185,10 @@ public class Program : App {
 
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
 			vertexBuffer.AllocateAndTransfer( new float[] {
-				-0.5f, -0.5f, 1, 0, 0,
-				 0.5f, -0.5f, 0, 1, 0,
-				 0.5f,  0.5f, 0, 0, 1,
-				-0.5f,  0.5f, 1, 1, 1
+				-0.5f, -0.5f, 1, 0, 0, 1, 0,
+				 0.5f, -0.5f, 0, 1, 0, 0, 0,
+				 0.5f,  0.5f, 0, 0, 1, 0, 1,
+				-0.5f,  0.5f, 1, 1, 1, 1, 1
 			}, copyCommandPool, graphicsQueue );
 
 			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
@@ -185,8 +199,15 @@ public class Program : App {
 
 			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
 			uniforms.Allocate( 1 );
+			pipeline.DescriptorSet.ConfigureUniforms( uniforms, 0 );
 
-			pipeline.DescriptorSet.ConfigureUniforms( uniforms );
+			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>( "./texture.jpg" );
+			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
+			texture = new( device );
+			texture.AllocateAndTransfer( image, copyCommandPool, graphicsQueue );
+
+			sampler = new( device );
+			pipeline.DescriptorSet.ConfigureTexture( texture, sampler, 1 );
 		}
 
 		FrameInfo frameInfo;
@@ -212,7 +233,7 @@ public class Program : App {
 			}
 		};
 
-		Point3<float> position;
+		Point3<float> position = new( 0, 0, -1 );
 		void record ( FrameInfo info ) {
 			var commands = info.Commands;
 			info.InFlight.Wait();
@@ -270,11 +291,11 @@ public class Program : App {
 
 			lastFrameTime = now;
 			var time = (float)( now - startTime ).TotalSeconds;
-			var axis = Vector3<float>.UnitZ;
 			uniforms.Transfer( new Matrices() {
-				Model = Matrix4<float>.FromAxisAngle( axis, time * 90f.Degrees() ) * Matrix4<float>.CreateLookAt( position.FromOrigin(), Vector3<float>.UnitY ),
-				View = cameraMatrix * renderer.CreateLeftHandCorrectionMatrix<float>(),
-				Projection = Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
+				Model = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitZ, 0 * 90f.Degrees() ),
+				View = cameraMatrix,
+				Projection = renderer.CreateLeftHandCorrectionMatrix<float>() 
+					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( 6 );
@@ -321,6 +342,8 @@ public class Program : App {
 			vertexBuffer.Dispose();
 			indexBuffer.Dispose();
 			uniforms.Dispose();
+			texture.Dispose();
+			sampler.Dispose();
 			device.Dispose();
 			renderer.Dispose();
 		}

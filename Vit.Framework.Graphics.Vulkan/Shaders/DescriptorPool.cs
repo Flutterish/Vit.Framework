@@ -1,21 +1,17 @@
-﻿using Vulkan;
+﻿using Vit.Framework.Interop;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
 
 public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool> {
 	public readonly VkDevice Device;
-	public unsafe DescriptorPool ( VkDevice device, VkDescriptorType type, uint count ) {
+	public unsafe DescriptorPool ( VkDevice device, params VkDescriptorPoolSize[] values ) {
 		Device = device;
-
-		var size = new VkDescriptorPoolSize() {
-			type = type,
-			descriptorCount = count
-		};
 
 		var info = new VkDescriptorPoolCreateInfo() {
 			sType = VkStructureType.DescriptorPoolCreateInfo,
-			poolSizeCount = 1,
-			pPoolSizes = &size,
+			poolSizeCount = (uint)values.Length,
+			pPoolSizes = values.Data(),
 			maxSets = 1
 		};
 

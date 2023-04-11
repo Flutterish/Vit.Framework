@@ -98,6 +98,24 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdCopyBuffer( this, source, destination, 1, &region );
 	}
 
+	public unsafe void Copy ( VkBuffer source, VkImage destination, VkExtent3D size ) {
+		var region = new VkBufferImageCopy() {
+			bufferOffset = 0,
+			bufferRowLength = 0,
+			bufferImageHeight = 0,
+			imageSubresource = {
+				aspectMask = VkImageAspectFlags.Color,
+				mipLevel = 0,
+				baseArrayLayer = 0,
+				layerCount = 1
+			},
+			imageOffset = { x = 0, y = 0, z = 0 },
+			imageExtent = size
+		};
+
+		Vk.vkCmdCopyBufferToImage( this, source, destination, VkImageLayout.TransferDstOptimal, 1, &region );
+	}
+
 	public void FinishRenderPass () {
 		Vk.vkCmdEndRenderPass( this );
 	}

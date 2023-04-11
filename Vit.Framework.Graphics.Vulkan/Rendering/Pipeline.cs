@@ -26,7 +26,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		var vert = shaders.First( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ).GetVertexInfo();
 		var vertexBinding = new VkVertexInputBindingDescription() { // TODO this is hardcoded
 			binding = 0,
-			stride = sizeof( float ) * 5,
+			stride = sizeof( float ) * 7,
 			inputRate = VkVertexInputRate.Vertex
 		};
 		var vertexAttributes = new VkVertexInputAttributeDescription[] {
@@ -41,6 +41,12 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 				location = 1,
 				format = VkFormat.R32g32b32Sfloat,
 				offset = sizeof(float) * 2
+			},
+			new() {
+				binding = 0,
+				location = 2,
+				format = VkFormat.R32g32Sfloat,
+				offset = sizeof(float) * 5
 			}
 		};
 		vert.vertexBindingDescriptionCount = 1;
@@ -50,17 +56,27 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 
 		var uniforms = new VkDescriptorSetLayoutBinding() { // TODO this is hardcoded
 			binding = 0,
-			descriptorType = VkDescriptorType.UniformBuffer,
 			descriptorCount = 1,
+			descriptorType = VkDescriptorType.UniformBuffer,
 			stageFlags = VkShaderStageFlags.Vertex
 		};
+		var samplers = new VkDescriptorSetLayoutBinding() {
+			binding = 1,
+			descriptorCount = 1,
+			descriptorType = VkDescriptorType.CombinedImageSampler,
+			stageFlags = VkShaderStageFlags.Fragment
+		};
+		var layouts = new[] { uniforms, samplers };
 		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
 			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-			bindingCount = 1,
-			pBindings = &uniforms
+			bindingCount = (uint)layouts.Length,
+			pBindings = layouts.Data()
 		};
 		Vk.vkCreateDescriptorSetLayout( Device, &uniformInfo, VulkanExtensions.TODO_Allocator, out this.Uniforms ).Validate();
-		DescriptorPool = new( device, VkDescriptorType.UniformBuffer, 1 );
+		DescriptorPool = new( device, 
+			new VkDescriptorPoolSize() { type = VkDescriptorType.UniformBuffer, descriptorCount = 1 },
+			new VkDescriptorPoolSize() { type = VkDescriptorType.CombinedImageSampler, descriptorCount = 1 } 
+		);
 		DescriptorSet = DescriptorPool.CreateSet( this.Uniforms );
 
 		var assembly = new VkPipelineInputAssemblyStateCreateInfo() {

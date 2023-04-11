@@ -36,6 +36,10 @@ public class SpirvBytecode {
 		Type = type;
 		Identifier = identifier;
 
+		if ( shader.Status != CompilationStatus.Success ) {
+			throw new Exception( "Shader compilation failed" );
+		}
+
 		//reflect();
 	}
 

@@ -29,7 +29,9 @@ public class Device : DisposableVulkanObject<VkDevice> {
 			};
 		}
 
-		VkPhysicalDeviceFeatures features = new() { };
+		VkPhysicalDeviceFeatures features = new() {
+			samplerAnisotropy = true
+		};
 
 		var extensionNames = extensions.MakeArray();
 		var layerNames = layers.MakeArray();

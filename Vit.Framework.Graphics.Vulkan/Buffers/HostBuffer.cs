@@ -21,6 +21,9 @@ public unsafe class HostBuffer<T> : Buffer<T> where T : unmanaged {
 		data.CopyTo( new Span<T>( this.data, data.Length ) );
 	}
 
+	public Span<T> GetDataSpan ( int length, int offset = 0 )
+		=> new Span<T>( data + offset, length );
+
 	public unsafe void Transfer ( ReadOnlySpan<T> data, ulong offset = 0 ) {
 		data.CopyTo( new Span<T>( this.data + offset, data.Length ) );
 	}
@@ -29,8 +32,16 @@ public unsafe class HostBuffer<T> : Buffer<T> where T : unmanaged {
 		*(this.data + offset) = data;
 	}
 
-	protected override void Free () {
+	public void Unmap () {
+		if ( data == null )
+			return;
+
 		Vk.vkUnmapMemory( Device, Memory );
+		data = null;
+	}
+
+	protected override void Free () {
+		Unmap();
 		base.Free();
 	}
 

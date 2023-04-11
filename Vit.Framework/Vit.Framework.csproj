@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     <PackageReference Include="SPIRVCross.NET" Version="1.1.3" />
     <PackageReference Include="Vortice.ShaderCompiler" Version="1.7.0" />
   </ItemGroup>
