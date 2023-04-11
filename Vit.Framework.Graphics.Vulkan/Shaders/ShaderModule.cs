@@ -25,13 +25,17 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule> {
 		EntryPoint = bytecode.EntryPoint;
 		StageCreateInfo = new() {
 			sType = VkStructureType.PipelineShaderStageCreateInfo,
-			stage = bytecode.Type switch {
-				ShaderPartType.Vertex => VkShaderStageFlags.Vertex,
-				ShaderPartType.Fragment => VkShaderStageFlags.Fragment,
-				_ => throw new InvalidOperationException( $"Shader stage not supported: {bytecode.Type}" )
-			},
+			stage = FlagsFromPartType( bytecode.Type ),
 			module = Instance,
 			pName = EntryPoint
+		};
+	}
+
+	public static VkShaderStageFlags FlagsFromPartType ( ShaderPartType type ) {
+		return type switch {
+			ShaderPartType.Vertex => VkShaderStageFlags.Vertex,
+			ShaderPartType.Fragment => VkShaderStageFlags.Fragment,
+			_ => throw new InvalidOperationException( $"Shader stage not supported: {type}" )
 		};
 	}
 

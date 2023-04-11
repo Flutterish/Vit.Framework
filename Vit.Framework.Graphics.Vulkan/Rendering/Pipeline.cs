@@ -32,29 +32,14 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pVertexBindingDescriptions = sets.Data()
 		};
 
-		var uniforms = new VkDescriptorSetLayoutBinding() { // TODO this is hardcoded
-			binding = 0,
-			descriptorCount = 1,
-			descriptorType = VkDescriptorType.UniformBuffer,
-			stageFlags = VkShaderStageFlags.Vertex
-		};
-		var samplers = new VkDescriptorSetLayoutBinding() {
-			binding = 1,
-			descriptorCount = 1,
-			descriptorType = VkDescriptorType.CombinedImageSampler,
-			stageFlags = VkShaderStageFlags.Fragment
-		};
-		var layouts = new[] { uniforms, samplers };
+		var layouts = shaders.Select( x => x.Spirv.Reflections ).GenerateUniformBindings();
 		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
 			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
 			bindingCount = (uint)layouts.Length,
 			pBindings = layouts.Data()
 		};
 		Vk.vkCreateDescriptorSetLayout( Device, &uniformInfo, VulkanExtensions.TODO_Allocator, out this.Uniforms ).Validate();
-		DescriptorPool = new( device, 
-			new VkDescriptorPoolSize() { type = VkDescriptorType.UniformBuffer, descriptorCount = 1 },
-			new VkDescriptorPoolSize() { type = VkDescriptorType.CombinedImageSampler, descriptorCount = 1 } 
-		);
+		DescriptorPool = layouts.CreateDesscriptorPool( device );
 		DescriptorSet = DescriptorPool.CreateSet( this.Uniforms );
 
 		var assembly = new VkPipelineInputAssemblyStateCreateInfo() {
