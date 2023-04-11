@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Vulkan.Rendering;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
@@ -6,15 +7,15 @@ namespace Vit.Framework.Graphics.Vulkan.Textures;
 public class FrameBuffer : DisposableVulkanObject<VkFramebuffer> {
 	public readonly RenderPass RenderPass;
 	public readonly VkExtent2D Size;
-	public unsafe FrameBuffer ( VkImageView view, VkExtent2D size, RenderPass pass ) {
+	public unsafe FrameBuffer ( VkImageView[] attachements, VkExtent2D size, RenderPass pass ) {
 		Size = size;
 		RenderPass = pass;
 
 		var info = new VkFramebufferCreateInfo() {
 			sType = VkStructureType.FramebufferCreateInfo,
 			renderPass = pass,
-			attachmentCount = 1,
-			pAttachments = &view,
+			attachmentCount = (uint)attachements.Length,
+			pAttachments = attachements.Data(),
 			width = size.width,
 			height = size.height,
 			layers = 1

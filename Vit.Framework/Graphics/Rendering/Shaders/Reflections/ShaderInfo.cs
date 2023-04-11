@@ -46,7 +46,6 @@ public class ShaderInfo {
 
 		SPIRV.spvc_context_destroy( context );
 
-		var k = info.ToString();
 		return info;
 	}
 

@@ -88,4 +88,16 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 
 		throw new Exception( "idk no memory" );
 	}
+
+	public VkFormat GetBestSupportedFormat ( IEnumerable<VkFormat> candidates, VkFormatFeatureFlags features, VkImageTiling tiling = VkImageTiling.Optimal ) {
+		foreach ( var i in candidates ) {
+			Vk.vkGetPhysicalDeviceFormatProperties( this, i, out var props );
+			if ( tiling == VkImageTiling.Optimal && ( props.optimalTilingFeatures & features ) == features )
+				return i;
+			if ( tiling == VkImageTiling.Linear && ( props.linearTilingFeatures & features ) == features )
+				return i;
+		}
+
+		throw new Exception( "Could not find a suitable format" );
+	}
 }

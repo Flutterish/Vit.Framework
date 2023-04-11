@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
@@ -29,21 +30,17 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkBeginCommandBuffer( this, &info ).Validate();
 	}
 
-	public unsafe void BeginRenderPass ( FrameBuffer framebuffer, VkClearValue? clear = null ) {
-		VkClearValue clearValue = clear.GetValueOrDefault();
+	public unsafe void BeginRenderPass ( FrameBuffer framebuffer, params VkClearValue[] clear ) {
 		var info = new VkRenderPassBeginInfo() {
 			sType = VkStructureType.RenderPassBeginInfo,
 			renderPass = framebuffer.RenderPass,
 			framebuffer = framebuffer,
 			renderArea = {
 				extent = framebuffer.Size
-			}
+			},
+			clearValueCount = (uint)clear.Length,
+			pClearValues = clear.Data()
 		};
-
-		if ( clear.HasValue ) {
-			info.clearValueCount = 1;
-			info.pClearValues = &clearValue;
-		}
 
 		Vk.vkCmdBeginRenderPass( this, &info, VkSubpassContents.Inline );
 	}

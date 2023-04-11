@@ -28,13 +28,46 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 
 		return commands;
 	}
+	public void AllocateAndTransfer ( Image<Rgba32> source, CommandPool pool, VkQueue queue ) {
+		var copy = Allocate( source, pool );
+		copy.Submit( queue );
+		Vk.vkQueueWaitIdle( queue );
+		pool.FreeCommandBuffer( copy );
+		FreeStagingBuffer();
+	}
 
+	VkImageLayout layout;
 	public unsafe void Allocate ( Image<Rgba32> source, CommandBuffer commands ) {
-		Size = new( source.Width, source.Height );
-		var length = source.Width * source.Height;
-		buffer.Allocate( (ulong)length );
-		source.CopyPixelDataTo( buffer.GetDataSpan( length ) );
+		var format = VkFormat.R8g8b8a8Srgb;
+		var aspect = VkImageAspectFlags.Color;
+		var extent = new VkExtent2D( source.Width, source.Height );
+		Allocate(
+			extent, 
+			VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled,
+			format
+		);
+
+		var length = (uint)source.Width * (uint)source.Height;
+		buffer.Allocate( length );
+
+		TransitionLayout( VkImageLayout.TransferDstOptimal, aspect, commands );
+		commands.Copy( buffer, Handle, new VkExtent3D {
+			width = extent.width,
+			height = extent.height,
+			depth = 1
+		} );
+		TransitionLayout( VkImageLayout.ShaderReadOnlyOptimal, aspect, commands );
+
+		source.CopyPixelDataTo( buffer.GetDataSpan( source.Width * source.Height ) );
 		buffer.Unmap();
+	}
+	public unsafe void Allocate ( VkExtent2D size, VkImageUsageFlags usage, VkFormat format, VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal ) {
+		if ( view != VkImageView.Null ) {
+			Free();
+		}
+
+		layout = VkImageLayout.Undefined;
+		Size = size;
 
 		var info = new VkImageCreateInfo() {
 			sType = VkStructureType.ImageCreateInfo,
@@ -46,10 +79,10 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			},
 			mipLevels = 1,
 			arrayLayers = 1,
-			format = VkFormat.R8g8b8a8Srgb,
-			tiling = VkImageTiling.Optimal,
+			format = format,
+			tiling = tiling,
 			initialLayout = VkImageLayout.Undefined,
-			usage = VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled,
+			usage = usage,
 			sharingMode = VkSharingMode.Exclusive,
 			samples = VkSampleCountFlags.Count1
 		};
@@ -65,17 +98,13 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		Vk.vkAllocateMemory( Device, &allocInfo, VulkanExtensions.TODO_Allocator, out memory );
 		Vk.vkBindImageMemory( Device, Instance, memory, 0 );
 
-		transitionLayout( VkFormat.R8g8b8a8Srgb, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal, commands );
-		commands.Copy( buffer, this, info.extent );
-		transitionLayout( VkFormat.R8g8b8a8Srgb, VkImageLayout.TransferDstOptimal, VkImageLayout.ShaderReadOnlyOptimal, commands );
-
 		var viewInfo = new VkImageViewCreateInfo() {
 			sType = VkStructureType.ImageViewCreateInfo,
 			image = this,
 			viewType = VkImageViewType.Image2D,
-			format = VkFormat.R8g8b8a8Srgb,
+			format = format,
 			subresourceRange = {
-				aspectMask = VkImageAspectFlags.Color,
+				aspectMask = aspect,
 				baseMipLevel = 0,
 				levelCount = 1,
 				baseArrayLayer = 0,
@@ -86,7 +115,9 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		Vk.vkCreateImageView( Device, &viewInfo, VulkanExtensions.TODO_Allocator, out view ).Validate();
 	}
 
-	unsafe void transitionLayout ( VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, CommandBuffer commands ) {
+	public unsafe void TransitionLayout ( VkImageLayout newLayout, VkImageAspectFlags aspect, CommandBuffer commands ) {
+		var oldLayout = layout;
+		layout = newLayout;
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
 		var barrier = new VkImageMemoryBarrier() {
@@ -97,7 +128,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			dstQueueFamilyIndex = ~0u,
 			image = this,
 			subresourceRange = {
-				aspectMask = VkImageAspectFlags.Color,
+				aspectMask = aspect,
 				baseMipLevel = 0,
 				layerCount = 1,
 				baseArrayLayer = 0,
@@ -128,14 +159,6 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			0, 0, 
 			1, &barrier 
 		);
-	}
-
-	public void AllocateAndTransfer ( Image<Rgba32> source, CommandPool pool, VkQueue queue ) {
-		var copy = Allocate( source, pool );
-		copy.Submit( queue );
-		Vk.vkQueueWaitIdle( queue );
-		pool.FreeCommandBuffer( copy );
-		FreeStagingBuffer();
 	}
 
 	public unsafe void Free () {

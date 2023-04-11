@@ -39,7 +39,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pBindings = layouts.Data()
 		};
 		Vk.vkCreateDescriptorSetLayout( Device, &uniformInfo, VulkanExtensions.TODO_Allocator, out this.Uniforms ).Validate();
-		DescriptorPool = layouts.CreateDesscriptorPool( device );
+		DescriptorPool = layouts.CreateDescriptorPool( device );
 		DescriptorSet = DescriptorPool.CreateSet( this.Uniforms );
 
 		var assembly = new VkPipelineInputAssemblyStateCreateInfo() {
@@ -81,6 +81,14 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			attachmentCount = 1,
 			pAttachments = &blendInfo
 		};
+		var depthInfo = new VkPipelineDepthStencilStateCreateInfo() {
+			sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
+			depthTestEnable = true,
+			depthWriteEnable = true,
+			depthCompareOp = VkCompareOp.Less,
+			depthBoundsTestEnable = false,
+			stencilTestEnable = false
+		};
 
 		var unifomsHandle = this.Uniforms;
 		var layoutInfo = new VkPipelineLayoutCreateInfo() {
@@ -102,6 +110,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pRasterizationState = &rasterizerInfo,
 			pMultisampleState = &multisampleInfo,
 			pColorBlendState = &colorInfo,
+			pDepthStencilState = &depthInfo,
 			pDynamicState = &stateInfo,
 			layout = Layout,
 			renderPass = renderPass,

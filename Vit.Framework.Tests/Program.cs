@@ -28,12 +28,6 @@ public class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		//var unitVector = new Matrix<MultiVector<float>>( new MultiVector<float>[,] {
-		//	{ new BasisVector<float>( "X" ), new BasisVector<float>( "Y" ), new BasisVector<float>( "Z" ), new SimpleBlade<float>( 1, Array.Empty<BasisVector<float>>() ) }
-		//} );
-		//var labelMatrix = Matrix<float>.GenerateLabelMatrix( "m", 4, 4 );
-		//var help = ( unitVector * labelMatrix ).ToString();
-
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );
@@ -131,7 +125,7 @@ public class Program : App {
 			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
 
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
-				layout(location = 0) in vec2 inPosition;
+				layout(location = 0) in vec3 inPosition;
 				layout(location = 1) in vec3 inColor;
 				layout(location = 2) in vec2 inTexCoord;
 
@@ -145,7 +139,7 @@ public class Program : App {
 				} matrices;
 
 				void main() {
-					gl_Position = matrices.projection * matrices.view * matrices.model * vec4(inPosition, 0.0, 1.0);
+					gl_Position = matrices.projection * matrices.view * matrices.model * vec4(inPosition, 1.0);
 					fragColor = inColor;
 					fragTexCoord = inTexCoord;
 				}
@@ -164,7 +158,12 @@ public class Program : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			renderPass = new RenderPass( device, swapchain.Format.Format.format );
+			var depthFormat = device.PhysicalDevice.GetBestSupportedFormat(
+				new[] { VkFormat.D32Sfloat, VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint },
+				VkFormatFeatureFlags.DepthStencilAttachment
+			);
+
+			renderPass = new RenderPass( device, swapchain.Format.Format.format, depthFormat );
 			pipeline = new Pipeline( device, new[] { vertex, fragment }, renderPass );
 			swapchain.SetRenderPass( renderPass );
 
@@ -183,16 +182,21 @@ public class Program : App {
 
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
 			vertexBuffer.AllocateAndTransfer( new float[] {
-				-0.5f, -0.5f, 1, 0, 0, 1, 0,
-				 0.5f, -0.5f, 0, 1, 0, 0, 0,
-				 0.5f,  0.5f, 0, 0, 1, 0, 1,
-				-0.5f,  0.5f, 1, 1, 1, 1, 1
+				-0.5f, -0.5f, 0, 1, 0, 0, 1, 0,
+				 0.5f, -0.5f, 0, 0, 1, 0, 0, 0,
+				 0.5f,  0.5f, 0, 0, 0, 1, 0, 1,
+				-0.5f,  0.5f, 0, 1, 1, 1, 1, 1,
+
+				-0.5f, -0.5f, -0.5f, 1, 0, 0, 1, 0,
+				 0.5f, -0.5f, -0.5f, 0, 1, 0, 0, 0,
+				 0.5f,  0.5f, -0.5f, 0, 0, 1, 0, 1,
+				-0.5f,  0.5f, -0.5f, 1, 1, 1, 1, 1,
 			}, copyCommandPool, graphicsQueue );
 
 			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
 			indexBuffer.AllocateAndTransfer( new ushort[] {
-				 0, 1, 2,
-				 2, 3, 0
+				 0, 1, 2, 2, 3, 0,
+				 4, 5, 6, 6, 7, 4
 			}, copyCommandPool, graphicsQueue );
 
 			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
@@ -244,7 +248,7 @@ public class Program : App {
 
 			commands.Reset();
 			commands.Begin();
-			commands.BeginRenderPass( frame, new VkClearValue { color = bg } );
+			commands.BeginRenderPass( frame, new VkClearValue { color = bg }, new VkClearValue { depthStencil = { depth = 1 } } );
 			commands.BindPipeline( pipeline );
 			commands.SetViewPort( new() {
 				minDepth = 0,
@@ -296,7 +300,7 @@ public class Program : App {
 					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
-			commands.DrawIndexed( 6 );
+			commands.DrawIndexed( 12 );
 			commands.FinishRenderPass();
 			commands.Finish();
 
