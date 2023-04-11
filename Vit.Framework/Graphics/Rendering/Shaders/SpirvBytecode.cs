@@ -1,5 +1,6 @@
 ﻿using SPIRVCross;
 using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Interop;
 using Vortice.ShaderCompiler;
 
@@ -11,6 +12,7 @@ public class SpirvBytecode {
 	public readonly ShaderPartType Type;
 	public readonly string Identifier;
 	public readonly string EntryPoint;
+	public readonly ShaderInfo Reflections;
 
 	public unsafe SpirvBytecode ( string source, ShaderLanguage language, ShaderPartType type, string identifier = "", string? entryPoint = null ) {
 		Options spirvOptions = new();
@@ -40,7 +42,7 @@ public class SpirvBytecode {
 			throw new Exception( "Shader compilation failed" );
 		}
 
-		//reflect();
+		Reflections = ShaderInfo.FromSpirv( type, this );
 	}
 
 	unsafe void reflect () {
@@ -83,13 +85,16 @@ public class SpirvBytecode {
 				var typeName = SPIRV.spvc_type_get_basetype( type );
 				var baseTypeSize = SPIRV.spvc_type_get_vector_size( baseType );
 				var typeSize = SPIRV.spvc_type_get_vector_size( type );
-				Console.WriteLine( $"\tID: {res.id}, BaseType ({res.base_type_id}): {baseTypeName}[{baseTypeSize}], Type ({res.type_id}): {typeName}[{typeSize}], Name: {(CString)res.name}" );
+				var name = SPIRV.spvc_compiler_get_name( compiler, (SpvId)res.id );
+				Console.WriteLine( $"\tID: {res.id}, BaseType ({res.base_type_id}): {baseTypeName}[{baseTypeSize}], Type ({res.type_id}): {typeName}[{typeSize}], Name: {(CString)name}" );
 
-				//uint set = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationDescriptorSet );
-				//Console.WriteLine( $"\tSet: {set}" );
-				//uint binding = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationBinding );
-				//Console.WriteLine( $"\tBinding: {binding}" );
-				
+				uint set = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationDescriptorSet );
+				uint location = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationLocation );
+				Console.WriteLine( $"\tSet: {set}" );
+				uint binding = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationBinding );
+				Console.WriteLine( $"\tBinding: {binding}" );
+				Console.WriteLine( $"\tLocation: {location}" );
+
 				if ( i + 1 != count )
 					Console.WriteLine( "\t--------" );
 			}
