@@ -1,5 +1,6 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Vit.Framework.Graphics.Parsing.WaveFront;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan;
@@ -98,7 +99,7 @@ public class Program : App {
 		CommandPool commandPool = null!;
 		CommandPool copyCommandPool = null!;
 		DeviceBuffer<float> vertexBuffer = null!;
-		DeviceBuffer<ushort> indexBuffer = null!;
+		DeviceBuffer<uint> indexBuffer = null!;
 		Sampler sampler = null!;
 		struct Matrices {
 			public Matrix4<float> Model;
@@ -111,6 +112,8 @@ public class Program : App {
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
+
+		SimpleObjModel model = null!;
 		protected override void Initialize () {
 			var surface = ( (IVulkanWindow)window ).GetSurface( vulkan );
 			var (physicalDevice, info) = vulkan.GetBestDeviceInfo( surface );
@@ -180,30 +183,30 @@ public class Program : App {
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
 			bg = new( 0, 0, 0 );
 
-			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
-			vertexBuffer.AllocateAndTransfer( new float[] {
-				-0.5f, -0.5f, 0, 1, 0, 0, 1, 0,
-				 0.5f, -0.5f, 0, 0, 1, 0, 0, 0,
-				 0.5f,  0.5f, 0, 0, 0, 1, 0, 1,
-				-0.5f,  0.5f, 0, 1, 1, 1, 1, 1,
+			model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
 
-				-0.5f, -0.5f, -0.5f, 1, 0, 0, 1, 0,
-				 0.5f, -0.5f, -0.5f, 0, 1, 0, 0, 0,
-				 0.5f,  0.5f, -0.5f, 0, 0, 1, 0, 1,
-				-0.5f,  0.5f, -0.5f, 1, 1, 1, 1, 1,
-			}, copyCommandPool, graphicsQueue );
+			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
+			vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
+					x.Position.X,
+					x.Position.Y,
+					x.Position.Z,
+					1,
+					1,
+					1,
+					x.TextureCoordinates.X,
+					x.TextureCoordinates.Y
+				} ).ToArray(), 
+				copyCommandPool, graphicsQueue 
+			);
 
 			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
-			indexBuffer.AllocateAndTransfer( new ushort[] {
-				 0, 1, 2, 2, 3, 0,
-				 4, 5, 6, 6, 7, 4
-			}, copyCommandPool, graphicsQueue );
+			indexBuffer.AllocateAndTransfer( model.Indices.Select( x => (uint)x ).ToArray(), copyCommandPool, graphicsQueue );
 
 			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
 			uniforms.Allocate( 1 );
 			pipeline.DescriptorSet.ConfigureUniforms( uniforms, 0 );
 
-			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>( "./texture.jpg" );
+			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>( "./viking_room.png" );
 			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 			texture = new( device );
 			texture.AllocateAndTransfer( image, copyCommandPool, graphicsQueue );
@@ -278,12 +281,13 @@ public class Program : App {
 				deltaPosition += Vector3<float>.UnitX;
 			if ( Keys.IsActive( Key.A ) )
 				deltaPosition -= Vector3<float>.UnitX;
+
+			deltaPosition = cameraRotation.Apply( deltaPosition );
+
 			if ( Keys.IsActive( Key.Space ) )
 				deltaPosition += Vector3<float>.UnitY;
 			if ( Keys.IsActive( Key.LeftShift ) )
 				deltaPosition -= Vector3<float>.UnitY;
-
-			deltaPosition = cameraRotation.Apply( deltaPosition );
 			if ( deltaPosition != Vector3<float>.Zero ) {
 				position += deltaPosition * deltaTime;
 			}
@@ -294,13 +298,13 @@ public class Program : App {
 			lastFrameTime = now;
 			var time = (float)( now - startTime ).TotalSeconds;
 			uniforms.Transfer( new Matrices() {
-				Model = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitZ, 0 * 90f.Degrees() ),
+				Model = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
 				View = cameraMatrix,
 				Projection = renderer.CreateLeftHandCorrectionMatrix<float>() 
 					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
-			commands.DrawIndexed( 12 );
+			commands.DrawIndexed( (uint)model.Indices.Count );
 			commands.FinishRenderPass();
 			commands.Finish();
 

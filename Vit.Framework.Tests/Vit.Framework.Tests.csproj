@@ -13,10 +13,18 @@
 
   <ItemGroup>
     <None Remove="texture.jpg" />
+    <None Remove="viking_room.obj" />
+    <None Remove="viking_room.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="texture.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="viking_room.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="viking_room.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -36,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vit.Framework.Graphics.Parsing.WaveFront\Vit.Framework.Graphics.Parsing.WaveFront.csproj" />
     <ProjectReference Include="..\Vit.Framework.Windowing.Sdl\Vit.Framework.Windowing.Sdl.csproj" />
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
