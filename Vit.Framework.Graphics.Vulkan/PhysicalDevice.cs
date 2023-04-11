@@ -100,4 +100,9 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 
 		throw new Exception( "Could not find a suitable format" );
 	}
+
+	public VkFormatProperties GetFormatProperties ( VkFormat format ) {
+		Vk.vkGetPhysicalDeviceFormatProperties( this, format, out var props );
+		return props;
+	}
 }

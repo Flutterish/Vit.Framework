@@ -4,7 +4,9 @@ namespace Vit.Framework.Graphics.Vulkan.Textures;
 
 public class Sampler : DisposableVulkanObject<VkSampler> {
 	public readonly Device Device;
-	public unsafe Sampler ( Device device ) {
+	public unsafe Sampler ( Device device, float maxLod ) {
+		Device = device;
+
 		var info = new VkSamplerCreateInfo() {
 			sType = VkStructureType.SamplerCreateInfo,
 			magFilter = VkFilter.Linear,
@@ -21,7 +23,7 @@ public class Sampler : DisposableVulkanObject<VkSampler> {
 			mipmapMode = VkSamplerMipmapMode.Linear,
 			mipLodBias = 0,
 			minLod = 0,
-			maxLod = 0
+			maxLod = maxLod
 		};
 
 		Vk.vkCreateSampler( device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();

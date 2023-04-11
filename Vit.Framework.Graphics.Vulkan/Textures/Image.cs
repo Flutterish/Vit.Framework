@@ -37,31 +37,38 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	}
 
 	VkImageLayout layout;
+	public uint MipMapLevels { get; private set; } = 1;
 	public unsafe void Allocate ( Image<Rgba32> source, CommandBuffer commands ) {
 		var format = VkFormat.R8g8b8a8Srgb;
 		var aspect = VkImageAspectFlags.Color;
 		var extent = new VkExtent2D( source.Width, source.Height );
 		Allocate(
 			extent, 
-			VkImageUsageFlags.TransferDst | VkImageUsageFlags.Sampled,
-			format
+			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
+			format,
+			prepareForMipMaps: true
 		);
 
 		var length = (uint)source.Width * (uint)source.Height;
 		buffer.Allocate( length );
 
 		TransitionLayout( VkImageLayout.TransferDstOptimal, aspect, commands );
+
+		source.CopyPixelDataTo( buffer.GetDataSpan( source.Width * source.Height ) );
+		buffer.Unmap();
 		commands.Copy( buffer, Handle, new VkExtent3D {
 			width = extent.width,
 			height = extent.height,
 			depth = 1
 		} );
-		TransitionLayout( VkImageLayout.ShaderReadOnlyOptimal, aspect, commands );
 
-		source.CopyPixelDataTo( buffer.GetDataSpan( source.Width * source.Height ) );
-		buffer.Unmap();
+		GenerateMipMaps( commands, aspect );
 	}
-	public unsafe void Allocate ( VkExtent2D size, VkImageUsageFlags usage, VkFormat format, VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal ) {
+	public unsafe void Allocate ( 
+		VkExtent2D size, VkImageUsageFlags usage, VkFormat format, 
+		VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal, 
+		bool prepareForMipMaps = false ) 
+	{
 		if ( view != VkImageView.Null ) {
 			Free();
 		}
@@ -69,6 +76,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		layout = VkImageLayout.Undefined;
 		Size = size;
 
+		MipMapLevels = prepareForMipMaps ? (uint)Math.Floor( Math.Log2( Math.Max( size.width, size.height ) ) ) + 1 : 1;
 		var info = new VkImageCreateInfo() {
 			sType = VkStructureType.ImageCreateInfo,
 			imageType = VkImageType.Image2D,
@@ -77,7 +85,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 				height = Size.height,
 				depth = 1
 			},
-			mipLevels = 1,
+			mipLevels = MipMapLevels,
 			arrayLayers = 1,
 			format = format,
 			tiling = tiling,
@@ -106,7 +114,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			subresourceRange = {
 				aspectMask = aspect,
 				baseMipLevel = 0,
-				levelCount = 1,
+				levelCount = MipMapLevels,
 				baseArrayLayer = 0,
 				layerCount = 1
 			}
@@ -132,7 +140,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 				baseMipLevel = 0,
 				layerCount = 1,
 				baseArrayLayer = 0,
-				levelCount = 1
+				levelCount = MipMapLevels
 			}
 		};
 		if ( (oldLayout, newLayout) is (VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal ) ) {
@@ -158,6 +166,102 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			0, 0, 
 			0, 0, 
 			1, &barrier 
+		);
+	}
+
+	public unsafe void GenerateMipMaps ( CommandBuffer commands, VkImageAspectFlags aspect ) {
+		var barrier = new VkImageMemoryBarrier() {
+			sType = VkStructureType.ImageMemoryBarrier,
+			image = this,
+			srcQueueFamilyIndex = ~0u,
+			dstQueueFamilyIndex = ~0u,
+			subresourceRange = {
+				aspectMask = aspect,
+				baseArrayLayer = 0,
+				levelCount = 1,
+				layerCount = 1
+			},
+			oldLayout = VkImageLayout.TransferDstOptimal,
+			newLayout = VkImageLayout.TransferSrcOptimal,
+			srcAccessMask = VkAccessFlags.TransferWrite,
+			dstAccessMask = VkAccessFlags.TransferRead
+		};
+
+		var finalBarrier = barrier with {
+			oldLayout = VkImageLayout.TransferSrcOptimal,
+			newLayout = VkImageLayout.ShaderReadOnlyOptimal,
+			srcAccessMask = VkAccessFlags.TransferRead,
+			dstAccessMask = VkAccessFlags.ShaderRead
+		};
+
+		int width = (int)Size.width;
+		int height = (int)Size.height;
+		for ( uint i = 1; i < MipMapLevels; i++ ) {
+			barrier.subresourceRange.baseMipLevel = i - 1;
+			finalBarrier.subresourceRange.baseMipLevel = i - 1;
+
+			Vk.vkCmdPipelineBarrier( 
+				commands,
+				VkPipelineStageFlags.Transfer, VkPipelineStageFlags.Transfer, 0,
+				0, 0,
+				0, 0,
+				1, &barrier
+			);
+
+			var blit = new VkImageBlit() {
+				srcOffsets_0 = { x = 0, y = 0, z = 0 },
+				srcOffsets_1 = { x = width, y = height, z = 1 },
+				srcSubresource = {
+					aspectMask = aspect,
+					mipLevel = i - 1,
+					baseArrayLayer = 0,
+					layerCount = 1
+				},
+				dstOffsets_0 = { x = 0, y = 0, z = 0 },
+				dstOffsets_1 = {
+					x = width > 1 ? width / 2 : 1,
+					y = height > 1 ? height / 2 : 1,
+					z = 1
+				},
+				dstSubresource = {
+					aspectMask = aspect,
+					mipLevel = i,
+					baseArrayLayer = 0,
+					layerCount = 1
+				}
+			};
+
+			Vk.vkCmdBlitImage(
+				commands,
+				this, VkImageLayout.TransferSrcOptimal,
+				this, VkImageLayout.TransferDstOptimal,
+				1, &blit,
+				VkFilter.Linear
+			);
+
+			Vk.vkCmdPipelineBarrier(
+				commands,
+				VkPipelineStageFlags.Transfer, VkPipelineStageFlags.FragmentShader, 0,
+				0, 0,
+				0, 0,
+				1, &finalBarrier
+			);
+
+			if ( width > 1 ) width /= 2;
+			if ( height > 1 ) height /= 2;
+		}
+
+		finalBarrier = finalBarrier with {
+			oldLayout = VkImageLayout.TransferDstOptimal,
+			srcAccessMask = VkAccessFlags.TransferWrite
+		};
+		finalBarrier.subresourceRange.baseMipLevel = MipMapLevels - 1;
+		Vk.vkCmdPipelineBarrier(
+			commands,
+			VkPipelineStageFlags.Transfer, VkPipelineStageFlags.FragmentShader, 0,
+			0, 0,
+			0, 0,
+			1, &finalBarrier
 		);
 	}
 

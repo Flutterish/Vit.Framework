@@ -211,7 +211,7 @@ public class Program : App {
 			texture = new( device );
 			texture.AllocateAndTransfer( image, copyCommandPool, graphicsQueue );
 
-			sampler = new( device );
+			sampler = new( device, maxLod: texture.MipMapLevels );
 			pipeline.DescriptorSet.ConfigureTexture( texture, sampler, 1 );
 		}
 
