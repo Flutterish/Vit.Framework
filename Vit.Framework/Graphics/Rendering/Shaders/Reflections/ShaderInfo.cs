@@ -7,7 +7,6 @@ namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 public class ShaderInfo {
 	public readonly ShaderPartType Type;
-	public VertexInputInfo? BufferInput;
 	public VertexInfo Input = new();
 	public VertexInfo Output = new();
 	public UniformInfo Uniforms = new();
@@ -40,9 +39,6 @@ public class ShaderInfo {
 		SPIRV.spvc_compiler_create_shader_resources( compiler, &resources );
 
 		var info = new ShaderInfo( type );
-		if ( type == ShaderPartType.Vertex ) {
-			info.BufferInput = VertexInputInfo.FromSpirv( compiler, resources );
-		}
 		info.Input.ParseSpirv( compiler, resources, spvc_resource_type.StageInput );
 		info.Output.ParseSpirv( compiler, resources, spvc_resource_type.StageOutput );
 		info.Uniforms.ParseSpirv( compiler, resources, spvc_resource_type.UniformBuffer );
@@ -57,7 +53,6 @@ public class ShaderInfo {
 	public override string ToString () {
 		StringBuilder sb = new();
 		sb.AppendLine( $"{Type} Shader {{" );
-		if ( BufferInput != null ) sb.AppendLine( $"\tBuffer Input = {BufferInput.ToString().Replace("\n", "\n\t")}" );
 		sb.AppendLine( $"\tInput = {Input.ToString().Replace("\n", "\n\t")}" );
 		sb.AppendLine( $"\tOutput = {Output.ToString().Replace("\n", "\n\t")}" );
 		sb.AppendLine( $"\tUniforms = {Uniforms.ToString().Replace("\n", "\n\t")}" );

@@ -32,7 +32,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pVertexBindingDescriptions = sets.Data()
 		};
 
-		var layouts = shaders.Select( x => x.Spirv.Reflections ).GenerateUniformBindings();
+		var layouts = shaders.Select( x => x.Spirv.Reflections ).GenerateUniformBindingsSet( 0 );
 		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
 			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
 			bindingCount = (uint)layouts.Length,
