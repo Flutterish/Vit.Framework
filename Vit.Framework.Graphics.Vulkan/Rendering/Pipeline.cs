@@ -23,36 +23,14 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pDynamicStates = dynamicStates.Data()
 		};
 
-		var vert = shaders.First( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ).GetVertexInfo();
-		var vertexBinding = new VkVertexInputBindingDescription() { // TODO this is hardcoded
-			binding = 0,
-			stride = sizeof( float ) * 7,
-			inputRate = VkVertexInputRate.Vertex
+		var (attribs, sets) = shaders.First( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ).Spirv.Reflections.GenerateVertexBindings();
+		var vert = new VkPipelineVertexInputStateCreateInfo() {
+			sType = VkStructureType.PipelineVertexInputStateCreateInfo,
+			vertexAttributeDescriptionCount = (uint)attribs.Length,
+			pVertexAttributeDescriptions = attribs.Data(),
+			vertexBindingDescriptionCount = (uint)sets.Length,
+			pVertexBindingDescriptions = sets.Data()
 		};
-		var vertexAttributes = new VkVertexInputAttributeDescription[] {
-			new() {
-				binding = 0,
-				location = 0,
-				format = VkFormat.R32g32Sfloat,
-				offset = 0
-			},
-			new() {
-				binding = 0,
-				location = 1,
-				format = VkFormat.R32g32b32Sfloat,
-				offset = sizeof(float) * 2
-			},
-			new() {
-				binding = 0,
-				location = 2,
-				format = VkFormat.R32g32Sfloat,
-				offset = sizeof(float) * 5
-			}
-		};
-		vert.vertexBindingDescriptionCount = 1;
-		vert.vertexAttributeDescriptionCount = (uint)vertexAttributes.Length;
-		vert.pVertexBindingDescriptions = &vertexBinding;
-		vert.pVertexAttributeDescriptions = vertexAttributes.Data();
 
 		var uniforms = new VkDescriptorSetLayoutBinding() { // TODO this is hardcoded
 			binding = 0,

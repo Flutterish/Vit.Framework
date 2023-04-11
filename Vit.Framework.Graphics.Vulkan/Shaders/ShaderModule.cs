@@ -9,7 +9,10 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule> {
 	public readonly VkDevice Device;
 	public readonly VkPipelineShaderStageCreateInfo StageCreateInfo;
 	public readonly CString EntryPoint;
+	public readonly SpirvBytecode Spirv;
+
 	public unsafe ShaderModule ( VkDevice device, SpirvBytecode bytecode ) {
+		Spirv = bytecode;
 		Device = device;
 		VkShaderModuleCreateInfo info = new() {
 			sType = VkStructureType.ShaderModuleCreateInfo,
@@ -29,12 +32,6 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule> {
 			},
 			module = Instance,
 			pName = EntryPoint
-		};
-	}
-
-	public VkPipelineVertexInputStateCreateInfo GetVertexInfo () {
-		return new() {
-			sType = VkStructureType.PipelineVertexInputStateCreateInfo
 		};
 	}
 
