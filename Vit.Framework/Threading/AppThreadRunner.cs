@@ -17,7 +17,9 @@ public class AppThreadRunner : AppThread {
 
 	ConcurrentBag<AppThread> appThreads = new();
 
-	public AppThreadRunner ( string name ) : base( name ) { }
+	public AppThreadRunner ( string name ) : base( name ) {
+		RateLimit = double.PositiveInfinity;
+	}
 
 	public void RegisterThread ( AppThread thread ) {
 		appThreads.Add( thread );

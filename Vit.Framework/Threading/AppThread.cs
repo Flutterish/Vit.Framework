@@ -10,6 +10,11 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 
 	object runLock = new();
 	public ThreadState State { get; private set; }
+	double rateLimit = 1000;
+	public double RateLimit {
+		get => Interlocked.CompareExchange( ref rateLimit, 0, 0 );
+		set => Interlocked.Exchange( ref rateLimit, value );
+	}
 	public void Start () {
 		if ( IsDisposed )
 			return;
@@ -38,7 +43,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		}
 
 		while ( State != ThreadState.Halting ) {
-			Loop();
+			runLoopWithRateLimit();
 		}
 
 		if ( IsBeingDisposed ) {
@@ -73,7 +78,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 			isInitialized = true;
 		}
 
-		Loop();
+		runLoopWithRateLimit();
 
 		if ( IsBeingDisposed ) {
 			Dispose( disposing: true );
@@ -101,12 +106,18 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 
 	protected abstract void Initialize ();
 	protected abstract void Loop ();
+	void runLoopWithRateLimit () {
+		var startTime = DateTime.Now;
+		Loop();
+		var deltaTime = DateTime.Now - startTime;
+		var allotedTime = TimeSpan.FromSeconds( 1 ) / RateLimit;
+		if ( allotedTime > deltaTime ) {
+			Sleep( allotedTime - allotedTime );
+		}
+	}
 
 	protected void Sleep ( int millisecondsTimeout ) {
-		if ( Thread.CurrentThread == nativeThread )
-			Thread.Sleep( millisecondsTimeout );
-		else
-			sleepsUntil = DateTime.Now + TimeSpan.FromMilliseconds( millisecondsTimeout );
+		Sleep( TimeSpan.FromMilliseconds( millisecondsTimeout ) );
 	}
 	protected void Sleep ( TimeSpan timeout ) {
 		if ( Thread.CurrentThread == nativeThread )
