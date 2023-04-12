@@ -1,30 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-using static Vit.Framework.Parsing.Binary.BinaryFileParser;
 
 namespace Vit.Framework.Parsing.Binary;
 
 public static class BinaryFileParser {
-	static readonly Dictionary<TypeInfo, Func<Context, object?>> parsers = new() { };
+	static readonly Dictionary<TypeInfo, Func<Context, ParsingResult>> parsers = new() { };
 
 	public static T Parse<T> ( EndianCorrectingBinaryReader reader ) {
-		return (T)parse( new Context { 
+		var result = parse( new Context {
 			Reader = reader,
-			Dependencies = new(),
-			DependentTasks = new()
-		}, typeof(T) )!;
+			Dependencies = new()
+		}, typeof( T ) );
+
+		if ( !result.IsCompleted )
+			throw new Exception( "Parsing failed" );
+
+		return (T)result.Result!;
 	}
 
-	static object? parse ( Context context, TypeInfo type ) {
-		static object? compute ( Context context, TypeInfo type, Func<Context, object?> parser ) {
-			object? value;
+	static ParsingResult parse ( Context context, TypeInfo type ) {
+		if ( type.DependsOn is ParsingDependsOnAttribute deps ) {
+			if ( !context.HasDependencies( deps.Dependencies ) )
+				return new ParsingResult( context, new() { deps.Dependencies }, ctx => parse( ctx, type ) );
+		}
+
+		static ParsingResult compute ( Context context, TypeInfo type, Func<Context, ParsingResult> parser ) {
+			ParsingResult value;
 			
 			if ( type.Offset is DataOffsetAttribute offset ) {
 				var startingOffset = context.Reader.Stream.Position;
@@ -36,8 +37,17 @@ public static class BinaryFileParser {
 				value = parser( context );
 			}
 
-			if ( type.IsDependency )
-				context.Dependencies[type.Type] = value;
+			if ( !value.IsCompleted ) {
+				foreach ( var i in value.Dependencies! ) {
+					if ( context.HasDependencies( i ) ) {
+						value = value.Continue();
+						return value;
+					}
+				}
+			}
+
+			if ( value.IsCompleted && type.IsDependency )
+				context.Dependencies[type.Type] = value.Result;
 
 			return value;
 		}
@@ -45,12 +55,12 @@ public static class BinaryFileParser {
 		if ( type.TypeSelector is TypeSelectorAttribute typeSelector ) {
 			var newType = typeSelector.GetValue( context );
 			if ( newType == null )
-				return type.Type.IsValueType ? Activator.CreateInstance( type.Type ) : null;
+				return new ParsingResult( type.Type.IsValueType ? Activator.CreateInstance( type.Type ) : null );
 			return parse( context, type.SubstituteType( newType ) );
 		}
 
 		if ( type.ParseWith is ParseWithAttribute parseWith ) {
-			return parseWith.GetValue( context );
+			return new ParsingResult( parseWith.GetValue( context ) );
 		}
 
 		if ( parsers.TryGetValue( type, out var parser ) )
@@ -67,18 +77,18 @@ public static class BinaryFileParser {
 		return compute( context, type, parser );
 	}
 
-	static Func<Context, object?>? makePrimitiveParser ( TypeInfo type ) {
+	static Func<Context, ParsingResult>? makePrimitiveParser ( TypeInfo type ) {
 		if ( !type.Type.IsPrimitive )
 			return null;
 
-		static Func<Context, object?> generator<T> () where T : unmanaged, IConvertible {
-			return ctx => ctx.Reader.Read<T>();
+		static Func<Context, ParsingResult> generator<T> () where T : unmanaged, IConvertible {
+			return ctx => new ParsingResult( ctx.Reader.Read<T>() );
 		}
 
 		return apply( type.Type, generator<int> );
 	}
 
-	static Func<Context, object?>? makeStructureParser ( TypeInfo type ) {
+	static Func<Context, ParsingResult>? makeStructureParser ( TypeInfo type ) {
 		if ( !type.Type.IsValueType && !type.Type.IsClass )
 			return null;
 
@@ -90,54 +100,88 @@ public static class BinaryFileParser {
 			var childContext = ctx.GetChildContext( type, memberValues );
 			var members = baseMembers;
 
-			object? process ( TypeInfo type ) {
+			ParsingResult processChildClass ( TypeInfo type ) {
+				var previousMember = new ParsingResult() { IsCompleted = true };
 				foreach ( var i in members ) {
-					memberValues[i] = parse( childContext, i );
+					var last = previousMember;
+					previousMember = ParsingResult.CreateDependantTask(
+						ctx,
+						new[] { last },
+						last => {
+							var member = parse( childContext, i );
+							return ParsingResult.CreateDependantTask(
+								ctx,
+								new[] { member },
+								member => {
+									memberValues[i] = member[0].Result;
+									return member[0];
+								}
+							);
+						}
+					);
 				}
 
-				if ( type.AbstractTypeSelector is TypeSelectorAttribute typeSelector ) {
-					var newType = typeSelector.GetValue( childContext );
-					if ( newType == null )
-						return type.Type.IsValueType ? Activator.CreateInstance( type.Type ) : null;
+				return ParsingResult.CreateDependantTask(
+					ctx,
+					new[] { previousMember },
+					previousMember => {
+						if ( type.AbstractTypeSelector is TypeSelectorAttribute typeSelector ) {
+							var newType = typeSelector.GetValue( childContext );
+							if ( newType == null )
+								return new ParsingResult( Activator.CreateInstance( type.Type ) );
 
-					childContext = childContext with { TypeInfo = newType };
-					members = newType.GetMembers( BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly )
-						.Where( x => x is FieldInfo or PropertyInfo { CanWrite: true } ).ToArray();
-					return process( newType );
-				}
-				else {
-					return Activator.CreateInstance( type.Type );
-				}
+							childContext = childContext with { TypeInfo = newType }; // TODO check if the new type has dependencies
+							members = newType.GetMembers( BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly )
+								.Where( x => x is FieldInfo or PropertyInfo { CanWrite: true } ).ToArray();
+							return processChildClass( newType );
+						}
+						else {
+							return new ParsingResult( Activator.CreateInstance( type.Type ) );
+						}
+					}
+				);
 			}
 
-			var instance = process( type );
-			foreach ( var (member, value) in memberValues ) {
-				setValue( member, instance, value );
-			}
-
-			return instance;
+			var instanceTask = processChildClass( type );
+			return ParsingResult.CreateDependantTask(
+				ctx,
+				dependencies: new[] { instanceTask },
+				instanceTask => {
+					var instance = instanceTask[0].Result!;
+					foreach ( var (member, value) in memberValues ) {
+						setValue( member, instance, value );
+					}
+					return new ParsingResult( instance );
+				}
+			);
 		};
 	}
 
-	static Func<Context, object?>? makeArrayParser ( TypeInfo type ) {
+	static Func<Context, ParsingResult>? makeArrayParser ( TypeInfo type ) {
 		if ( !type.Type.IsArray )
 			return null;
 		var arrayType = type.Type.GetElementType()!;
 
-		static Func<Context, object?> emptyGenerator<T> () {
-			return _ => Array.Empty<T>();
+		static Func<Context, ParsingResult> emptyGenerator<T> () {
+			return _ => new ParsingResult( Array.Empty<T>() );
 		}
 
 		if ( type.Size == null )
 			return apply( arrayType, emptyGenerator<int> );
 
-		Func<Context, object?> generator<T> () {
+		Func<Context, ParsingResult> generator<T> () {
 			return ctx => {
-				var value = new T[type.Size!.GetValue(ctx)];
-				foreach ( ref var i in value.AsSpan() )
-					i = (T)parse( ctx, typeof(T) )!;
+				var size = type.Size!.GetValue( ctx );
+				var results = new ParsingResult[size];
 
-				return value;
+				foreach ( ref var i in results.AsSpan() )
+					i = parse( ctx, typeof(T) )!;
+
+				return ParsingResult.CreateDependantTask( 
+					ctx, 
+					dependencies: results, 
+					_ => new ParsingResult( results.Select( x => (T)x.Result! ).ToArray() ) 
+				);
 			};
 		}
 
@@ -174,8 +218,6 @@ public static class BinaryFileParser {
 		public long Offset { get; init; }
 
 		public required Dictionary<Type, object?> Dependencies { get; init; }
-
-		public required List<DependentTask> DependentTasks { get; init; }
 
 		public Context GetChildContext ( TypeInfo type, Dictionary<MemberInfo, object?>? memberValues = null ) {
 			return this with {
@@ -247,6 +289,7 @@ public static class BinaryFileParser {
 		public TypeSelectorAttribute? TypeSelector;
 		public TypeSelectorAttribute? AbstractTypeSelector;
 		public ParseWithAttribute? ParseWith;
+		public ParsingDependsOnAttribute? DependsOn;
 		public bool IsAnchor;
 		public bool IsDependency;
 		public Type Type;
@@ -256,6 +299,7 @@ public static class BinaryFileParser {
 			IsAnchor = Type.GetCustomAttribute<OffsetAnchorAttribute>( inherit: true ) != null;
 			IsDependency = Type.GetCustomAttribute<ParserDependencyAttribute>( inherit: true ) != null;
 			AbstractTypeSelector = Type.GetCustomAttribute<TypeSelectorAttribute>( inherit: false );
+			DependsOn = Type.GetCustomAttribute<ParsingDependsOnAttribute>( inherit: true );
 		}
 
 		public TypeInfo ( MemberInfo member ) : this( memberType( member ), member ) { }
@@ -273,6 +317,7 @@ public static class BinaryFileParser {
 			IsAnchor = type.GetCustomAttribute<OffsetAnchorAttribute>( inherit: true ) != null;
 			IsDependency = type.GetCustomAttribute<ParserDependencyAttribute>( inherit: true ) != null;
 			AbstractTypeSelector = type.GetCustomAttribute<TypeSelectorAttribute>( inherit: false );
+			DependsOn = Type.GetCustomAttribute<ParsingDependsOnAttribute>( inherit: true );
 			TypeSelector = null;
 
 			return this;
@@ -282,9 +327,52 @@ public static class BinaryFileParser {
 		public static implicit operator TypeInfo ( MemberInfo member ) => new( member );
 	}
 
-	public struct DependentTask {
-		public required Type[] Dependencies;
-		public required long Position;
-		public required Action Action;
+	public struct ParsingResult {
+		public bool IsCompleted;
+		public object? Result;
+
+		public Context? Context;
+		public List<Type[]>? Dependencies;
+		public Func<Context, ParsingResult>? Continuation;
+		public long Position;
+
+		public ParsingResult ( object? result ) {
+			IsCompleted = true;
+			Result = result;
+		}
+
+		public ParsingResult ( Context context, List<Type[]> dependencies, Func<Context, ParsingResult> continuation ) {
+			IsCompleted = false;
+			Context = context;
+			Dependencies = dependencies;
+			Continuation = continuation;
+			Position = context.Reader.Stream.Position;
+		}
+
+		public static ParsingResult CreateDependantTask ( Context context, ParsingResult[] dependencies, Func<ParsingResult[], ParsingResult> finalizer ) {
+			ParsingResult process ( Context ctx ) {
+				foreach ( ref var i in dependencies.AsSpan() ) {
+					if ( !i.IsCompleted )
+						i = i.Continue();
+				}
+
+				if ( !dependencies.All( x => x.IsCompleted ) ) {
+					return new ParsingResult( ctx, dependencies.Where( x => !x.IsCompleted ).SelectMany( x => x.Dependencies! ).ToList(), process );
+				}
+
+				return finalizer( dependencies );
+			}
+
+			return process( context );
+		}
+
+		public ParsingResult Continue () {
+			var pos = Context!.Reader.Stream.Position;
+			Context!.Reader.Stream.Position = Position;
+			var result = Continuation!.Invoke( Context );
+			Context!.Reader.Stream.Position = pos;
+
+			return result;
+		}
 	}
 }

@@ -19,7 +19,6 @@ using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
-using Vit.Framework.Windowing.Sdl;
 using Vulkan;
 using Image = Vit.Framework.Graphics.Vulkan.Textures.Image;
 using Semaphore = Vit.Framework.Graphics.Vulkan.Synchronisation.Semaphore;

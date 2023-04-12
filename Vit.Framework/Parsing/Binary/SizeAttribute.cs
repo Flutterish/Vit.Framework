@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static Vit.Framework.Parsing.Binary.BinaryFileParser;
-
-namespace Vit.Framework.Parsing.Binary;
+﻿namespace Vit.Framework.Parsing.Binary;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class SizeAttribute : Attribute {

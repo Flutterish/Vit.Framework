@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Parsing.Binary;
+﻿using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
@@ -14,7 +9,7 @@ public class HorizontalMetricsTable : Table {
 	[Size(nameof(getSize2))]
 	public short[] leftSideBearings = null!;
 
-	static int getSize ( HorizontalHeaderTable header, MaximumProfileTable profile ) {
+	static int getSize ( HorizontalHeaderTable header ) {
 		return header.NumberOfHMetrics;
 	}
 
