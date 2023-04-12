@@ -16,6 +16,7 @@ using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
+using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
@@ -29,10 +30,13 @@ public class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
+		var font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
+		/*
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );
 		app.Run( host );
+		*/
 	}
 
 	protected override void Initialize ( Host host ) {
