@@ -11,6 +11,7 @@ public class ShaderInfo {
 	public VertexInfo Output = new();
 	public UniformInfo Uniforms = new();
 	public UniformInfo Samplers = new();
+	public UniformInfo Storage = new();
 
 	public ShaderInfo ( ShaderPartType type ) {
 		Type = type;
@@ -43,8 +44,13 @@ public class ShaderInfo {
 		info.Output.ParseSpirv( compiler, resources, spvc_resource_type.StageOutput );
 		info.Uniforms.ParseSpirv( compiler, resources, spvc_resource_type.UniformBuffer );
 		info.Samplers.ParseSpirv( compiler, resources, spvc_resource_type.SampledImage );
+		info.Storage.ParseSpirv( compiler, resources, spvc_resource_type.StorageBuffer );
 
 		SPIRV.spvc_context_destroy( context );
+
+		if ( type == ShaderPartType.Compute ) {
+			var k = info.ToString();
+		}
 
 		return info;
 	}
@@ -52,10 +58,16 @@ public class ShaderInfo {
 	public override string ToString () {
 		StringBuilder sb = new();
 		sb.AppendLine( $"{Type} Shader {{" );
-		sb.AppendLine( $"\tInput = {Input.ToString().Replace("\n", "\n\t")}" );
-		sb.AppendLine( $"\tOutput = {Output.ToString().Replace("\n", "\n\t")}" );
-		sb.AppendLine( $"\tUniforms = {Uniforms.ToString().Replace("\n", "\n\t")}" );
-		sb.AppendLine( $"\tSamplers = {Samplers.ToString().Replace("\n", "\n\t")}" );
+		if ( Input.Resources.Any() ) 
+			sb.AppendLine( $"\tInput = {Input.ToString().Replace("\n", "\n\t")}" );
+		if ( Output.Resources.Any() ) 
+			sb.AppendLine( $"\tOutput = {Output.ToString().Replace("\n", "\n\t")}" );
+		if ( Uniforms.Sets.Any() ) 
+			sb.AppendLine( $"\tUniforms = {Uniforms.ToString().Replace("\n", "\n\t")}" );
+		if ( Samplers.Sets.Any() )
+			sb.AppendLine( $"\tSamplers = {Samplers.ToString().Replace("\n", "\n\t")}" );
+		if ( Storage.Sets.Any() )
+			sb.AppendLine( $"\tStorage = {Storage.ToString().Replace("\n", "\n\t")}" );
 		sb.Append( "}" );
 		return sb.ToString();
 	}

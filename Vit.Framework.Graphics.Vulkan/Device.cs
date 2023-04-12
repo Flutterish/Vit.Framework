@@ -30,7 +30,8 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		}
 
 		VkPhysicalDeviceFeatures features = new() {
-			samplerAnisotropy = true
+			samplerAnisotropy = true,
+			sampleRateShading = true
 		};
 
 		var extensionNames = extensions.MakeArray();

@@ -35,6 +35,7 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule> {
 		return type switch {
 			ShaderPartType.Vertex => VkShaderStageFlags.Vertex,
 			ShaderPartType.Fragment => VkShaderStageFlags.Fragment,
+			ShaderPartType.Compute => VkShaderStageFlags.Compute,
 			_ => throw new InvalidOperationException( $"Shader stage not supported: {type}" )
 		};
 	}

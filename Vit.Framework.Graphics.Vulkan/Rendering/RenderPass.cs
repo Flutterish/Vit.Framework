@@ -7,20 +7,22 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 	public readonly Device Device;
 	public readonly VkFormat ColorFormat;
 	public readonly VkFormat DepthFormat;
-	public unsafe RenderPass ( Device device, VkFormat colorFormat, VkFormat depthFormat ) {
+	public readonly VkSampleCountFlags Samples;
+	public unsafe RenderPass ( Device device, VkSampleCountFlags samples, VkFormat colorFormat, VkFormat depthFormat ) {
 		ColorFormat = colorFormat;
 		DepthFormat = depthFormat;
+		Samples = samples;
 		Device = device;
 
 		var color = new VkAttachmentDescription() {
 			format = colorFormat,
-			samples = VkSampleCountFlags.Count1,
+			samples = samples,
 			loadOp = VkAttachmentLoadOp.Clear,
 			storeOp = VkAttachmentStoreOp.Store,
 			stencilLoadOp = VkAttachmentLoadOp.DontCare,
 			stencilStoreOp = VkAttachmentStoreOp.DontCare,
 			initialLayout = VkImageLayout.Undefined,
-			finalLayout = VkImageLayout.PresentSrcKHR
+			finalLayout = VkImageLayout.ColorAttachmentOptimal
 		};
 		var colorRef = new VkAttachmentReference() {
 			attachment = 0,
@@ -29,7 +31,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 
 		var depth = new VkAttachmentDescription() {
 			format = depthFormat,
-			samples = VkSampleCountFlags.Count1,
+			samples = samples,
 			loadOp = VkAttachmentLoadOp.Clear,
 			storeOp = VkAttachmentStoreOp.DontCare,
 			stencilLoadOp = VkAttachmentLoadOp.DontCare,
@@ -42,12 +44,28 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 			layout = VkImageLayout.DepthStencilAttachmentOptimal
 		};
 
-		var attachents = new[] { color, depth };
+		var resolve = new VkAttachmentDescription() {
+			format = colorFormat,
+			samples = VkSampleCountFlags.Count1,
+			loadOp = VkAttachmentLoadOp.DontCare,
+			storeOp = VkAttachmentStoreOp.Store,
+			stencilLoadOp = VkAttachmentLoadOp.DontCare,
+			stencilStoreOp = VkAttachmentStoreOp.DontCare,
+			initialLayout = VkImageLayout.Undefined,
+			finalLayout = VkImageLayout.PresentSrcKHR
+		};
+		var resolveRef = new VkAttachmentReference() {
+			attachment = 2,
+			layout = VkImageLayout.ColorAttachmentOptimal
+		};
+
+		var attachents = new[] { color, depth, resolve };
 		var subpass = new VkSubpassDescription() {
 			pipelineBindPoint = VkPipelineBindPoint.Graphics,
 			colorAttachmentCount = 1,
 			pColorAttachments = &colorRef,
-			pDepthStencilAttachment = &depthRef
+			pDepthStencilAttachment = &depthRef,
+			pResolveAttachments = &resolveRef
 		};
 
 		var dependency = new VkSubpassDependency() {

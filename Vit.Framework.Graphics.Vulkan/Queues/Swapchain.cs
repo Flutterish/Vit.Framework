@@ -112,10 +112,17 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 
 	RenderPass renderPass = null!;
 	Image depthAttachment = null!;
+	Image msaaBuffer = null!;
 	public unsafe void SetRenderPass ( RenderPass pass ) {
 		renderPass = pass;
 		depthAttachment ??= new( pass.Device );
-		createDepthAttachment();
+		depthAttachment.Allocate( Size, VkImageUsageFlags.DepthStencilAttachment, 
+			renderPass.DepthFormat, VkImageAspectFlags.Depth, samples: pass.Samples
+		);
+		msaaBuffer ??= new( pass.Device );
+		msaaBuffer.Allocate( Size, VkImageUsageFlags.TransientAttachment | VkImageUsageFlags.ColorAttachment, 
+			pass.ColorFormat, samples: pass.Samples
+		);
 
 		foreach ( var i in frames ) {
 			i.Dispose();
@@ -123,12 +130,8 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 
 		frames = new FrameBuffer[imageViews.Length];
 		for ( int i = 0; i < imageViews.Length; i++ ) {
-			frames[i] = new( new[] { imageViews[i], depthAttachment.View }, Size, pass );
+			frames[i] = new( new[] { msaaBuffer.View, depthAttachment.View, imageViews[i] }, Size, pass );
 		}
-	}
-
-	void createDepthAttachment () {
-		depthAttachment.Allocate( Size, VkImageUsageFlags.DepthStencilAttachment, renderPass.DepthFormat, VkImageAspectFlags.Depth );
 	}
 
 	public VkResult GetNextFrame ( Semaphore imageAvailable, out FrameBuffer frame, out uint index ) {
@@ -171,6 +174,7 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 			Vk.vkDestroyImageView( Device, i, VulkanExtensions.TODO_Allocator );
 		}
 		depthAttachment?.Dispose();
+		msaaBuffer?.Dispose();
 		Vk.vkDestroySwapchainKHR( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
 }

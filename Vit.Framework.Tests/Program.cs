@@ -94,6 +94,7 @@ public class Program : App {
 		Swapchain swapchain = null!;
 		ShaderModule vertex = null!;
 		ShaderModule fragment = null!;
+		ShaderModule compute = null!;
 		RenderPass renderPass = null!;
 		Pipeline pipeline = null!;
 		CommandPool commandPool = null!;
@@ -166,7 +167,7 @@ public class Program : App {
 				VkFormatFeatureFlags.DepthStencilAttachment
 			);
 
-			renderPass = new RenderPass( device, swapchain.Format.Format.format, depthFormat );
+			renderPass = new RenderPass( device, device.PhysicalDevice.GetMaxColorDepthMultisampling(), swapchain.Format.Format.format, depthFormat );
 			pipeline = new Pipeline( device, new[] { vertex, fragment }, renderPass );
 			swapchain.SetRenderPass( renderPass );
 

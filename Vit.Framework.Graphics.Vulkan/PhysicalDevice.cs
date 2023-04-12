@@ -105,4 +105,9 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 		Vk.vkGetPhysicalDeviceFormatProperties( this, format, out var props );
 		return props;
 	}
+
+	public VkSampleCountFlags GetMaxColorDepthMultisampling () {
+		var max = Properties.limits.framebufferColorSampleCounts & Properties.limits.framebufferDepthSampleCounts;
+		return Enum.GetValues<VkSampleCountFlags>().MaxBy( x => (int)(x & max) );
+	}
 }

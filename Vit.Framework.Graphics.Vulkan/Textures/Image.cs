@@ -37,7 +37,8 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	}
 
 	VkImageLayout layout;
-	public uint MipMapLevels { get; private set; } = 1;
+	public uint MipMapLevels { get; private set; } = 0;
+	public VkSampleCountFlags Samples { get; private set; } = VkSampleCountFlags.None;
 	public unsafe void Allocate ( Image<Rgba32> source, CommandBuffer commands ) {
 		var format = VkFormat.R8g8b8a8Srgb;
 		var aspect = VkImageAspectFlags.Color;
@@ -67,7 +68,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	public unsafe void Allocate ( 
 		VkExtent2D size, VkImageUsageFlags usage, VkFormat format, 
 		VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal, 
-		bool prepareForMipMaps = false ) 
+		bool prepareForMipMaps = false, VkSampleCountFlags samples = VkSampleCountFlags.Count1 ) 
 	{
 		if ( view != VkImageView.Null ) {
 			Free();
@@ -75,6 +76,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 
 		layout = VkImageLayout.Undefined;
 		Size = size;
+		Samples = samples;
 
 		MipMapLevels = prepareForMipMaps ? (uint)Math.Floor( Math.Log2( Math.Max( size.width, size.height ) ) ) + 1 : 1;
 		var info = new VkImageCreateInfo() {
@@ -92,7 +94,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 			initialLayout = VkImageLayout.Undefined,
 			usage = usage,
 			sharingMode = VkSharingMode.Exclusive,
-			samples = VkSampleCountFlags.Count1
+			samples = samples
 		};
 
 		Vk.vkCreateImage( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();

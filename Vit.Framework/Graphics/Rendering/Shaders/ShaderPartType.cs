@@ -2,5 +2,6 @@
 
 public enum ShaderPartType {
 	Vertex,
-	Fragment
+	Fragment,
+	Compute
 }

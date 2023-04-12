@@ -5,12 +5,14 @@ namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 public class StructTypeInfo : TypeInfo {
 	public readonly uint Size;
+	public readonly bool IsUnsized;
 	public readonly string Name;
 	public readonly List<StructMemberInfo> Members = new();
 
-	public StructTypeInfo ( string name, uint size ) {
+	public StructTypeInfo ( string name, uint size, bool unsized = false ) {
 		Name = name;
 		Size = size;
+		IsUnsized = unsized;
 	}
 
 	public static unsafe StructTypeInfo FromSpirv ( spvc_compiler compiler, spvc_type type ) {
@@ -18,8 +20,13 @@ public class StructTypeInfo : TypeInfo {
 		var baseType = SPIRV.spvc_compiler_get_type_handle( compiler, baseTypeId );
 		var name = (CString)SPIRV.spvc_compiler_get_name( compiler, (SpvId)baseTypeId );
 		nuint size = 0;
+		bool unsized = false;
 		SPIRV.spvc_compiler_get_declared_struct_size( compiler, baseType, &size );
-		var layout = new StructTypeInfo( name, (uint)size );
+		if ( size == 0 ) {
+			SPIRV.spvc_compiler_get_declared_struct_size_runtime_array( compiler, baseType, 1, &size );
+			unsized = true;
+		}
+		var layout = new StructTypeInfo( name, (uint)size, unsized );
 
 		var memberCount = SPIRV.spvc_type_get_num_member_types( baseType );
 		for ( uint i = 0; i < memberCount; i++ ) {
@@ -35,7 +42,7 @@ public class StructTypeInfo : TypeInfo {
 	}
 
 	public override string ToString () {
-		return $"[Size: {Size}\t] {Name} {{\n\t{string.Join("\n", Members).Replace("\n", "\n\t")}\n}}";
+		return $"{( IsUnsized ? "buffer" : $"[Size: {Size}\t]")} {Name} {{\n\t{string.Join("\n", Members).Replace("\n", "\n\t")}\n}}";
 	}
 }
 

@@ -60,14 +60,16 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			rasterizerDiscardEnable = false,
 			polygonMode = VkPolygonMode.Fill,
 			lineWidth = 1,
-			cullMode = VkCullModeFlags.None,
+			cullMode = VkCullModeFlags.Back,
+			frontFace = VkFrontFace.Clockwise,
 			depthBiasEnable = false
 		};
 
 		var multisampleInfo = new VkPipelineMultisampleStateCreateInfo() {
 			sType = VkStructureType.PipelineMultisampleStateCreateInfo,
-			sampleShadingEnable = false,
-			rasterizationSamples = VkSampleCountFlags.Count1
+			sampleShadingEnable = true,
+			rasterizationSamples = renderPass.Samples,
+			minSampleShading = 1
 		};
 
 		var blendInfo = new VkPipelineColorBlendAttachmentState() {

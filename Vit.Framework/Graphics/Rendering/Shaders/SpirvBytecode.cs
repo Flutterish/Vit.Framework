@@ -26,6 +26,7 @@ public class SpirvBytecode {
 		var shader = spirvCompiler.Compile( source, identifier, type switch {
 			ShaderPartType.Vertex => ShaderKind.VertexShader,
 			ShaderPartType.Fragment => ShaderKind.FragmentShader,
+			ShaderPartType.Compute => ShaderKind.ComputeShader,
 			_ => throw new ArgumentException( $"Invalid shader type: {type}", nameof( type ) )
 		}, EntryPoint = entryPoint ?? (language, type) switch {
 			(ShaderLanguage.GLSL, _ ) => "main",
