@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Parsing;
+﻿using System.Text;
+using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
 
@@ -18,7 +19,23 @@ public class OpenTypeFont : Font {
 		var cmap = (CmapTable)tablesByTag["cmap"]!;
 		foreach ( var record in cmap.EncodingRecords ) {
 			var subtable = record.Subtable;
-			foreach ( var (rune, glyph) in subtable.Glyphs ) {
+			var platform = record.PlatformID; // 0
+			var encoding = record.EncodingID; // 3
+			foreach ( var (charcode, glyph) in subtable.Glyphs ) {
+				Rune rune;
+				if ( platform == 0 && encoding == 3 ) {
+					rune = new Rune( (char)charcode );
+				}
+				else if ( platform == 1 && encoding == 0 ) {
+					rune = MacintoshRomanEncoding.Decode( (byte)charcode );
+				}
+				else if ( platform == 3 && encoding == 1 ) {
+					rune = new Rune( (char)charcode );
+				}
+				else {
+					throw new Exception( "Unsupported encoding" );
+				}
+				
 				AddGlyphMapping( rune, glyph );
 			}
 		}
@@ -42,8 +59,10 @@ public class OpenTypeFont : Font {
 			for ( int i = 0; i < strs.Count; i++ ) {
 				var glyphName = i == 0 ? new CffTable.SID() : names[i - 1];
 				var glyphCharString = strs.Data[i];
+				var glyph = GetGlyph( new GlyphId( i ) );
+				glyph.Names.Add( cff.GetString( glyphName ) );
 
-				evaluator.Evaluate( glyphCharString );
+				evaluator.Evaluate( glyphCharString, glyph.Outline );
 			}
 		}
 	}

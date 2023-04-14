@@ -33,14 +33,6 @@ public struct Vector3<T> where T : unmanaged, INumber<T> {
 	public static readonly Vector3<T> Zero = new( T.Zero );
 	public static readonly Vector3<T> One = new( T.One );
 
-	public Vector3<T> Lerp<TTime> ( Vector3<T> goal, TTime time ) where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
-		return new() {
-			X = (TTime.MultiplicativeIdentity - time) * X + time * goal.X,
-			Y = (TTime.MultiplicativeIdentity - time) * Y + time * goal.Y,
-			Z = (TTime.MultiplicativeIdentity - time) * Z + time * goal.Z
-		};
-	}
-
 	public static T Dot ( Vector3<T> left, Vector3<T> right ) {
 		return left.X * right.X
 			 + left.Y * right.Y

@@ -8,9 +8,15 @@ public class Font {
 
 	public string Name { get; protected set; } = string.Empty;
 
-	protected void AddGlyphMapping ( Rune rune, GlyphId id ) {
+	protected Glyph GetGlyph ( GlyphId id ) {
 		if ( !GlyphsById.TryGetValue( id, out var glyph ) )
 			GlyphsById.Add( id, glyph = new( id ) );
+
+		return glyph;
+	}
+
+	protected void AddGlyphMapping ( Rune rune, GlyphId id ) {
+		var glyph = GetGlyph( id );
 
 		if ( !GlyphsByRune.TryGetValue( rune, out var set ) )
 			GlyphsByRune.Add( rune, set = new() );

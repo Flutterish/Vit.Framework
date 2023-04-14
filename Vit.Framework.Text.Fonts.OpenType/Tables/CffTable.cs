@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
@@ -95,6 +97,13 @@ public class CffTable : Table {
 		return data;
 	}
 
+	public string GetString ( SID id ) {
+		if ( StandardStrings.TryGetValue( id, out var str ) )
+			return str;
+
+		return StringIndex.Data[id.Id - StandardStrings.Count];
+	}
+
 	public static readonly Dictionary<SID, string> StandardStrings = new() {
 		{0, ".notdef" }, {1, "space" }, {2, "exclam" }, {3, "quotedbl" }, {4, "numbersign" }, {5, "dollar" }, {6, "percent" }, {7, "ampersand" },
 		{8, "quoteright" }, {9, "parenleft" }, {10, "parenright" }, {11, "asterisk" }, {12, "plus" }, {13, "comma" }, {14, "hyphen" }, {15, "period" },
@@ -183,6 +192,7 @@ public class CffTable : Table {
 	public struct SID {
 		public byte A;
 		public byte B;
+		public ushort Id => (ushort)(A<<8 | B);
 
 		public SID ( ushort id ) {
 			A = (byte)(id >> 8);
@@ -452,8 +462,8 @@ public class CffTable : Table {
 
 		class Context {
 			public List<string> Explain = new();
-			public List<string> SVG = new();
-			public Vector2<double> Position;
+			public List<string> SVG = new(); // TODO remove - debug only
+			public Point2<double> Position;
 			public Stack<double> ArgumentStack = new();
 			public double? Width;
 			public bool IsWidthPending = true;
@@ -462,6 +472,31 @@ public class CffTable : Table {
 			public List<(double from, double to)> HorizontalHints = new();
 			public List<(double from, double to)> VerticalHints = new();
 
+			public Outline<double> Outline;
+			public Spline<Point2<double>>? Spline;
+
+			public Context ( Outline<double> outline ) {
+				Outline = outline;
+			}
+
+			public void Begin ( double dx, double dy ) {
+				if ( Spline != null )
+					Finish();
+
+				Position += new Vector2<double>( dx, dy );
+				SVG.Add( $"Move to {Position}" );
+
+				Spline = new( Position );
+			}
+
+			public void Finish () {
+				SVG.Add( "Close curve" );
+
+				if ( Spline != null )
+					Outline.Splines.Add( Spline );
+				Spline = null;
+			}
+
 			public void AddCubicBezier ( double dxa, double dya, double dxb, double dyb, double dxc, double dyc, bool flip = false ) {
 				var a = Position;
 				var b = a + (flip ? new Vector2<double>( dya, dxa ) : new Vector2<double>( dxa, dya ));
@@ -469,6 +504,8 @@ public class CffTable : Table {
 				var d = c + (flip ? new Vector2<double>( dyc, dxc ) : new Vector2<double>( dxc, dyc ));
 				Position = d;
 				SVG.Add( $"Bezier curve from {a} through {b} and {c} to {d}" );
+
+				Spline!.AddCubicBezier( b, c, d );
 			}
 
 			public void AddLine ( double dx, double dy, bool flip = false ) {
@@ -476,12 +513,12 @@ public class CffTable : Table {
 				var b = a + (flip ? new Vector2<double>( dy, dx ) : new Vector2<double>( dx, dy ));
 				Position = b;
 				SVG.Add( $"Line from {a} to {b}" );
+
+				Spline!.AddLine( b );
 			}
 		}
-		public void Evaluate ( CharString str ) {
-			Context context = new();
-			var explain = context.Explain;
-			var svg = context.SVG;
+		public void Evaluate ( CharString str, Outline<double> outline ) {
+			Context context = new( outline );
 			ReadOnlySpan<byte> data = str.Data;
 			evaluate( context, ref data );
 		}
@@ -550,7 +587,7 @@ public class CffTable : Table {
 			if ( b0 is 14 ) { // end char
 				pushWidth( context );
 				context.Explain.Add( "End character" );
-				context.SVG.Add( "Close curve" );
+				context.Finish();
 			}
 			else if ( b0 is 1 or 3 or 18 or 23 ) { // hints
 				Debug.Assert( !context.AreHintsSet );
@@ -574,10 +611,7 @@ public class CffTable : Table {
 				var dy = b0 is 4 ? args[0] : b0 is 21 ? args[1] : 0;
 				pushWidth( context );
 				context.Explain.Add( $"Move to" );
-				context.Position += new Vector2<double>( dx, dy );
-				if ( context.SVG.Any() )
-					context.SVG.Add( "Close curve" );
-				context.SVG.Add( $"Move to {context.Position}" );
+				context.Begin( dx, dy );
 			}
 			else if ( b0 is 5 ) { // lines
 				var count = context.ArgumentStack.Count / 2;
@@ -646,10 +680,11 @@ public class CffTable : Table {
 				int offset = 0;
 
 				if ( parity >= 2 ) {
+					var dy = count == 0 && parity == 5 ? vargs[^1] : 0;
 					context.AddCubicBezier(
 						0, vargs[0],
 						vargs[1], vargs[2],
-						vargs[3], 0,
+						vargs[3], dy,
 						flip
 					);
 					offset = 4;
