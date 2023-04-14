@@ -5,14 +5,10 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Graphics.Vulkan.Buffers;
-using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
-using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Input;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -23,7 +19,6 @@ using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
 using Vulkan;
 using Image = Vit.Framework.Graphics.Vulkan.Textures.Image;
-using Semaphore = Vit.Framework.Graphics.Vulkan.Synchronisation.Semaphore;
 
 namespace Vit.Framework.Tests;
 
@@ -62,45 +57,12 @@ public class Program : App {
 		} );
 	}
 
-	class RenderThread : AppThread {
-		VulkanRenderer renderer;
-		VulkanInstance vulkan;
-		Host host;
-		Window window;
-		DateTime startTime;
-		DateTime lastFrameTime;
-		public RenderThread ( Window window, Host host, string name ) : base( name ) {
-			lastFrameTime = startTime = DateTime.Now;
-			this.host = host;
-			this.window = window;
-			renderer = (VulkanRenderer)host.CreateRenderer( RenderingApi.Vulkan, new[] { RenderingCapabilities.DrawToWindow }, new() {
-				Window = window
-			} )!;
-			vulkan = renderer.Instance;
+	class RenderThread : VulkanRenderThread {
+		public RenderThread ( Window window, Host host, string name ) : base( window, host, name ) { }
 
-			window.Resized += onWindowResized;
-
-			window.PhysicalKeyDown += Keys.Add;
-			window.PhysicalKeyUp += Keys.Remove;
-		}
-
-		bool windowResized;
-		void onWindowResized ( Window _ ) {
-			windowResized = true;
-		}
-
-		BinaryStateTracker<Key> Keys = new();
-
-		Device device = null!;
-		SwapchainInfo swapchainInfo = null!;
-		Swapchain swapchain = null!;
 		ShaderModule vertex = null!;
 		ShaderModule fragment = null!;
-		ShaderModule compute = null!;
-		RenderPass renderPass = null!;
 		Pipeline pipeline = null!;
-		CommandPool commandPool = null!;
-		CommandPool copyCommandPool = null!;
 		DeviceBuffer<float> vertexBuffer = null!;
 		DeviceBuffer<uint> indexBuffer = null!;
 		Sampler sampler = null!;
@@ -113,28 +75,15 @@ public class Program : App {
 		Image texture = null!;
 		VkClearColorValue bg;
 
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
-
 		SimpleObjModel model = null!;
 		Font font = null!;
 		long indexCount;
 		protected override void Initialize () {
-			var surface = ( (IVulkanWindow)window ).GetSurface( vulkan );
-			var (physicalDevice, info) = vulkan.GetBestDeviceInfo( surface );
-			swapchainInfo = info;
-
-			device = physicalDevice.CreateDevice( SwapchainInfo.RequiredExtensionsCstr, new CString[] { }, new[] {
-				info.GraphicsQueue,
-				info.PresentQueue
-			} );
-			graphicsQueue = device.GetQueue( swapchainInfo.GraphicsQueue );
-			presentQueue = device.GetQueue( swapchainInfo.PresentQueue );
-			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
+			base.Initialize();
 
 			font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
 
-			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
+			vertex = Device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 inPosition;
 				layout(location = 1) in vec3 inColor;
 				layout(location = 2) in vec2 inTexCoord;
@@ -155,7 +104,7 @@ public class Program : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 
-			fragment = device.CreateShaderModule( new SpirvBytecode( @"#version 450
+			fragment = Device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 fragColor;
 				layout(location = 1) in vec2 fragTexCoord;
 
@@ -168,23 +117,7 @@ public class Program : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			var depthFormat = device.PhysicalDevice.GetBestSupportedFormat(
-				new[] { VkFormat.D32Sfloat, VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint },
-				VkFormatFeatureFlags.DepthStencilAttachment
-			);
-
-			renderPass = new RenderPass( device, device.PhysicalDevice.GetMaxColorDepthMultisampling(), swapchain.Format.Format.format, depthFormat );
-			pipeline = new Pipeline( device, new[] { vertex, fragment }, renderPass );
-			swapchain.SetRenderPass( renderPass );
-
-			commandPool = device.CreateCommandPool( info.GraphicsQueue );
-			copyCommandPool = device.CreateCommandPool( info.GraphicsQueue, VkCommandPoolCreateFlags.ResetCommandBuffer | VkCommandPoolCreateFlags.Transient );
-			frameInfo = new() {
-				ImageAvailable = device.CreateSemaphore(),
-				RenderFinished = device.CreateSemaphore(),
-				InFlight = device.CreateFence( signaled: true ),
-				Commands = commandPool.CreateCommandBuffer()
-			};
+			pipeline = new Pipeline( Device, new[] { vertex, fragment }, ToScreenRenderPass );
 
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
@@ -242,7 +175,7 @@ public class Program : App {
 			indices.Add( (uint)vertices.Count + 2 );
 			indices.Add( (uint)vertices.Count + 3 );
 
-			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
+			vertexBuffer = new( Device, VkBufferUsageFlags.VertexBuffer );
 			//vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
 			//		x.Position.X,
 			//		x.Position.Y,
@@ -274,60 +207,30 @@ public class Program : App {
 					0,
 					0
 				} ) ).ToArray(),
-				copyCommandPool, graphicsQueue
+				CopyCommandPool, GraphicsQueue
 			);
 
-			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
+			indexBuffer = new( Device, VkBufferUsageFlags.IndexBuffer );
 			//indexBuffer.AllocateAndTransfer( model.Indices.ToArray(), copyCommandPool, graphicsQueue );
-			indexBuffer.AllocateAndTransfer( indices.ToArray(), copyCommandPool, graphicsQueue );
+			indexBuffer.AllocateAndTransfer( indices.ToArray(), CopyCommandPool, GraphicsQueue );
 			indexCount = indices.Count;
 
-			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
+			uniforms = new( Device, VkBufferUsageFlags.UniformBuffer );
 			uniforms.Allocate( 1 );
 			pipeline.DescriptorSet.ConfigureUniforms( uniforms, 0 );
 
 			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>( "./viking_room.png" );
 			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-			texture = new( device );
-			texture.AllocateAndTransfer( image, copyCommandPool, graphicsQueue );
+			texture = new( Device );
+			texture.AllocateAndTransfer( image, CopyCommandPool, GraphicsQueue );
 
-			sampler = new( device, maxLod: texture.MipMapLevels );
+			sampler = new( Device, maxLod: texture.MipMapLevels );
 			pipeline.DescriptorSet.ConfigureTexture( texture, sampler, 1 );
 		}
 
-		FrameInfo frameInfo;
-		protected override void Loop () {
-			if ( windowResized ) {
-				windowResized = false;
-				recreateSwapchain();
-			}
-
-			record( frameInfo );
-		}
-
-		struct FrameInfo : IDisposable {
-			public required Semaphore ImageAvailable;
-			public required Semaphore RenderFinished;
-			public required Fence InFlight;
-			public required CommandBuffer Commands;
-
-			public void Dispose () {
-				ImageAvailable.Dispose();
-				RenderFinished.Dispose();
-				InFlight.Dispose();
-			}
-		};
-
-		Point3<float> position = new( 0, 0, -1 );
-		void record ( FrameInfo info ) {
+		Point3<float> position = new( 0, 0, -5 );
+		protected override void Render ( FrameInfo info, FrameBuffer frame ) {
 			var commands = info.Commands;
-			info.InFlight.Wait();
-
-			if ( !validateSwapchain( swapchain.GetNextFrame( info.ImageAvailable, out var frame, out var index ), recreateSuboptimal: false ) ) {
-				return;
-			}
-
-			info.InFlight.Reset();
 
 			commands.Reset();
 			commands.Begin();
@@ -342,13 +245,12 @@ public class Program : App {
 			commands.SetScissor( new() {
 				extent = frame.Size
 			} );
+
 			commands.BindVertexBuffer( vertexBuffer );
 			commands.BindIndexBuffer( indexBuffer );
-			var now = DateTime.Now;
-			var deltaTime = (float)(now - lastFrameTime).TotalSeconds;
 
-			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)window.CursorPosition.Y / window.Height - 0.5f ).Degrees() * 180 )
-				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)window.CursorPosition.X / window.Width - 0.5f ).Degrees() * 360 );
+			var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)Window.CursorPosition.Y / Window.Height - 0.5f ).Degrees() * 180 )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)Window.CursorPosition.X / Window.Width - 0.5f ).Degrees() * 360 );
 
 			var inverseCameraRotation = cameraRotation.Inverse();
 
@@ -369,67 +271,33 @@ public class Program : App {
 			if ( Keys.IsActive( Key.LeftShift ) )
 				deltaPosition -= Vector3<float>.UnitY;
 			if ( deltaPosition != Vector3<float>.Zero ) {
-				position += deltaPosition * deltaTime;
+				position += deltaPosition * (float)DeltaTime.TotalSeconds;
 			}
 
 			var cameraMatrix = Matrix4<float>.CreateTranslation( -position.X, -position.Y, -position.Z )
 				* inverseCameraRotation;
 
-			lastFrameTime = now;
-			var time = (float)( now - startTime ).TotalSeconds;
 			uniforms.Transfer( new Matrices() {
 				Model = Matrix4<float>.Identity,//FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
 				View = cameraMatrix,
-				Projection = renderer.CreateLeftHandCorrectionMatrix<float>() 
+				Projection = Renderer.CreateLeftHandCorrectionMatrix<float>() 
 					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( (uint)indexCount );
 			commands.FinishRenderPass();
 			commands.Finish();
-
-			commands.Submit( graphicsQueue, info.ImageAvailable, info.RenderFinished, info.InFlight );
-			validateSwapchain( swapchain.Present( presentQueue, index, info.RenderFinished ), recreateSuboptimal: true );
 		}
 
-		bool validateSwapchain ( VkResult result, bool recreateSuboptimal ) {
-			if ( result >= 0 )
-				return true;
-
-			if ( (result == VkResult.ErrorOutOfDateKHR || (result == VkResult.SuboptimalKHR && recreateSuboptimal)) && !window.IsClosed ) {
-				recreateSwapchain();
-			}
-
-			return false;
-		}
-
-		void recreateSwapchain () {
-			device.WaitIdle();
-			swapchain.Recreate( window.PixelSize );
-		}
-
-		protected override void Dispose ( bool disposing ) {
-			window.Resized -= onWindowResized;
-			if ( !IsInitialized )
-				return;
-
-			device.WaitIdle();
-
-			frameInfo.Dispose();
-			commandPool.Dispose();
-			copyCommandPool.Dispose();
+		protected override void Dispose () {
 			pipeline.Dispose();
-			renderPass.Dispose();
 			fragment.Dispose();
 			vertex.Dispose();
-			swapchain.Dispose();
 			vertexBuffer.Dispose();
 			indexBuffer.Dispose();
 			uniforms.Dispose();
 			texture.Dispose();
 			sampler.Dispose();
-			device.Dispose();
-			renderer.Dispose();
 		}
 	}
 }
