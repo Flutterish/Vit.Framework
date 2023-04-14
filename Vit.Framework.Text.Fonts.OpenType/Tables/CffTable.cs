@@ -399,7 +399,8 @@ public class CffTable : Table {
 					entryKey = (Key)key[0];
 
 				Entries[entryKey] = entryKey switch {
-					Key.Subrs => ParseNumber( values ),
+					Key.Subrs or Key.DefaultWidthX or Key.NominalWidthX => ParseNumber( values ),
+					Key.BlueValues or Key.OtherBlues => ParseArray( values ),
 					_ => values
 				};
 			}
@@ -414,7 +415,11 @@ public class CffTable : Table {
 		}
 
 		public enum Key {
-			Subrs = 19
+			Subrs = 19,
+			BlueValues = 6,
+			OtherBlues = 7,
+			DefaultWidthX = 20,
+			NominalWidthX = 21
 		}
 	}
 
