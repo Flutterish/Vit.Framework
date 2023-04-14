@@ -47,4 +47,27 @@ public class TripleBuffer {
 			}
 		} );
 	}
+
+	public bool TryGetForRead ( out int index, out DisposeAction<(TripleBuffer buffer, int index)> disposeAction ) {
+		lock ( useLock ) {
+			if ( readIndex.HasValue )
+				throw new InvalidOperationException( "Triple buffer is already being read from" );
+
+			if ( !isNew ) {
+				index = -1;
+				disposeAction = default;
+				return false;
+			}
+
+			this.isNew = false;
+			readIndex = index = availableIndex;
+		}
+
+		disposeAction = new( (this, index), static v => {
+			lock ( v.buffer.useLock ) {
+				v.buffer.readIndex = null;
+			}
+		} );
+		return true;
+	}
 }
