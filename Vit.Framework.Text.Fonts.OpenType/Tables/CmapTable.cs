@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Parsing.Binary;
+﻿using System.Text;
+using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
@@ -31,11 +32,20 @@ public class CmapTable : Table {
 				_ => null
 			};
 		}
+
+		public abstract IEnumerable<(Rune, GlyphId)> Glyphs { get; }
 	}
 
 	public class Subtable0 : Subtable {
 		[Size(256)]
 		public byte[] GlyphIdArray = null!;
+
+		public override IEnumerable<(Rune, GlyphId)> Glyphs {
+			get {
+				// this should not be used because is uses funky mac encoding
+				yield break;
+			}
+		}
 	}
 
 	public class Subtable4 : Subtable {
@@ -62,6 +72,28 @@ public class CmapTable : Table {
 				total += endCodes[i] - startCodes[i];
 			}
 			return total;
+		}
+
+		public override IEnumerable<(Rune, GlyphId)> Glyphs {
+			get {
+				for ( var i = 0; i < StartCodes.Length; i++ ) {
+					var start = StartCodes[i];
+					var end = EndCodes[i];
+					var idDelta = IdDeltas[i];
+					var idRangeOffset = IdRangeOffsets[i];
+
+					for ( ushort c = start; c < end; c++ ) {
+						ushort id;
+						if ( idRangeOffset == 0 )
+							id = (ushort)( idDelta + c );
+						else {
+							id = GlyphIdArray[i - StartCodes.Length + idRangeOffset / 2 + c - start];
+						}
+
+						yield return (new Rune( (char)c ), id);
+					}
+				}
+			}
 		}
 	}
 }

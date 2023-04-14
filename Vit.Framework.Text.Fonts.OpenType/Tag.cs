@@ -6,6 +6,15 @@ public struct Tag {
 	public byte C;
 	public byte D;
 
+	public Tag ( string name ) {
+		A = (byte)name[0];
+		B = (byte)name[1];
+		C = (byte)name[2];
+		D = (byte)name[3];
+	}
+
+	public static implicit operator Tag ( string str ) => new( str );
+
 	public static bool operator == ( Tag tag, string str ) {
 		return str.Length == 4
 			&& (char)tag.A == str[0]

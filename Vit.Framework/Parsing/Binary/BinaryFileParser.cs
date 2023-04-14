@@ -3,14 +3,24 @@ using System.Reflection;
 
 namespace Vit.Framework.Parsing.Binary;
 
-public static class BinaryFileParser {
+public static class BinaryFileParser { // TODO some way to parse { length, data[] <- unsized, total byte count = length }
 	static readonly Dictionary<TypeInfo, Func<Context, ParsingResult>> parsers = new() { };
 
 	public static T Parse<T> ( EndianCorrectingBinaryReader reader ) {
 		var result = parse( new Context {
 			Reader = reader,
-			Dependencies = new()
+			Dependencies = new(),
+			Cache = new()
 		}, typeof( T ) );
+
+		if ( !result.IsCompleted )
+			throw new Exception( "Parsing failed" );
+
+		return (T)result.Result!;
+	}
+
+	public static T Parse<T> ( Context context ) {
+		var result = parse( context, typeof( T ) );
 
 		if ( !result.IsCompleted )
 			throw new Exception( "Parsing failed" );
@@ -108,12 +118,17 @@ public static class BinaryFileParser {
 						ctx,
 						new[] { last },
 						last => {
-							var member = parse( childContext, i );
+							var childTypeInfo = new TypeInfo( i );
+							var member = parse( childContext, childTypeInfo );
 							return ParsingResult.CreateDependantTask(
 								ctx,
 								new[] { member },
 								member => {
-									memberValues[i] = member[0].Result;
+									var value = member[0].Result;
+									memberValues[i] = value;
+									if ( childTypeInfo.Cache != null ) {
+										childContext.Cache.Add( childTypeInfo.Type, value );
+									}
 									return member[0];
 								}
 							);
@@ -131,7 +146,7 @@ public static class BinaryFileParser {
 								return new ParsingResult( Activator.CreateInstance( type.Type ) );
 
 							childContext = childContext with { TypeInfo = newType }; // TODO check if the new type has dependencies
-							members = newType.GetMembers( BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly )
+							members = newType.GetMembers( BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly ) // TODO make work for more than 1 layer at a time
 								.Where( x => x is FieldInfo or PropertyInfo { CanWrite: true } ).ToArray();
 							return processChildClass( newType );
 						}
@@ -218,14 +233,23 @@ public static class BinaryFileParser {
 		public long Offset { get; init; }
 
 		public required Dictionary<Type, object?> Dependencies { get; init; }
+		public required Dictionary<Type, object?> Cache { get; init; }
 
 		public Context GetChildContext ( TypeInfo type, Dictionary<MemberInfo, object?>? memberValues = null ) {
 			return this with {
 				ParentContext = this,
 				TypeInfo = type,
 				MemberValues = memberValues,
-				Offset = type.IsAnchor ? Reader.Stream.Position : Offset
+				Offset = type.IsAnchor ? Reader.Stream.Position : Offset,
+				Cache = new()
 			};
+		}
+
+		public object? Resolve ( Type type ) {
+			if ( Cache.TryGetValue( type, out var value ) )
+				return value;
+
+			return ParentContext?.Resolve( type );
 		}
 
 		public T? GetRef<T> ( string name ) {
@@ -237,9 +261,13 @@ public static class BinaryFileParser {
 			else if ( TypeInfo.Type.GetMethod( name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static ) is MethodInfo method ) {
 				data = method.Invoke( null, method.GetParameters().Select( x => {
 					var type = x.ParameterType;
+					if ( x.GetCustomAttribute<ResolveAttribute>() != null ) {
+						return Resolve( type );
+					}
+
 					var matching = MemberValues!.Where( x => memberType( x.Key ) == type );
 					var name = x.Name!.ToLower();
-					var candidates = matching.Where( x => x.Key.Name.ToLower() == name ).Concat( matching ).Select( x => x.Value );
+					var candidates = matching.Where( x => x.Key.Name.ToLower() == name ).Select( x => x.Value );
 					if ( !candidates.Any() ) {
 						var implicits = new object[] { this, Reader };
 						candidates = implicits.Where( x => x.GetType() == type ).Concat( Dependencies.Where( x => x.Key == type ).Select( x => x.Value ) );
@@ -290,6 +318,7 @@ public static class BinaryFileParser {
 		public TypeSelectorAttribute? AbstractTypeSelector;
 		public ParseWithAttribute? ParseWith;
 		public ParsingDependsOnAttribute? DependsOn;
+		public CacheAttribute? Cache;
 		public bool IsAnchor;
 		public bool IsDependency;
 		public Type Type;
@@ -300,6 +329,7 @@ public static class BinaryFileParser {
 			IsDependency = Type.GetCustomAttribute<ParserDependencyAttribute>( inherit: true ) != null;
 			AbstractTypeSelector = Type.GetCustomAttribute<TypeSelectorAttribute>( inherit: false );
 			DependsOn = Type.GetCustomAttribute<ParsingDependsOnAttribute>( inherit: true );
+			Cache = Type.GetCustomAttribute<CacheAttribute>( inherit: true );
 		}
 
 		public TypeInfo ( MemberInfo member ) : this( memberType( member ), member ) { }
@@ -310,6 +340,7 @@ public static class BinaryFileParser {
 			TypeSelector = member.GetCustomAttribute<TypeSelectorAttribute>();
 			ParseWith = member.GetCustomAttribute<ParseWithAttribute>();
 			IsDependency |= member.GetCustomAttribute<ParserDependencyAttribute>( inherit: true ) != null;
+			Cache = member.GetCustomAttribute<CacheAttribute>( inherit: true ) ?? Cache;
 		}
 
 		public TypeInfo SubstituteType ( Type type ) {
