@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
 using System.Text;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 
 namespace Vit.Framework.Text.Fonts;
 
-public class Outline<T> where T : unmanaged, INumber<T> {
+public class Outline<T> where T : INumber<T> {
 	public readonly List<Spline2<T>> Splines = new();
 
 	public override string ToString () {
@@ -47,5 +48,11 @@ public class Outline<T> where T : unmanaged, INumber<T> {
 			sb.Length--;
 
 		return sb.ToString();
+	}
+}
+
+public static class OutlineExtensions {
+	public static AxisAlignedBox2<T> CalculateBoundingBox<T> ( this Outline<T> outline ) where T : INumber<T>, IFloatingPointIeee754<T> {
+		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox<T>.Undefined, (a,b) => a.Contain(b) );
 	}
 }

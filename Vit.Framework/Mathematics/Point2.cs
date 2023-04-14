@@ -33,6 +33,13 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
 		};
 	}
 
+	public static bool operator == ( Point2<T> left, Point2<T> right ) {
+		return left.X == right.X && left.Y == right.Y;
+	}
+	public static bool operator != ( Point2<T> left, Point2<T> right ) {
+		return left.X != right.X || left.Y != right.Y;
+	}
+
 	public Point2<T> Lerp ( Point2<T> goal, T time ) {
 		return new Point2<T> {
 			X = X.Lerp( goal.X, time ),

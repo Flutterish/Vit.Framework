@@ -497,8 +497,11 @@ public class CffTable : Table {
 			public void Finish () {
 				SVG.Add( "Close curve" );
 
-				if ( Spline != null )
+				if ( Spline != null ) {
+					if ( Spline.Points[^1] != Spline.Points[0] )
+						Spline.AddLine( Spline.Points[0] );
 					Outline.Splines.Add( Spline );
+				}
 				Spline = null;
 			}
 

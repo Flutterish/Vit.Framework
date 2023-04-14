@@ -65,6 +65,14 @@ public class OpenTypeFont : Font {
 				evaluator.Evaluate( glyphCharString, glyph.Outline );
 			}
 		}
+
+		var hmtx = (HorizontalMetricsTable)tablesByTag["hmtx"]!;
+		for ( int i = 0; i < hmtx.HMetrics.Length; i++ ) {
+			var glyph = GetGlyph( new GlyphId( i ) );
+			var metric = hmtx.HMetrics[i];
+			glyph.HorizontalAdvance = metric.AdvanceWidth;
+			glyph.MinX = metric.LeftSideBearing;
+		}
 	}
 
 	public static OpenTypeFont FromStream ( Stream stream ) {

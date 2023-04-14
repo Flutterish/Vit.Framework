@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -34,10 +35,18 @@ public class Glyph {
 	public double HorizontalAdvance;
 	public double VerticalAdvance;
 
-	public double BearingX => MinX;
-	public double BearingY => MaxY;
+	public double LeftBearing => MinX;
+	public double RightBearing => HorizontalAdvance - MaxX;
+	public double TopBearing => MaxY;
+	public double BottomBearing => VerticalAdvance - MinY;
 	public double Width => MaxX - MinX;
 	public double Height => MaxY - MinY;
+
+	AxisAlignedBox2<double>? calculatedBoundingBox;
+	public AxisAlignedBox2<double> CalculatedBoundingBox {
+		get => calculatedBoundingBox ??= Outline.CalculateBoundingBox();
+		set => calculatedBoundingBox = null;
+	}
 
 	public Glyph ( GlyphId id ) {
 		Id = id;

@@ -15,12 +15,18 @@ public class Font {
 		return glyph;
 	}
 
-	public Glyph? GetGlyph ( char character ) => GetGlyph( new Rune(character) );
-	public Glyph? GetGlyph ( Rune rune ) {
+	public Glyph? TryGetGlyph ( char character ) => TryGetGlyph( new Rune(character) );
+	public Glyph? TryGetGlyph ( Rune rune ) {
 		if ( !GlyphsByRune.TryGetValue( rune, out var set ) )
 			return null;
 
 		return set.First();
+	}
+	public Glyph? TryGetGlyph ( GlyphId id ) {
+		if ( !GlyphsById.TryGetValue( id, out var glyph ) )
+			return null;
+
+		return glyph;
 	}
 
 	protected void AddGlyphMapping ( Rune rune, GlyphId id ) {

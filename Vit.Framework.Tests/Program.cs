@@ -164,7 +164,7 @@ public class Program : App {
 				layout(binding = 1) uniform sampler2D texSampler;
 
 				void main() {
-					outColor = vec4(1,1,1,1);// texture(texSampler, fragTexCoord) * vec4(fragColor, 1);
+					outColor = vec4(fragColor, 1);// texture(texSampler, fragTexCoord) * vec4(fragColor, 1);
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
@@ -191,7 +191,7 @@ public class Program : App {
 			bg = new( 0, 0, 0 );
 
 			model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-			var glyph = font.GetGlyph( 'z' )!;
+			var glyph = font.TryGetGlyph( 'z' )!;
 
 			List<Point2<double>> vertices = new();
 			List<uint> indices = new();
@@ -227,6 +227,21 @@ public class Program : App {
 				}
 			}
 
+			var bb = glyph.CalculatedBoundingBox;
+			var vert2 = new List<Point2<double>>();
+			vert2.Add( new Point2<double>( bb.MinX, bb.MinY ) );
+			vert2.Add( new Point2<double>( bb.MaxX, bb.MinY ) );
+			vert2.Add( new Point2<double>( bb.MinX, bb.MaxY ) );
+			vert2.Add( new Point2<double>( bb.MaxX, bb.MaxY ) );
+
+			indices.Add( (uint)vertices.Count + 1 );
+			indices.Add( (uint)vertices.Count );
+			indices.Add( (uint)vertices.Count + 3 );
+
+			indices.Add( (uint)vertices.Count );
+			indices.Add( (uint)vertices.Count + 2 );
+			indices.Add( (uint)vertices.Count + 3 );
+
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
 			//vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
 			//		x.Position.X,
@@ -249,7 +264,16 @@ public class Program : App {
 					1,
 					0,
 					0
-				} ).ToArray(),
+				} ).Concat( vert2.SelectMany( x => new[] {
+					(float)x.X / 50,
+					(float)x.Y / 50,
+					0.01f,
+					0.1f,
+					0.1f,
+					0.1f,
+					0,
+					0
+				} ) ).ToArray(),
 				copyCommandPool, graphicsQueue
 			);
 
