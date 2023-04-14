@@ -16,9 +16,11 @@ using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
+using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
+using Vit.Framework.Windowing.Sdl;
 using Vulkan;
 using Image = Vit.Framework.Graphics.Vulkan.Textures.Image;
 using Semaphore = Vit.Framework.Graphics.Vulkan.Synchronisation.Semaphore;
@@ -29,13 +31,10 @@ public class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
-		/*
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );
 		app.Run( host );
-		*/
 	}
 
 	protected override void Initialize ( Host host ) {
@@ -118,6 +117,8 @@ public class Program : App {
 		VkQueue presentQueue;
 
 		SimpleObjModel model = null!;
+		Font font = null!;
+		long indexCount;
 		protected override void Initialize () {
 			var surface = ( (IVulkanWindow)window ).GetSurface( vulkan );
 			var (physicalDevice, info) = vulkan.GetBestDeviceInfo( surface );
@@ -130,6 +131,8 @@ public class Program : App {
 			graphicsQueue = device.GetQueue( swapchainInfo.GraphicsQueue );
 			presentQueue = device.GetQueue( swapchainInfo.PresentQueue );
 			swapchain = device.CreateSwapchain( surface, info.SelectBest(), window.PixelSize );
+
+			font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
 
 			vertex = device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 inPosition;
@@ -161,7 +164,7 @@ public class Program : App {
 				layout(binding = 1) uniform sampler2D texSampler;
 
 				void main() {
-					outColor = texture(texSampler, fragTexCoord) * vec4(fragColor, 1);
+					outColor = vec4(1,1,1,1);// texture(texSampler, fragTexCoord) * vec4(fragColor, 1);
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
@@ -188,23 +191,72 @@ public class Program : App {
 			bg = new( 0, 0, 0 );
 
 			model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
+			var glyph = font.GetGlyph( 'z' )!;
+
+			List<Point2<double>> vertices = new();
+			List<uint> indices = new();
+			foreach ( var spline in glyph.Outline.Splines ) {
+				var points = spline.GetPoints();
+				var last = points.First();
+				foreach ( var point in points.Skip(1) ) {
+					var delta = (point - last).Normalized() * 1;
+					var right = delta.Right;
+
+					var a = last + right;
+					var b = last - right;
+					var c = point + right;
+					var d = point - right;
+					var ai = vertices.Count;
+					vertices.Add( a );
+					var bi = vertices.Count;
+					vertices.Add( b );
+					var ci = vertices.Count;
+					vertices.Add( c );
+					var di = vertices.Count;
+					vertices.Add( d );
+
+					indices.Add( (uint)ai );
+					indices.Add( (uint)bi );
+					indices.Add( (uint)ci );
+					
+					indices.Add( (uint)bi );
+					indices.Add( (uint)di );
+					indices.Add( (uint)ci );
+
+					last = point;
+				}
+			}
 
 			vertexBuffer = new( device, VkBufferUsageFlags.VertexBuffer );
-			vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
-					x.Position.X,
-					x.Position.Y,
-					x.Position.Z,
+			//vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
+			//		x.Position.X,
+			//		x.Position.Y,
+			//		x.Position.Z,
+			//		1,
+			//		1,
+			//		1,
+			//		x.TextureCoordinates.X,
+			//		x.TextureCoordinates.Y
+			//	} ).ToArray(),
+			//	copyCommandPool, graphicsQueue
+			//);
+			vertexBuffer.AllocateAndTransfer( vertices.SelectMany( x => new[] {
+					(float)x.X / 50,
+					(float)x.Y / 50,
+					0,
 					1,
 					1,
 					1,
-					x.TextureCoordinates.X,
-					x.TextureCoordinates.Y
-				} ).ToArray(), 
-				copyCommandPool, graphicsQueue 
+					0,
+					0
+				} ).ToArray(),
+				copyCommandPool, graphicsQueue
 			);
 
 			indexBuffer = new( device, VkBufferUsageFlags.IndexBuffer );
-			indexBuffer.AllocateAndTransfer( model.Indices.Select( x => (uint)x ).ToArray(), copyCommandPool, graphicsQueue );
+			//indexBuffer.AllocateAndTransfer( model.Indices.ToArray(), copyCommandPool, graphicsQueue );
+			indexBuffer.AllocateAndTransfer( indices.ToArray(), copyCommandPool, graphicsQueue );
+			indexCount = indices.Count;
 
 			uniforms = new( device, VkBufferUsageFlags.UniformBuffer );
 			uniforms.Allocate( 1 );
@@ -302,20 +354,18 @@ public class Program : App {
 			lastFrameTime = now;
 			var time = (float)( now - startTime ).TotalSeconds;
 			uniforms.Transfer( new Matrices() {
-				Model = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
+				Model = Matrix4<float>.Identity,//FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
 				View = cameraMatrix,
 				Projection = renderer.CreateLeftHandCorrectionMatrix<float>() 
 					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
-			commands.DrawIndexed( (uint)model.Indices.Count );
+			commands.DrawIndexed( (uint)indexCount );
 			commands.FinishRenderPass();
 			commands.Finish();
 
 			commands.Submit( graphicsQueue, info.ImageAvailable, info.RenderFinished, info.InFlight );
 			validateSwapchain( swapchain.Present( presentQueue, index, info.RenderFinished ), recreateSuboptimal: true );
-
-			Sleep( 1 );
 		}
 
 		bool validateSwapchain ( VkResult result, bool recreateSuboptimal ) {

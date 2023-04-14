@@ -5,7 +5,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
-public struct Matrix4<T> where T : unmanaged, INumber<T> {
+public struct Matrix4<T> where T : INumber<T> {
 	public T M00; public T M10; public T M20; public T M30;
 	public T M01; public T M11; public T M21; public T M31;
 	public T M02; public T M12; public T M22; public T M32;
@@ -18,9 +18,11 @@ public struct Matrix4<T> where T : unmanaged, INumber<T> {
 
 	public Matrix<T> AsUnsized () => new Matrix<T>( AsSpan2D() );
 
+#nullable disable
 	public Matrix4 ( ReadOnlySpan2D<T> data ) {
 		data.Flat.CopyTo( this.AsSpan() );
 	}
+#nullable restore
 
 	public static readonly Matrix4<T> Identity = new() {
 		M00 = T.MultiplicativeIdentity,

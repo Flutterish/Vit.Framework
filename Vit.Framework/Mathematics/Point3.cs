@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Mathematics;
 
-public struct Point3<T> where T : unmanaged, INumber<T> {
+public struct Point3<T> : IInterpolatable<Point3<T>, T> where T : INumber<T> {
 	public T X;
 	public T Y;
 	public T Z;
@@ -35,6 +35,14 @@ public struct Point3<T> where T : unmanaged, INumber<T> {
 			X = X,
 			Y = Y,
 			Z = Z
+		};
+	}
+
+	public Point3<T> Lerp ( Point3<T> goal, T time ) {
+		return new Point3<T> {
+			X = X.Lerp( goal.X, time ),
+			Y = Y.Lerp( goal.Y, time ),
+			Z = Z.Lerp( goal.Z, time )
 		};
 	}
 }

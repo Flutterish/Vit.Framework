@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
-public struct Quaternion<T> where T : unmanaged, INumber<T>, IFloatingPointIeee754<T> {
+public struct Quaternion<T> where T : INumber<T>, IFloatingPointIeee754<T> {
 	public T I;
 	public T J;
 	public T K;

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
-public struct Vector3<T> where T : unmanaged, INumber<T> {
+public struct Vector3<T> where T : INumber<T> {
 	public T X;
 	public T Y;
 	public T Z;

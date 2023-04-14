@@ -45,7 +45,7 @@ public class SdlHost : Host {
 			Sleep( 1 );
 		}
 
-		SDL.SDL_EventFilter eventFilter;
+		SDL.SDL_EventFilter? eventFilter;
 		unsafe int eventWatch ( nint _, nint @event ) {
 			var ep = (SDL.SDL_Event*)@event;
 			CheckEvent( *ep );

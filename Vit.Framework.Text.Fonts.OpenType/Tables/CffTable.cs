@@ -478,7 +478,7 @@ public class CffTable : Table {
 			public List<(double from, double to)> VerticalHints = new();
 
 			public Outline<double> Outline;
-			public Spline<Point2<double>>? Spline;
+			public Spline2<double>? Spline;
 
 			public Context ( Outline<double> outline ) {
 				Outline = outline;

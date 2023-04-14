@@ -1,12 +1,11 @@
 ﻿using System.Numerics;
 using System.Text;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 
 namespace Vit.Framework.Text.Fonts;
 
 public class Outline<T> where T : unmanaged, INumber<T> {
-	public readonly List<Spline<Point2<T>>> Splines = new();
+	public readonly List<Spline2<T>> Splines = new();
 
 	public override string ToString () {
 		return ToSvg();
