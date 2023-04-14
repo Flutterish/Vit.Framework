@@ -26,6 +26,19 @@ public class Glyph {
 	public readonly HashSet<Rune> AssignedRunes = new();
 	public readonly Outline<double> Outline = new();
 
+	public double MinX;
+	public double MaxX;
+	public double MinY;
+	public double MaxY;
+
+	public double HorizontalAdvance;
+	public double VerticalAdvance;
+
+	public double BearingX => MinX;
+	public double BearingY => MaxY;
+	public double Width => MaxX - MinX;
+	public double Height => MaxY - MinY;
+
 	public Glyph ( GlyphId id ) {
 		Id = id;
 	}
