@@ -1,34 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Parsing.Binary;
-using Vit.Framework.Parsing.Binary.Views;
+﻿using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 
-public struct OpenFontFile {
+public struct OpenFontFile_old {
 	public Tag SfntVersion;
 	public ushort TableCount;
 	public ushort SearchRange;
 	public ushort EntrySelector;
 	public ushort RangeShift;
 
-	[Size( nameof( TableCount ) )]
-	public TableRecord[] TableRecords;
+	[Size(nameof(TableCount))]
+	public TableRecord_old[] TableRecords;
 }
 
-public struct TableRecord {
+public struct TableRecord_old {
 	public Tag TableTag;
 	public uint Chacksum;
 	public Offset32 Offset;
 	public uint Length;
-
-	[DataOffset( nameof( Offset ) )]
-	[TypeSelector( nameof( selectType ) )]
-	public BinaryView<Table?> Table;
+	
+	[DataOffset(nameof(Offset))]
+	[TypeSelector(nameof(selectType))]
+	public Table? Table;
 
 	static Type? selectType ( Tag tableTag ) {
 		if ( tableTag == "cmap" )

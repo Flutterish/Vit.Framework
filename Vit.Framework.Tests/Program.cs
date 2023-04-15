@@ -79,7 +79,7 @@ public class Program : App {
 		protected override void Initialize () {
 			base.Initialize();
 
-			font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
+			font = OpenTypeFont_old.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
 			font.Validate();
 
 			vertex = Device.CreateShaderModule( new SpirvBytecode( @"#version 450

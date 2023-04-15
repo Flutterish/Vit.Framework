@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-public class KeringTable : Table {
+public class KeringTable_old : Table {
 	public ushort Version;
 	public ushort SubtableCount;
 	[Size(nameof(SubtableCount))]

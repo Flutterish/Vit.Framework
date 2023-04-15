@@ -8,7 +8,7 @@ using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-public class CffTable : Table {
+public class CffTable_old : Table {
 	public byte Major;
 	public byte Minor;
 	public byte HeaderSize;

@@ -3,18 +3,18 @@
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
 [TypeSelector(nameof(selectType))]
-public class Os2Table : Table {
+public class Os2Table_old : Table {
 	public ushort Version;
 
 	static Type? selectType ( ushort version ) {
 		return version switch {
 			3 => typeof(Os2TableVersion3),
-			_ => typeof( Os2Table )
+			_ => typeof( Os2Table_old )
 		};
 	}
 }
 
-public class Os2TableVersion3 : Os2Table {
+public class Os2TableVersion3 : Os2Table_old {
 	public short XAvgCharWidth;
 	public ushort WeightClass;
 	public ushort WidthClass;

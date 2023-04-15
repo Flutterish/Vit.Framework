@@ -1,6 +1,6 @@
 ﻿namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-public class PostScriptTable : Table {
+public class PostScriptTable_old : Table {
 	public Version16_16 Version;
 	public Fixed16_16 ItalicAngle;
 	public FontWord UnderlinePosition;

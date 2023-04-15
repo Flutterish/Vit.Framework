@@ -4,7 +4,7 @@ using Vit.Framework.Parsing.Binary;
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
 [TypeSelector(nameof(selectType))]
-public class NamingTable : Table {
+public class NamingTable_old : Table {
 	public ushort Version;
 	public ushort Count;
 	[ParserDependency]
@@ -15,7 +15,7 @@ public class NamingTable : Table {
 	static Type? selectType ( ushort version ) {
 		return version switch {
 			1 => typeof( NamingTableVersion1 ),
-			_ => typeof( NamingTable )
+			_ => typeof( NamingTable_old )
 		};
 	}
 
@@ -36,12 +36,12 @@ public class NamingTable : Table {
 		}
 
 		public override string ToString () {
-			return OpenTypeFont.Decode( StringData, PlatformId, EncodingId );
+			return OpenTypeFont_old.Decode( StringData, PlatformId, EncodingId );
 		}
 	}
 }
 
-public class NamingTableVersion1 : NamingTable {
+public class NamingTableVersion1 : NamingTable_old {
 	public ushort LangTagCount;
 	[Size(nameof(LangTagCount))]
 	public LangTagRecord[] LangTagRecords = null!;

@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-public class CmapTable : Table {
+public class CmapTable_old : Table {
 	public ushort Version;
 	public ushort TableCount;
 

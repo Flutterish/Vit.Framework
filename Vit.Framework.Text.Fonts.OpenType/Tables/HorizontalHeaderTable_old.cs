@@ -3,7 +3,7 @@
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
 [ParserDependency]
-public class HorizontalHeaderTable : Table {
+public class HorizontalHeaderTable_old : Table {
 	public ushort MajorVersion;
 	public ushort MinorVersion;
 

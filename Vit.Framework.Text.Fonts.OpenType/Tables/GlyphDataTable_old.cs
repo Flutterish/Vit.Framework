@@ -7,11 +7,11 @@ using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-[ParsingDependsOn(typeof(MaximumProfileTable), typeof(IndexToLocationTable))]
-public class GlyphDataTable : Table {
+[ParsingDependsOn(typeof(MaximumProfileTable_old), typeof(IndexToLocationTable_old))]
+public class GlyphDataTable_old : Table {
 	[ParseWith(nameof(parse))]
 	public GlyphData?[] Glyphs = null!;
-	static GlyphData?[] parse ( MaximumProfileTable maxp, IndexToLocationTable loca, BinaryFileParser.Context context ) {
+	static GlyphData?[] parse ( MaximumProfileTable_old maxp, IndexToLocationTable_old loca, BinaryFileParser.Context context ) {
 		var data = new GlyphData?[maxp.GlyphCount];
 		var pos = context.Reader.Stream.Position;
 		var offsets = loca.Offsets.GetEnumerator();
