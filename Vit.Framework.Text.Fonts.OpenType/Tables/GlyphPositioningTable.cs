@@ -22,7 +22,7 @@ public class GlyphPositioningTable : Table {
 	static Type? selectType ( ushort majorVersion, ushort minorVersion ) {
 		if ( majorVersion == 1 && minorVersion == 1 )
 			return typeof( GlyphPositioningTable1_1 );
-		return null;
+		return typeof( GlyphPositioningTable );
 	}
 
 	public class ScriptListTable {

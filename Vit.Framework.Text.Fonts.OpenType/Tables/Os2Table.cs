@@ -9,7 +9,7 @@ public class Os2Table : Table {
 	static Type? selectType ( ushort version ) {
 		return version switch {
 			3 => typeof(Os2TableVersion3),
-			_ => null
+			_ => typeof( Os2Table )
 		};
 	}
 }

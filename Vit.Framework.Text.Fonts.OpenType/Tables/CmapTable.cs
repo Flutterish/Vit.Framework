@@ -28,6 +28,7 @@ public class CmapTable : Table {
 			return format switch {
 				0 => typeof( Subtable0 ),
 				4 => typeof( Subtable4 ),
+				6 => typeof( Subtable6 ),
 				_ => null
 			};
 		}
@@ -93,6 +94,22 @@ public class CmapTable : Table {
 
 						yield return (c, id);
 					}
+				}
+			}
+		}
+	}
+
+	public class Subtable6 : Subtable {
+		public ushort FirstCode;
+		public ushort EntryCount;
+		[Size(nameof(EntryCount))]
+		public ushort[] GlyphIdArray = null!;
+
+		public override IEnumerable<(ushort charcode, GlyphId id)> Glyphs {
+			get {
+				for ( int i = 0; i < EntryCount; i++ ) {
+					if ( GlyphIdArray[i] != 0)
+						yield return ((ushort)(i + FirstCode), new GlyphId(GlyphIdArray[i]));
 				}
 			}
 		}

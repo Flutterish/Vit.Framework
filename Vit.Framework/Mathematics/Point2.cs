@@ -33,6 +33,13 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
 		};
 	}
 
+	public Point2<T> ScaleFromOrigin ( T scale ) {
+		return new() {
+			X = X * scale,
+			Y = Y * scale
+		};
+	}
+
 	public static bool operator == ( Point2<T> left, Point2<T> right ) {
 		return left.X == right.X && left.Y == right.Y;
 	}

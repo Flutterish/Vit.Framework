@@ -35,6 +35,7 @@ public struct RentedArray<T> : IDisposable {
 
 	public void Clear () => AsSpan().Clear();
 
+	public ref T this[Index index] => ref array[index];
 	public ref T this[int index] => ref array[index];
 	public ref T this[nint index] => ref array[index];
 	public ref T this[uint index] => ref array[index];

@@ -15,7 +15,7 @@ public class NamingTable : Table {
 	static Type? selectType ( ushort version ) {
 		return version switch {
 			1 => typeof( NamingTableVersion1 ),
-			_ => null
+			_ => typeof( NamingTable )
 		};
 	}
 
@@ -36,7 +36,7 @@ public class NamingTable : Table {
 		}
 
 		public override string ToString () {
-			return (PlatformId == 3 ? Encoding.BigEndianUnicode : Encoding.UTF8).GetString( StringData );
+			return OpenTypeFont.Decode( StringData, PlatformId, EncodingId );
 		}
 	}
 }

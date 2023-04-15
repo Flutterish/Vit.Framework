@@ -45,6 +45,10 @@ public struct TableRecord {
 			return typeof( PostScriptTable );
 		else if ( tableTag == "CFF " )
 			return typeof( CffTable );
+		else if ( tableTag == "glyf" )
+			return typeof( GlyphDataTable );
+		else if ( tableTag == "loca" )
+			return typeof( IndexToLocationTable );
 		//else if ( tableTag == "GPOS" )
 		//	return typeof( GlyphPositioningTable );
 

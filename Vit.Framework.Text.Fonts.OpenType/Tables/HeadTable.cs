@@ -1,5 +1,8 @@
-﻿namespace Vit.Framework.Text.Fonts.OpenType.Tables;
+﻿using Vit.Framework.Parsing.Binary;
 
+namespace Vit.Framework.Text.Fonts.OpenType.Tables;
+
+[ParserDependency]
 public class HeadTable : Table {
 	public ushort MajorVersion;
 	public ushort MinorVersion;

@@ -142,8 +142,10 @@ public static class BinaryFileParser { // TODO some way to parse { length, data[
 					previousMember => {
 						if ( type.AbstractTypeSelector is TypeSelectorAttribute typeSelector ) {
 							var newType = typeSelector.GetValue( childContext );
-							if ( newType == null )
+							if ( newType == type.Type )
 								return new ParsingResult( Activator.CreateInstance( type.Type ) );
+							if ( newType == null )
+								return new ParsingResult( type.Type.IsValueType ? Activator.CreateInstance( type.Type ) : null );
 
 							childContext = childContext with { TypeInfo = newType }; // TODO check if the new type has dependencies
 							members = newType.GetMembers( BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly ) // TODO make work for more than 1 layer at a time
@@ -163,6 +165,9 @@ public static class BinaryFileParser { // TODO some way to parse { length, data[
 				dependencies: new[] { instanceTask },
 				instanceTask => {
 					var instance = instanceTask[0].Result!;
+					if ( instance == null )
+						return new ParsingResult( instance );
+
 					foreach ( var (member, value) in memberValues ) {
 						setValue( member, instance, value );
 					}

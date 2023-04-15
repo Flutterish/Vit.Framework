@@ -1,6 +1,5 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Vit.Framework.Graphics.Parsing.WaveFront;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Vulkan;
@@ -75,13 +74,13 @@ public class Program : App {
 		Image texture = null!;
 		VkClearColorValue bg;
 
-		SimpleObjModel model = null!;
 		Font font = null!;
 		long indexCount;
 		protected override void Initialize () {
 			base.Initialize();
 
-			font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
+			font = OpenTypeFont.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
+			font.Validate();
 
 			vertex = Device.CreateShaderModule( new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec3 inPosition;
@@ -123,95 +122,68 @@ public class Program : App {
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
 			bg = new( 0, 0, 0 );
 
-			model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-			var glyph = font.TryGetGlyph( 'z' )!;
-
 			List<Point2<double>> vertices = new();
 			List<uint> indices = new();
-			foreach ( var spline in glyph.Outline.Splines ) {
-				var points = spline.GetPoints();
-				var last = points.First();
-				foreach ( var point in points.Skip(1) ) {
-					var delta = (point - last).Normalized() * 1;
-					var right = delta.Right;
 
-					var a = last + right;
-					var b = last - right;
-					var c = point + right;
-					var d = point - right;
-					var ai = vertices.Count;
-					vertices.Add( a );
-					var bi = vertices.Count;
-					vertices.Add( b );
-					var ci = vertices.Count;
-					vertices.Add( c );
-					var di = vertices.Count;
-					vertices.Add( d );
+			Vector2<double> origin = new Vector2<double>();
+			double scale = 0.1 / font.UnitsPerEm;
+			void addGlyph ( Glyph glyph ) {
+				foreach ( var spline in glyph.Outline.Splines ) {
+					var points = spline.GetPoints();
+					var last = points.First().ScaleFromOrigin( scale ) + origin;
+					foreach ( var p in points.Skip( 1 ) ) {
+						var point = p.ScaleFromOrigin( scale ) + origin;
+						var delta = ( point - last ).Normalized() * scale * 10;
+						var right = delta.Right;
 
-					indices.Add( (uint)ai );
-					indices.Add( (uint)bi );
-					indices.Add( (uint)ci );
-					
-					indices.Add( (uint)bi );
-					indices.Add( (uint)di );
-					indices.Add( (uint)ci );
+						var a = last + right;
+						var b = last - right;
+						var c = point + right;
+						var d = point - right;
+						var ai = vertices.Count;
+						vertices.Add( a );
+						var bi = vertices.Count;
+						vertices.Add( b );
+						var ci = vertices.Count;
+						vertices.Add( c );
+						var di = vertices.Count;
+						vertices.Add( d );
 
-					last = point;
+						indices.Add( (uint)ai );
+						indices.Add( (uint)bi );
+						indices.Add( (uint)ci );
+
+						indices.Add( (uint)bi );
+						indices.Add( (uint)di );
+						indices.Add( (uint)ci );
+
+						last = point;
+					}
 				}
+
+				origin += new Vector2<double>( glyph.HorizontalAdvance, 0 ) * scale;
 			}
 
-			var bb = glyph.CalculatedBoundingBox;
-			var vert2 = new List<Point2<double>>();
-			vert2.Add( new Point2<double>( bb.MinX, bb.MinY ) );
-			vert2.Add( new Point2<double>( bb.MaxX, bb.MinY ) );
-			vert2.Add( new Point2<double>( bb.MinX, bb.MaxY ) );
-			vert2.Add( new Point2<double>( bb.MaxX, bb.MaxY ) );
-
-			indices.Add( (uint)vertices.Count + 1 );
-			indices.Add( (uint)vertices.Count );
-			indices.Add( (uint)vertices.Count + 3 );
-
-			indices.Add( (uint)vertices.Count );
-			indices.Add( (uint)vertices.Count + 2 );
-			indices.Add( (uint)vertices.Count + 3 );
+			foreach ( var rune in "while ( true ) { console.log( \"Hello, World!\" ); }".EnumerateRunes() ) {
+				if ( font.TryGetGlyph( rune ) is Glyph glyph )
+					addGlyph( glyph );
+			}
 
 			vertexBuffer = new( Device, VkBufferUsageFlags.VertexBuffer );
-			//vertexBuffer.AllocateAndTransfer( model.Vertices.SelectMany( x => new[] {
-			//		x.Position.X,
-			//		x.Position.Y,
-			//		x.Position.Z,
-			//		1,
-			//		1,
-			//		1,
-			//		x.TextureCoordinates.X,
-			//		x.TextureCoordinates.Y
-			//	} ).ToArray(),
-			//	copyCommandPool, graphicsQueue
-			//);
 			vertexBuffer.AllocateAndTransfer( vertices.SelectMany( x => new[] {
-					(float)x.X / 50,
-					(float)x.Y / 50,
+					(float)x.X,
+					(float)x.Y,
 					0,
 					1,
 					1,
 					1,
 					0,
 					0
-				} ).Concat( vert2.SelectMany( x => new[] {
-					(float)x.X / 50,
-					(float)x.Y / 50,
-					0.01f,
-					0.1f,
-					0.1f,
-					0.1f,
-					0,
-					0
-				} ) ).ToArray(),
+				} ).ToArray(),
 				CopyCommandPool, GraphicsQueue
 			);
 
 			indexBuffer = new( Device, VkBufferUsageFlags.IndexBuffer );
-			//indexBuffer.AllocateAndTransfer( model.Indices.ToArray(), copyCommandPool, graphicsQueue );
 			indexBuffer.AllocateAndTransfer( indices.ToArray(), CopyCommandPool, GraphicsQueue );
 			indexCount = indices.Count;
 

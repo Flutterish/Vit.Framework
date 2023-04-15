@@ -44,11 +44,20 @@ public class EndianCorrectingBinaryReader : IDisposable {
 		return buffer.AsSpan( 0, count + padding );
 	}
 
+	delegate T ReadDelegate<T> ( ReadOnlySpan<byte> data );
 	public T Read<T> () where T : unmanaged, IConvertible {
-		var size = Marshal.SizeOf<T>();
-		var data = Read( size );
+		if (typeof(T).IsEnum) {
+			var underlying = typeof( T ).GetEnumUnderlyingType();
 
-		return MemoryMarshal.Read<T>( data );
+			var value = typeof( EndianCorrectingBinaryReader ).GetMethod( nameof( Read ), Array.Empty<Type>() )!.MakeGenericMethod( underlying ).Invoke( this, Array.Empty<object?>() );
+			return (T)value!;
+		}
+		else {
+			var size = Marshal.SizeOf<T>();
+			var data = Read( size );
+
+			return MemoryMarshal.Read<T>( data );
+		}
 	}
 
 	public void Dispose () {

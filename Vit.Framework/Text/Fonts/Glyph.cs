@@ -48,6 +48,13 @@ public class Glyph {
 		set => calculatedBoundingBox = null;
 	}
 
+	public AxisAlignedBox2<double> DefinedBoundingBox => new AxisAlignedBox2<double> {
+		MinX = MinX,
+		MinY = MinY,
+		MaxX = MaxX,
+		MaxY = MaxY
+	};
+
 	public Glyph ( GlyphId id ) {
 		Id = id;
 	}

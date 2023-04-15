@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Vit.Framework.Exceptions;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -7,6 +8,7 @@ public class Font {
 	protected Dictionary<Rune, HashSet<Glyph>> GlyphsByRune = new();
 
 	public string Name { get; protected set; } = string.Empty;
+	public double UnitsPerEm { get; protected set; } = double.NaN;
 
 	protected Glyph GetGlyph ( GlyphId id ) {
 		if ( !GlyphsById.TryGetValue( id, out var glyph ) )
@@ -38,5 +40,10 @@ public class Font {
 		if ( set.Add( glyph ) ) {
 			glyph.AssignedRunes.Add( rune );
 		}
+	}
+
+	public void Validate () {
+		if ( double.IsNaN( UnitsPerEm ) )
+			throw new InvalidStateException( "Font does not have `units per em` set" );
 	}
 }

@@ -9,7 +9,7 @@ public class MaximumProfileTable : Table {
 	public ushort GlyphCount;
 
 	static Type? selectType ( Version16_16 version ) {
-		return version.Major == 1 && version.Minor == 0 ? typeof( MaximumProfileTableVersion1 ) : null;
+		return version.Major == 1 && version.Minor == 0 ? typeof( MaximumProfileTableVersion1 ) : typeof( MaximumProfileTable );
 	}
 }
 
