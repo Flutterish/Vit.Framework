@@ -48,21 +48,16 @@ public class CharStringInterpreter {
 
 	public List<(double from, double to)> HorizontalHints = new();
 	public List<(double from, double to)> VerticalHints = new();
-	public List<string> Explain = new();
-	public List<string> SVG = new(); // TODO remove - debug only
 	public void Begin ( double dx, double dy ) {
 		if ( Spline != null )
 			Finish();
 
 		Position += new Vector2<double>( dx, dy );
-		SVG.Add( $"Move to {Position}" );
 
 		Spline = new( Position );
 	}
 
 	public void Finish () {
-		SVG.Add( "Close curve" );
-
 		if ( Spline != null ) {
 			if ( Spline.Points[^1] != Spline.Points[0] )
 				Spline.AddLine( Spline.Points[0] );
@@ -77,7 +72,6 @@ public class CharStringInterpreter {
 		var c = b + new Vector2<double>( dxb, dyb );
 		var d = c + ( flip ? new Vector2<double>( dyc, dxc ) : new Vector2<double>( dxc, dyc ) );
 		Position = d;
-		SVG.Add( $"Bezier curve from {a} through {b} and {c} to {d}" );
 
 		Spline!.AddCubicBezier( b, c, d );
 	}
@@ -86,7 +80,6 @@ public class CharStringInterpreter {
 		var a = Position;
 		var b = a + ( flip ? new Vector2<double>( dy, dx ) : new Vector2<double>( dx, dy ) );
 		Position = b;
-		SVG.Add( $"Line from {a} to {b}" );
 
 		Spline!.AddLine( b );
 	}
@@ -94,7 +87,6 @@ public class CharStringInterpreter {
 	void execute ( ref BinaryArrayView<byte> data ) {
 		while ( data.Length != 0 ) {
 			if ( tryConsumeNumber( ref data, out var number ) ) {
-				Explain.Add( $"Push `{number}`" );
 				ArgumentStack.Push( number );
 			}
 			else {
@@ -156,7 +148,6 @@ public class CharStringInterpreter {
 
 		if ( b0 is 14 ) { // end char
 			pushWidth();
-			Explain.Add( "End character" );
 			Finish();
 		}
 		else if ( b0 is 1 or 3 or 18 or 23 ) { // hints
@@ -172,7 +163,6 @@ public class CharStringInterpreter {
 			var size = ( count + 7 ) / 8;
 			using var mask = raw[..size].GetRented();
 			raw = raw[size..];
-			Explain.Add( $"Set hint {( b0 == 20 ? "counter" : "" )}mask ({count} hint(s)) to {Convert.ToHexString( mask )}" );
 			AreHintsSet = true;
 		}
 		else if ( b0 is 21 or 22 or 4 ) { // move to
@@ -180,14 +170,12 @@ public class CharStringInterpreter {
 			var dx = b0 is 21 or 22 ? args[0] : 0;
 			var dy = b0 is 4 ? args[0] : b0 is 21 ? args[1] : 0;
 			pushWidth();
-			Explain.Add( $"Move to" );
 			Begin( dx, dy );
 		}
 		else if ( b0 is 5 ) { // lines
 			var count = ArgumentStack.Count / 2;
 			Debug.Assert( count >= 1 );
 			var vargs = getArgs( count * 2 );
-			Explain.Add( $"Line to ({count} time(s))" );
 
 			for ( int i = 0; i < count; i++ ) {
 				var args = vargs.AsSpan().Slice( i * 2, 2 );
@@ -198,7 +186,6 @@ public class CharStringInterpreter {
 			var count = ArgumentStack.Count;
 			Debug.Assert( count >= 1 );
 			var vargs = getArgs( count );
-			Explain.Add( $"Line to [{b0}] ({count} time(s))" );
 
 			var flip = b0 is 7;
 			for ( int i = 0; i < count; i++ ) {
@@ -210,7 +197,6 @@ public class CharStringInterpreter {
 			var count = ArgumentStack.Count / 6;
 			Debug.Assert( count >= 1 );
 			var vargs = getArgs( count * 6 );
-			Explain.Add( $"Bezier curve ({count} time(s))" );
 
 			for ( int i = 0; i < count; i++ ) {
 				var args = vargs.AsSpan().Slice( i * 6, 6 );
@@ -226,7 +212,6 @@ public class CharStringInterpreter {
 			var parity = ArgumentStack.Count % 4;
 			Debug.Assert( count >= 1 && parity is 0 or 1 );
 			var vargs = getArgs( parity + count * 4 );
-			Explain.Add( $"Bezier curve [{b0}] ({count} time(s))" );
 
 			for ( int i = 0; i < count; i++ ) {
 				var args = vargs.AsSpan().Slice( parity + i * 4, 4 );
@@ -244,7 +229,6 @@ public class CharStringInterpreter {
 			var count = ArgumentStack.Count / 8;
 			Debug.Assert( ( parity is 0 or 1 && count >= 1 ) || ( parity is 4 or 5 ) );
 			var vargs = getArgs( parity + count * 8 );
-			Explain.Add( $"Bezier curve [{b0}] ({( parity < 2 ? count : ( count + 1 ) )} time(s))" );
 
 			bool flip = b0 == 31;
 			int offset = 0;
@@ -283,7 +267,6 @@ public class CharStringInterpreter {
 			var count = ( ArgumentStack.Count - 2 ) / 6;
 			Debug.Assert( count >= 1 && ArgumentStack.Count % 6 == 2 );
 			var vargs = getArgs( count * 6 + 2 );
-			Explain.Add( $"Bezier curve ({count} time(s)) + line to" );
 
 			for ( int i = 0; i < count; i++ ) {
 				var args = vargs.AsSpan().Slice( i * 6, 6 );
@@ -299,7 +282,6 @@ public class CharStringInterpreter {
 			var count = ( ArgumentStack.Count - 6 ) / 2;
 			Debug.Assert( ArgumentStack.Count >= 8 && ArgumentStack.Count % 2 == 0 );
 			var vargs = getArgs( count * 2 + 6 );
-			Explain.Add( $"Line to ({count} time(s)) + bezier curve" );
 
 			for ( int i = 0; i < count; i++ ) {
 				var args = vargs.AsSpan().Slice( i * 2, 2 );
@@ -313,20 +295,16 @@ public class CharStringInterpreter {
 		}
 		else if ( b0 is 10 ) { // call local subroutine
 			var arg = (int)getArgs( 1 )[0] + localBias;
-			Explain.Add( $"(start local subroutine {arg})" );
 			BinaryArrayView<byte> subr = localSubrs[arg].Data;
 			execute( ref subr );
-			Explain.Add( $"(end local subroutine {arg})" );
 		}
 		else if ( b0 is 29 ) { // call global subroutine
 			var arg = (int)getArgs( 1 )[0] + globalBias;
-			Explain.Add( $"(start global subroutine {arg})" );
 			BinaryArrayView<byte> subr = globalSubrs[arg].Data;
 			execute( ref subr );
-			Explain.Add( $"(end global subroutine {arg})" );
 		}
 		else if ( b0 is 11 ) { // return
-			Explain.Add( $"(return)" );
+			return;
 		}
 		else {
 			throw new NotImplementedException( "oops" );
@@ -347,13 +325,11 @@ public class CharStringInterpreter {
 		getArgs( count * 2 );
 		pushWidth();
 
-		Explain.Add( $"{( @implicit ? "Implicitly add" : "Add" )} {count} {type} hint(s)" );
 		var list = type == "horizontal" ? HorizontalHints : VerticalHints;
 		for ( int i = 0; i < count; i++ ) {
 			list.Add( (0, 0) ); // TODO
 		}
 		LastHintType = type;
-
 	}
 
 	void pushWidth () {
@@ -362,7 +338,6 @@ public class CharStringInterpreter {
 
 		IsWidthPending = false;
 		if ( ArgumentStack.TryPop( out var width ) ) {
-			Explain.Add( $"Width = {width}" );
 			Width = width;
 		}
 	}
