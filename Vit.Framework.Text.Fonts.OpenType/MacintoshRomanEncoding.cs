@@ -22,6 +22,7 @@ public class MacintoshRomanEncoding {
 		"\uF8FF", "Ò", "Ú", "Û", "Ù", "ı", "ˆ", "˜", "¯", "˘", "˙", "˚", "¸", "˝", "˛", "ˇ",
 	}.Select( x => x.EnumerateRunes().Single() ).ToArray();
 
+	public static IEnumerable<Rune> Values => values;
 	public static Rune Decode ( byte value ) {
 		return values[value];
 	}

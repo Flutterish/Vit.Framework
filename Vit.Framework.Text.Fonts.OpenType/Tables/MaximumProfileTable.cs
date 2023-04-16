@@ -2,18 +2,17 @@
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-[ParserDependency]
-[TypeSelector(nameof(selectType))]
-public class MaximumProfileTable_old : Table {
+[TypeSelector( nameof( selectType ) )]
+public class MaximumProfileTable : Table {
 	public Version16_16 Version;
 	public ushort GlyphCount;
 
 	static Type? selectType ( Version16_16 version ) {
-		return version.Major == 1 && version.Minor == 0 ? typeof( MaximumProfileTable_oldVersion1 ) : typeof( MaximumProfileTable_old );
+		return version.Major == 1 && version.Minor == 0 ? typeof( MaximumProfileTableVersion1 ) : typeof( MaximumProfileTable );
 	}
 }
 
-public class MaximumProfileTable_oldVersion1 : MaximumProfileTable_old {
+public class MaximumProfileTableVersion1 : MaximumProfileTable {
 	public ushort MaxPoints;
 	public ushort MaxContours;
 	public ushort MaxCompositePoints;

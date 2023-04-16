@@ -3,7 +3,7 @@ using Vit.Framework.Exceptions;
 
 namespace Vit.Framework.Text.Fonts;
 
-public class Font {
+public abstract class Font {
 	protected Dictionary<GlyphId, Glyph> GlyphsById = new();
 	protected Dictionary<Rune, HashSet<Glyph>> GlyphsByRune = new();
 
@@ -17,10 +17,15 @@ public class Font {
 		return glyph;
 	}
 
-	public Glyph? TryGetGlyph ( char character ) => TryGetGlyph( new Rune(character) );
-	public Glyph? TryGetGlyph ( Rune rune ) {
-		if ( !GlyphsByRune.TryGetValue( rune, out var set ) )
-			return null;
+	public Glyph GetGlyph ( char character ) => GetGlyph( new Rune(character) );
+	public Glyph GetGlyph ( Rune rune ) {
+		if ( !GlyphsByRune.TryGetValue( rune, out var set ) ) {
+			TryLoadGlyphFor( rune );
+			if ( !GlyphsByRune.TryGetValue( rune, out set ) ) {
+				AddGlyphMapping( rune, 0 );
+				set = GlyphsByRune[rune];
+			}
+		}
 
 		return set.First();
 	}
@@ -41,6 +46,10 @@ public class Font {
 			glyph.AssignedRunes.Add( rune );
 		}
 	}
+	protected bool IsRuneRegistered ( Rune rune )
+		=> GlyphsByRune.ContainsKey( rune );
+
+	protected abstract void TryLoadGlyphFor ( Rune rune );
 
 	public void Validate () {
 		if ( double.IsNaN( UnitsPerEm ) )

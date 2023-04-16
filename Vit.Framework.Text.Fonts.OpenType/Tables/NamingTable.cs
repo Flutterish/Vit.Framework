@@ -3,19 +3,19 @@ using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
-[TypeSelector(nameof(selectType))]
-public class NamingTable_old : Table {
+[TypeSelector( nameof( selectType ) )]
+public class NamingTable : Table {
 	public ushort Version;
 	public ushort Count;
-	[ParserDependency]
+	[Cache]
 	public Offset16 StorageOffset;
-	[Size(nameof(Count))]
-	public NameRecord[] NameRecords = null!;
+	[Size( nameof( Count ) )]
+	public BinaryArrayView<NameRecord> NameRecords;
 
 	static Type? selectType ( ushort version ) {
 		return version switch {
-			1 => typeof( NamingTable_oldVersion1 ),
-			_ => typeof( NamingTable_old )
+			1 => typeof( NamingTableVersion1 ),
+			_ => typeof( NamingTable )
 		};
 	}
 
@@ -27,24 +27,24 @@ public class NamingTable_old : Table {
 		public ushort Length;
 		public Offset16 StringOffset;
 
-		[DataOffset(nameof( offset ) )]
-		[Size(nameof(Length))]
-		public byte[] StringData;
+		[DataOffset( nameof( offset ) )]
+		[Size( nameof( Length ) )]
+		public BinaryArrayView<byte> StringData;
 
-		static int offset ( Offset16 stringOffset, Offset16 storageOffset ) {
+		static int offset ( Offset16 stringOffset, [Resolve] Offset16 storageOffset ) {
 			return stringOffset.Value + storageOffset.Value;
 		}
 
 		public override string ToString () {
-			return OpenTypeFont_old.Decode( StringData, PlatformId, EncodingId );
+			return EncodingTypeExtensions.GetEncodingType( PlatformId, EncodingId ).Decode( StringData );
 		}
 	}
 }
 
-public class NamingTable_oldVersion1 : NamingTable_old {
+public class NamingTableVersion1 : NamingTable {
 	public ushort LangTagCount;
-	[Size(nameof(LangTagCount))]
-	public LangTagRecord[] LangTagRecords = null!;
+	[Size( nameof( LangTagCount ) )]
+	public BinaryArrayView<LangTagRecord> LangTagRecords;
 
 	public struct LangTagRecord {
 		public ushort Length;
@@ -52,14 +52,15 @@ public class NamingTable_oldVersion1 : NamingTable_old {
 
 		[DataOffset( nameof( offset ) )]
 		[Size( nameof( Length ) )]
-		public byte[] StringData;
+		public BinaryArrayView<byte> StringData;
 
-		static int offset ( Offset16 langTagOffset, Offset16 storageOffset ) {
+		static int offset ( Offset16 langTagOffset, [Resolve] Offset16 storageOffset ) {
 			return langTagOffset.Value + storageOffset.Value;
 		}
 
 		public override string ToString () {
-			return Encoding.UTF8.GetString( StringData );
+			using var array = StringData.GetRented();
+			return Encoding.UTF8.GetString( array );
 		}
 	}
 }

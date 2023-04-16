@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
@@ -79,7 +80,9 @@ public class Program : App {
 		protected override void Initialize () {
 			base.Initialize();
 
-			font = OpenTypeFont_old.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
+			//font = OpenTypeFont_old.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
+			font = //new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
+				new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
 			font.Validate();
 
 			vertex = Device.CreateShaderModule( new SpirvBytecode( @"#version 450
@@ -164,8 +167,8 @@ public class Program : App {
 				origin += new Vector2<double>( glyph.HorizontalAdvance, 0 ) * scale;
 			}
 
-			foreach ( var rune in "while ( true ) { console.log( \"Hello, World!\" ); }".EnumerateRunes() ) {
-				if ( font.TryGetGlyph( rune ) is Glyph glyph )
+			foreach ( var rune in "Yet another insanely fast Hello World program made in C# (⚡ blazingly fast ⚡) 🚀🚀🚀🚀🚀 (super fast 🔥🔥🔥🔥🔥🔥🔥)".EnumerateRunes() ) {
+				if ( font.GetGlyph( rune ) is Glyph glyph )
 					addGlyph( glyph );
 			}
 
@@ -253,7 +256,7 @@ public class Program : App {
 				Model = Matrix4<float>.Identity,//FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
 				View = cameraMatrix,
 				Projection = Renderer.CreateLeftHandCorrectionMatrix<float>() 
-					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.1f, float.PositiveInfinity )
+					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.01f, float.PositiveInfinity )
 			} );
 			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
 			commands.DrawIndexed( (uint)indexCount );

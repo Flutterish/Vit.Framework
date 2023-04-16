@@ -91,6 +91,10 @@ public class OpenTypeFont_old : Font {
 		}
 	}
 
+	protected override void TryLoadGlyphFor ( Rune rune ) {
+		
+	}
+
 	public static Rune Decode ( ushort charcode, int platform, int encoding ) {
 		if ( platform == 0 && encoding == 3 ) { // unicode 2.0
 			return new Rune( (char)charcode );

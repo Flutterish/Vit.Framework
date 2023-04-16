@@ -21,6 +21,6 @@ public class SizeAttribute : Attribute {
 
 		var value = context.GetRef<int>( Ref );
 
-		return (int)(value * Multiplier);
+		return (int)( value * Multiplier );
 	}
 }

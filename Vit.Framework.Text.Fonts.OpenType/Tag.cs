@@ -24,6 +24,14 @@ public struct Tag {
 	}
 	public static bool operator != ( Tag tag, string str ) => !(tag == str);
 
+	public static bool operator == ( Tag left, Tag right ) {
+		return left.A == right.A
+			&& left.B == right.B
+			&& left.C == right.C
+			&& left.D == right.D;
+	}
+	public static bool operator != ( Tag left, Tag right ) => !(left == right);
+
 	public override string ToString () {
 		return $"{(char)A}{(char)B}{(char)C}{(char)D}";
 	}

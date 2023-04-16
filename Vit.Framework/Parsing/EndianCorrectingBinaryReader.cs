@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Parsing;
 
@@ -44,7 +45,6 @@ public class EndianCorrectingBinaryReader : IDisposable {
 		return buffer.AsSpan( 0, count + padding );
 	}
 
-	delegate T ReadDelegate<T> ( ReadOnlySpan<byte> data );
 	public T Read<T> () where T : unmanaged, IConvertible {
 		if (typeof(T).IsEnum) {
 			var underlying = typeof( T ).GetEnumUnderlyingType();
@@ -58,6 +58,15 @@ public class EndianCorrectingBinaryReader : IDisposable {
 
 			return MemoryMarshal.Read<T>( data );
 		}
+	}
+
+	[ThreadStatic]
+	static Dictionary<Type, MethodInfo>? readMethods;
+	public object? Read ( Type type ) {
+		if ( !(readMethods ??= new()).TryGetValue( type, out var method ) )
+			readMethods.Add( type, method = typeof(EndianCorrectingBinaryReader).GetMethod(nameof(Read), 1, Array.Empty<Type>())!.MakeGenericMethod( type ) );
+
+		return method.Invoke( this, Array.Empty<object?>() );
 	}
 
 	public void Dispose () {
