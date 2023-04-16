@@ -76,7 +76,7 @@ public sealed class CachedBinaryView<T> {
 	}
 }
 
-public struct BinaryView<T> {
+public struct BinaryView<T> { // TODO split up the parse function, optimize context+dependency allocations
 	public BinaryViewContext Context;
 	public BinaryView ( BinaryViewContext context, bool allowNullType = false ) {
 		if ( !allowNullType )

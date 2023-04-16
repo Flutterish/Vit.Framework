@@ -7,8 +7,4 @@ public class ParseWithAttribute : Attribute {
 	public ParseWithAttribute ( string @ref ) {
 		Ref = @ref;
 	}
-
-	public object? GetValue ( BinaryFileParser.Context context ) {
-		return context.GetRef<object?>( Ref );
-	}
 }

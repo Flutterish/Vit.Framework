@@ -14,13 +14,4 @@ public class SizeAttribute : Attribute {
 	public SizeAttribute ( int value ) {
 		Value = value;
 	}
-
-	public int GetValue ( BinaryFileParser.Context context ) {
-		if ( Ref == null )
-			return Value.GetValueOrDefault();
-
-		var value = context.GetRef<int>( Ref );
-
-		return (int)( value * Multiplier );
-	}
 }

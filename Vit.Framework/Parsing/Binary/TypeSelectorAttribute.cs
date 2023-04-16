@@ -6,8 +6,4 @@ public class TypeSelectorAttribute : Attribute {
 	public TypeSelectorAttribute ( string @ref ) {
 		Ref = @ref;
 	}
-
-	public Type? GetValue ( BinaryFileParser.Context context ) {
-		return context.GetRef<Type>( Ref );
-	}
 }

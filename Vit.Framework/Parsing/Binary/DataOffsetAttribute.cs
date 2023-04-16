@@ -7,8 +7,4 @@ public class DataOffsetAttribute : Attribute {
 	public DataOffsetAttribute ( string @ref ) {
 		Ref = @ref;
 	}
-
-	public long GetValue ( BinaryFileParser.Context context ) {
-		return context.Offset + context.GetRef<long>( Ref );
-	}
 }
