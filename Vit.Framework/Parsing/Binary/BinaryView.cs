@@ -27,6 +27,14 @@ public struct BinaryArrayView<T> : IEnumerable<T> {
 		}
 	}
 
+	public BinaryArrayView<T> this[Range range] => Slice( range );
+	public BinaryArrayView<T> Slice ( Range range ) {
+		var (offset, length) = range.GetOffsetAndLength( Length );
+		return new BinaryArrayView<T>( Context with {
+			Offset = Context.Offset + offset * ElementStride
+		}, ElementStride, length );
+	}
+
 	public RentedArray<T> GetRented () {
 		var array = new RentedArray<T>( Length );
 		for ( int i = 0; i < Length; i++ ) {
@@ -107,7 +115,11 @@ public struct BinaryView<T> {
 		}
 
 		static bool isConstantSize ( Type type, MemberInfo? member, out int size ) {
-			if ( type.IsPrimitive ) {
+			if ( member?.GetCustomAttribute<ParseWithAttribute>() != null ) {
+				size = -1;
+				return false;
+			}
+			else if ( type.IsPrimitive ) {
 				size = (int)typeof( Marshal ).GetMethod( nameof( Marshal.SizeOf ), 1, Array.Empty<Type>() )!.MakeGenericMethod( type ).Invoke( null, Array.Empty<object?>() )!;
 				return true;
 			}
@@ -170,9 +182,13 @@ public struct BinaryView<T> {
 		}
 		else if ( isBinaryArrayView( type ) ) {
 			var elementType = type.GetGenericArguments()[0];
-			
-			if ( !isConstantSize( elementType, typeInfo.MemberInfo, out var elementSize ) )
-				throw new NotImplementedException( "Unsized binary view is not implemented (the element type is not constant size)" );
+
+			int elementSize;
+			if ( typeInfo.MemberInfo?.GetCustomAttribute<StrideAttribute>() is StrideAttribute stride ) {
+				elementSize = stride.Ref != null ? context.GetRef<int>( stride.Ref, BinaryViewContext.MethodSource.Member ) : stride.Value!.Value;
+			}
+			else if ( !isConstantSize( elementType, typeInfo.MemberInfo, out elementSize ) )
+				throw new NotImplementedException( "Unsized binary view is not implemented (the element type is not constant size - you can use [Stride] if you know the size)" );
 
 			var count = typeInfo.MemberInfo?.GetCustomAttribute<SizeAttribute>() is SizeAttribute size
 				? size.Ref == null
@@ -213,7 +229,7 @@ public struct BinaryView<T> {
 			}, true );
 		}
 		else if ( type == typeof(BinaryViewContext) ) {
-			return context with { TypeInfo = default };
+			return context with { TypeInfo = default, Offset = context.StreamPosition };
 		}
 		else if ( type.IsValueType || type.IsClass ) {
 			if ( type.GetCustomAttribute<OffsetAnchorAttribute>() != null )
@@ -236,7 +252,9 @@ public struct BinaryView<T> {
 					foreach ( var i in newMembers ) {
 						var memberType = i is FieldInfo field ? field.FieldType : ( i as PropertyInfo )!.PropertyType;
 						members[i] = i.GetCustomAttribute<ParseWithAttribute>() is ParseWithAttribute parseWith
-							? (context with { TypeInfo = new() { Type = type, MemberInfo = i } } ).GetRef<object?>( parseWith.Ref, BinaryViewContext.MethodSource.Member )
+							? ( context with { TypeInfo = new() { Type = type, MemberInfo = i } } ).GetRef<object?>( parseWith.Ref, BinaryViewContext.MethodSource.Member )
+							: i.GetCustomAttribute<ResolveAttribute>() is ResolveAttribute resolve
+							? context.ResolveDependency( memberType )
 							: parse( context, new TypeInfo {
 								Type = memberType,
 								MemberInfo = i
@@ -320,7 +338,10 @@ public struct BinaryViewContext {
 		Dependenies.Cache ??= new();
 		Dependenies.Cache.Add( typeof(T), value );
 	}
-	
+
+	public object? ResolveDependency ( Type type ) {
+		return Dependenies?.Get( type )!;
+	}
 	public T ResolveDependency<T> () {
 		return (T)Dependenies?.Get( typeof(T) )!;
 	}
@@ -346,7 +367,8 @@ public struct BinaryViewContext {
 			var members = Members;
 			var reader = Reader;
 			var dependenies = Dependenies;
-			data = method.Invoke( null, method.GetParameters().Select( x => {
+			var startOffset = StreamPosition;
+			var parameters = method.GetParameters().Select( x => {
 				var type = x.ParameterType;
 				if ( x.GetCustomAttribute<ResolveAttribute>() != null ) {
 					if ( dependenies == null )
@@ -367,7 +389,9 @@ public struct BinaryViewContext {
 					return candidates.First();
 
 				throw new Exception( $"Can not resolve parameter {x}" );
-			} ).ToArray() );
+			} ).ToArray();
+			data = method.Invoke( null, parameters );
+			StreamPosition = startOffset;
 		}
 		else {
 			throw new Exception( $"Could not resolve reference `{name}`" );

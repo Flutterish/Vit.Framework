@@ -65,8 +65,8 @@ public struct TableRecord {
 		//	return typeof( KeringTable_old );
 		//else if ( tableTag == "post" )
 		//	return typeof( PostScriptTable_old );
-		//else if ( tableTag == "CFF " )
-		//	return typeof( CffTable_old );
+		else if ( tableTag == "CFF " )
+			return typeof( CompactFontFormatTable );
 		else if ( tableTag == "glyf" )
 			return typeof( GlyphDataTable );
 		else if ( tableTag == "loca" )

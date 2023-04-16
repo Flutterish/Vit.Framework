@@ -13,7 +13,7 @@ public class GlyphDataTable : Table {
 	public GlyphData? GetGlyph ( GlyphId id ) {
 		var loca = context.ResolveDependency<IndexToLocationTable>();
 
-		var index = (int)id.Id;
+		var index = (int)id.Value;
 		var startOffset = loca[index];
 		var endOffset = loca[index + 1];
 		var length = endOffset - startOffset;

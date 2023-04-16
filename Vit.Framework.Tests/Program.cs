@@ -80,9 +80,9 @@ public class Program : App {
 		protected override void Initialize () {
 			base.Initialize();
 
-			//font = OpenTypeFont_old.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
-			font = //new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
-				new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
+			//font = OpenTypeFont_old.FromStream( File.OpenRead( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
+			font = new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\Maria Aishane Script.otf" ) );
+				//new OpenTypeFont( new ReopenableFileStream( @"D:\Main\Solutions\Git\fontineer\sample-fonts\CONSOLA.TTF" ) );
 			font.Validate();
 
 			vertex = Device.CreateShaderModule( new SpirvBytecode( @"#version 450

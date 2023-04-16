@@ -4,20 +4,20 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Text.Fonts;
 
 public struct GlyphId {
-	public ulong Id;
+	public ulong Value;
 
 	public GlyphId ( ulong id ) {
-		Id = id;
+		Value = id;
 	}
 	public GlyphId ( int id ) {
-		Id = (ulong)id;
+		Value = (ulong)id;
 	}
 
 	public static implicit operator GlyphId ( ulong id ) => new( id );
 	public static implicit operator GlyphId ( uint id ) => new( id );
 
 	public override string ToString () {
-		return $"GlyphId {Id}";
+		return $"GlyphId {Value}";
 	}
 }
 
@@ -61,6 +61,6 @@ public class Glyph {
 
 	public override string ToString () {
 		var name = Names.Count == 1 ? $"`{Names.Single()}` " : $"";
-		return $"Glyph {Id.Id} {name}({AssignedRunes.Count} Rune{(AssignedRunes.Count == 1 ? "" : "s")}) `{string.Join("", AssignedRunes)}`";
+		return $"Glyph {Id.Value} {name}({AssignedRunes.Count} Rune{(AssignedRunes.Count == 1 ? "" : "s")}) `{string.Join("", AssignedRunes)}`";
 	}
 }
