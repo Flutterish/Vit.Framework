@@ -53,4 +53,12 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
 			Y = Y.Lerp( goal.Y, time )
 		};
 	}
+
+	public override bool Equals ( object? obj ) {
+		return obj is Point2<T> point && point == this;
+	}
+
+	public override int GetHashCode () {
+		return HashCode.Combine( X, Y );
+	}
 }
