@@ -73,7 +73,7 @@ public abstract class VulkanRenderThread : AppThread {
 		Swapchain = Device.CreateSwapchain( surface, swapchainInfo.SelectBest(), Window.PixelSize );
 
 		var depthFormat = Device.PhysicalDevice.GetBestSupportedFormat(
-			new[] { VkFormat.D32Sfloat, VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint },
+			new[] { VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint },
 			VkFormatFeatureFlags.DepthStencilAttachment
 		);
 		ToScreenRenderPass = new RenderPass( Device, Device.PhysicalDevice.GetMaxColorDepthMultisampling(), Swapchain.Format.Format.format, depthFormat );

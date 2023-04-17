@@ -62,6 +62,7 @@ public class Program : App {
 
 		ShaderModule vertex = null!;
 		ShaderModule fragment = null!;
+		ShaderSet basicShader = null!;
 		Pipeline pipeline = null!;
 		DeviceBuffer<float> vertexBuffer = null!;
 		DeviceBuffer<uint> indexBuffer = null!;
@@ -117,7 +118,8 @@ public class Program : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			pipeline = new Pipeline( Device, new[] { vertex, fragment }, ToScreenRenderPass );
+			basicShader = new ShaderSet( vertex, fragment );
+			pipeline = new Pipeline( Device, basicShader, ToScreenRenderPass );
 
 			var rng = new Random();
 			bg = new( rng.NextSingle(), rng.NextSingle(), rng.NextSingle() );
@@ -190,7 +192,7 @@ public class Program : App {
 
 			uniforms = new( Device, VkBufferUsageFlags.UniformBuffer );
 			uniforms.Allocate( 1 );
-			pipeline.DescriptorSet.ConfigureUniforms( uniforms, 0 );
+			basicShader.DescriptorSet.ConfigureUniforms( uniforms, 0 );
 
 			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>( "./viking_room.png" );
 			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
@@ -198,7 +200,7 @@ public class Program : App {
 			texture.AllocateAndTransfer( image, CopyCommandPool, GraphicsQueue );
 
 			sampler = new( Device, maxLod: texture.MipMapLevels );
-			pipeline.DescriptorSet.ConfigureTexture( texture, sampler, 1 );
+			basicShader.DescriptorSet.ConfigureTexture( texture, sampler, 1 );
 		}
 
 		Point3<float> position = new( 0, 0, -5 );
@@ -256,7 +258,7 @@ public class Program : App {
 				Projection = Renderer.CreateLeftHandCorrectionMatrix<float>() 
 					* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.01f, float.PositiveInfinity )
 			} );
-			commands.BindDescriptor( pipeline.Layout, pipeline.DescriptorSet );
+			commands.BindDescriptor( pipeline.Layout, basicShader.DescriptorSet );
 			commands.DrawIndexed( (uint)indexCount );
 			commands.FinishRenderPass();
 			commands.Finish();
