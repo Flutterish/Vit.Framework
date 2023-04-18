@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Mathematics.LinearAlgebra.Generic;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing.Sdl;
@@ -9,6 +10,9 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
+		var x = Matrix<float>.GenerateLabelMatrix( "A", 3, 3 ) * Matrix<float>.GenerateLabelMatrix( "B", 3, 3 );
+		var y = x.ToString();
+
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		using var host = new SdlHost( app );

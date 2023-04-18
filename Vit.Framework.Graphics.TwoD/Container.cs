@@ -2,23 +2,23 @@
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public class Container<T> : CompositeDrawable<T>, IContainer<T, T> where T : IDrawable {
+public class Container<T> : CompositeDrawable<T>, IContainer<T, T> where T : Drawable {
 	public void AddChild ( T child ) {
-		throw new NotImplementedException();
+		AddInternalChild( child );
 	}
 
 	public bool RemoveChild ( T child ) {
-		throw new NotImplementedException();
+		return RemoveInternalChild( child );
 	}
 
 	public void ClearChildren () {
-		throw new NotImplementedException();
+		ClearInternalChildren();
 	}
 }
 
-public interface IContainer<in T, out TChild> : ICompositeComponent<IDrawable, T, TChild> 
-	where T : TChild, IDrawable 
-	where TChild : IDrawable
+public interface IContainer<in T, out TChild> : ICompositeComponent<Drawable, T, TChild> 
+	where T : Drawable, TChild
+	where TChild : Drawable
 {
 
 }

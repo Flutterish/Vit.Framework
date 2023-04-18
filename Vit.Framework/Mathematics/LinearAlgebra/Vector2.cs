@@ -20,6 +20,11 @@ public struct Vector2<T> where T : INumber<T> {
 
 	public T LengthSquared => X * X + Y * Y;
 
+	public static readonly Vector2<T> UnitX = new Vector2<T>( T.One, T.Zero );
+	public static readonly Vector2<T> UnitY = new Vector2<T>( T.Zero, T.One );
+	public static readonly Vector2<T> One = new Vector2<T>( T.One );
+	public static readonly Vector2<T> Zero = new Vector2<T>( T.Zero );
+
 	public override string ToString () {
 		return $"[{X}; {Y}]";
 	}
@@ -72,5 +77,9 @@ public static class Vector2Extensions {
 		var scale = T.ReciprocalSqrtEstimate( vector.LengthSquared );
 		vector.X *= scale;
 		vector.Y *= scale;
+	}
+
+	public static Radians<T> GetAngle<T> ( this Vector2<T> vector ) where T : unmanaged, IFloatingPointIeee754<T> {
+		return T.Atan2( vector.Y, vector.X ).Radians();
 	}
 }
