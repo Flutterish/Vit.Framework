@@ -143,7 +143,7 @@ public struct Matrix4<T> where T : INumber<T> {
 		}
 	}
 
-	public Matrix4<T> Inverse () {
+	public Matrix4<T> Inversed () {
 		T a = M00, b = M01, c = M02, d = M03;
 		T e = M10, f = M11, g = M12, h = M13;
 		T i = M20, j = M21, k = M22, l = M23;

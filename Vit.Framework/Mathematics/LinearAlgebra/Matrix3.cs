@@ -57,89 +57,39 @@ public struct Matrix3<T> where T : INumber<T> {
 		};
 	}
 
-	//public static Matrix3<T> CreateViewport ( T x, T y, T width, T height ) {
-	//	return CreateTranslation( -x, -y ) * CreateScale( T.MultiplicativeIdentity / width, T.MultiplicativeIdentity / height );
-	//}
+	public static Matrix3<T> CreateViewport ( T x, T y, T width, T height ) {
+		return CreateTranslation( -x, -y ) * CreateScale( T.MultiplicativeIdentity / width, T.MultiplicativeIdentity / height );
+	}
 
 	public static Matrix3<TNumber> CreateLookAt<TNumber> ( Vector2<TNumber> direction ) where TNumber : unmanaged, IFloatingPointIeee754<TNumber> {
 		return Matrix3<TNumber>.CreateRotation( direction.GetAngle() );
 	}
 
-	//public T Determinant {
-	//	get {
-	//		T a = M00, b = M01, c = M02, d = M03;
-	//		T e = M10, f = M11, g = M12, h = M13;
-	//		T i = M20, j = M21, k = M22, l = M23;
-	//		T m = M30, n = M31, o = M32, p = M33;
+	public T Determinant {
+		get {
+			var m = AsSpan();
+			return m[0] * m[4] * m[8] - m[0] * m[5] * m[7]
+				 - m[1] * m[3] * m[8] + m[1] * m[5] * m[6]
+				 + m[2] * m[3] * m[7] - m[2] * m[4] * m[6];
+		}
+	}
 
-	//		var kp_lo = k * p - l * o;
-	//		var jp_ln = j * p - l * n;
-	//		var jo_kn = j * o - k * n;
-	//		var ip_lm = i * p - l * m;
-	//		var io_km = i * o - k * m;
-	//		var in_jm = i * n - j * m;
+	public Matrix3<T> Inversed () {
+		var m = AsSpan();
+		var det = T.MultiplicativeIdentity / Determinant;
 
-	//		return a * ( f * kp_lo - g * jp_ln + h * jo_kn ) -
-	//			   b * ( e * kp_lo - g * ip_lm + h * io_km ) +
-	//			   c * ( e * jp_ln - f * ip_lm + h * in_jm ) -
-	//			   d * ( e * jo_kn - f * io_km + g * in_jm );
-	//	}
-	//}
-
-	//public Matrix3<T> Inverse () {
-	//	T a = M00, b = M01, c = M02, d = M03;
-	//	T e = M10, f = M11, g = M12, h = M13;
-	//	T i = M20, j = M21, k = M22, l = M23;
-	//	T m = M30, n = M31, o = M32, p = M33;
-
-	//	var kp_lo = k * p - l * o;
-	//	var jp_ln = j * p - l * n;
-	//	var jo_kn = j * o - k * n;
-	//	var ip_lm = i * p - l * m;
-	//	var io_km = i * o - k * m;
-	//	var in_jm = i * n - j * m;
-
-	//	var a11 = +( f * kp_lo - g * jp_ln + h * jo_kn );
-	//	var a12 = -( e * kp_lo - g * ip_lm + h * io_km );
-	//	var a13 = +( e * jp_ln - f * ip_lm + h * in_jm );
-	//	var a14 = -( e * jo_kn - f * io_km + g * in_jm );
-
-	//	var det = a * a11 + b * a12 + c * a13 + d * a14;
-	//	var invDet = T.MultiplicativeIdentity / det;
-
-	//	var gp_ho = g * p - h * o;
-	//	var fp_hn = f * p - h * n;
-	//	var fo_gn = f * o - g * n;
-	//	var ep_hm = e * p - h * m;
-	//	var eo_gm = e * o - g * m;
-	//	var en_fm = e * n - f * m;
-
-	//	var gl_hk = g * l - h * k;
-	//	var fl_hj = f * l - h * j;
-	//	var fk_gj = f * k - g * j;
-	//	var el_hi = e * l - h * i;
-	//	var ek_gi = e * k - g * i;
-	//	var ej_fi = e * j - f * i;
-
-	//	return new() {
-	//		M00 = a11 * invDet,
-	//		M10 = a12 * invDet,
-	//		M20 = a13 * invDet,
-	//		M30 = a14 * invDet,
-	//		M01 = -( b * kp_lo - c * jp_ln + d * jo_kn ) * invDet,
-	//		M11 = +( a * kp_lo - c * ip_lm + d * io_km ) * invDet,
-	//		M21 = -( a * jp_ln - b * ip_lm + d * in_jm ) * invDet,
-	//		M31 = +( a * jo_kn - b * io_km + c * in_jm ) * invDet,
-	//		M02 = +( b * gp_ho - c * fp_hn + d * fo_gn ) * invDet,
-	//		M12 = -( a * gp_ho - c * ep_hm + d * eo_gm ) * invDet,
-	//		M22 = +( a * fp_hn - b * ep_hm + d * en_fm ) * invDet,
-	//		M32 = -( a * fo_gn - b * eo_gm + c * en_fm ) * invDet,
-	//		M03 = -( b * gl_hk - c * fl_hj + d * fk_gj ) * invDet,
-	//		M13 = +( a * gl_hk - c * el_hi + d * ek_gi ) * invDet,
-	//		M23 = -( a * fl_hj - b * el_hi + d * ej_fi ) * invDet,
-	//		M33 = +( a * fk_gj - b * ek_gi + c * ej_fi ) * invDet
-	//	};
-	//}
+		return new Matrix3<T> {
+			M00 = det * ( m[4] * m[8] - m[5] * m[7] ),
+			M10 = det * ( m[2] * m[7] - m[1] * m[8] ),
+			M20 = det * ( m[1] * m[5] - m[2] * m[4] ),
+			M01 = det * ( m[5] * m[6] - m[3] * m[8] ),
+			M11 = det * ( m[0] * m[8] - m[2] * m[6] ),
+			M21 = det * ( m[2] * m[3] - m[0] * m[5] ),
+			M02 = det * ( m[3] * m[7] - m[4] * m[6] ),
+			M12 = det * ( m[1] * m[6] - m[0] * m[7] ),
+			M22 = det * ( m[0] * m[4] - m[1] * m[3] )
+		};
+	}
 
 	public static Matrix3<T> operator * ( Matrix3<T> left, Matrix3<T> right ) {
 		var A = left.AsSpan();

@@ -189,7 +189,7 @@ public class SampleRenderThread : VulkanRenderThread {
 		var cameraRotation = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, ( (float)Window.CursorPosition.Y / Window.Height - 0.5f ).Degrees() * 180 )
 			* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ( (float)Window.CursorPosition.X / Window.Width - 0.5f ).Degrees() * 360 );
 
-		var inverseCameraRotation = cameraRotation.Inverse();
+		var inverseCameraRotation = cameraRotation.Inversed();
 
 		var deltaPosition = new Vector3<float>();
 		if ( Keys.IsActive( Key.W ) )
