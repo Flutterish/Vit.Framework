@@ -22,8 +22,8 @@ public abstract class GenericRenderThread : AppThread {
 	}
 
 	protected GraphicsApi GraphicsApi = null!;
-	protected Renderer Renderer = null!;
-	protected NativeSwapchain Swapchain = null!;
+	protected IRenderer Renderer = null!;
+	protected ISwapchain Swapchain = null!;
 	protected override void Initialize () {
 		GraphicsApi = Host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
 		(Swapchain, Renderer) = Window.CreateSwapchain( GraphicsApi, new() {
@@ -39,7 +39,7 @@ public abstract class GenericRenderThread : AppThread {
 			Swapchain.Recreate();
 		}
 
-		if ( Swapchain.GetNextFrame( out var frameIndex ) is not NativeFramebuffer fb ) {
+		if ( Swapchain.GetNextFrame( out var frameIndex ) is not IFramebuffer fb ) {
 			return;
 		}
 
@@ -49,7 +49,7 @@ public abstract class GenericRenderThread : AppThread {
 		Swapchain.Present( frameIndex );
 	}
 
-	protected abstract void Render ( NativeFramebuffer framebuffer, ICommandBuffer commands );
+	protected abstract void Render ( IFramebuffer framebuffer, ICommandBuffer commands );
 
 	protected override void Dispose ( bool disposing ) {
 		Window.Resized -= onWindowResized;

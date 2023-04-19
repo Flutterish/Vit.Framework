@@ -6,7 +6,7 @@ namespace Vit.Framework.Windowing.Sdl;
 class GlWindow : SdlWindow {
 	public GlWindow ( SdlHost host ) : base( host, GraphicsApiType.OpenGl ) { }
 
-	public override (NativeSwapchain swapchain, Renderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
 		throw new NotImplementedException();
 	}
 }

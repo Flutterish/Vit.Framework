@@ -1,19 +1,24 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using System.Numerics;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Memory;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
-public class VulkanRenderer : Renderer {
+public class VulkanRenderer : DisposableObject, IRenderer {
+	public GraphicsApi GraphicsApi { get; }
+
 	public readonly Device Device;
 	public readonly Queue GraphicsQueue;
 	public readonly CommandPool GraphicsCommandPool;
 	public readonly CommandPool CopyCommandPool;
 	public readonly CommandBuffer GraphicsCommands;
 
-	public VulkanRenderer ( VulkanApi api, Device device, Queue graphicsQueue ) : base( api ) {
+	public VulkanRenderer ( VulkanApi api, Device device, Queue graphicsQueue ) {
+		GraphicsApi = api;
 		Device = device;
 		GraphicsQueue = graphicsQueue;
 		GraphicsCommandPool = Device.CreateCommandPool( graphicsQueue );
@@ -22,11 +27,11 @@ public class VulkanRenderer : Renderer {
 		GraphicsCommands = GraphicsCommandPool.CreateCommandBuffer();
 	}
 
-	public override void WaitIdle () {
+	public void WaitIdle () {
 		Device.WaitIdle();
 	}
 
-	public override Matrix4<T> CreateLeftHandCorrectionMatrix<T> () {
+	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
 		return new Matrix4<T> {
 			M00 = T.MultiplicativeIdentity,
 			M11 = -T.MultiplicativeIdentity,

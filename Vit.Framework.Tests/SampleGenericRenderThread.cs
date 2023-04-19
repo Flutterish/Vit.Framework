@@ -13,7 +13,7 @@ public class SampleGenericRenderThread : GenericRenderThread {
 		base.Initialize();
 	}
 
-	protected override void Render ( NativeFramebuffer framebuffer, ICommandBuffer commands ) {
+	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
 		using var _ = commands.RenderTo( framebuffer, clearColor: new( 0.5f, 0, 0 ) );
 	}
 }

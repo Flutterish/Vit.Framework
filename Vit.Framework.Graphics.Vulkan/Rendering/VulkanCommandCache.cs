@@ -13,7 +13,7 @@ public class VulkanCommandCache : ICommandCache {
 		Buffer = buffer;
 	}
 
-	public DisposeAction<ICommandBuffer> RenderTo ( NativeFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		VkClearColorValue color = clearColor is Color4<float> v
 			? new VkClearColorValue( v.R, v.G, v.B, v.A )
 			: new VkClearColorValue( 0, 0, 0, 1 );

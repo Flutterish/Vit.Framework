@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Vit.Framework.Mathematics.LinearAlgebra;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Rendering;
 
@@ -10,14 +9,9 @@ namespace Vit.Framework.Graphics.Rendering;
 /// <remarks>
 /// This is equivalent to <c>VkDevice</c>, an OpenGL context or <c>ID3DXDevice</c>.
 /// </remarks>
-public abstract class Renderer : DisposableObject {
-	public readonly GraphicsApi GraphicsApi;
+public interface IRenderer : IDisposable {
+	GraphicsApi GraphicsApi { get; }
 
-	public Renderer ( GraphicsApi api ) {
-		GraphicsApi = api;
-	}
-
-	public abstract void WaitIdle ();
-
-	public abstract Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : unmanaged, INumber<T>;
+	void WaitIdle ();
+	Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T>;
 }

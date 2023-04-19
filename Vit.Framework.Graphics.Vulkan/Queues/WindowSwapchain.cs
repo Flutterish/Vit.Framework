@@ -4,12 +4,13 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Queues;
 
-public class WindowSwapchain : NativeSwapchain {
+public class WindowSwapchain : DisposableObject, ISwapchain {
 	Swapchain swapchain;
 	public readonly RenderPass ToScreenRenderPass;
 	public readonly Queue PresentQueue;
@@ -79,12 +80,12 @@ public class WindowSwapchain : NativeSwapchain {
 		ToScreenRenderPass.Dispose();
 	}
 
-	public override void Recreate () {
+	public void Recreate () {
 		swapchain.Device.WaitIdle(); // TODO bad?
 		swapchain.Recreate( Window.PixelSize );
 	}
 
-	public override NativeFramebuffer? GetNextFrame ( out int frameIndex ) {
+	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
 		frameInfo.InFlight.Wait();
 
 		if ( !validateSwapchain( swapchain.GetNextFrame( frameInfo.ImageAvailable, out var fb, out var index ), recreateSuboptimal: false ) ) {
@@ -96,11 +97,11 @@ public class WindowSwapchain : NativeSwapchain {
 		return fb;
 	}
 
-	public override void Present ( int frameIndex ) {
+	public void Present ( int frameIndex ) {
 		validateSwapchain( swapchain.Present( PresentQueue, (uint)frameIndex, frameInfo.RenderFinished ), recreateSuboptimal: true );
 	}
 
-	public override IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
+	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
 		frameInfo.InFlight.Reset();
 
 		Renderer.GraphicsCommands.Reset();

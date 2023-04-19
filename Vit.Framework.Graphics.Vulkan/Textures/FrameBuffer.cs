@@ -1,11 +1,12 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Interop;
+using Vit.Framework.Memory;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
 
-public class FrameBuffer : NativeFramebuffer {
+public class FrameBuffer : DisposableObject, IFramebuffer {
 	protected VkFramebuffer Instance;
 	public VkFramebuffer Handle => Instance;
 
@@ -27,8 +28,6 @@ public class FrameBuffer : NativeFramebuffer {
 
 		Vk.vkCreateFramebuffer( pass.Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
-
-
 
 	public static implicit operator VkFramebuffer ( FrameBuffer obj ) => obj.Instance;
 

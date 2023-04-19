@@ -10,5 +10,5 @@ public interface ICommandBuffer {
 	/// <summary>
 	/// Starts rendering to a frame buffer.
 	/// </summary>
-	DisposeAction<ICommandBuffer> RenderTo ( NativeFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
+	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
 }

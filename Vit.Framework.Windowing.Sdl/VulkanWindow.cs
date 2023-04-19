@@ -7,7 +7,6 @@ using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vulkan;
-using NativeSwapchain = Vit.Framework.Graphics.Rendering.Queues.NativeSwapchain;
 
 namespace Vit.Framework.Windowing.Sdl;
 
@@ -21,7 +20,7 @@ class VulkanWindow : SdlWindow, IVulkanWindow { // TODO remove the IVulkanWindow
 		}
 	}
 
-	public override (NativeSwapchain swapchain, Renderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
 		if ( api is not VulkanApi vulkan )
 			throw new ArgumentException( "Graphics API must be a Vulkan API created from the same host as this window", nameof(api) );
 

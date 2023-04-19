@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace Vit.Framework.Graphics.Rendering.Shaders;
+namespace Vit.Framework.Graphics.Materials;
 
 public class Shader {
 	public readonly ImmutableArray<ShaderPart> Parts;

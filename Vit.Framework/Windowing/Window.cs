@@ -56,7 +56,7 @@ public abstract class Window : IDisposable {
 	}
 	public event Action<Key>? PhysicalKeyUp;
 
-	public abstract (NativeSwapchain swapchain, Renderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
+	public abstract (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
 
 	public bool IsClosed { get; private set; }
 	protected abstract void Dispose ( bool disposing );
