@@ -62,12 +62,12 @@ public abstract class VulkanRenderThread : AppThread {
 		SwapchainInfo = swapchainInfo;
 
 		Device = physicalDevice.CreateDevice( SwapchainInfo.RequiredExtensionsCstr, new CString[] { }, new[] {
-			swapchainInfo.GraphicsQueue,
-			swapchainInfo.PresentQueue
+			swapchainInfo.GraphicsFamily,
+			swapchainInfo.PresentFamily
 		} );
 
-		GraphicsQueue = Device.GetQueue( swapchainInfo.GraphicsQueue );
-		PresentQueue = Device.GetQueue( swapchainInfo.PresentQueue );
+		GraphicsQueue = Device.GetQueue( swapchainInfo.GraphicsFamily );
+		PresentQueue = Device.GetQueue( swapchainInfo.PresentFamily );
 		Swapchain = Device.CreateSwapchain( surface, swapchainInfo.SelectBest(), Window.PixelSize );
 
 		var depthFormat = Device.PhysicalDevice.GetBestSupportedFormat(
@@ -78,8 +78,8 @@ public abstract class VulkanRenderThread : AppThread {
 
 		Swapchain.SetRenderPass( ToScreenRenderPass );
 
-		GraphicsCommandPool = Device.CreateCommandPool( SwapchainInfo.GraphicsQueue );
-		CopyCommandPool = Device.CreateCommandPool( SwapchainInfo.GraphicsQueue, VkCommandPoolCreateFlags.ResetCommandBuffer | VkCommandPoolCreateFlags.Transient );
+		GraphicsCommandPool = Device.CreateCommandPool( SwapchainInfo.GraphicsFamily );
+		CopyCommandPool = Device.CreateCommandPool( SwapchainInfo.GraphicsFamily, VkCommandPoolCreateFlags.ResetCommandBuffer | VkCommandPoolCreateFlags.Transient );
 
 		frameInfo = new() {
 			ImageAvailable = Device.CreateSemaphore(),

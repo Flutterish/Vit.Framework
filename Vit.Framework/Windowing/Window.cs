@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Threading;
@@ -54,6 +55,8 @@ public abstract class Window : IDisposable {
 		PhysicalKeyUp?.Invoke( key );
 	}
 	public event Action<Key>? PhysicalKeyUp;
+
+	public abstract (NativeSwapchain swapchain, Renderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
 
 	public bool IsClosed { get; private set; }
 	protected abstract void Dispose ( bool disposing );

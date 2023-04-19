@@ -4,8 +4,8 @@ using Vulkan;
 namespace Vit.Framework.Graphics.Vulkan.Queues;
 
 public class SwapchainInfo {
-	public QueueFamily GraphicsQueue = null!;
-	public QueueFamily PresentQueue = null!;
+	public QueueFamily GraphicsFamily = null!;
+	public QueueFamily PresentFamily = null!;
 	public VkSurfaceCapabilitiesKHR Capabilities;
 	public VkSurfaceFormatKHR[] Formats = null!;
 	public VkPresentModeKHR[] PresentModes = null!;

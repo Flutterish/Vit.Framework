@@ -117,7 +117,7 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		renderPass = pass;
 		depthAttachment ??= new( pass.Device );
 		depthAttachment.Allocate( Size, VkImageUsageFlags.DepthStencilAttachment, 
-			renderPass.DepthFormat, VkImageAspectFlags.Depth, samples: pass.Samples
+			renderPass.AttachmentFormat, VkImageAspectFlags.Depth, samples: pass.Samples
 		);
 		msaaBuffer ??= new( pass.Device );
 		msaaBuffer.Allocate( Size, VkImageUsageFlags.TransientAttachment | VkImageUsageFlags.ColorAttachment, 

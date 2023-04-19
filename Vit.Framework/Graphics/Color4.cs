@@ -14,4 +14,11 @@ public struct Color4<T> where T : unmanaged, INumber<T> {
 		B = b;
 		A = a;
 	}
+
+	public Color4 ( T r, T g, T b ) {
+		R = r;
+		G = g;
+		B = b;
+		A = T.One;
+	}
 }

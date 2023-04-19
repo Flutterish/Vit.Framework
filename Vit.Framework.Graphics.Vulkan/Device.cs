@@ -50,8 +50,12 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		Vk.vkCreateDevice( physicalDevice, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
 
-	public VkQueue GetQueue ( QueueFamily family, uint index = 0 ) {
-		Vk.vkGetDeviceQueue( this, family.Index, index, out var queue );
+	Dictionary<(uint, uint), Queue> queues = new();
+	public Queue GetQueue ( QueueFamily family, uint index = 0 ) {
+		if ( !queues.TryGetValue( (family.Index, index), out var queue ) ) {
+			Vk.vkGetDeviceQueue( this, family.Index, index, out var q );
+			queues.Add( (family.Index, index), queue = new(q, this, family) );
+		}
 		return queue;
 	}
 

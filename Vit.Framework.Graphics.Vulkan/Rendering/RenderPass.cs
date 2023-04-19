@@ -6,11 +6,11 @@ namespace Vit.Framework.Graphics.Vulkan.Rendering;
 public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 	public readonly Device Device;
 	public readonly VkFormat ColorFormat;
-	public readonly VkFormat DepthFormat;
+	public readonly VkFormat AttachmentFormat;
 	public readonly VkSampleCountFlags Samples;
-	public unsafe RenderPass ( Device device, VkSampleCountFlags samples, VkFormat colorFormat, VkFormat depthFormat ) {
+	public unsafe RenderPass ( Device device, VkSampleCountFlags samples, VkFormat colorFormat, VkFormat attachmentFormat ) {
 		ColorFormat = colorFormat;
-		DepthFormat = depthFormat;
+		AttachmentFormat = attachmentFormat;
 		Samples = samples;
 		Device = device;
 
@@ -30,7 +30,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 		};
 
 		var depth = new VkAttachmentDescription() {
-			format = depthFormat,
+			format = attachmentFormat,
 			samples = samples,
 			loadOp = VkAttachmentLoadOp.Clear,
 			storeOp = VkAttachmentStoreOp.DontCare,

@@ -3,6 +3,7 @@
 public enum GraphicsApiType {
 	Auto,
 	OpenGl,
+	OpenGlES,
 	Vulkan,
 	Direct3D11,
 	Curses

@@ -15,9 +15,7 @@
 
   <ItemGroup>
     <Folder Include="Memory\Allocation\" />
-    <Folder Include="Graphics\Rendering\Queues\" />
     <Folder Include="Graphics\Rendering\Synchronisation\" />
-    <Folder Include="Graphics\Rendering\Textures\" />
   </ItemGroup>
 
 </Project>

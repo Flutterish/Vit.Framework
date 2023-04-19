@@ -34,18 +34,18 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 			return null;
 
 		var info = new SwapchainInfo();
-		info.GraphicsQueue = QueueFamilies.FirstOrDefault()!;
-		if ( info.GraphicsQueue == null )
+		info.GraphicsFamily = QueueFamilies.FirstOrDefault()!;
+		if ( info.GraphicsFamily == null )
 			return null;
 
 		foreach ( var i in QueueFamilies ) {
 			Vk.vkGetPhysicalDeviceSurfaceSupportKHR( this, i.Index, surface, out var supported ).Validate();
 			if ( supported ) {
-				info.PresentQueue = i;
+				info.PresentFamily = i;
 				break;
 			}
 		}
-		if ( info.PresentQueue == null )
+		if ( info.PresentFamily == null )
 			return null;
 
 		Vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR( this, surface.Handle, out info.Capabilities ).Validate();
@@ -106,6 +106,14 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 		return props;
 	}
 
+	public IEnumerable<VkSampleCountFlags> GetSupportedColorDepthMultisampling () {
+		var max = Properties.limits.framebufferColorSampleCounts & Properties.limits.framebufferDepthSampleCounts;
+		return Enum.GetValues<VkSampleCountFlags>().Where( x => ( x & max ) != 0 );
+	}
+	public IEnumerable<VkSampleCountFlags> GetSupportedColorMultisampling () {
+		var max = Properties.limits.framebufferColorSampleCounts;
+		return Enum.GetValues<VkSampleCountFlags>().Where( x => ( x & max ) != 0 );
+	}
 	public VkSampleCountFlags GetMaxColorDepthMultisampling () {
 		var max = Properties.limits.framebufferColorSampleCounts & Properties.limits.framebufferDepthSampleCounts;
 		return Enum.GetValues<VkSampleCountFlags>().MaxBy( x => (int)(x & max) );

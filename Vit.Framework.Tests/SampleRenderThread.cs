@@ -214,12 +214,12 @@ public class SampleRenderThread : VulkanRenderThread {
 		var cameraMatrix = Matrix4<float>.CreateTranslation( -position.X, -position.Y, -position.Z )
 			* inverseCameraRotation;
 
-		uniforms.Transfer( new Matrices() {
-			Model = Matrix4<float>.Identity,//FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
-			View = cameraMatrix,
-			Projection = Renderer.CreateLeftHandCorrectionMatrix<float>() 
-				* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.01f, float.PositiveInfinity )
-		} );
+		//uniforms.Transfer( new Matrices() {
+		//	Model = Matrix4<float>.Identity,//FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() ),
+		//	View = cameraMatrix,
+		//	Projection = Renderer.CreateLeftHandCorrectionMatrix<float>() 
+		//		* Matrix4<float>.CreatePerspective( frame.Size.width, frame.Size.height, 0.01f, float.PositiveInfinity )
+		//} );
 		commands.BindDescriptor( pipeline.Layout, basicShader.DescriptorSet );
 		commands.DrawIndexed( (uint)indexCount );
 		commands.FinishRenderPass();
