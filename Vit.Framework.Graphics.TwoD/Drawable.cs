@@ -4,7 +4,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public abstract class Drawable : IDrawable {
+public abstract partial class Drawable : IDrawable {
 	public ICompositeDrawable<Drawable>? Parent { get; internal set; }
 
 	Point2<float> position;
@@ -81,6 +81,13 @@ public abstract class Drawable : IDrawable {
 	public float ShearY {
 		get => shear.Y;
 		set => shear.Y = value;
+	}
+
+	DrawNode?[] drawNodes = new DrawNode?[3];
+	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
+
+	public virtual DrawNode GetDrawNode ( int subtreeIndex ) {
+		return drawNodes[subtreeIndex] ??= CreateDrawNode( subtreeIndex );
 	}
 }
 

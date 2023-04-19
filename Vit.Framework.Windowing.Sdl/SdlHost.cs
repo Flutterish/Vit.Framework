@@ -87,12 +87,12 @@ public class SdlHost : Host {
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
-	public override Window CreateWindow ( RenderingApi renderingApi ) {
+	public override Window CreateWindow ( GraphicsApiType renderingApi ) {
 		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
 		SdlWindow window = renderingApi switch {
-			RenderingApi.Vulkan => new VulkanWindow( this ),
+			GraphicsApiType.Vulkan => new VulkanWindow( this ),
 			//RenderingApi.Direct3D11 => new Direct3D11Window( this ),
 			//RenderingApi.OpenGl => new GlWindow( this ),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
@@ -104,14 +104,14 @@ public class SdlHost : Host {
 		return window;
 	}
 
-	public override Renderer CreateRenderer ( RenderingApi api, IEnumerable<RenderingCapabilities> capabilities, CreateRendererParams @params ) => api switch {
+	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) => api switch {
 		//RenderingApi.OpenGl => new OpenGlRenderer( capabilities ),
-		RenderingApi.Vulkan => createVulkanRenderer( capabilities, @params ),
+		GraphicsApiType.Vulkan => createVulkanApi( capabilities ),
 		//RenderingApi.Direct3D11 => new Direct3D11Renderer( capabilities ),
 		_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof(api) )
 	};
 
-	VulkanRenderer createVulkanRenderer ( IEnumerable<RenderingCapabilities> capabilities, CreateRendererParams @params ) {
+	VulkanApi createVulkanApi ( IEnumerable<RenderingCapabilities> capabilities ) {
 		List<CString> layers = new();
 		List<CString> extensions = new();
 
@@ -126,8 +126,8 @@ public class SdlHost : Host {
 					break;
 
 				case RenderingCapabilities.DrawToWindow:
-					if ( @params.Window is not SdlWindow window )
-						throw new ArgumentException( "In order to render to a window, the target window must be specified", nameof(@params) );
+					if ( windowsById.Values.FirstOrDefault() is not SdlWindow window )
+						throw new Exception( $"In order to enabe {i}, some window must be created (SLD 3.0 limitation, to be removed in SDL 4.0)" );
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
 					nint[] pointers = new nint[count];
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );
@@ -139,13 +139,13 @@ public class SdlHost : Host {
 			}
 		}
 
-		return new VulkanRenderer( new VulkanInstance( extensions, layers ), capabilities );
+		return new VulkanApi( new VulkanInstance( extensions, layers ), capabilities );
 	}
 
-	public override IEnumerable<RenderingApi> SupportedRenderingApis { get; } = new[] { 
-		RenderingApi.OpenGl,
-		RenderingApi.Vulkan,
-		RenderingApi.Direct3D11
+	public override IEnumerable<GraphicsApiType> SupportedRenderingApis { get; } = new[] { 
+		//GraphicsApiType.OpenGl,
+		GraphicsApiType.Vulkan,
+		//GraphicsApiType.Direct3D11
 	};
 
 	internal void destroyWindow ( SdlWindow window ) {

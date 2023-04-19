@@ -16,6 +16,7 @@ public interface IAngle<TSelf, T> :
 	abstract static T Acos ( TSelf value );
 	abstract static T Asin ( TSelf value );
 	abstract static T Atan ( TSelf value );
+	abstract static (T sin, T cos) SinCos ( TSelf value );
 
 	static abstract TSelf operator * ( T left, TSelf right );
 	static abstract T operator / ( TSelf left, TSelf right );

@@ -35,6 +35,15 @@ public struct Matrix3<T> where T : INumber<T> {
 		M22 = T.MultiplicativeIdentity
 	};
 
+	public static Matrix3<T> CreateShear ( T x, T y ) => new() {
+		M00 = T.MultiplicativeIdentity,
+		M11 = T.MultiplicativeIdentity,
+		M22 = T.MultiplicativeIdentity,
+
+		M01 = x,
+		M10 = y
+	};
+
 	public static Matrix3<T> CreateTranslation ( T x, T y ) => new() {
 		M00 = T.MultiplicativeIdentity,
 		M11 = T.MultiplicativeIdentity,

@@ -36,25 +36,25 @@ abstract class SdlWindow : Window {
 	SdlHost host;
 	public nint Pointer;
 	public uint Id;
-	RenderingApi renderingApi;
-	public SdlWindow ( SdlHost host, RenderingApi renderingApi ) : base( renderingApi ) {
+	GraphicsApiType renderingApi;
+	public SdlWindow ( SdlHost host, GraphicsApiType renderingApi ) : base( renderingApi ) {
 		this.renderingApi = renderingApi;
 		this.host = host;
 	}
 
 	public void Init () {
 		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
-		if ( renderingApi == RenderingApi.OpenGl ) {
+		if ( renderingApi == GraphicsApiType.OpenGl ) {
 			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
 			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1 );
 			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
 
 			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
 		}
-		else if ( renderingApi == RenderingApi.Vulkan ) {
+		else if ( renderingApi == GraphicsApiType.Vulkan ) {
 			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
 		}
-		else if ( renderingApi == RenderingApi.Direct3D11 ) {
+		else if ( renderingApi == GraphicsApiType.Direct3D11 ) {
 			
 		}
 

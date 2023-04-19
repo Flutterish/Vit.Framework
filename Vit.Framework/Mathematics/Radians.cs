@@ -20,6 +20,7 @@ public struct Radians<T> : IAngle<Radians<T>, T> where T : INumber<T>, ITrigonom
 	public static T Acos ( Radians<T> value ) => T.Acos( value.Value );
 	public static T Asin ( Radians<T> value ) => T.Asin( value.Value );
 	public static T Atan ( Radians<T> value ) => T.Atan( value.Value );
+	public static (T sin, T cos) SinCos ( Radians<T> value ) => T.SinCos( value.Value );
 
 	public override string ToString () {
 		return $"{Value} radians";

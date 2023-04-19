@@ -16,7 +16,7 @@ public partial class Program : App {
 	}
 
 	protected override void Initialize ( Host host ) {
-		var a = host.CreateWindow( RenderingApi.Vulkan, this );
+		var a = host.CreateWindow( GraphicsApiType.Vulkan, this );
 		a.Title = "Window A [Vulkan]";
 		a.Initialized += _ => {
 			ThreadRunner.RegisterThread( new SampleRenderThread( a, host, a.Title ) );

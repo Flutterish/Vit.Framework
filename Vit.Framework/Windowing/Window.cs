@@ -6,8 +6,8 @@ using Vit.Framework.Threading;
 namespace Vit.Framework.Windowing;
 
 public abstract class Window : IDisposable {
-	public readonly RenderingApi RenderingApi;
-	public Window ( RenderingApi renderingApi ) {
+	public readonly GraphicsApiType RenderingApi;
+	public Window ( GraphicsApiType renderingApi ) {
 		RenderingApi = renderingApi;
 	}
 

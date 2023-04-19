@@ -8,7 +8,7 @@ using Vulkan;
 namespace Vit.Framework.Windowing.Sdl;
 
 class VulkanWindow : SdlWindow, IVulkanWindow {
-	public VulkanWindow ( SdlHost host ) : base( host, RenderingApi.Vulkan ) { }
+	public VulkanWindow ( SdlHost host ) : base( host, GraphicsApiType.Vulkan ) { }
 
 	public override Size2<int> PixelSize {
 		get {

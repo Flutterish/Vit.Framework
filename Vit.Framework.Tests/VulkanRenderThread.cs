@@ -21,7 +21,7 @@ public abstract class VulkanRenderThread : AppThread {
 
 	protected readonly Host Host;
 	protected readonly Window Window;
-	protected readonly VulkanRenderer Renderer;
+	protected readonly VulkanApi Renderer;
 	protected readonly VulkanInstance Vulkan;
 
 	protected readonly BinaryStateTracker<Key> Keys = new();
@@ -30,9 +30,7 @@ public abstract class VulkanRenderThread : AppThread {
 		Host = host;
 		Window = window;
 
-		Renderer = (VulkanRenderer)host.CreateRenderer( RenderingApi.Vulkan, new[] { RenderingCapabilities.DrawToWindow }, new() {
-			Window = window
-		} )!;
+		Renderer = (VulkanApi)host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } )!;
 		Vulkan = Renderer.Instance;
 
 		Window.PhysicalKeyDown += Keys.Add;
