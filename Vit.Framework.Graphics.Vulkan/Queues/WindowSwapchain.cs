@@ -107,7 +107,7 @@ public class WindowSwapchain : DisposableObject, ISwapchain {
 		Renderer.GraphicsCommands.Reset();
 		Renderer.GraphicsCommands.Begin();
 		return new VulkanImmediateCommandBuffer(
-			Renderer.GraphicsCommands,
+			Renderer.GraphicsCommands, Renderer,
 			x => {
 				x.Buffer.Finish();
 				x.Buffer.Submit( Renderer.GraphicsQueue, frameInfo.ImageAvailable, frameInfo.RenderFinished, frameInfo.InFlight );

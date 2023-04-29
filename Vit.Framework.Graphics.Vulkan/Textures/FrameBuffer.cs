@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vulkan;
 
@@ -12,6 +13,8 @@ public class FrameBuffer : DisposableObject, IFramebuffer {
 
 	public readonly RenderPass RenderPass;
 	public readonly VkExtent2D Size;
+	Size2<uint> IFramebuffer.Size => new( Size.width, Size.height );
+
 	public unsafe FrameBuffer ( VkImageView[] attachements, VkExtent2D size, RenderPass pass ) {
 		Size = size;
 		RenderPass = pass;

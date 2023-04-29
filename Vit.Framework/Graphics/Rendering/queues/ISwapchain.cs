@@ -34,7 +34,7 @@ public interface ISwapchain : IDisposable {
 	/// This command buffer will synchronise itself to execute when a swapchain image is ready,
 	/// and will signal the swapchain to present when it finishes rendering.
 	/// </remarks>
-	IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation (); // TODO this for command caches
+	IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation (); // TODO figure out synchronisation objects instead
 }
 
 public struct SwapChainArgs {

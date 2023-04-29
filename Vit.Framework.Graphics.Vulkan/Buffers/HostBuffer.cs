@@ -1,8 +1,9 @@
-﻿using Vulkan;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
-public unsafe class HostBuffer<T> : Buffer<T> where T : unmanaged {
+public unsafe class HostBuffer<T> : Buffer<T>, IHostBuffer<T> where T : unmanaged {
 	T* data;
 	VkBufferUsageFlags flags;
 	public HostBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
@@ -21,6 +22,10 @@ public unsafe class HostBuffer<T> : Buffer<T> where T : unmanaged {
 		data.CopyTo( new Span<T>( this.data, data.Length ) );
 	}
 
+	void IBuffer<T>.Allocate ( uint size, BufferUsage usageHint ) {
+		Allocate( (ulong)size );
+	}
+
 	public Span<T> GetDataSpan ( int length, int offset = 0 )
 		=> new Span<T>( data + offset, length );
 
@@ -30,6 +35,10 @@ public unsafe class HostBuffer<T> : Buffer<T> where T : unmanaged {
 
 	public unsafe void Transfer ( in T data, ulong offset = 0 ) {
 		*(this.data + offset) = data;
+	}
+
+	void IHostBuffer<T>.Upload ( ReadOnlySpan<T> data, uint offset ) {
+		Transfer( data, (ulong)offset );
 	}
 
 	public void Unmap () {

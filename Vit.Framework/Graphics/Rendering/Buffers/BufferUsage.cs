@@ -1,24 +1,39 @@
 ﻿namespace Vit.Framework.Graphics.Rendering.Buffers;
 
+/// <summary>
+/// Specifies how a buffer will be used - this allows for optimized memory allocation.
+/// <list type="table">
+///		<item><c>Never*</c> - This operation is never performed, or only a few times in its lifetime.</item>
+///		<item><c>Rare*</c> - This operation is performed one time per a few seconds.</item>
+///		<item><c>Often*</c> - This operation is performed once per 100-ish milliseconds.</item>
+///		<item><c>Stream*</c> - This operation is performed about once per frame.</item>
+/// </list>
+/// <list type="table">
+///		<item><c>*Draw</c> - Used for rendering.</item>
+///		<item><c>*Upload</c> - Data will be uploaded from the cpu.</item>
+///		<item><c>*Read</c> - Used as a copy source.</item>
+///		<item><c>*Copy</c> - Used as a copy destination.</item>
+/// </list>
+/// </summary>
 [Flags]
-public enum BufferUsage : byte {
-	NeverDraw = 0b_00000000,
-	RareDraw = 0b_00000001,
-	OftenDraw = 0b_00000010,
-	StreamDraw = 0b_00000011,
+public enum BufferUsage {
+	NeverDraw    = 0,
+	RareDraw     = 1,
+	OftenDraw    = 2,
+	StreamDraw   = 3,
 
-	NeverRead = 0b_00000000,
-	RareRead = 0b_00000100,
-	OftenRead = 0b_00001000,
-	StreamRead = 0b_00001100,
+	NeverUpload  = 0,
+	RareUpload   = 1 << 2,
+	OftenUpload  = 2 << 2,
+	StreamUpload = 3 << 2,
 
-	NeverCopy = 0b_00000000,
-	RareCopy = 0b_00010000,
-	OftenCopy = 0b_00100000,
-	StreamCopy = 0b_00110000,
+	NeverRead    = 0,
+	RareRead     = 1 << 4,
+	OftenRead    = 2 << 4,
+	StreamRead   = 3 << 4,
 
-	//Never = 0b_00000000,
-	//Rare = 0b_01000000,
-	//Often = 0b_10000000,
-	//Stream = 0b_11000000
+	NeverCopy    = 0,
+	RareCopy     = 1 << 6,
+	OftenCopy    = 2 << 6,
+	StreamCopy   = 3 << 6
 }

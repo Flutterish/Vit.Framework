@@ -51,7 +51,7 @@ public abstract class GenericRenderThread : AppThread {
 
 	protected abstract void Render ( IFramebuffer framebuffer, ICommandBuffer commands );
 
-	protected override void Dispose ( bool disposing ) {
+	protected sealed override void Dispose ( bool disposing ) {
 		Window.Resized -= onWindowResized;
 
 		if ( !IsInitialized )

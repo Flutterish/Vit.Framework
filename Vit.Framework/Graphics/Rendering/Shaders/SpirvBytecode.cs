@@ -6,7 +6,7 @@ using Vortice.ShaderCompiler;
 
 namespace Vit.Framework.Graphics.Rendering.Shaders;
 
-public class SpirvBytecode {
+public class SpirvBytecode { // TODO dispose this at some point?
 	Result data;
 	public Span<byte> Data => data.GetBytecode();
 	public readonly ShaderPartType Type;

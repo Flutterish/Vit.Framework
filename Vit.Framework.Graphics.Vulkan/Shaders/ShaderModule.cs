@@ -1,15 +1,19 @@
 ﻿using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
 
-public class ShaderModule : DisposableVulkanObject<VkShaderModule> {
+public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart {
 	public readonly VkDevice Device;
 	public readonly VkPipelineShaderStageCreateInfo StageCreateInfo;
 	public readonly CString EntryPoint;
 	public readonly SpirvBytecode Spirv;
+
+	public ShaderPartType Type => ShaderInfo.Type;
+	public ShaderInfo ShaderInfo => Spirv.Reflections;
 
 	public unsafe ShaderModule ( VkDevice device, SpirvBytecode bytecode ) {
 		Spirv = bytecode;

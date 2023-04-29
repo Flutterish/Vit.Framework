@@ -1,12 +1,14 @@
 ﻿using System.Collections.Immutable;
+using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
 
-public class ShaderSet : DisposableObject {
+public class ShaderSet : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<ShaderModule> Modules;
+	public IEnumerable<IShaderPart> Parts => Modules;
 
 	public ShaderSet ( params ShaderModule[] modules ) : this( (IEnumerable<ShaderModule>)modules ) { }
 

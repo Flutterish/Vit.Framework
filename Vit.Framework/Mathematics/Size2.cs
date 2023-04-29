@@ -11,6 +11,13 @@ public struct Size2<T> : IEquatable<Size2<T>> where T : INumber<T> {
 		Height = height;
 	}
 
+	public Size2<Y> Cast<Y> () where Y : INumber<Y> {
+		return new Size2<Y>() {
+			Width = Y.CreateChecked( Width ),
+			Height = Y.CreateChecked( Height )
+		};
+	}
+
 	public static bool operator == ( Size2<T> left, Size2<T> right ) {
 		return left.Width == right.Width && left.Height == right.Height;
 	}

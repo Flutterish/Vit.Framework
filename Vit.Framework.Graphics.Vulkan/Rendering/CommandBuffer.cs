@@ -53,14 +53,14 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, 1, &descriptor, 0, 0 );
 	}
 
-	public unsafe void BindVertexBuffer<T> ( Buffer<T> buffer ) where T : unmanaged {
+	public unsafe void BindVertexBuffer ( IVulkanHandle<VkBuffer> buffer ) {
 		VkBuffer vkbuffer = buffer.Handle;
 		ulong offset = 0;
 		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
 	}
 
-	void bindIndexBuffer<T> ( Buffer<T> buffer, VkIndexType indexType ) where T : unmanaged {
-		Vk.vkCmdBindIndexBuffer( this, buffer, 0, indexType );
+	void bindIndexBuffer ( IVulkanHandle<VkBuffer> buffer, VkIndexType indexType ) {
+		Vk.vkCmdBindIndexBuffer( this, buffer.Handle, 0, indexType );
 	}
 	public unsafe void BindIndexBuffer ( Buffer<ushort> buffer ) {
 		bindIndexBuffer( buffer, VkIndexType.Uint16 );

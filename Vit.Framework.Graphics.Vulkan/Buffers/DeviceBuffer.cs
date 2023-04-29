@@ -1,9 +1,10 @@
-﻿using Vit.Framework.Graphics.Vulkan.Rendering;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
-public class DeviceBuffer<T> : Buffer<T> where T : unmanaged {
+public class DeviceBuffer<T> : Buffer<T>, IDeviceBuffer<T> where T : unmanaged {
 	HostBuffer<T> stagingBuffer;
 	VkBufferUsageFlags flags;
 	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
@@ -30,11 +31,21 @@ public class DeviceBuffer<T> : Buffer<T> where T : unmanaged {
 		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length );
 	}
 
+	void IBuffer<T>.Allocate ( uint size, BufferUsage usageHint ) {
+		stagingBuffer.Allocate( (ulong)size );
+		Allocate( (ulong)size, flags | VkBufferUsageFlags.TransferDst );
+	}
+
 	public void AllocateAndTransfer ( ReadOnlySpan<T> data, CommandPool pool, VkQueue queue ) {
 		var copy = Allocate( data, pool );
 		copy.Submit( queue );
 		Vk.vkQueueWaitIdle( queue );
 		pool.FreeCommandBuffer( copy );
+	}
+
+	public void Transfer ( ReadOnlySpan<T> data, ulong offset, CommandBuffer commands ) {
+		stagingBuffer.Transfer( data );
+		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length, dstOffset: offset );
 	}
 
 	protected override uint FindMemoryType ( VkMemoryRequirements requirements ) {
