@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -56,7 +57,7 @@ public class HelloTriangle : GenericRenderThread {
 	}
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
-		using var _ = commands.RenderTo( framebuffer, clearColor: new( 0.5f, 0, 0 ), clearDepth: 1 );
+		using var _ = commands.RenderTo( framebuffer, clearColor: ColorRgba.HotPink, clearDepth: 1 );
 		commands.SetShaders( shaderSet );
 		commands.SetViewport( framebuffer.Size.Cast<float>() );
 		commands.SetScissors( framebuffer.Size.Cast<uint>() );

@@ -14,7 +14,7 @@ public interface ICommandBuffer {
 	/// Starts rendering to a frame buffer.
 	/// </summary>
 	/// <returns>An action which will finish rendering to the framebuffer.</returns>
-	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
+	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
 	// TODO instead of the action, perhaps we need a stack of state-related stuff
 
 	/// <summary>

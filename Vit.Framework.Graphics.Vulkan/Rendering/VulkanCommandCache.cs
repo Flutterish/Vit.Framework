@@ -33,8 +33,8 @@ public class VulkanCommandCache : ICommandCache {
 	}
 
 	FrameBuffer? frameBuffer;
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, Color4<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
-		VkClearColorValue color = clearColor is Color4<float> v
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		VkClearColorValue color = clearColor is ColorRgba<float> v
 			? new VkClearColorValue( v.R, v.G, v.B, v.A )
 			: new VkClearColorValue( 0, 0, 0, 1 );
 		VkClearDepthStencilValue depthStencil = new VkClearDepthStencilValue( clearDepth ?? 0, clearStencil ?? 0 );
