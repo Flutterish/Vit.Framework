@@ -10,9 +10,11 @@ namespace Vit.Framework.Tests.GraphicsApis;
 public abstract class GenericRenderThread : AppThread {
 	protected readonly Host Host;
 	protected readonly Window Window;
-	public GenericRenderThread ( Window window, Host host, string name ) : base( name ) {
+
+	public GenericRenderThread ( Window window, Host host, string name, GraphicsApi api ) : base( name ) {
 		Host = host;
 		Window = window;
+		GraphicsApi = api;
 		window.Resized += onWindowResized;
 	}
 
@@ -21,11 +23,10 @@ public abstract class GenericRenderThread : AppThread {
 		windowResized = true;
 	}
 
-	protected GraphicsApi GraphicsApi = null!;
+	protected GraphicsApi GraphicsApi;
 	protected IRenderer Renderer = null!;
 	protected ISwapchain Swapchain = null!;
 	protected override void Initialize () {
-		GraphicsApi = Host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
 		(Swapchain, Renderer) = Window.CreateSwapchain( GraphicsApi, new() {
 			Multisample = new() { Ideal = MultisampleFormat.Samples8, Minimum = MultisampleFormat.None, Maximum = MultisampleFormat.Samples16 },
 			Depth = new() { Ideal = DepthFormat.Bits32, Minimum = DepthFormat.Bits16 },

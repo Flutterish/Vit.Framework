@@ -1,6 +1,7 @@
 ﻿using SDL2;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Interop;
@@ -94,18 +95,18 @@ public class SdlHost : Host {
 		SdlWindow window = renderingApi switch {
 			GraphicsApiType.Vulkan => new VulkanWindow( this ),
 			//RenderingApi.Direct3D11 => new Direct3D11Window( this ),
-			//RenderingApi.OpenGl => new GlWindow( this ),
+			GraphicsApiType.OpenGl => new GlWindow( this ),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
 		};
-		scheduledActions.Enqueue( () => {
-			window.Init();
+		window.Initialized += _ => {
 			windowsById[window.Id] = window;
-		} );
+		};
+		scheduledActions.Enqueue( window.Init );
 		return window;
 	}
 
 	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) => api switch {
-		//RenderingApi.OpenGl => new OpenGlRenderer( capabilities ),
+		GraphicsApiType.OpenGl => new OpenGlApi( capabilities ),
 		GraphicsApiType.Vulkan => createVulkanApi( capabilities ),
 		//RenderingApi.Direct3D11 => new Direct3D11Renderer( capabilities ),
 		_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof(api) )
@@ -143,7 +144,7 @@ public class SdlHost : Host {
 	}
 
 	public override IEnumerable<GraphicsApiType> SupportedRenderingApis { get; } = new[] { 
-		//GraphicsApiType.OpenGl,
+		GraphicsApiType.OpenGl,
 		GraphicsApiType.Vulkan,
 		//GraphicsApiType.Direct3D11
 	};

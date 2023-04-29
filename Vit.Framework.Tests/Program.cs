@@ -17,10 +17,12 @@ public partial class Program : App {
 	}
 
 	protected override void Initialize ( Host host ) {
-		var a = host.CreateWindow( GraphicsApiType.Vulkan, this );
-		a.Title = "Window A [Vulkan]";
+
+		var a = host.CreateWindow( GraphicsApiType.OpenGl, this );
+		a.Title = "Window A [OpenGL]";
 		a.Initialized += _ => {
-			ThreadRunner.RegisterThread( new HelloTriangle( a, host, a.Title ) );
+			var glApi = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new ClearScreen( a, host, a.Title, glApi ) );
 		};
 		//var b = host.CreateWindow( RenderingApi.Vulkan, this );
 		//b.Title = "Window B [Vulkan]";

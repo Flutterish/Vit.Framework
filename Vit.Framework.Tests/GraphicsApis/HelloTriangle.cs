@@ -10,7 +10,7 @@ using Vit.Framework.Windowing;
 namespace Vit.Framework.Tests.GraphicsApis;
 
 public class HelloTriangle : GenericRenderThread {
-	public HelloTriangle ( Window window, Host host, string name ) : base( window, host, name ) {
+	public HelloTriangle ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 	}
 
 	IShaderPart vertex = null!;

@@ -35,4 +35,8 @@ public struct Size2<T> : IEquatable<Size2<T>> where T : INumber<T> {
 	public override int GetHashCode () {
 		return HashCode.Combine( Width, Height );
 	}
+
+	public override string ToString () {
+		return $"{Width}x{Height}";
+	}
 }

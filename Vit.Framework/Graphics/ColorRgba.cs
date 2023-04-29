@@ -30,6 +30,21 @@ public struct ColorRgba<T> where T : unmanaged, INumber<T> {
 			A = color.A
 		};
 	}
+
+	public override string ToString () {
+		if ( typeof(T) == typeof(byte) ) {
+			var _255 = T.CreateChecked( 255 );
+			return $"#{R:X2}{G:X2}{B:X2}{( A == _255 ? "" : $"{A:X2}" )}";
+		}
+		else if ( typeof(T).IsAssignableTo(typeof(IFloatingPoint<>)) ) {
+			var _255 = T.CreateChecked( 255 );
+			var (r, g, b, a) = (byte.CreateTruncating(R * _255),byte.CreateTruncating(G * _255), byte.CreateTruncating(B * _255), byte.CreateTruncating(A * _255));
+			return $"#{r:X2}{g:X2}{b:X2}{( a == 255 ? "" : $"{a:X2}" )}";
+		}
+		else {
+			return $"({R}, {G}, {B}, {A})";
+		}
+	}
 }
 
 public static class ColorRgba {

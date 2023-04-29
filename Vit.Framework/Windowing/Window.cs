@@ -6,7 +6,7 @@ using Vit.Framework.Threading;
 
 namespace Vit.Framework.Windowing;
 
-public abstract class Window : IDisposable {
+public abstract class Window : IWindow, IDisposable {
 	public readonly GraphicsApiType RenderingApi;
 	public Window ( GraphicsApiType renderingApi ) {
 		RenderingApi = renderingApi;
@@ -36,6 +36,7 @@ public abstract class Window : IDisposable {
 	protected void OnInitialized () {
 		IsInitialized = true;
 		Initialized?.Invoke( this );
+		Initialized = null;
 	}
 	public event Action<Window>? Initialized;
 
