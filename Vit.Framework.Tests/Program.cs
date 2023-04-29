@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
+using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing.Sdl;
 
@@ -19,7 +20,7 @@ public partial class Program : App {
 		var a = host.CreateWindow( GraphicsApiType.Vulkan, this );
 		a.Title = "Window A [Vulkan]";
 		a.Initialized += _ => {
-			ThreadRunner.RegisterThread( new SampleGenericRenderThread( a, host, a.Title ) );
+			ThreadRunner.RegisterThread( new HelloTriangle( a, host, a.Title ) );
 		};
 		//var b = host.CreateWindow( RenderingApi.Vulkan, this );
 		//b.Title = "Window B [Vulkan]";

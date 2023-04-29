@@ -19,8 +19,8 @@ using Image = Vit.Framework.Graphics.Vulkan.Textures.Image;
 
 namespace Vit.Framework.Tests;
 
-public class SampleRenderThread : VulkanRenderThread {
-	public SampleRenderThread ( Window window, Host host, string name ) : base( window, host, name ) { }
+public class SampleVulkanRenderThread : VulkanRenderThread {
+	public SampleVulkanRenderThread ( Window window, Host host, string name ) : base( window, host, name ) { }
 
 	ShaderModule vertex = null!;
 	ShaderModule fragment = null!;

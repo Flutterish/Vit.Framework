@@ -6,10 +6,10 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Platform;
 using Vit.Framework.Windowing;
 
-namespace Vit.Framework.Tests;
+namespace Vit.Framework.Tests.GraphicsApis;
 
-public class SampleGenericRenderThread : GenericRenderThread {
-	public SampleGenericRenderThread ( Window window, Host host, string name ) : base( window, host, name ) {
+public class HelloTriangle : GenericRenderThread {
+	public HelloTriangle ( Window window, Host host, string name ) : base( window, host, name ) {
 	}
 
 	IShaderPart vertex = null!;

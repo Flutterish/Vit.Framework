@@ -5,7 +5,7 @@ using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 
-namespace Vit.Framework.Tests;
+namespace Vit.Framework.Tests.GraphicsApis;
 
 public abstract class GenericRenderThread : AppThread {
 	protected readonly Host Host;
@@ -60,7 +60,7 @@ public abstract class GenericRenderThread : AppThread {
 		Renderer.WaitIdle();
 
 		Dispose();
-		
+
 		Swapchain.Dispose();
 		Renderer.Dispose();
 		GraphicsApi.Dispose();
