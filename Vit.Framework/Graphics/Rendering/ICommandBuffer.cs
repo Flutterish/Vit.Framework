@@ -29,7 +29,7 @@ public interface ICommandBuffer {
 
 	void SetTopology ( Topology topology );
 
-	void SetViewport ( AxisAlignedBox2<float> viewport );
+	void SetViewport ( AxisAlignedBox2<uint> viewport );
 	void SetScissors ( AxisAlignedBox2<uint> scissors );
 
 	void BindVertexBuffer ( IBuffer buffer );

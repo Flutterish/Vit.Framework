@@ -1,4 +1,7 @@
 ﻿using System.Numerics;
+using Vit.Framework.Graphics.OpenGl.Buffers;
+using Vit.Framework.Graphics.OpenGl.Rendering;
+using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -22,26 +25,32 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {
-		throw new NotImplementedException();
+		return new Shader( spirv );
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
-		throw new NotImplementedException();
+		return new ShaderProgram( parts.Select( x => x as Shader )! );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		throw new NotImplementedException();
+		return new Buffer<T>( type switch {
+			BufferType.Vertex => BufferTarget.ArrayBuffer,
+			BufferType.Index => BufferTarget.ArrayBuffer,
+			BufferType.Uniform => BufferTarget.UniformBuffer,
+			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
+		} );
 	}
 
 	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		throw new NotImplementedException();
+		return (Buffer<T>)CreateHostBuffer<T>( type );
 	}
 
+	GlImmediateCommandBuffer immediateCommandBuffer = new();
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
-		throw new NotImplementedException();
+		return immediateCommandBuffer;
 	}
 
 	public void Dispose () {
-		throw new NotImplementedException();
+		
 	}
 }

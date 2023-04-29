@@ -53,7 +53,7 @@ public class VulkanCommandCache : ICommandCache {
 
 	ShaderSet? shaders;
 	Topology topology;
-	AxisAlignedBox2<float> viewport;
+	AxisAlignedBox2<uint> viewport;
 	AxisAlignedBox2<uint> scissors;
 	IBuffer? indexBuffer;
 	IBuffer? oldIndexBuffer;
@@ -70,7 +70,7 @@ public class VulkanCommandCache : ICommandCache {
 		pipelineInvalidated = true;
 	}
 
-	public void SetViewport ( AxisAlignedBox2<float> viewport ) {
+	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
 		this.viewport = viewport;
 	}
 

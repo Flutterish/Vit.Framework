@@ -22,13 +22,14 @@ public partial class Program : App {
 		a.Title = "Window A [OpenGL]";
 		a.Initialized += _ => {
 			var glApi = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new ClearScreen( a, host, a.Title, glApi ) );
+			ThreadRunner.RegisterThread( new HelloTriangle( a, host, a.Title, glApi ) );
 		};
-		//var b = host.CreateWindow( RenderingApi.Vulkan, this );
-		//b.Title = "Window B [Vulkan]";
-		//b.Initialized += _ => {
-		//	ThreadRunner.RegisterThread( new RenderThread( b, host, b.Title ) );
-		//};
+		var b = host.CreateWindow( GraphicsApiType.OpenGl, this );
+		b.Title = "Window B [OpenGL]";
+		b.Initialized += _ => {
+			var glApi = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new ClearScreen( b, host, b.Title, glApi ) );
+		};
 		//var c = host.CreateWindow( RenderingApi.Vulkan, this );
 		//c.Title = "Window C [Vulkan]";
 		//c.Initialized += _ => {
@@ -36,7 +37,7 @@ public partial class Program : App {
 		//};
 
 		Task.Run( async () => {
-			while ( !a.IsClosed /*|| !b.IsClosed || !c.IsClosed*/ )
+			while ( !a.IsClosed || !b.IsClosed /*|| !c.IsClosed*/ )
 				await Task.Delay( 1 );
 
 			Quit();

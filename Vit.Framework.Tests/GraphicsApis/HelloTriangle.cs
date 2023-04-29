@@ -41,8 +41,8 @@ public class HelloTriangle : GenericRenderThread {
 		positions = Renderer.CreateDeviceBuffer<Point2<float>>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 
-		positions.Allocate( 3, BufferUsage.StreamDraw );
-		indices.Allocate( 3, BufferUsage.StreamDraw );
+		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.PerFrame );
+		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.PerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Point2<float>[] {
@@ -59,8 +59,8 @@ public class HelloTriangle : GenericRenderThread {
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
 		using var _ = commands.RenderTo( framebuffer, clearColor: ColorRgba.HotPink, clearDepth: 1 );
 		commands.SetShaders( shaderSet );
-		commands.SetViewport( framebuffer.Size.Cast<float>() );
-		commands.SetScissors( framebuffer.Size.Cast<uint>() );
+		commands.SetViewport( framebuffer.Size );
+		commands.SetScissors( framebuffer.Size );
 
 		commands.BindVertexBuffer( positions );
 		commands.BindIndexBuffer( indices );

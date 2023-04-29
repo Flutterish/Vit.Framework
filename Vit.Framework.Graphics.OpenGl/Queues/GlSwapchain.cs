@@ -8,10 +8,12 @@ namespace Vit.Framework.Graphics.OpenGl.Queues;
 
 public class GlSwapchain : ISwapchain {
 	IGlWindow window;
-	nint? context;
+	nint context;
 
 	public GlSwapchain ( IGlWindow window ) {
 		this.window = window;
+		context = window.CreateContext();
+		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
 	}
 
 	public void Recreate () {
@@ -20,11 +22,7 @@ public class GlSwapchain : ISwapchain {
 
 	DefaultFrameBuffer frameBuffer = new();
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
-		if ( context == null ) {
-			context = window.CreateContext();
-			OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
-		}
-		window.MakeCurrent( context.Value );
+		window.MakeCurrent( context );
 
 		frameIndex = 0;
 		frameBuffer.Size = window.PixelSize.Cast<uint>();

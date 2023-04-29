@@ -1,4 +1,6 @@
-﻿using Vit.Framework.Graphics.OpenGl.Textures;
+﻿using Vit.Framework.Graphics.OpenGl.Buffers;
+using Vit.Framework.Graphics.OpenGl.Shaders;
+using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -24,23 +26,23 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	public void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		throw new NotImplementedException();
+		((Buffer<T>)buffer).Upload( data, offset );
 	}
 
 	public void SetShaders ( IShaderSet? shaders ) {
-		throw new NotImplementedException();
+		GL.UseProgram( ((ShaderProgram?)shaders)?.Handle ?? 0 );
 	}
 
 	public void SetTopology ( Topology topology ) {
 		throw new NotImplementedException();
 	}
 
-	public void SetViewport ( AxisAlignedBox2<float> viewport ) {
-		throw new NotImplementedException();
+	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
+		GL.Viewport( (int)viewport.MinX, (int)viewport.MinY, (int)viewport.Width, (int)viewport.Height );
 	}
 
 	public void SetScissors ( AxisAlignedBox2<uint> scissors ) {
-		throw new NotImplementedException();
+		GL.Scissor( (int)scissors.MinX, (int)scissors.MinY, (int)scissors.Width, (int)scissors.Height );
 	}
 
 	public void BindVertexBuffer ( IBuffer buffer ) {
