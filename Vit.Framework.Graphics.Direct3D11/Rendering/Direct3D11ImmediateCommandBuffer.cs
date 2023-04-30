@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
+using Vortice.Direct3D;
 using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Rendering;
@@ -44,7 +45,10 @@ public class Direct3D11ImmediateCommandBuffer : DisposableObject, IImmediateComm
 	}
 
 	public void SetTopology ( Topology topology ) {
-		throw new NotImplementedException();
+		Context.IASetPrimitiveTopology( topology switch {
+			Topology.Triangles => PrimitiveTopology.TriangleList,
+			_ => throw new ArgumentException( "Invalid topology", nameof(topology) )
+		} );
 	}
 
 	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
@@ -60,11 +64,11 @@ public class Direct3D11ImmediateCommandBuffer : DisposableObject, IImmediateComm
 	}
 
 	public void BindIndexBuffer ( IBuffer buffer ) {
-		throw new NotImplementedException();
+		Context.IASetIndexBuffer( ((ID3D11BufferHandle)buffer).Handle!, buffer is Buffer<uint> ? Vortice.DXGI.Format.R32_UInt : Vortice.DXGI.Format.R16_UInt, 0 );
 	}
 
 	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
-		throw new NotImplementedException();
+		Context.DrawIndexed( (int)vertexCount, (int)offset, 0 );
 	}
 
 	protected override void Dispose ( bool disposing ) {

@@ -128,8 +128,8 @@ public class SdlHost : Host {
 					break;
 
 				case RenderingCapabilities.DrawToWindow:
-					if ( windowsById.Values.FirstOrDefault() is not SdlWindow window )
-						throw new Exception( $"In order to enabe {i}, some window must be created (SLD 3.0 limitation, to be removed in SDL 4.0)" );
+					if ( windowsById.Values.OfType<VulkanWindow>().FirstOrDefault() is not SdlWindow window )
+						throw new Exception( $"In order to enabe {i}, some vulkan window must be created (SLD 3.0 limitation, to be removed in SDL 4.0)" );
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
 					nint[] pointers = new nint[count];
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );

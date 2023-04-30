@@ -51,7 +51,7 @@ public class HelloTriangle : GenericRenderThread {
 				new( -0.5f, 0.5f )
 			} );
 			commands.Upload( indices, new uint[] {
-				0, 1, 2
+				2, 1, 0
 			} );
 		}
 	}

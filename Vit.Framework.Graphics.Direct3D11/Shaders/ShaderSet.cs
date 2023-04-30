@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Memory;

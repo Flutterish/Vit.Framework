@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Memory;
 using Vit.Framework.Platform;
+using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing.Sdl;
 
@@ -29,24 +30,24 @@ public partial class Program : App {
 		var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
 		a.Title = "Window A [DX11]";
 		a.Initialized += _ => {
-			var glApi = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new SdlDirect3D11RenderThreadX( (SdlWindow)a, "d3d" ) );
-			//ThreadRunner.RegisterThread( new ClearScreen( a, host, a.Title, glApi ) );
+			var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new HelloTriangle( a, host, a.Title, api ) );
 		};
-		//var b = host.CreateWindow( GraphicsApiType.OpenGl, this );
-		//b.Title = "Window B [OpenGL]";
-		//b.Initialized += _ => {
-		//	var glApi = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
-		//	ThreadRunner.RegisterThread( new ClearScreen( b, host, b.Title, glApi ) );
-		//};
-		//var c = host.CreateWindow( RenderingApi.Vulkan, this );
-		//c.Title = "Window C [Vulkan]";
-		//c.Initialized += _ => {
-		//	ThreadRunner.RegisterThread( new RenderThread( c, host, c.Title ) );
-		//};
+		var b = host.CreateWindow( GraphicsApiType.Vulkan, this );
+		b.Title = "Window A [Vulkan]";
+		b.Initialized += _ => {
+			var api = host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new HelloTriangle( b, host, b.Title, api ) );
+		};
+		var c = host.CreateWindow( GraphicsApiType.OpenGl, this );
+		c.Title = "Window A [OpenGl]";
+		c.Initialized += _ => {
+			var api = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new HelloTriangle( c, host, c.Title, api ) );
+		};
 
 		Task.Run( async () => {
-			while ( !a.IsClosed /*|| !b.IsClosed*/ /*|| !c.IsClosed*/ )
+			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed )
 				await Task.Delay( 1 );
 
 			Quit();
