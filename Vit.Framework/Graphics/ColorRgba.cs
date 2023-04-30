@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Graphics;
 
-public struct ColorRgba<T> where T : unmanaged, INumber<T> {
+public struct ColorRgba<T> where T : INumber<T> {
 	public T R;
 	public T G;
 	public T B;
@@ -29,6 +29,20 @@ public struct ColorRgba<T> where T : unmanaged, INumber<T> {
 			B = color.B / scalar,
 			A = color.A
 		};
+	}
+
+	public static bool operator == ( ColorRgba<T> left, ColorRgba<T> right ) {
+		return left.R == right.R
+			&& left.G == right.G
+			&& left.B == right.B
+			&& left.A == right.A;
+	}
+
+	public static bool operator != ( ColorRgba<T> left, ColorRgba<T> right ) {
+		return left.R != right.R
+			|| left.G != right.G
+			|| left.B != right.B
+			|| left.A != right.A;
 	}
 
 	public override string ToString () {
@@ -188,4 +202,14 @@ public static class ColorRgba {
 	public static readonly ColorRgba<float> Silver = new ColorRgba<float>( 192, 192, 192 ) / 255;
 	public static readonly ColorRgba<float> LightGray = new ColorRgba<float>( 211, 211, 211 ) / 255;
 	public static readonly ColorRgba<float> Gainsboro = new ColorRgba<float>( 220, 220, 220 ) / 255;
+
+	public static ColorRgba<byte> ToByte<T> ( this ColorRgba<T> color ) where T : IFloatingPoint<T> {
+		var _255 = T.CreateChecked( 255 );
+		return new() {
+			R = byte.CreateTruncating(color.R * _255),
+			G = byte.CreateTruncating(color.G * _255),
+			B = byte.CreateTruncating(color.B * _255),
+			A = byte.CreateTruncating(color.A * _255)
+		};
+	}
 }

@@ -25,7 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Pars
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Text.Fonts.OpenType", "Vit.Framework.Text.Fonts.OpenType\Vit.Framework.Text.Fonts.OpenType.csproj", "{40F15BC5-5C08-4396-8F5D-8AB65DCE534A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Graphics.ThreeD", "Vit.Framework.Graphics.ThreeD\Vit.Framework.Graphics.ThreeD.csproj", "{8C873615-B774-43BB-A3E2-4F5A099DE5C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.ThreeD", "Vit.Framework.Graphics.ThreeD\Vit.Framework.Graphics.ThreeD.csproj", "{8C873615-B774-43BB-A3E2-4F5A099DE5C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Windowing.Console", "Vit.Framework.Windowing.Console\Vit.Framework.Windowing.Console.csproj", "{E6723E82-B594-462F-B120-949B0DC2984F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{8C873615-B774-43BB-A3E2-4F5A099DE5C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C873615-B774-43BB-A3E2-4F5A099DE5C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C873615-B774-43BB-A3E2-4F5A099DE5C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6723E82-B594-462F-B120-949B0DC2984F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6723E82-B594-462F-B120-949B0DC2984F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6723E82-B594-462F-B120-949B0DC2984F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6723E82-B594-462F-B120-949B0DC2984F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

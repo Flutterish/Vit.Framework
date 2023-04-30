@@ -35,10 +35,21 @@ public abstract class Window : IWindow, IDisposable {
 	public bool IsInitialized { get; private set; }
 	protected void OnInitialized () {
 		IsInitialized = true;
-		Initialized?.Invoke( this );
-		Initialized = null;
+		initialized?.Invoke( this );
+		initialized = null;
 	}
-	public event Action<Window>? Initialized;
+	public event Action<Window>? initialized;
+	public event Action<Window>? Initialized {
+		add {
+			if ( IsInitialized )
+				value?.Invoke( this );
+			else
+				initialized += value;
+		}
+		remove {
+			initialized -= value;
+		}
+	}
 
 	public Point2<double> CursorPosition { get; private set; }
 	protected void OnCursorMoved ( Point2<double> position ) {
