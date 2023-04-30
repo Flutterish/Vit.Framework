@@ -17,7 +17,7 @@ public class GlSwapchain : ISwapchain {
 	}
 
 	public void Recreate () {
-		throw new NotImplementedException();
+		
 	}
 
 	DefaultFrameBuffer frameBuffer = new();

@@ -61,4 +61,8 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
 	public override int GetHashCode () {
 		return HashCode.Combine( X, Y );
 	}
+
+	public override string ToString () {
+		return $"({X}, {Y})";
+	}
 }

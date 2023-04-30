@@ -37,6 +37,10 @@ public struct AxisAlignedBox2<T> where T : INumber<T> {
 			MaxY = T.Max( MaxY, other.MaxY )
 		};
 	}
+
+	public override string ToString () {
+		return $"{Size} at {Position}";
+	}
 }
 
 public static class AABox<T> where T : INumber<T>, IFloatingPointIeee754<T> {

@@ -16,6 +16,12 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 			GL.AttachShader( Handle, i.Handle );
 		}
 		GL.LinkProgram( Handle );
+		GL.GetProgram( Handle, GetProgramParameterName.LinkStatus, out var status );
+		if ( status == 0 ) {
+			GL.GetProgram( Handle, GetProgramParameterName.InfoLogLength, out var length );
+			GL.GetProgramInfoLog( Handle, length, out _, out var info );
+			throw new Exception( info );
+		}
 
 		foreach ( var i in shaders ) {
 			GL.DetachShader( Handle, i.Handle );

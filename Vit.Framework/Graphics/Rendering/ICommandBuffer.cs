@@ -25,15 +25,40 @@ public interface ICommandBuffer {
 	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
 	void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
 
+	/// <summary>
+	/// Sets the shaders for the rendering pipeline.
+	/// </summary>
 	void SetShaders ( IShaderSet? shaders );
 
+	/// <summary>
+	/// Sets the topology that will be used when drawing elements.
+	/// </summary>
 	void SetTopology ( Topology topology );
 
+	/// <summary>
+	/// Maps NDC to frame buffer coordinates.
+	/// </summary>
 	void SetViewport ( AxisAlignedBox2<uint> viewport );
+	
+	/// <summary>
+	/// Sets which region of the framebuffer pixels can be rendered to.
+	/// </summary>
 	void SetScissors ( AxisAlignedBox2<uint> scissors );
 
-	void BindVertexBuffer ( IBuffer buffer );
+	/// <summary>
+	/// Maps a packed vertex buffer to a all locations in the current shader set.
+	/// </summary>
+	void BindVertexBuffer ( IBuffer buffer ); // TODO allow multiple buffers with shader set and mesh descriptors
+
+	/// <summary>
+	/// Sets the index buffer to use when drawing indexed elements.
+	/// </summary>
 	void BindIndexBuffer ( IBuffer buffer );
 
+	/// <summary>
+	/// Draws using the index buffer.
+	/// </summary>
+	/// <param name="vertexCount">Amount of vertices to draw (*not* elements).</param>
+	/// <param name="offset">Offset from the start of the index buffer.</param>
 	void DrawIndexed ( uint vertexCount, uint offset = 0 );
 }

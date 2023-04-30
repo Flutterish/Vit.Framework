@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
+using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.PrimitiveType;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
@@ -29,12 +30,15 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 		((Buffer<T>)buffer).Upload( data, offset );
 	}
 
+	IShaderSet? shaders;
+	int vao;
 	public void SetShaders ( IShaderSet? shaders ) {
+		this.shaders = shaders;
 		GL.UseProgram( ((ShaderProgram?)shaders)?.Handle ?? 0 );
 	}
 
 	public void SetTopology ( Topology topology ) {
-		throw new NotImplementedException();
+		
 	}
 
 	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
@@ -46,18 +50,47 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	public void BindVertexBuffer ( IBuffer buffer ) {
-		throw new NotImplementedException();
+		if ( vao == 0 ) {
+			vao = GL.GenVertexArray();
+			GL.BindVertexArray( vao );
+		}
+
+		GL.BindBuffer( BufferTarget.ArrayBuffer, ((IGlObject)buffer).Handle );
+		int index = 0;
+		int offset = 0;
+		foreach ( var i in shaders!.Parts.SelectMany( x => x.ShaderInfo.Input.Resources ).OrderBy( x => x.Location ) ) {
+			var length = (int)i.Type.FlattendedDimensions;
+			var (size, type) = i.Type.PrimitiveType switch {
+				PrimitiveType.Float32 => (sizeof(float), VertexAttribPointerType.Float),
+				var x when true => throw new Exception( $"Unknown data type: {x}" )
+			};
+
+			GL.VertexAttribPointer( index, length, type, false, length * size, offset );
+			GL.EnableVertexAttribArray( index++ );
+			offset += length * size;
+		}
 	}
 
+	DrawElementsType indexType;
 	public void BindIndexBuffer ( IBuffer buffer ) {
-		throw new NotImplementedException();
+		if ( vao == 0 ) {
+			vao = GL.GenVertexArray();
+			GL.BindVertexArray( vao );
+		}
+
+		GL.BindBuffer( BufferTarget.ElementArrayBuffer, ((IGlObject)buffer).Handle );
+		indexType = buffer is Buffer<uint> ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
 	}
 
 	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
-		throw new NotImplementedException();
+		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
 	}
 
 	public void Dispose () {
-		
+		if ( vao != 0 ) {
+			GL.BindVertexArray( 0 );
+			GL.DeleteVertexArray( vao );
+			vao = 0;
+		}
 	}
 }

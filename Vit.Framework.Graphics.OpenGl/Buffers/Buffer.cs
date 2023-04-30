@@ -1,11 +1,14 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
-public class Buffer<T> : DisposableObject, IDeviceBuffer<T>, IHostBuffer<T> where T : unmanaged {
-	public readonly int Handle;
+public class Buffer<T> : DisposableObject, IGlObject, IDeviceBuffer<T>, IHostBuffer<T> where T : unmanaged {
+	static readonly int Stride = Marshal.SizeOf( default(T) );
+
+	public int Handle { get; }
 	public readonly BufferTarget Type;
 	public Buffer ( BufferTarget type ) {
 		Type = type;
@@ -16,7 +19,7 @@ public class Buffer<T> : DisposableObject, IDeviceBuffer<T>, IHostBuffer<T> wher
 		GL.BindBuffer( Type, Handle );
 
 		var offset = usageHint.HasFlag( BufferUsage.PerFrame ) ? 0 : usageHint.HasFlag( BufferUsage.Rarely ) ? 6 : 3;
-		GL.BufferData( Type, (int)size, (nint)0, 
+		GL.BufferData( Type, (int)size * Stride, (nint)null, 
 			usageHint.HasFlag( BufferUsage.CpuRead ) ? (BufferUsageHint.StreamRead + offset) :
 			usageHint.HasFlag( BufferUsage.CpuWrite ) ? (BufferUsageHint.StreamDraw + offset) :
 			(BufferUsageHint.StreamCopy + offset)
@@ -25,7 +28,7 @@ public class Buffer<T> : DisposableObject, IDeviceBuffer<T>, IHostBuffer<T> wher
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
 		GL.BindBuffer( Type, Handle );
-		GL.BufferSubData( Type, (int)offset, data.Length, (nint)data.Data() );
+		GL.BufferSubData( Type, (int)offset, data.Length * Stride, (nint)data.Data() );
 	}
 
 	protected override void Dispose ( bool disposing ) {

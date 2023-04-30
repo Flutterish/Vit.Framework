@@ -11,6 +11,8 @@ public class DataTypeInfo {
 	public readonly ImmutableArray<uint> Dimensions;
 	public readonly bool IsArray;
 
+	public uint FlattendedDimensions => Dimensions.Aggregate( (a, b) => a * b );
+
 	public DataTypeInfo ( PrimitiveType type, bool isArray, IEnumerable<uint> dimensions ) {
 		PrimitiveType = type;
 		IsArray = isArray;
