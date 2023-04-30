@@ -18,7 +18,7 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 
 	VkSwapchainCreateInfoKHR createInfo;
 	uint[]? queueIndices;
-	public unsafe Swapchain ( Device device, VkSurfaceKHR surface, SwapchainFormat format, Size2<int> pixelSize, IReadOnlyList<QueueFamily> queues ) {
+	public unsafe Swapchain ( Device device, VkSurfaceKHR surface, SwapchainFormat format, Size2<uint> pixelSize, IReadOnlyList<QueueFamily> queues ) {
 		Device = device;
 		Surface = surface;
 		Format = format;
@@ -54,7 +54,7 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		createImageViews();
 	}
 
-	public unsafe void Recreate ( Size2<int> pixelSize ) {
+	public unsafe void Recreate ( Size2<uint> pixelSize ) {
 		Vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR( Device.PhysicalDevice, Surface, out var capabilities ).Validate();
 		var size = getExtent( pixelSize, capabilities );
 
@@ -155,14 +155,14 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		return Vk.vkQueuePresentKHR( queue, &info );
 	}
 
-	VkExtent2D getExtent ( Size2<int> pixelSize, VkSurfaceCapabilitiesKHR capabilities ) {
+	VkExtent2D getExtent ( Size2<uint> pixelSize, VkSurfaceCapabilitiesKHR capabilities ) {
 		if ( capabilities.currentExtent.width != uint.MaxValue ) {
 			return capabilities.currentExtent;
 		}
 
 		return new() {
-			width = (uint)Math.Clamp( pixelSize.Width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width ),
-			height = (uint)Math.Clamp( pixelSize.Height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height )
+			width = Math.Clamp( pixelSize.Width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width ),
+			height = Math.Clamp( pixelSize.Height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height )
 		};
 	}
 

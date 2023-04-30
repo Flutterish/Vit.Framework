@@ -8,7 +8,7 @@ using Vortice.DXGI;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-class SdlDirect3D11RenderThread : AppThread {
+public class SdlDirect3D11RenderThread : AppThread {
 	SdlWindow window;
 	public SdlDirect3D11RenderThread ( SdlWindow window, string name ) : base( name ) {
 		this.window = window;

@@ -35,7 +35,7 @@ public class ShaderInfo {
 		spvc_parsed_ir ir;
 		validate( SPIRV.spvc_context_parse_spirv( context, MemoryMarshal.Cast<byte, SpvId>( bytecode.Data ).Data(), (nuint)bytecode.Data.Length / 4, &ir ) );
 		spvc_compiler compiler;
-		validate( SPIRV.spvc_context_create_compiler( context, spvc_backend.Glsl, ir, spvc_capture_mode.TakeOwnership, &compiler ) );
+		validate( SPIRV.spvc_context_create_compiler( context, spvc_backend.None, ir, spvc_capture_mode.TakeOwnership, &compiler ) );
 		spvc_resources resources;
 		SPIRV.spvc_compiler_create_shader_resources( compiler, &resources );
 

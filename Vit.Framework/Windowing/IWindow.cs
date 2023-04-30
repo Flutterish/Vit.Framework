@@ -3,5 +3,5 @@
 namespace Vit.Framework.Windowing;
 
 public interface IWindow {
-	Size2<int> PixelSize { get; }
+	Size2<uint> PixelSize { get; }
 }

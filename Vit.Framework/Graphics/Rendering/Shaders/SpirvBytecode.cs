@@ -43,10 +43,10 @@ public class SpirvBytecode { // TODO dispose this at some point?
 			throw new Exception( "Shader compilation failed" );
 		}
 
-		Reflections = ShaderInfo.FromSpirv( type, this );
+		Reflections = ShaderInfo.FromSpirv( type, this ); // TODO merge with cross compile when applicable
 	}
 
-	unsafe void reflect () {
+	public unsafe string CrossCompile ( ShaderLanguage target ) {
 		void validate ( spvc_result result ) {
 			if ( result != spvc_result.SPVC_SUCCESS ) {
 				throw new Exception( $"{result}" );
@@ -56,7 +56,7 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		spvc_context context;
 		validate( SPIRV.spvc_context_create( &context ) );
 		static void ErrorCallback ( void* userData, byte* error ) {
-			Console.WriteLine( (CString)error );
+			throw new Exception( ( (CString)error ).ToString() );
 		}
 		spvc_error_callback callback = new( Marshal.GetFunctionPointerForDelegate( ErrorCallback ) );
 
@@ -64,43 +64,30 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		spvc_parsed_ir ir;
 		validate( SPIRV.spvc_context_parse_spirv( context, MemoryMarshal.Cast<byte, SpvId>( Data ).Data(), (nuint)Data.Length / 4, &ir ) );
 		spvc_compiler compiler;
-		validate( SPIRV.spvc_context_create_compiler( context, spvc_backend.Glsl, ir, spvc_capture_mode.TakeOwnership, &compiler ) );
-		spvc_resources resources;
-		SPIRV.spvc_compiler_create_shader_resources( compiler, &resources );
+		validate( SPIRV.spvc_context_create_compiler( context, target switch {
+			ShaderLanguage.GLSL => spvc_backend.Glsl,
+			ShaderLanguage.HLSL => spvc_backend.Hlsl,
+			_ => throw new ArgumentException( $"Invalid shader target: {target}", nameof( target ) )
+		}, ir, spvc_capture_mode.TakeOwnership, &compiler ) );
 
-		spvc_reflected_resource* list = default;
-		nuint count = default;
-
-		Console.WriteLine( $"\n\nReflecting {Type} Shader" );
-		foreach ( var resourceType in Enum.GetValues<spvc_resource_type>().Except( new[] { spvc_resource_type.Unknown, spvc_resource_type.RayQuery, spvc_resource_type.IntMax } ) ) {
-			SPIRV.spvc_resources_get_resource_list_for_type( resources, resourceType, (spvc_reflected_resource*)&list, &count );
-			if ( count == 0 )
-				continue;
-
-			Console.WriteLine( $"Type: {resourceType}" );
-			for ( nuint i = 0; i < count; i++ ) {
-				var res = list[i];
-				var baseType = SPIRV.spvc_compiler_get_type_handle( compiler, res.base_type_id );
-				var type = SPIRV.spvc_compiler_get_type_handle( compiler, res.type_id );
-				var baseTypeName = SPIRV.spvc_type_get_basetype( baseType );
-				var typeName = SPIRV.spvc_type_get_basetype( type );
-				var baseTypeSize = SPIRV.spvc_type_get_vector_size( baseType );
-				var typeSize = SPIRV.spvc_type_get_vector_size( type );
-				var name = SPIRV.spvc_compiler_get_name( compiler, (SpvId)res.id );
-				Console.WriteLine( $"\tID: {res.id}, BaseType ({res.base_type_id}): {baseTypeName}[{baseTypeSize}], Type ({res.type_id}): {typeName}[{typeSize}], Name: {(CString)name}" );
-
-				uint set = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationDescriptorSet );
-				uint location = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationLocation );
-				Console.WriteLine( $"\tSet: {set}" );
-				uint binding = SPIRV.spvc_compiler_get_decoration( compiler, (SpvId)res.id, SpvDecoration.SpvDecorationBinding );
-				Console.WriteLine( $"\tBinding: {binding}" );
-				Console.WriteLine( $"\tLocation: {location}" );
-
-				if ( i + 1 != count )
-					Console.WriteLine( "\t--------" );
-			}
+		spvc_compiler_options options = default;
+		SPIRV.spvc_compiler_create_compiler_options( compiler, &options );
+		if ( target == ShaderLanguage.GLSL ) {
+			SPIRV.spvc_compiler_options_set_uint( options, spvc_compiler_option.GlslVersion, 460 );
+			SPIRV.spvc_compiler_options_set_bool( options, spvc_compiler_option.GlslEs, false );
+		}
+		else if ( target == ShaderLanguage.HLSL ) {
+			SPIRV.spvc_compiler_options_set_uint( options, spvc_compiler_option.HlslShaderModel, 50 );
 		}
 
+		SPIRV.spvc_compiler_install_compiler_options( compiler, options );
+
+		byte* res = null;
+		validate( SPIRV.spvc_compiler_compile( compiler, (byte*)&res ) );
+		var str = (new CString( res )).ToString();
+
 		SPIRV.spvc_context_destroy( context );
+
+		return str;
 	}
 }

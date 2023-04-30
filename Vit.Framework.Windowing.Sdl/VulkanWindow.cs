@@ -13,10 +13,10 @@ namespace Vit.Framework.Windowing.Sdl;
 class VulkanWindow : SdlWindow, IVulkanWindow { // TODO remove the IVulkanWindow
 	public VulkanWindow ( SdlHost host ) : base( host, GraphicsApiType.Vulkan ) { }
 
-	public override Size2<int> PixelSize {
+	public override Size2<uint> PixelSize {
 		get {
 			SDL.SDL_Vulkan_GetDrawableSize( Pointer, out int pixelWidth, out int pixelHeight );
-			return new( pixelWidth, pixelHeight );
+			return new( (uint)pixelWidth, (uint)pixelHeight );
 		}
 	}
 

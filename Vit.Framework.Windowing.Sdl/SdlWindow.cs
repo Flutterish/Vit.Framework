@@ -5,7 +5,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-abstract class SdlWindow : Window {
+public abstract class SdlWindow : Window {
 	string title = "New Window";
 	public override string Title {
 		get => title;
@@ -18,8 +18,8 @@ abstract class SdlWindow : Window {
 		}
 	}
 
-	Size2<int> size = new( 640, 480 );
-	public override Size2<int> Size {
+	Size2<uint> size = new( 640, 480 );
+	public override Size2<uint> Size {
 		get => size;
 		set {
 			size = value;
@@ -27,7 +27,7 @@ abstract class SdlWindow : Window {
 				return;
 
 			host.Shedule( () => {
-				SDL.SDL_SetWindowSize( Pointer, Width, Height );
+				SDL.SDL_SetWindowSize( Pointer, (int)Width, (int)Height );
 				OnResized();
 			} );
 		}
@@ -58,7 +58,7 @@ abstract class SdlWindow : Window {
 			
 		}
 
-		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, Width, Height, windowFlags );
+		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, (int)Width, (int)Height, windowFlags );
 		if ( Pointer == 0 ) {
 			SdlHost.ThrowSdl( "window creation failed" );
 		}
@@ -71,7 +71,9 @@ abstract class SdlWindow : Window {
 		if ( e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE )
 			Quit();
 		else if ( e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED ) {
-			SDL.SDL_GetWindowSize( Pointer, out size.Width, out size.Height );
+			SDL.SDL_GetWindowSize( Pointer, out var width, out var height );
+			size.Width = (uint)width;
+			size.Height = (uint)height;
 			OnResized();
 		}
 	}
@@ -99,8 +101,9 @@ abstract class SdlWindow : Window {
 
 	public void CheckResize () {
 		SDL.SDL_GetWindowSize( Pointer, out var width, out var height );
-		if ( size != new Size2<int>( width, height ) ) {
-			size = new Size2<int>( width, height );
+		var newSize = new Size2<uint>( (uint)width, (uint)height );
+		if ( size != newSize ) {
+			size = newSize;
 			OnResized();
 		}
 	}

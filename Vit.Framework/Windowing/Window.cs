@@ -13,14 +13,14 @@ public abstract class Window : IWindow, IDisposable {
 	}
 
 	public abstract string Title { get; set; }
-	public int Width { get => Size.Width; set => Size = Size with { Width = value }; }
-	public int Height { get => Size.Height; set => Size = Size with { Height = value }; }
+	public uint Width { get => Size.Width; set => Size = Size with { Width = value }; }
+	public uint Height { get => Size.Height; set => Size = Size with { Height = value }; }
 
-	public abstract Size2<int> Size { get; set; }
+	public abstract Size2<uint> Size { get; set; }
 
-	public int PixelWidth => PixelSize.Width;
-	public int PixelHeight => PixelSize.Height;
-	public virtual Size2<int> PixelSize => Size;
+	public uint PixelWidth => PixelSize.Width;
+	public uint PixelHeight => PixelSize.Height;
+	public virtual Size2<uint> PixelSize => Size;
 
 	protected void OnResized () {
 		Resized?.Invoke( this );
@@ -57,6 +57,7 @@ public abstract class Window : IWindow, IDisposable {
 	}
 	public event Action<Key>? PhysicalKeyUp;
 
+	// TODO try to split this to just create the swapchain?
 	public abstract (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
 
 	public bool IsClosed { get; private set; }

@@ -59,7 +59,7 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		return queue;
 	}
 
-	public Swapchain CreateSwapchain ( VkSurfaceKHR surface, SwapchainFormat format, Size2<int> pixelSize ) {
+	public Swapchain CreateSwapchain ( VkSurfaceKHR surface, SwapchainFormat format, Size2<uint> pixelSize ) {
 		return new( this, surface, format, pixelSize, QueueFamilies );
 	}
 

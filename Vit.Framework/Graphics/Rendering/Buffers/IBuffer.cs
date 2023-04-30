@@ -36,6 +36,7 @@ public interface IHostBuffer : IBuffer {
 
 /// <inheritdoc cref="IHostBuffer"/>
 public interface IHostBuffer<T> : IHostBuffer, IBuffer<T> where T : unmanaged {
+
 	/// <summary>
 	/// Uploads data to a buffer.
 	/// </summary>

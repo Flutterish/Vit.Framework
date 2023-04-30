@@ -29,6 +29,13 @@ public struct AxisAlignedBox2<T> where T : INumber<T> {
 		MaxY = MinY + size.Height;
 	}
 
+	public AxisAlignedBox2 ( T x, T y, T width, T height ) {
+		MinX = x;
+		MinY = y;
+		MaxX = x + width;
+		MaxY = y + height;
+	}
+
 	public AxisAlignedBox2<T> Contain ( AxisAlignedBox2<T> other ) {
 		return new AxisAlignedBox2<T>() {
 			MinX = T.Min( MinX, other.MinX ),
