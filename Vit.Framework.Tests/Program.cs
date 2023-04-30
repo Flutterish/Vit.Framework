@@ -10,12 +10,6 @@ namespace Vit.Framework.Tests;
 public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
-	class lol : DisposableObject {
-		protected override void Dispose ( bool disposing ) {
-			throw new NotImplementedException();
-		}
-	}
-
 	public static void Main () {
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
