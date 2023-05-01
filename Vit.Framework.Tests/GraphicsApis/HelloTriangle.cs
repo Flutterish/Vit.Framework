@@ -56,8 +56,13 @@ public class HelloTriangle : GenericRenderThread {
 		}
 	}
 
+	DateTime start = DateTime.Now;
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
-		using var _ = commands.RenderTo( framebuffer, clearColor: ColorRgba.HotPink, clearDepth: 1 );
+		using var _ = commands.RenderTo( framebuffer, clearColor: new ColorHsv<Radians<float>, float> {
+			H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
+			S = 1,
+			V = 1
+		}.ToRgba(), clearDepth: 1 );
 		commands.SetShaders( shaderSet );
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );

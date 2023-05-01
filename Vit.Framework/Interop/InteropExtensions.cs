@@ -57,4 +57,8 @@ public static class InteropExtensions {
 	public unsafe static T* Data<T> ( this List<T> list ) where T : unmanaged {
 		return CollectionsMarshal.AsSpan( list ).Data();
 	}
+
+	public unsafe static TTo BitCast<TFrom, TTo> ( this TFrom from ) where TTo : unmanaged where TFrom : unmanaged {
+		return MemoryMarshal.Cast<TFrom, TTo>( MemoryMarshal.CreateSpan( ref from, 1 ) )[0];
+	}
 }

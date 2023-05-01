@@ -5,6 +5,8 @@ public enum PrimitiveType {
 	Struct,
 
 	Float32,
+	Int32,
+	UInt32,
 
 	Sampler
 }

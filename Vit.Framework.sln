@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Thre
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Windowing.Console", "Vit.Framework.Windowing.Console\Vit.Framework.Windowing.Console.csproj", "{E6723E82-B594-462F-B120-949B0DC2984F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Graphics.Software", "Vit.Framework.Graphics.Software\Vit.Framework.Graphics.Software.csproj", "{24C0D091-5883-43AD-82A7-7457AC937F89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{E6723E82-B594-462F-B120-949B0DC2984F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6723E82-B594-462F-B120-949B0DC2984F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6723E82-B594-462F-B120-949B0DC2984F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24C0D091-5883-43AD-82A7-7457AC937F89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24C0D091-5883-43AD-82A7-7457AC937F89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24C0D091-5883-43AD-82A7-7457AC937F89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24C0D091-5883-43AD-82A7-7457AC937F89}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

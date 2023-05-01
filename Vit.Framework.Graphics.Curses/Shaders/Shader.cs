@@ -1,14 +1,15 @@
 ﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
+using Vit.Framework.Graphics.Software.Shaders;
 
 namespace Vit.Framework.Graphics.Curses.Shaders;
 
 public class Shader : IShaderPart {
-	public ShaderPartType Type => spirv.Type;
-	public ShaderInfo ShaderInfo => spirv.Reflections;
-	SpirvBytecode spirv;
+	public ShaderPartType Type => SoftwareShader.Type;
+	public ShaderInfo ShaderInfo => SoftwareShader.ShaderInfo;
+	SoftwareShader SoftwareShader;
 	public Shader ( SpirvBytecode spirv ) {
-		this.spirv = spirv;
+		SoftwareShader = new( spirv );
 	}
 
 	public void Dispose () {
