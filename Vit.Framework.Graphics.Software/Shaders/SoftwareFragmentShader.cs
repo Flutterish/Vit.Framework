@@ -11,7 +11,11 @@ public class SoftwareFragmentShader : SoftwareShader {
 		ColorOutput = (IVariable<Vector4<float>>)OutputsByLocation.Values.First( x => x.Type.Base is RuntimeVector4Type<float> ).Address!;
 	}
 
-	public FragmentShaderOutput Execute () {
+	public FragmentShaderOutput Execute ( ShaderStageOutput vertexStageOutput ) {
+		foreach ( var (loc, variable) in vertexStageOutput.Outputs ) {
+			InputsByLocation[loc].Address!.Value = variable.Value;
+		}
+
 		Entry.Call();
 
 		var color = ColorOutput.Value;

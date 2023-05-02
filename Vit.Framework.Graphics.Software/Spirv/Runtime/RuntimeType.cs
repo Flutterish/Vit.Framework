@@ -20,13 +20,14 @@ public interface IRuntimeType<T> : IRuntimeType where T : unmanaged {
 
 public abstract class RuntimeType<T> : IRuntimeType<T> where T : unmanaged {
 	public abstract IRuntimeType Vectorize ( uint count );
-
-	public virtual IVariable<T> CreateVariable () {
-		return new TypedVariable<T>( this );
-	}
+	public abstract IVariable<T> CreateVariable ();
 }
 
 public class RuntimeNumberType<T> : RuntimeType<T> where T : unmanaged, INumber<T> {
+	public override IVariable<T> CreateVariable () {
+		return new NumericVariable<T>( this );
+	}
+
 	public override IRuntimeType Vectorize ( uint count ) {
 		if ( count == 2 ) {
 			return new RuntimeVector2Type<T>( this );

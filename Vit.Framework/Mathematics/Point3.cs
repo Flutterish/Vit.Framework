@@ -46,6 +46,8 @@ public struct Point3<T> : IInterpolatable<Point3<T>, T> where T : INumber<T> {
 		};
 	}
 
+	public Point2<T> XY => new( X, Y );
+
 	public override string ToString () {
 		return $"({X}, {Y}, {Z})";
 	}

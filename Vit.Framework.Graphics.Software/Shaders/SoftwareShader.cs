@@ -76,3 +76,17 @@ public class SoftwareShader {
 		Entry = new( GlobalScope, entry.Function );
 	}
 }
+
+public struct ShaderStageOutput {
+	public Dictionary<uint, IVariable> Outputs;
+
+	public void Interpolate ( float a, float b, float c, ShaderStageOutput A, ShaderStageOutput B, ShaderStageOutput C ) {
+		foreach ( var (id, output) in Outputs ) {
+			var _A = A.Outputs[id];
+			var _B = B.Outputs[id];
+			var _C = C.Outputs[id];
+
+			output.Interpolate( a, b, c, _A, _B, _C );
+		}
+	}
+}

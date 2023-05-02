@@ -9,6 +9,8 @@ public interface IVariable {
 	object? Value { get; set; }
 
 	void Parse ( ReadOnlySpan<byte> data );
+
+	void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C );
 }
 
 public interface IVariable<T> : IVariable where T : unmanaged {
@@ -22,11 +24,15 @@ public interface IVariable<T> : IVariable where T : unmanaged {
 	new T Value { get; set; }
 
 	void IVariable.Parse ( ReadOnlySpan<byte> data ) => Value = MemoryMarshal.Read<T>( data );
+
+	void IVariable.Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C )
+		=> Interpolate( a, b, c, (IVariable<T>)A, (IVariable<T>)B, (IVariable<T>)C );
+	void Interpolate ( float a, float b, float c, IVariable<T> A, IVariable<T> B, IVariable<T> C );
 }
 
-public class TypedVariable<T> : IVariable<T> where T : unmanaged {
+public class NumericVariable<T> : IVariable<T> where T : unmanaged, INumber<T> {
 	public IRuntimeType<T> Type { get; }
-	public TypedVariable ( IRuntimeType<T> type ) {
+	public NumericVariable ( IRuntimeType<T> type ) {
 		Type = type;
 	}
 
@@ -34,6 +40,10 @@ public class TypedVariable<T> : IVariable<T> where T : unmanaged {
 
 	public override string ToString () {
 		return $"{Value}";
+	}
+
+	public void Interpolate ( float a, float b, float c, IVariable<T> A, IVariable<T> B, IVariable<T> C ) {
+		Value = T.CreateChecked(float.CreateTruncating( A.Value ) * a + float.CreateTruncating( B.Value ) * b + float.CreateTruncating( C.Value ) * c);
 	}
 }
 
@@ -68,6 +78,10 @@ public class StructVariable : ICompositeVariable {
 	}
 
 	public IVariable this[uint index] => Members[index];
+
+	public void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C ) {
+		throw new NotImplementedException();
+	}
 }
 
 public abstract class VectorVariable<T, TVector> : IVariable<TVector>, ICompositeVariable where T : unmanaged, INumber<T> where TVector : unmanaged {
@@ -94,6 +108,12 @@ public abstract class VectorVariable<T, TVector> : IVariable<TVector>, IComposit
 
 	public override string ToString () {
 		return $"<{string.Join(", ", Components.AsEnumerable())}>";
+	}
+
+	public void Interpolate ( float a, float b, float c, IVariable<TVector> A, IVariable<TVector> B, IVariable<TVector> C ) {
+		for ( int i = 0; i < Components.Length; i++ ) {
+			Components[i].Interpolate( a, b, c, ((VectorVariable<T, TVector>)A).Components[i], ((VectorVariable<T, TVector>)B).Components[i], ((VectorVariable<T, TVector>)C).Components[i] );
+		}
 	}
 }
 
@@ -161,6 +181,10 @@ public class ArrayVariable : ICompositeVariable {
 	}
 
 	public IVariable this[uint index] => Elements[index];
+
+	public void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C ) {
+		throw new NotImplementedException();
+	}
 }
 
 public class PointerVariable : IVariable {
@@ -184,5 +208,9 @@ public class PointerVariable : IVariable {
 
 	public override string ToString () {
 		return Address is null ? "NULL" : $"&{Address}";
+	}
+
+	public void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C ) {
+		throw new NotImplementedException();
 	}
 }

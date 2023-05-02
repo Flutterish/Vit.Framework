@@ -62,104 +62,151 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		indexBuffer = buffer;
 	}
 
-	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
-		var vertexBuffer = (IByteBuffer)this.vertexBuffer!;
+	ShaderStageOutput[] vertexAttributes = new ShaderStageOutput[] {
+		new() { Outputs = new() },
+		new() { Outputs = new() },
+		new() { Outputs = new() }
+	};
+	ShaderStageOutput interpolated = new() { Outputs = new() };
+	void initializeAttributes ( SoftwareShader shader ) {
+		foreach ( var i in vertexAttributes.Append( interpolated ) ) {
+			i.Outputs.Clear();
+			foreach ( var (location, output) in shader.OutputsByLocation ) {
+				i.Outputs.Add( location, output.Type.Base.CreateVariable() );
+			}
+		}
+	}
+
+	IEnumerable<uint> enumerateIndices ( uint count, uint offset ) {
 		var indexBuffer = (IByteBuffer)this.indexBuffer!;
 		bool isShort = indexBuffer is Buffer<ushort>;
+
+		for ( uint i = 0; i < count; i++ ) {
+			uint index;
+			if ( isShort )
+				index = MemoryMarshal.Cast<byte, ushort>( indexBuffer.Bytes )[(int)( offset + i )];
+			else
+				index = MemoryMarshal.Cast<byte, uint>( indexBuffer.Bytes )[(int)( offset + i )];
+			yield return index;
+		}
+	}
+
+	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+		var vertexBuffer = (IByteBuffer)this.vertexBuffer!;
 		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
 
 		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
 		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment ).SoftwareShader;
 
-		using RentedArray<VertexShaderOutput> vertices = new( vertexCount );
-		var bytes = vertexBuffer.Bytes;
-		var indexBytes = indexBuffer.Bytes;
-		for ( uint i = 0; i < vertexCount; i++ ) {
-			uint index;
-			if ( isShort )
-				index = MemoryMarshal.Cast<byte, ushort>( indexBytes )[(int)(offset + i)];
-			else
-				index = MemoryMarshal.Cast<byte, uint>( indexBytes )[(int)(offset + i)];
-			vertices[i] = vert.Execute( bytes, index );
-		}
+		initializeAttributes( vert );
 
-		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
-			var point = (vector.XYZ / vector.W).FromOrigin();
-			return point with {
-				X = (point.X + 1) * 0.5f * size.Width,
-				Y = (point.Y + 1) * 0.5f * size.Height
-			};
-		}
-
-		var resultSize = renderTarget.Size.Cast<float>();
+		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
+		var vertexBytes = vertexBuffer.Bytes;
 		if ( topology == Topology.Triangles ) {
-			for ( uint i = 0; i < vertexCount; i += 3 ) {
-				var a = project( vertices[i].Position, resultSize );
-				var b = project( vertices[i + 1].Position, resultSize );
-				var c = project( vertices[i + 2].Position, resultSize );
+			while ( indices.MoveNext() ) {
+				var indexA = indices.Current;
+				indices.MoveNext();
+				var indexB = indices.Current;
+				indices.MoveNext();
+				var indexC = indices.Current;
 
-				// sort them by Y in ascending order
-				if ( c.Y < b.Y )
-					(c, b) = (b, c);
-				if ( b.Y < a.Y )
-					(b, a) = (a, b);
-				if ( c.Y < b.Y )
-					(c, b) = (b, c);
+				var a = vert.Execute( vertexBytes, indexA, ref vertexAttributes[0] );
+				var b = vert.Execute( vertexBytes, indexB, ref vertexAttributes[1] );
+				var c = vert.Execute( vertexBytes, indexC, ref vertexAttributes[2] );
 
-				if ( a.Y == c.Y )
-					continue; // degenerate triangle
-
-				//     * C
-				//    / \
-				//    |  \
-				//    |   \
-				//   /     \
-				// B *______* D
-				//      \__  \
-				//         \__* A
-
-				var progress = (b.Y - a.Y) / (c.Y - a.Y);
-				var d = new Point3<float>() {
-					X = a.X * (1 - progress) + c.X * progress,
-					Y = b.Y,
-					Z = a.Z * (1 - progress) + c.Z * progress
-				};
-
-				// top triangle
-				var startX = Math.Min( b.X, d.X );
-				var endX = Math.Max( b.X, d.X );
-				var startXStep = ( c.X - startX ) / ( c.Y - b.Y );
-				var endXStep = ( d.X - endX ) / ( c.Y - b.Y );
-				for ( int y = (int)b.Y; y <= c.Y; y++ ) {
-					for ( int x = (int)startX; x < endX; x++ ) {
-						var fragData = frag.Execute();
-						renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
-					}
-
-					startX += startXStep;
-					endX += endXStep;
-				}
-
-				// bottom triangle
-				startX = Math.Min( b.X, d.X );
-				endX = Math.Max( b.X, d.X );
-				startXStep = ( a.X - startX ) / ( b.Y - a.Y );
-				endXStep = ( a.X - endX ) / ( b.Y - a.Y );
-				startX += startXStep;
-				endX += endXStep;
-				for ( int y = (int)b.Y - 1; y >= a.Y; y-- ) {
-					for ( int x = (int)startX; x < endX; x++ ) {
-						var fragData = frag.Execute();
-						renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
-					}
-
-					startX += startXStep;
-					endX += endXStep;
-				}
+				rasterize( a, b, c, frag );
 			}
 		}
 		else {
 			throw new InvalidOperationException( $"Unsupported topology: {topology}" );
+		}
+	}
+
+	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag ) {
+		var resultSize = renderTarget.Size.Cast<float>();
+		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
+			var point = ( vector.XYZ / vector.W ).FromOrigin();
+			return point with {
+				X = ( point.X + 1 ) * 0.5f * size.Width,
+				Y = ( point.Y + 1 ) * 0.5f * size.Height
+			};
+		}
+
+		var a = project( A.Position, resultSize );
+		var b = project( B.Position, resultSize );
+		var c = project( C.Position, resultSize );
+
+		// sort them by Y in ascending order
+		if ( c.Y < b.Y )
+			(c, b, vertexAttributes[1], vertexAttributes[2]) = (b, c, vertexAttributes[2], vertexAttributes[1]);
+		if ( b.Y < a.Y )
+			(b, a, vertexAttributes[1], vertexAttributes[0]) = (a, b, vertexAttributes[0], vertexAttributes[1]);
+		if ( c.Y < b.Y )
+			(c, b, vertexAttributes[1], vertexAttributes[2]) = (b, c, vertexAttributes[2], vertexAttributes[1]);
+
+		if ( a.Y == c.Y )
+			return; // degenerate triangle
+
+		//     * C
+		//    / \
+		//    |  \
+		//    |   \
+		//   /     \
+		// B *______* D
+		//      \__  \
+		//         \__* A
+
+		var progress = ( b.Y - a.Y ) / ( c.Y - a.Y );
+		var d = new Point3<float>() {
+			X = a.X * ( 1 - progress ) + c.X * progress,
+			Y = b.Y,
+			Z = a.Z * ( 1 - progress ) + c.Z * progress
+		};
+
+		// top triangle
+		var startX = Math.Min( b.X, d.X );
+		var endX = Math.Max( b.X, d.X );
+		var startXStep = ( c.X - startX ) / ( c.Y - b.Y );
+		var endXStep = ( c.X - endX ) / ( c.Y - b.Y );
+		for ( int y = (int)b.Y; y <= c.Y; y++ ) {
+			for ( int x = (int)Math.Ceiling(startX); x < endX; x++ ) {
+				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
+					continue;
+
+				var point = new Point2<float>( x, y );
+				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
+				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2] );
+
+				var fragData = frag.Execute( interpolated );
+				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
+			}
+
+			startX += startXStep;
+			endX += endXStep;
+		}
+
+		// bottom triangle
+		startX = Math.Min( b.X, d.X );
+		endX = Math.Max( b.X, d.X );
+		startXStep = ( a.X - startX ) / ( b.Y - a.Y );
+		endXStep = ( a.X - endX ) / ( b.Y - a.Y );
+		startX += startXStep;
+		endX += endXStep;
+		for ( int y = (int)b.Y - 1; y >= a.Y; y-- ) {
+			for ( int x = (int)Math.Ceiling(startX); x < endX; x++ ) {
+				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
+					continue;
+
+				var point = new Point2<float>( x, y );
+				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
+				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2] );
+
+				var fragData = frag.Execute( interpolated );
+				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
+			}
+
+			startX += startXStep;
+			endX += endXStep;
 		}
 	}
 
