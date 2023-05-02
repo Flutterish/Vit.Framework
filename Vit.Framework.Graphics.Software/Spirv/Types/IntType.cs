@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Graphics.Software.Spirv.Types;
+﻿using Vit.Framework.Graphics.Software.Spirv.Runtime;
+
+namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public class IntType : DataType {
 	public IntType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
@@ -12,6 +14,14 @@ public class IntType : DataType {
 		}
 
 		return base.Parse( data );
+	}
+
+	protected override IRuntimeType CreateRuntimeType () {
+		if ( Width == 32 ) {
+			return Signed ? new RuntimeNumberType<int>() : new RuntimeNumberType<uint>();
+		}
+		
+		return base.CreateRuntimeType();
 	}
 
 	public override string ToString () {

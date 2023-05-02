@@ -18,8 +18,8 @@ public class SpirvCompiler {
 
 	public readonly Dictionary<uint, string> Names = new();
 	public readonly Dictionary<(uint structure, uint member), string> MemberNames = new();
-	public readonly Dictionary<uint, List<Decoration>> Decorations = new();
-	public readonly Dictionary<(uint structure, uint member), List<Decoration>> MemberDecorations = new();
+	public readonly Dictionary<uint, Dictionary<DecorationName, Decoration>> Decorations = new();
+	public readonly Dictionary<(uint structure, uint member), Dictionary<DecorationName, Decoration>> MemberDecorations = new();
 
 	public readonly List<SpirvInstruction> SpirvInstructions = new();
 	public readonly List<Capability> DeclaredCapabilities = new();
@@ -132,20 +132,21 @@ public class SpirvCompiler {
 			MemberNames.Add( (read( ref data ), read( ref data )), readString( ref data ) );
 		}
 		else if ( code is OpCode.Decorate or OpCode.MemberDecorate ) {
-			List<Decoration>? list;
+			Dictionary<DecorationName, Decoration>? decorations;
 			if ( code is OpCode.MemberDecorate ) {
 				var key = (read( ref data ), read( ref data ));
-				if ( !MemberDecorations.TryGetValue( key, out list ) )
-					MemberDecorations.Add( key, list = new() );
+				if ( !MemberDecorations.TryGetValue( key, out decorations ) )
+					MemberDecorations.Add( key, decorations = new() );
 			}
 			else {
 				var key = read( ref data );
-				if ( !Decorations.TryGetValue( key, out list ) )
-					Decorations.Add( key, list = new() );
+				if ( !Decorations.TryGetValue( key, out decorations ) )
+					Decorations.Add( key, decorations = new() );
 			}
-			
-			list.Add( new( this ) {
-				Name = read<DecorationName>( ref data ),
+
+			var name = read<DecorationName>( ref data );
+			decorations.Add( name, new( this ) {
+				Name = name,
 				Data = readArray( ref data )
 			} );
 		}
@@ -187,7 +188,7 @@ public class SpirvCompiler {
 		else if ( code == OpCode.Constant ) {
 			var type = read( ref data );
 			var id = read( ref data );
-			var constant = new Constant( this ) { DataTypeId = type, Data = readArray( ref data ) };
+			var constant = new Constant( this, id ) { DataTypeId = type, Data = readArray( ref data ) };
 			Constants.Add( id, constant );
 
 			Values.Add( id, constant );
@@ -195,7 +196,7 @@ public class SpirvCompiler {
 		else if ( code == OpCode.ConstantComposite ) {
 			var type = read( ref data );
 			var id = read( ref data );
-			var constant = new ConstantComposite( this ) { DataTypeId = type, ValueIds = readArray( ref data ) };
+			var constant = new ConstantComposite( this, id ) { DataTypeId = type, ValueIds = readArray( ref data ) };
 			CompositeConstants.Add( id, constant );
 
 			Values.Add( id, constant );
@@ -203,7 +204,7 @@ public class SpirvCompiler {
 		else if ( code == OpCode.Variable ) {
 			var type = read( ref data );
 			var id = read( ref data );
-			var variable = new Variable( this ) { Id = id, TypeId = type, StorageClass = read<StorageClass>( ref data ), InitializerId = readOptional( ref data ) };
+			var variable = new Variable( this, id ) { TypeId = type, StorageClass = read<StorageClass>( ref data ), InitializerId = readOptional( ref data ) };
 			Variables.Add( id, variable );
 
 			Assignables.Add( id, variable );
@@ -212,11 +213,11 @@ public class SpirvCompiler {
 		else if ( code == OpCode.Function ) {
 			var type = read( ref data );
 			var id = read( ref data );
-			Functions.Add( id, currentFunction = new( source ) { Id = id, ReturnTypeId = type, Control = read<FunctionControl>( ref data ), TypeId = read( ref data ) } );
+			Functions.Add( id, currentFunction = new( source, id ) { ReturnTypeId = type, Control = read<FunctionControl>( ref data ), TypeId = read( ref data ) } );
 			Instructions.Add( currentFunction );
 		}
 		else if ( code == OpCode.Label ) {
-			var label = new Label( source ) { Id = read( ref data ) };
+			var label = new Label( source, read( ref data ) );
 			Instructions.Add( label );
 			currentFunction!.AddInstruction( label );
 		}
@@ -244,7 +245,7 @@ public class SpirvCompiler {
 			ensureResultExists( construct.ResultId, construct.ResultTypeId );
 		}
 		else if ( code == OpCode.AccessChain ) {
-			var chain = new AccessChain( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), BaseId = read( ref data ), Indices = readArray( ref data ) };
+			var chain = new AccessChain( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), BaseId = read( ref data ), IndiceIds = readArray( ref data ) };
 			Instructions.Add( chain );
 			currentFunction!.AddInstruction( chain );
 			ensureResultExists( chain.ResultId, chain.ResultTypeId );
@@ -264,7 +265,7 @@ public class SpirvCompiler {
 
 	void ensureResultExists ( uint id, uint type ) {
 		if ( !Assignables.ContainsKey( id ) ) {
-			var intermediate = new Intermediate( this ) { Id = id, TypeId = type };
+			var intermediate = new Intermediate( this, id ) { TypeId = type };
 			Assignables.Add( intermediate.Id, intermediate );
 			Values.Add( intermediate.Id, intermediate );
 			currentFunction!.Intermediates.Add( intermediate.Id, intermediate );

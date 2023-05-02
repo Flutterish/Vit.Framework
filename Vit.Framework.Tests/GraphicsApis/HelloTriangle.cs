@@ -47,8 +47,8 @@ public class HelloTriangle : GenericRenderThread {
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Point2<float>[] {
 				new( 0, -0.5f ),
-				new( 0.5f, 0.5f ),
-				new( -0.5f, 0.5f )
+				new( 0.7f, 0.3f ),
+				new( -0.5f, 0.7f )
 			} );
 			commands.Upload( indices, new uint[] {
 				2, 1, 0

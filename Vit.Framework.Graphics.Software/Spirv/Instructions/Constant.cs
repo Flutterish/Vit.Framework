@@ -1,13 +1,16 @@
 ﻿using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
+using Vit.Framework.Graphics.Software.Spirv.Types;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 
 public class Constant : CompilerObject, IValue {
-	public Constant ( SpirvCompiler compiler ) : base( compiler ) { }
+	public Constant ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public uint DataTypeId;
 	public uint[] Data = Array.Empty<uint>();
+
+	public DataType Type => GetDataType( DataTypeId );
 
 	public override string ToString () {
 		var data = MemoryMarshal.Cast<uint, byte>( Data.AsSpan() );
@@ -16,7 +19,7 @@ public class Constant : CompilerObject, IValue {
 }
 
 public class ConstantComposite : CompilerObject, IValue {
-	public ConstantComposite ( SpirvCompiler compiler ) : base( compiler ) { }
+	public ConstantComposite ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public uint DataTypeId;
 	public uint[] ValueIds = Array.Empty<uint>();

@@ -1,7 +1,7 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Metadata;
 
 public class ExecutionMode : CompilerObject {
-	public ExecutionMode ( SpirvCompiler compiler ) : base( compiler ) { }
+	public ExecutionMode ( SpirvCompiler compiler ) : base( compiler, uint.MaxValue ) { }
 
 	public uint EntryPointId;
 	public ExecutionModeType Type;

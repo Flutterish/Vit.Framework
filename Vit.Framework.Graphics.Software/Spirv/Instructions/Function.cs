@@ -4,7 +4,7 @@ using Vit.Framework.Graphics.Software.Spirv.Types;
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 
 public class Function : Instruction {
-	public Function ( SourceRef source ) : base( source ) { }
+	public Function ( SourceRef source, uint id ) : base( source, id ) { }
 
 	public uint Id;
 	public uint ReturnTypeId;

@@ -45,4 +45,8 @@ public struct Point3<T> : IInterpolatable<Point3<T>, T> where T : INumber<T> {
 			Z = Z.Lerp( goal.Z, time )
 		};
 	}
+
+	public override string ToString () {
+		return $"({X}, {Y}, {Z})";
+	}
 }

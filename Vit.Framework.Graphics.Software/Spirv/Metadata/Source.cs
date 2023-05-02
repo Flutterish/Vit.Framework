@@ -1,7 +1,7 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Metadata;
 
 public class Source : CompilerObject {
-	public Source ( SpirvCompiler compiler ) : base( compiler ) { }
+	public Source ( SpirvCompiler compiler ) : base( compiler, uint.MaxValue ) { }
 
 	public SourceLanguage SourceLanguage;
 	public uint Version;

@@ -5,9 +5,16 @@ namespace Vit.Framework.Graphics.Software.Spirv.Metadata;
 
 public abstract class CompilerObject {
 	public readonly SpirvCompiler Compiler;
-	protected CompilerObject ( SpirvCompiler compiler ) {
+	public readonly uint Id;
+	protected CompilerObject ( SpirvCompiler compiler, uint id ) {
 		Compiler = compiler;
+		Id = id;
 	}
+
+	static protected IReadOnlyDictionary<DecorationName, Decoration> emptyDecorations = new Dictionary<DecorationName, Decoration>();
+	public IReadOnlyDictionary<DecorationName, Decoration> Decorations => Compiler.Decorations.TryGetValue( Id, out var decorations )
+		? decorations
+		: emptyDecorations;
 
 	public IValue GetValue ( uint id ) {
 		return Compiler.Values[id];

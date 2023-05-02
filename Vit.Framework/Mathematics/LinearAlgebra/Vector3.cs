@@ -51,6 +51,14 @@ public struct Vector3<T> where T : INumber<T> {
 	public Vector3<T> Cross ( Vector3<T> other )
 		=> Cross( this, other );
 
+	public Point3<T> FromOrigin () {
+		return new Point3<T> {
+			X = X,
+			Y = Y,
+			Z = Z
+		};
+	}
+
 	public override bool Equals ( object? obj ) {
 		return obj is Vector3<T> vector &&
 				EqualityComparer<T>.Default.Equals( X, vector.X ) &&

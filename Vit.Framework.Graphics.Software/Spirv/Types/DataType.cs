@@ -5,10 +5,7 @@ using Vit.Framework.Graphics.Software.Spirv.Runtime;
 namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public abstract class DataType : CompilerObject {
-	public uint Id;
-	public DataType ( SpirvCompiler compiler, uint id ) : base( compiler ) {
-		Id = id;
-	}
+	public DataType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public virtual object? Parse ( ReadOnlySpan<byte> data ) {
 		return null;

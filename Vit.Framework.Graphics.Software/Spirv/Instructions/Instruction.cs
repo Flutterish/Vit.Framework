@@ -1,12 +1,18 @@
-﻿using Vit.Framework.Graphics.Software.Spirv.Metadata;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.Software.Spirv.Metadata;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 
-public abstract class Instruction : CompilerObject {
+public abstract class Instruction : CompilerObject { // TODO in theory we can spcialise these with generics to know variable types in advance
 	public SourceRef SourceRef;
 
-	protected Instruction ( SourceRef sourceRef ) : base( sourceRef.Compiler ) {
+	protected Instruction ( SourceRef sourceRef, uint id ) : base( sourceRef.Compiler, id ) {
 		SourceRef = sourceRef;
+	}
+
+	public virtual void Execute ( RuntimeScope scope ) {
+		Debug.Fail( "oops" );
 	}
 
 	public override string ToString () {
