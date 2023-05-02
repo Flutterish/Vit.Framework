@@ -1,8 +1,9 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 
 namespace Vit.Framework.Graphics.Curses.Buffers;
 
-public class Buffer<T> : IHostBuffer<T>, IDeviceBuffer<T> where T : unmanaged {
+public class Buffer<T> : IHostBuffer<T>, IDeviceBuffer<T>, IByteBuffer where T : unmanaged {
 	public T[] Data { get; private set; } = Array.Empty<T>();
 
 	public void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
@@ -16,4 +17,10 @@ public class Buffer<T> : IHostBuffer<T>, IDeviceBuffer<T> where T : unmanaged {
 	public void Dispose () {
 		
 	}
+
+	public ReadOnlySpan<byte> Bytes => MemoryMarshal.AsBytes( Data == null ? Span<T>.Empty : Data.AsSpan() );
+}
+
+public interface IByteBuffer {
+	ReadOnlySpan<byte> Bytes { get; }
 }

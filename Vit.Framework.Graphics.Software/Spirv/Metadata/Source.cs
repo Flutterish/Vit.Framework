@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vit.Framework.Graphics.Software.Spirv.Metadata;
+﻿namespace Vit.Framework.Graphics.Software.Spirv.Metadata;
 
 public class Source : CompilerObject {
 	public Source ( SpirvCompiler compiler ) : base( compiler ) { }

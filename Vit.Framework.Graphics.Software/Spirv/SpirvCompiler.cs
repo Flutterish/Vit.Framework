@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Software.Spirv.Instructions;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Types;

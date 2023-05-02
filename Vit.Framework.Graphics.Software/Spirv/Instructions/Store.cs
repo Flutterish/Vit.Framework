@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.Software.Spirv.Metadata;
-using Vortice.ShaderCompiler;
+﻿using Vit.Framework.Graphics.Software.Spirv.Metadata;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 

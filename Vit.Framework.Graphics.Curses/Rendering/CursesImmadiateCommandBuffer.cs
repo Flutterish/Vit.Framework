@@ -60,6 +60,12 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+		var vertex = (IByteBuffer)vertexBuffer!;
+		var index = indexBuffer;
+		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
+
+		var vert = shaders.First( x => x.Type == ShaderPartType.Vertex );
+
 		// TODO
 	}
 
