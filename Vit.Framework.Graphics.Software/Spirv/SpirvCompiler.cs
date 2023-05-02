@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv.Instructions;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Types;
@@ -70,6 +71,13 @@ public class SpirvCompiler {
 				Debug.Fail( "Not all operator data consumed" );
 			}
 		}
+	}
+
+	public SoftwareShader Specialise ( ExecutionModel model ) {
+		return model switch {
+			ExecutionModel.Vertex => new SoftwareVertexShader( this, model ),
+			_ => new SoftwareShader( this, model )
+		};
 	}
 
 	Function? currentFunction;
@@ -142,29 +150,36 @@ public class SpirvCompiler {
 			} );
 		}
 		else if ( code == OpCode.TypeVoid ) {
-			DataTypes.Add( read( ref data ), new VoidType( this ) );
+			var id = read( ref data );
+			DataTypes.Add( id, new VoidType( this, id ) );
 		}
 		else if ( code == OpCode.TypeInt ) {
-			DataTypes.Add( read( ref data ), new IntType( this ) { Width = read( ref data ), Signed = read( ref data ) != 0 } );
+			var id = read( ref data );
+			DataTypes.Add( id, new IntType( this, id ) { Width = read( ref data ), Signed = read( ref data ) != 0 } );
 		}
 		else if ( code == OpCode.TypeFloat ) {
-			DataTypes.Add( read( ref data ), new FloatType( this ) { Width = read( ref data ) } );
+			var id = read( ref data );
+			DataTypes.Add( id, new FloatType( this, id ) { Width = read( ref data ) } );
 		}
 		else if ( code == OpCode.TypePointer ) {
-			DataTypes.Add( read( ref data ), new PointerType( this ) { StorageClass = read<StorageClass>( ref data ), TypeId = read( ref data ) } );
+			var id = read( ref data );
+			DataTypes.Add( id, new PointerType( this, id ) { StorageClass = read<StorageClass>( ref data ), TypeId = read( ref data ) } );
 		}
 		else if ( code == OpCode.TypeVector ) {
-			DataTypes.Add( read( ref data ), new VectorType( this ) { ComponentTypeId = read( ref data ), Count = read( ref data ) } );
+			var id = read( ref data );
+			DataTypes.Add( id, new VectorType( this, id ) { ComponentTypeId = read( ref data ), Count = read( ref data ) } );
 		}
 		else if ( code == OpCode.TypeArray ) {
-			DataTypes.Add( read( ref data ), new ArrayType( this ) { ElementTypeId = read( ref data ), Length = read( ref data ) } );
+			var id = read( ref data );
+			DataTypes.Add( id, new ArrayType( this, id ) { ElementTypeId = read( ref data ), Length = read( ref data ) } );
 		}
 		else if ( code == OpCode.TypeStruct ) {
 			var id = read( ref data );
-			DataTypes.Add( id, new StructType(this ) { TypeId = id, MemberTypeIds = readArray( ref data ) } );
+			DataTypes.Add( id, new StructType( this, id ) { MemberTypeIds = readArray( ref data ) } );
 		}
 		else if ( code == OpCode.TypeFunction ) {
-			DataTypes.Add( read( ref data ), new FunctionType( this ) {
+			var id = read( ref data );
+			DataTypes.Add( id, new FunctionType( this, id ) {
 				ReturnTypeId = read( ref data ),
 				ParameterTypeIds = readArray( ref data )
 			} );

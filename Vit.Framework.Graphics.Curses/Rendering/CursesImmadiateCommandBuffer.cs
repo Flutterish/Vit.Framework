@@ -6,6 +6,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
@@ -64,9 +65,17 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var index = indexBuffer;
 		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
 
-		var vert = shaders.First( x => x.Type == ShaderPartType.Vertex );
+		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
 
-		// TODO
+		if ( topology == Topology.Triangles ) {
+			using RentedArray<VertexShaderOutput> vertices = new( vertexCount );
+			for ( int i = 0; i < vertexCount; i++ ) {
+				vertices[i] = vert.Execute( vertex.Bytes, (uint)i );
+			}
+		}
+		else {
+			throw new InvalidOperationException( $"Unsupported topology: {topology}" );
+		}
 	}
 
 	public void Dispose () {

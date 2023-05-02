@@ -1,7 +1,7 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public class IntType : DataType {
-	public IntType ( SpirvCompiler compiler ) : base( compiler ) { }
+	public IntType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public uint Width;
 	public bool Signed;

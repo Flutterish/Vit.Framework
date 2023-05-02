@@ -1,7 +1,7 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public class FloatType : DataType {
-	public FloatType ( SpirvCompiler compiler ) : base( compiler ) { }
+	public FloatType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public uint Width;
 

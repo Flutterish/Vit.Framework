@@ -1,7 +1,7 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public class FunctionType : DataType {
-	public FunctionType ( SpirvCompiler compiler ) : base( compiler ) { }
+	public FunctionType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
 	public uint ReturnTypeId;
 	public uint[] ParameterTypeIds = Array.Empty<uint>();

@@ -1,13 +1,14 @@
 ﻿namespace Vit.Framework.Graphics.Software.Spirv.Types;
 
 public class StructType : DataType {
-	public StructType ( SpirvCompiler compiler ) : base( compiler ) { }
+	public StructType ( SpirvCompiler compiler, uint id ) : base( compiler, id ) { }
 
-	public uint TypeId;
 	public uint[] MemberTypeIds = Array.Empty<uint>();
 
+	public IEnumerable<DataType> MemberTypes => MemberTypeIds.Select( GetDataType );
+
 	public override string ToString () {
-		return $"{tryPadRight( GetName( TypeId))}{{{string.Join(", ", MemberTypeIds.Select( (x, i) => $"{GetDataType(x)}{tryPadLeft( GetMemberName( TypeId, (uint)i))}" ))}}}";
+		return $"{tryPadRight( GetName( Id ))}{{{string.Join(", ", MemberTypeIds.Select( (x, i) => $"{GetDataType(x)}{tryPadLeft( GetMemberName( Id, (uint)i))}" ))}}}";
 	}
 
 	string? tryPadRight ( string? str ) {
