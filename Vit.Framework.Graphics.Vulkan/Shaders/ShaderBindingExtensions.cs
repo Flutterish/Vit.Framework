@@ -10,7 +10,7 @@ public static unsafe class ShaderBindingExtensions {
 
 		uint i = 0;
 		uint offset = 0;
-		foreach ( var attrib in shader.Input.Resources ) {
+		foreach ( var attrib in shader.Input.Resources.OrderBy( x => x.Location ) ) {
 			if ( attrib.Type.Layout != null )
 				throw new Exception( "Input attributes cannot be structs" );
 

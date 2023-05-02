@@ -23,7 +23,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		var inputs = new InputElementDescription[vert.ShaderInfo.Input.Resources.Count];
 		int i = 0;
 		int offset = 0;
-		foreach ( var vertex in vert.ShaderInfo.Input.Resources ) {
+		foreach ( var vertex in vert.ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
 			var (size, format) = (vertex.Type.PrimitiveType, vertex.Type.Dimensions) switch {
 				(PrimitiveType.Float32, [2]) => (sizeof(float), Format.R32G32_Float),
 				(PrimitiveType.Float32, [3]) => (sizeof(float), Format.R32G32B32_Float),

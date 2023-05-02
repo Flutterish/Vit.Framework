@@ -56,17 +56,18 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 		}
 
 		GL.BindBuffer( BufferTarget.ArrayBuffer, ((IGlObject)buffer).Handle );
-		int index = 0;
 		int offset = 0;
-		foreach ( var i in shaders!.Parts.SelectMany( x => x.ShaderInfo.Input.Resources ).OrderBy( x => x.Location ) ) {
+
+		var stride = ((IGlBuffer)buffer).Stride;
+		foreach ( var i in shaders!.Parts.First( x => x.Type == ShaderPartType.Vertex ).ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
 			var length = (int)i.Type.FlattendedDimensions;
 			var (size, type) = i.Type.PrimitiveType switch {
 				PrimitiveType.Float32 => (sizeof(float), VertexAttribPointerType.Float),
 				var x when true => throw new Exception( $"Unknown data type: {x}" )
 			};
 
-			GL.VertexAttribPointer( index, length, type, false, length * size, offset );
-			GL.EnableVertexAttribArray( index++ );
+			GL.VertexAttribPointer( i.Location, length, type, false, stride, offset );
+			GL.EnableVertexAttribArray( i.Location );
 			offset += length * size;
 		}
 	}

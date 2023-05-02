@@ -19,7 +19,7 @@ public struct ColorRgba<T> where T : INumber<T> {
 		R = r;
 		G = g;
 		B = b;
-		A = T.One;
+		A = T.One; // TODO bad
 	}
 
 	public static ColorRgba<T> operator / ( ColorRgba<T> color, T scalar ) {

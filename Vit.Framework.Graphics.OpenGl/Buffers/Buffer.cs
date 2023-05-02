@@ -5,8 +5,13 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
-public class Buffer<T> : DisposableObject, IGlObject, IDeviceBuffer<T>, IHostBuffer<T> where T : unmanaged {
+public interface IGlBuffer : IGlObject {
+	int Stride { get; }
+}
+
+public class Buffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T>, IHostBuffer<T> where T : unmanaged {
 	static readonly int Stride = Marshal.SizeOf( default(T) );
+	int IGlBuffer.Stride => Stride;
 
 	public int Handle { get; }
 	public readonly BufferTarget Type;
