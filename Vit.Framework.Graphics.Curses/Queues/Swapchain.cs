@@ -10,16 +10,21 @@ using Vit.Framework.Windowing;
 namespace Vit.Framework.Graphics.Curses.Queues;
 
 public class Swapchain : DisposableObject, ISwapchain {
+	Window window;
 	public Swapchain ( Window window ) {
+		this.window = window;
 		backbuffer = new() { Size = window.PixelSize };
 	}
 
 	public void Recreate () {
-		throw new NotImplementedException();
+		backbuffer = new() { Size = window.PixelSize };
 	}
 
 	Sprite backbuffer;
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
+		if ( backbuffer.Size != window.Size )
+			Recreate();
+
 		frameIndex = 0;
 		return backbuffer;
 	}

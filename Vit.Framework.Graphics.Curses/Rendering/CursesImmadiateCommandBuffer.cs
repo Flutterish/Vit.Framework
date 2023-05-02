@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Tracing;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 using Vit.Framework.Graphics.Curses.Buffers;
 using Vit.Framework.Graphics.Curses.Shaders;
@@ -70,6 +69,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
 
 		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
+		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment ).SoftwareShader;
 
 		using RentedArray<VertexShaderOutput> vertices = new( vertexCount );
 		var bytes = vertexBuffer.Bytes;
@@ -132,7 +132,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				var endXStep = ( d.X - endX ) / ( c.Y - b.Y );
 				for ( int y = (int)b.Y; y <= c.Y; y++ ) {
 					for ( int x = (int)startX; x < endX; x++ ) {
-						renderTarget.Pixels[y, x].Background = ColorRgba.HotPink.ToByte();
+						var fragData = frag.Execute();
+						renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
 					}
 
 					startX += startXStep;
@@ -148,7 +149,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				endX += endXStep;
 				for ( int y = (int)b.Y - 1; y >= a.Y; y-- ) {
 					for ( int x = (int)startX; x < endX; x++ ) {
-						renderTarget.Pixels[y, x].Background = ColorRgba.HotPink.ToByte();
+						var fragData = frag.Execute();
+						renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
 					}
 
 					startX += startXStep;

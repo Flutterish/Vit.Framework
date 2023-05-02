@@ -76,6 +76,7 @@ public class SpirvCompiler {
 	public SoftwareShader Specialise ( ExecutionModel model ) {
 		return model switch {
 			ExecutionModel.Vertex => new SoftwareVertexShader( this, model ),
+			ExecutionModel.Fragment => new SoftwareFragmentShader( this, model ),
 			_ => new SoftwareShader( this, model )
 		};
 	}

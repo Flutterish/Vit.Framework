@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
+﻿namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 public class RuntimeScope { // TODO instead of a scope like this, we should just use a span of memory
 	public readonly Dictionary<uint, IVariable> Variables = new();

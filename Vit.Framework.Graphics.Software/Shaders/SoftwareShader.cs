@@ -1,7 +1,4 @@
-﻿using SPIRVCross;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Software.Spirv;
+﻿using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Spirv.Types;
@@ -13,6 +10,7 @@ public class SoftwareShader {
 	public readonly ExecutionModel ExecutionModel;
 
 	public readonly Dictionary<uint, PointerVariable> InputsByLocation = new();
+	public readonly Dictionary<uint, PointerVariable> OutputsByLocation = new();
 	public readonly List<PointerVariable> Outputs = new();
 	public readonly Dictionary<uint, IVariable> BuiltinOutputs = new();
 
@@ -49,6 +47,10 @@ public class SoftwareShader {
 			InterfacesById.Add( i.Id, ptr );
 			GlobalScope.Variables.Add( i.Id, ptr );
 
+			if ( i.Decorations.TryGetValue( DecorationName.Location, out var location ) ) {
+				OutputsByLocation.Add( location.Data[0], ptr );
+			}
+
 			var innerType = i.Type.Type;
 			if ( innerType is StructType structType ) {
 				for ( uint j = 0; j < structType.MemberTypeIds.Length; j++ ) {
@@ -56,12 +58,17 @@ public class SoftwareShader {
 						BuiltinOutputs.Add( builtin.Data[0], ((ICompositeVariable)value)[j] );
 					}
 				}
-			}	
+			}
 		}
 
 		foreach ( var (id, constant) in compiler.Constants ) {
-			var variable = constant.Type.GetRuntimeType().CreateVariable();
-			variable.Parse( MemoryMarshal.AsBytes( constant.Data.AsSpan() ) );
+			var variable = constant.CreateVariable();
+			Constants.Add( id, variable );
+			GlobalScope.Variables.Add( id, variable );
+		}
+
+		foreach ( var (id, constant) in compiler.CompositeConstants ) {
+			var variable = constant.CreateVariable();
 			Constants.Add( id, variable );
 			GlobalScope.Variables.Add( id, variable );
 		}

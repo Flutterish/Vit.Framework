@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using Vit.Framework.Graphics.Software.Spirv;
+﻿using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
