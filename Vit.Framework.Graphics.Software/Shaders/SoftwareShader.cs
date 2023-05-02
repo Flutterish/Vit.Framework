@@ -8,8 +8,10 @@ using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Software.Shaders.Execution;
 using Vit.Framework.Graphics.Software.Shaders.Spirv;
+using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Interop;
+using Instruction = Vit.Framework.Graphics.Software.Shaders.Spirv.Instruction;
 using Version = Vit.Framework.Graphics.Software.Shaders.Spirv.Version;
 using Word = System.UInt32;
 
@@ -29,6 +31,8 @@ public class SoftwareShader {
 
 	const Word MagicWord = 0x07230203;
 	public SoftwareShader ( SpirvBytecode spirv ) {
+		new SpirvCompiler( spirv.Data );
+
 		Spirv = spirv;
 		var data = spirv.Data;
 		var ids = MemoryMarshal.Cast<byte, Word>(data);
@@ -82,7 +86,6 @@ public class SoftwareShader {
 				var id = read( ref words );
 				var index = read( ref words );
 				var name = readString( ref words );
-
 				//SourceLines.Add( new() { OpCode = "SetName", Value = $"%{id}[{index}] = {name}" } );
 			}
 			else if ( opcode is 71 or 72 ) {
