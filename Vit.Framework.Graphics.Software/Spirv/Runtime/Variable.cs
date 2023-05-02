@@ -11,6 +11,9 @@ public interface IVariable {
 	void Parse ( ReadOnlySpan<byte> data );
 
 	void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C );
+	public virtual void MultiplyVector ( IVariable vector, IVariable result ) {
+		throw new NotImplementedException();
+	}
 }
 
 public interface IVariable<T> : IVariable where T : unmanaged {
@@ -45,6 +48,10 @@ public class NumericVariable<T> : IVariable<T> where T : unmanaged, INumber<T> {
 	public void Interpolate ( float a, float b, float c, IVariable<T> A, IVariable<T> B, IVariable<T> C ) {
 		Value = T.CreateChecked(float.CreateTruncating( A.Value ) * a + float.CreateTruncating( B.Value ) * b + float.CreateTruncating( C.Value ) * c);
 	}
+
+	public void MultiplyVector ( IVariable vector, IVariable result ) {
+		throw new NotImplementedException();
+	}
 }
 
 public interface ICompositeVariable : IVariable {
@@ -69,7 +76,10 @@ public class StructVariable : ICompositeVariable {
 	}
 
 	public void Parse ( ReadOnlySpan<byte> data ) {
-		throw new NotImplementedException();
+		foreach ( var i in Members ) {
+			i.Parse( data[..i.Type.Size] );
+			data = data[i.Type.Size..];
+		}
 	}
 
 
@@ -80,6 +90,10 @@ public class StructVariable : ICompositeVariable {
 	public IVariable this[uint index] => Members[index];
 
 	public void Interpolate ( float a, float b, float c, IVariable A, IVariable B, IVariable C ) {
+		throw new NotImplementedException();
+	}
+
+	public void MultiplyVector ( IVariable vector, IVariable result ) {
 		throw new NotImplementedException();
 	}
 }
@@ -152,6 +166,74 @@ public class Vector4Variable<T> : VectorVariable<T, Vector4<T>> where T : unmana
 			Components[1].Value = value.Y;
 			Components[2].Value = value.Z;
 			Components[3].Value = value.W;
+		}
+	}
+}
+
+public abstract class MatrixVariable<T, TMatrix> : IVariable<TMatrix> where T : unmanaged, INumber<T> where TMatrix : unmanaged {
+	public IRuntimeType<TMatrix> Type { get; }
+	public IRuntimeType<T> ComponentType { get; }
+	public readonly uint Rows;
+	public readonly uint Columns;
+
+	protected MatrixVariable ( IRuntimeType<TMatrix> type, IRuntimeType<T> componentType, uint rows, uint columns ) {
+		Type = type;
+		ComponentType = componentType;
+		Rows = rows;
+		Columns = columns;
+
+		Components = new IVariable<T>[Rows,Columns];
+		for ( int y = 0; y < Rows; y++ ) {
+			for ( int x = 0; x < Columns; x++ ) {
+				Components[y,x] = ComponentType.CreateVariable();
+			}
+		}
+	}
+
+	public readonly IVariable<T>[,] Components;
+
+	public abstract TMatrix Value { get; set; }
+
+	public virtual void Interpolate ( float a, float b, float c, IVariable<TMatrix> A, IVariable<TMatrix> B, IVariable<TMatrix> C ) {
+		throw new NotImplementedException();
+	}
+
+	public override string ToString () {
+		return $"<{string.Join("; ", Enumerable.Range(0, (int)Rows).Select( x => {
+			var row = new IVariable<T>[Columns];
+			for ( int i = 0; i < row.Length; i++ ) {
+				row[i] = Components[x, i];
+			}
+			return $"<{string.Join( ", ", row.AsEnumerable() )}>";
+		} ))}>";
+	}
+}
+
+public class Matrix4Variable<T> : MatrixVariable<T, Matrix4<T>>, IVariable where T : unmanaged, INumber<T> {
+	public Matrix4Variable ( IRuntimeType<Matrix4<T>> type, IRuntimeType<T> componentType ) : base( type, componentType, 4, 4 ) { }
+
+	void IVariable.MultiplyVector ( IVariable vector, IVariable result ) {
+		((IVariable<Vector4<T>>)result).Value = ( (IVariable<Vector4<T>>)vector ).Value * Value;
+	}
+
+	static T[,] temps = new T[4,4];
+	public override Matrix4<T> Value {
+		get {
+			for ( int x = 0; x < 4; x++ ) {
+				for ( int y = 0; y < 4; y++ ) {
+					temps[y, x] = Components[y, x].Value;
+				}
+			}
+
+			return new( temps );
+		}
+		set {
+			var span = value.AsSpan2D();
+			for ( int x = 0; x < 4; x++ ) {
+				for ( int y = 0; y < 4; y++ ) {
+					Components[y, x].Value = span[x, y];
+				}
+			}
 		}
 	}
 }

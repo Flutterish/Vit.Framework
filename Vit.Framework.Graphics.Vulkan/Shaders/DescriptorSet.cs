@@ -16,10 +16,10 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet> {
 		Vk.vkAllocateDescriptorSets( pool.Device, &info, out Instance ).Validate();
 	}
 
-	public unsafe void ConfigureUniforms<T> ( Buffer<T> uniformBuffer, uint binding, ulong offset = 0 ) where T : unmanaged {
+	public unsafe void ConfigureUniforms<T> ( Buffer<T> uniformBuffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		var bufferInfo = new VkDescriptorBufferInfo() {
 			buffer = uniformBuffer,
-			offset = offset,
+			offset = offset * Buffer<T>.Stride,
 			range = Buffer<T>.Stride
 		};
 

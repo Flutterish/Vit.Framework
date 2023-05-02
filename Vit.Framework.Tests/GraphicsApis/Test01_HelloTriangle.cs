@@ -9,57 +9,46 @@ using Vit.Framework.Windowing;
 
 namespace Vit.Framework.Tests.GraphicsApis;
 
-public class HelloRainbowTriangle : GenericRenderThread {
-	public HelloRainbowTriangle ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
+public class Test01_HelloTriangle : GenericRenderThread {
+	public Test01_HelloTriangle ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 	}
 
 	IShaderPart vertex = null!;
 	IShaderPart fragment = null!;
 	IShaderSet shaderSet = null!;
 
-	struct Vertex {
-		public Point2<float> Position;
-		public ColorRgb<float> Color;
-	}
-
-	IDeviceBuffer<Vertex> positions = null!;
+	IDeviceBuffer<Point2<float>> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
 	protected override void Initialize () {
 		base.Initialize();
 
 		vertex = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
 			layout(location = 0) in vec2 inPosition;
-			layout(location = 1) in vec3 inColor;
-
-			layout(location = 0) out vec3 outColor;
 
 			void main () {
-				outColor = inColor;
 				gl_Position = vec4(inPosition, 0, 1);
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 		fragment = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
-			layout(location = 0) in vec3 inColor;
-
 			layout(location = 0) out vec4 outColor;
 
 			void main () {
-				outColor = vec4( inColor, 1 );
+				outColor = vec4( 0, 1, 0, 1 );
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment } );
 
-		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+		positions = Renderer.CreateDeviceBuffer<Point2<float>>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 
 		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
 		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, new Vertex[] {
-				new() { Position = new( 0, -0.5f ), Color = ColorRgb.Red },
-				new() { Position = new( 0.7f, 0.3f ), Color = ColorRgb.Green },
-				new() { Position = new( -0.5f, 0.7f ), Color = ColorRgb.Blue }
+			commands.Upload( positions, new Point2<float>[] {
+				new( 0, -0.5f ),
+				new( 0.7f, 0.3f ),
+				new( -0.5f, 0.7f )
 			} );
 			commands.Upload( indices, new uint[] {
 				2, 1, 0

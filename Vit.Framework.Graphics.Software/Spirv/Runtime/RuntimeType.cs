@@ -7,6 +7,7 @@ namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 public interface IRuntimeType {
 	int Size { get; }
 	IRuntimeType Vectorize ( uint count );
+	IRuntimeType Matrixize ( uint rows, uint columns );
 
 	IVariable CreateVariable ();
 }
@@ -21,6 +22,7 @@ public interface IRuntimeType<T> : IRuntimeType where T : unmanaged {
 public abstract class RuntimeType<T> : IRuntimeType<T> where T : unmanaged {
 	public abstract IRuntimeType Vectorize ( uint count );
 	public abstract IVariable<T> CreateVariable ();
+	public abstract IRuntimeType Matrixize ( uint rows, uint columns );
 }
 
 public class RuntimeNumberType<T> : RuntimeType<T> where T : unmanaged, INumber<T> {
@@ -42,6 +44,14 @@ public class RuntimeNumberType<T> : RuntimeType<T> where T : unmanaged, INumber<
 		throw new ArgumentException( $"Invalid vector size: {count}", nameof(count) );
 	}
 
+	public override IRuntimeType Matrixize ( uint rows, uint columns ) {
+		if ( rows == 4 && columns == 4 ) {
+			return new RuntimeMatrix4Type<T>( this );
+		}
+
+		throw new NotImplementedException();
+	}
+
 	public override string ToString () {
 		return $"{typeof(T).Name}";
 	}
@@ -60,6 +70,11 @@ public class RuntimeVector2Type<T> : RuntimeType<Vector2<T>> where T : unmanaged
 	public override IRuntimeType Vectorize ( uint count ) {
 		throw new InvalidOperationException( "Cannot vectorize a vector" );
 	}
+
+	public override IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
+	}
+
 	public override string ToString () {
 		return $"Vector2<{typeof( T ).Name}>";
 	}
@@ -77,6 +92,10 @@ public class RuntimeVector3Type<T> : RuntimeType<Vector3<T>> where T : unmanaged
 
 	public override IRuntimeType Vectorize ( uint count ) {
 		throw new InvalidOperationException( "Cannot vectorize a vector" );
+	}
+
+	public override IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
 	}
 
 	public override string ToString () {
@@ -98,8 +117,34 @@ public class RuntimeVector4Type<T> : RuntimeType<Vector4<T>> where T : unmanaged
 		throw new InvalidOperationException( "Cannot vectorize a vector" );
 	}
 
+	public override IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
+	}
+
 	public override string ToString () {
 		return $"Vector4<{typeof( T ).Name}>";
+	}
+}
+
+public class RuntimeMatrix4Type<T> : RuntimeType<Matrix4<T>> where T : unmanaged, INumber<T> {
+	public readonly IRuntimeType<T> ElementType;
+	public RuntimeMatrix4Type ( IRuntimeType<T> elementType ) {
+		ElementType = elementType;
+	}
+	public override IVariable<Matrix4<T>> CreateVariable () {
+		return new Matrix4Variable<T>( this, ElementType );
+	}
+
+	public override IRuntimeType Vectorize ( uint count ) {
+		throw new InvalidOperationException( "Cannot vectorize a matrix" );
+	}
+
+	public override IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
+	}
+
+	public override string ToString () {
+		return $"Matrix4<{ElementType}>";
 	}
 }
 
@@ -116,6 +161,10 @@ public class RuntimeArrayType : IRuntimeType {
 
 	public IRuntimeType Vectorize ( uint count ) {
 		throw new InvalidOperationException( "Cannot vectorize an array" );
+	}
+
+	public IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
 	}
 
 	public IVariable CreateVariable () {
@@ -140,6 +189,10 @@ public class RuntimeStructType : IRuntimeType {
 		throw new InvalidOperationException( "Cannot vectorize a struct" );
 	}
 
+	public IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
+	}
+
 	public IVariable CreateVariable () {
 		return new StructVariable( this );
 	}
@@ -160,6 +213,10 @@ public class RuntimePointerType : IRuntimeType {
 
 	public IRuntimeType Vectorize ( uint count ) {
 		throw new InvalidOperationException( "Cannot vectorize a pointer" );
+	}
+
+	public IRuntimeType Matrixize ( uint rows, uint columns ) {
+		throw new NotImplementedException();
 	}
 
 	public IVariable CreateVariable () {

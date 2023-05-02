@@ -97,6 +97,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
 		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment ).SoftwareShader;
+		setUniforms();
 
 		initializeAttributes( vert );
 
@@ -119,6 +120,15 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 		else {
 			throw new InvalidOperationException( $"Unsupported topology: {topology}" );
+		}
+	}
+
+	void setUniforms () {
+		var uniforms = shaders!.UniformBuffers;
+		foreach ( var i in shaders!.Shaders ) {
+			foreach ( var (binding, data) in uniforms ) {
+				i.SoftwareShader.SetUniforms( binding, data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ) );
+			}
 		}
 	}
 

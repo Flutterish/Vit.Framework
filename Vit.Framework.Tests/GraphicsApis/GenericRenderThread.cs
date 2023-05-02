@@ -16,6 +16,8 @@ public abstract class GenericRenderThread : AppThread {
 		Window = window;
 		GraphicsApi = api;
 		window.Resized += onWindowResized;
+
+		RateLimit = 60;
 	}
 
 	bool windowResized;

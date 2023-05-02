@@ -21,7 +21,8 @@ public abstract class Shader : DisposableObject, IShaderPart {
 public class PixelShader : Shader {
 	public readonly ID3D11PixelShader Handle;
 	public PixelShader ( SpirvBytecode bytecode, ID3D11Device device ) : base( bytecode ) {
-		var data = Vortice.D3DCompiler.Compiler.Compile( bytecode.CrossCompile( ShaderLanguage.HLSL ), "main", "", "ps_5_0" );
+		var crossCompiled = bytecode.CrossCompile( ShaderLanguage.HLSL );
+		var data = Vortice.D3DCompiler.Compiler.Compile( crossCompiled, "main", "", "ps_5_0" );
 		Handle = device.CreatePixelShader( data.Span );
 	}
 
@@ -38,7 +39,8 @@ public class VertexShader : Shader {
 	public readonly ID3D11VertexShader Handle;
 	public readonly ReadOnlyMemory<byte> Source;
 	public VertexShader ( SpirvBytecode bytecode, ID3D11Device device ) : base( bytecode ) {
-		var data = Source = Vortice.D3DCompiler.Compiler.Compile( bytecode.CrossCompile( ShaderLanguage.HLSL ), "main", "", "vs_5_0" );
+		var crossCompiled = bytecode.CrossCompile( ShaderLanguage.HLSL );
+		var data = Source = Vortice.D3DCompiler.Compiler.Compile( crossCompiled, "main", "", "vs_5_0" );
 		Handle = device.CreateVertexShader( data.Span );
 	}
 

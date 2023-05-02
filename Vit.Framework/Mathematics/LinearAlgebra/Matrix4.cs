@@ -230,6 +230,16 @@ public struct Matrix4<T> where T : INumber<T> {
 		};
 	}
 
+	public static Vector4<T> operator * ( Vector4<T> vector, Matrix4<T> matrix ) {
+		var m = matrix.AsReadOnlySpan();
+		return new Vector4<T>() {
+			X = vector.W * m[12] + vector.X * m[0] + vector.Y * m[4] + vector.Z * m[8],
+			Y = vector.W * m[13] + vector.X * m[1] + vector.Y * m[5] + vector.Z * m[9],
+			Z = vector.W * m[14] + vector.X * m[2] + vector.Y * m[6] + vector.Z * m[10],
+			W = vector.W * m[15] + vector.X * m[3] + vector.Y * m[7] + vector.Z * m[11]
+		};
+	}
+
 	public override string ToString () {
 		return Matrix<T>.ToString( AsSpan2D() );
 	}

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Immutable;
+using Vit.Framework.Graphics.OpenGl.Buffers;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Memory;
 
@@ -26,6 +28,14 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 		foreach ( var i in shaders ) {
 			GL.DetachShader( Handle, i.Handle );
 		}
+	}
+
+	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
+		var buf = (Buffer<T>)buffer;
+
+		var index = binding; // TODO not correct, but whatever for now
+		GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)index, buf.Handle, (nint)offset * Buffer<T>.Stride, Buffer<T>.Stride );
+		GL.UniformBlockBinding( (uint)Handle, binding, index );
 	}
 
 	protected override void Dispose ( bool disposing ) {

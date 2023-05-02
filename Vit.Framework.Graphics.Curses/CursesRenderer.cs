@@ -22,7 +22,12 @@ public class CursesRenderer : DisposableObject, IRenderer {
 	}
 
 	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
-		throw new NotImplementedException();
+		return new Matrix4<T> {
+			M00 = T.MultiplicativeIdentity,
+			M11 = -T.MultiplicativeIdentity,
+			M22 = T.MultiplicativeIdentity,
+			M33 = T.MultiplicativeIdentity
+		};
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {

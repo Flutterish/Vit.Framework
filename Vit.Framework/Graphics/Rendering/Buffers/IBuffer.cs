@@ -14,7 +14,7 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// <summary>
 	/// Stride of one element.
 	/// </summary>
-	public static readonly int Stride = Marshal.SizeOf<T>();
+	public static readonly uint Stride = (uint)Marshal.SizeOf<T>();
 
 	/// <summary>
 	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
@@ -43,6 +43,10 @@ public interface IHostBuffer<T> : IHostBuffer, IBuffer<T> where T : unmanaged {
 	/// <param name="data">The data to upload.</param>
 	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
 	void Upload ( ReadOnlySpan<T> data, uint offset = 0 );
+
+	public void Upload ( T data, uint offset = 0 ) {
+		Upload( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
+	}
 }
 
 /// <summary>

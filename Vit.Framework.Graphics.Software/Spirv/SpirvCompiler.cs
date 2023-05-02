@@ -171,6 +171,10 @@ public class SpirvCompiler {
 			var id = read( ref data );
 			DataTypes.Add( id, new VectorType( this, id ) { ComponentTypeId = read( ref data ), Count = read( ref data ) } );
 		}
+		else if ( code == OpCode.TypeMatrix ) {
+			var id = read( ref data );
+			DataTypes.Add( id, new MatrixType( this, id ) { ColumnTypeId = read( ref data ), Columns = read( ref data ) } );
+		}
 		else if ( code == OpCode.TypeArray ) {
 			var id = read( ref data );
 			DataTypes.Add( id, new ArrayType( this, id ) { ElementTypeId = read( ref data ), Length = read( ref data ) } );
@@ -250,6 +254,12 @@ public class SpirvCompiler {
 			Instructions.Add( chain );
 			currentFunction!.AddInstruction( chain );
 			ensureResultExists( chain.ResultId, chain.ResultTypeId );
+		}
+		else if ( code == OpCode.MatrixTimesVector ) {
+			var mul = new MatrixTimesVector( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), MatrixId = read( ref data ), VectorId = read( ref data ) };
+			Instructions.Add( mul );
+			currentFunction!.AddInstruction( mul );
+			ensureResultExists( mul.ResultId, mul.ResultTypeId );
 		}
 		else if ( code == OpCode.Return ) {
 			var @return = new Return( source );

@@ -15,6 +15,7 @@ public class SoftwareShader {
 	public readonly Dictionary<uint, IVariable> BuiltinOutputs = new();
 
 	public readonly Dictionary<uint, PointerVariable> InterfacesById = new();
+	public readonly Dictionary<uint, PointerVariable> UniformsByBinding = new();
 	public readonly Dictionary<uint, IVariable> Constants = new();
 
 	public readonly RuntimeScope GlobalScope = new();
@@ -28,6 +29,15 @@ public class SoftwareShader {
 		var inputInterfaces = interfaces.Where( x => x.StorageClass == StorageClass.Input ).ToArray();
 		var outputInterfaces = interfaces.Where( x => x.StorageClass == StorageClass.Output ).ToArray();
 
+		foreach ( var (id, uniform) in compiler.Variables.Where( x => x.Value.StorageClass == StorageClass.Uniform ) ) {
+			var ptr = (PointerVariable)uniform.Type.GetRuntimeType().CreateVariable();
+			var value = uniform.Type.Type.GetRuntimeType().CreateVariable();
+			ptr.Address = value;
+
+			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
+			UniformsByBinding.Add( binding, ptr );
+			GlobalScope.Variables.Add( id, ptr );
+		}
 		foreach ( var i in inputInterfaces ) {
 			var location = i.Decorations[DecorationName.Location].Data[0];
 			var ptr = (PointerVariable)i.Type.GetRuntimeType().CreateVariable();
@@ -74,6 +84,13 @@ public class SoftwareShader {
 		}
 
 		Entry = new( GlobalScope, entry.Function );
+	}
+
+	public void SetUniforms ( uint binding, ReadOnlySpan<byte> data ) {
+		if ( !UniformsByBinding.TryGetValue( binding, out var uniform ) )
+			return;
+
+		uniform.Address!.Parse( data );
 	}
 }
 

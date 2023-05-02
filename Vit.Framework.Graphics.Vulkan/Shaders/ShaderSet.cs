@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
@@ -42,6 +44,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public readonly VkDescriptorSetLayout Uniforms;
 	public readonly DescriptorPool DescriptorPool;
 	public readonly DescriptorSet DescriptorSet;
+
+	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
+		DescriptorSet.ConfigureUniforms( (Buffer<T>)buffer, binding, offset );
+	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		DescriptorPool.Dispose();

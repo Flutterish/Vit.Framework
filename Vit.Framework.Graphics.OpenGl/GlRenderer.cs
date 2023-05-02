@@ -21,7 +21,7 @@ public class GlRenderer : IRenderer {
 	}
 
 	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
-		throw new NotImplementedException();
+		return Matrix4<T>.Identity;
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {

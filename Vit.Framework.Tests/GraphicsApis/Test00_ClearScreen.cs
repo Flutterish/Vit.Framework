@@ -6,8 +6,8 @@ using Vit.Framework.Windowing;
 
 namespace Vit.Framework.Tests.GraphicsApis;
 
-public class ClearScreen : GenericRenderThread {
-	public ClearScreen ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
+public class Test00_ClearScreen : GenericRenderThread {
+	public Test00_ClearScreen ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 	}
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {

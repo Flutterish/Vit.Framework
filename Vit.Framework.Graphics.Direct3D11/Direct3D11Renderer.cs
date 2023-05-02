@@ -28,7 +28,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
-		throw new NotImplementedException();
+		return Matrix4<T>.Identity;
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {
@@ -40,13 +40,14 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
-		return new ShaderSet( parts );
+		return new ShaderSet( parts, Context );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
 		return new Buffer<T>( Device, Context, type switch {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
+			BufferType.Uniform => BindFlags.ConstantBuffer,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
 		} );
 	}

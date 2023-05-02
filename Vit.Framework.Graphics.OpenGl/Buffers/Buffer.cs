@@ -10,7 +10,7 @@ public interface IGlBuffer : IGlObject {
 }
 
 public class Buffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T>, IHostBuffer<T> where T : unmanaged {
-	static readonly int Stride = Marshal.SizeOf( default(T) );
+	public static readonly int Stride = Marshal.SizeOf( default(T) );
 	int IGlBuffer.Stride => Stride;
 
 	public int Handle { get; }
