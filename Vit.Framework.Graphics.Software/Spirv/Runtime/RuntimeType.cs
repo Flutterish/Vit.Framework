@@ -206,7 +206,7 @@ public class RuntimePointerType : IRuntimeType {
 	public IRuntimeType Base;
 	public RuntimePointerType ( IRuntimeType @base ) {
 		Base = @base;
-		Size = @base.Size;
+		Size = sizeof(int);
 	}
 
 	public int Size { get; }

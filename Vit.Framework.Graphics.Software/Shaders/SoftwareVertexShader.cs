@@ -10,7 +10,7 @@ public class SoftwareVertexShader : SoftwareShader {
 	IVariable<Vector4<float>> PositionOutput;
 	(uint location, PointerVariable)[] inputs;
 	public SoftwareVertexShader ( SpirvCompiler compiler, ExecutionModel model ) : base( compiler, model ) {
-		Stride = InputsByLocation.Sum( x => x.Value.Type.Size );
+		Stride = InputsByLocation.Sum( x => x.Value.Type.Base.Size );
 		PositionOutput = (IVariable<Vector4<float>>)BuiltinOutputs[0];
 		inputs = InputsByLocation.OrderBy( x => x.Key ).Select( x => (x.Key, x.Value) ).ToArray();
 	}
@@ -19,7 +19,7 @@ public class SoftwareVertexShader : SoftwareShader {
 		var offset = Stride * (int)index;
 		data = data.Slice( offset, Stride );
 		foreach ( var (location, input) in inputs ) {
-			var size = input.Type.Size;
+			var size = input.Type.Base.Size;
 			input.Parse( data[..size] );
 			data = data[size..];
 		}
