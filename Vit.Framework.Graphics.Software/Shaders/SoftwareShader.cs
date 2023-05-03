@@ -1,7 +1,11 @@
-﻿using Vit.Framework.Graphics.Software.Spirv;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Spirv.Types;
+using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -105,5 +109,47 @@ public struct ShaderStageOutput {
 
 			output.Interpolate( a, b, c, _A, _B, _C );
 		}
+	}
+}
+
+public struct VariableInfo {
+	public IRuntimeType Type;
+	public int Address;
+}
+
+public struct MemoryDebugInfo {
+	public VariableInfo Variable;
+	public string Name;
+}
+
+public ref struct ShaderMemory {
+	public Span<byte> Memory;
+	public int StackPointer;
+
+	public List<MemoryDebugInfo>? DebugInfo;
+
+	public Span<byte> GetMemory ( int offset, int length )
+		=> Memory.Slice( offset, length );
+
+	public unsafe T* GetPointer<T> ( int address ) where T : unmanaged {
+		return (T*)( Memory.Data() + address );
+	}
+
+	public unsafe void* GetPointer ( int address ) {
+		return Memory.Data() + address;
+	}
+
+	public T Read<T> ( int address ) where T : unmanaged {
+		return MemoryMarshal.Read<T>( Memory[address..] );
+	}
+
+	public void Write<T> ( int address, T value ) where T : unmanaged {
+		MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref value, 1 ) ).CopyTo( Memory[address..] );
+	}
+
+	public VariableInfo StackAlloc ( IRuntimeType type ) {
+		var ptr = StackPointer;
+		StackPointer += type.Size;
+		return new() { Address = ptr, Type = type };
 	}
 }

@@ -28,27 +28,27 @@ public partial class Program : App {
 			var api = consoleHost.CreateGraphicsApi( GraphicsApiType.Curses, new[] { RenderingCapabilities.DrawToWindow } );
 			ThreadRunner.RegisterThread( new Test03_Uniforms( d, consoleHost, d.Title, api ) );
 		};
-		var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
-		a.Title = "Window A [DX11]";
-		a.Initialized += _ => {
-			var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test03_Uniforms( a, host, a.Title, api ) );
-		};
-		var b = host.CreateWindow( GraphicsApiType.Vulkan, this );
-		b.Title = "Window A [Vulkan]";
-		b.Initialized += _ => {
-			var api = host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test03_Uniforms( b, host, b.Title, api ) );
-		};
-		var c = host.CreateWindow( GraphicsApiType.OpenGl, this );
-		c.Title = "Window A [OpenGl]";
-		c.Initialized += _ => {
-			var api = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test03_Uniforms( c, host, c.Title, api ) );
-		};
+		//var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
+		//a.Title = "Window A [DX11]";
+		//a.Initialized += _ => {
+		//	var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
+		//	ThreadRunner.RegisterThread( new Test03_Uniforms( a, host, a.Title, api ) );
+		//};
+		//var b = host.CreateWindow( GraphicsApiType.Vulkan, this );
+		//b.Title = "Window A [Vulkan]";
+		//b.Initialized += _ => {
+		//	var api = host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
+		//	ThreadRunner.RegisterThread( new Test03_Uniforms( b, host, b.Title, api ) );
+		//};
+		//var c = host.CreateWindow( GraphicsApiType.OpenGl, this );
+		//c.Title = "Window A [OpenGl]";
+		//c.Initialized += _ => {
+		//	var api = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
+		//	ThreadRunner.RegisterThread( new Test03_Uniforms( c, host, c.Title, api ) );
+		//};
 
 		Task.Run( async () => {
-			while ( !a.IsClosed || !b.IsClosed || !c.IsClosed || !d.IsClosed )
+			while (/* !a.IsClosed || !b.IsClosed || !c.IsClosed ||*/ !d.IsClosed )
 				await Task.Delay( 1 );
 
 			Quit();
