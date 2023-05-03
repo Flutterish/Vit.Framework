@@ -12,7 +12,7 @@ public abstract class DataType : CompilerObject {
 	}
 
 	IRuntimeType? runtimeType;
-	public IRuntimeType GetRuntimeType () {
+	public virtual IRuntimeType GetRuntimeType () {
 		return runtimeType ??= CreateRuntimeType();
 	}
 	protected virtual IRuntimeType CreateRuntimeType () {

@@ -12,13 +12,6 @@ public class Load : Instruction {
 	public uint PointerId;
 	public MemoryOperands? MemoryOperands;
 
-	public override void Execute ( RuntimeScope scope ) {
-		var from = ((PointerVariable)scope.Variables[PointerId]).Address!;
-		var to = scope.Variables[ResultId];
-
-		to.Value = from.Value;
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		var fromPtr = scope.VariableInfo[PointerId];
 		var fromAddress = memory.Read<int>( fromPtr.Address );

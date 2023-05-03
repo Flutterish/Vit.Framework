@@ -11,13 +11,6 @@ public class Store : Instruction {
 	public uint ObjectId;
 	public MemoryOperands? MemoryOperands;
 
-	public override void Execute ( RuntimeScope scope ) {
-		var to = ((PointerVariable)scope.Variables[PointerId]).Address!;
-		var from = scope.Variables[ObjectId];
-
-		to.Value = from.Value;
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		var toPtr = scope.VariableInfo[PointerId];
 		var toAddress = memory.Read<int>( toPtr.Address );

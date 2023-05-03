@@ -12,19 +12,17 @@ public class SoftwareShader {
 	public readonly SpirvCompiler Compiler;
 	public readonly ExecutionModel ExecutionModel;
 
-	public readonly Dictionary<uint, PointerVariable> InputsByLocation = new();
+	public readonly Dictionary<uint, RuntimePointerType> InputsByLocation = new();
 	public readonly Dictionary<uint, uint> InputIdByLocation = new();
-	public readonly Dictionary<uint, PointerVariable> OutputsByLocation = new();
+	public readonly Dictionary<uint, RuntimePointerType> OutputsByLocation = new();
 	public readonly Dictionary<uint, uint> OutputIdByLocation = new();
-	public readonly List<(PointerVariable ptr, uint id)> OutputsWithoutLocation = new();
-	public readonly List<(PointerVariable ptr, uint id)> Outputs = new();
-	public readonly Dictionary<uint, IVariable> BuiltinOutputs = new();
+	public readonly List<(RuntimePointerType ptr, uint id)> OutputsWithoutLocation = new();
+	public readonly List<(RuntimePointerType ptr, uint id)> Outputs = new();
 	public readonly Dictionary<uint, int> BuiltinOutputOffsets = new();
 
-	public readonly Dictionary<uint, PointerVariable> InterfacesById = new();
-	public readonly Dictionary<uint, PointerVariable> UniformsByBinding = new();
+	public readonly Dictionary<uint, RuntimePointerType> InterfacesById = new();
+	public readonly Dictionary<uint, RuntimePointerType> UniformsByBinding = new();
 	public readonly Dictionary<uint, uint> UniformIdByBinding = new();
-	public readonly Dictionary<uint, IVariable> Constants = new();
 
 	public readonly RuntimeScope GlobalScope = new();
 	public readonly RuntimeFunction Entry;
@@ -38,74 +36,40 @@ public class SoftwareShader {
 		var outputInterfaces = interfaces.Where( x => x.StorageClass == StorageClass.Output ).ToArray();
 
 		foreach ( var (id, uniform) in compiler.Variables.Where( x => x.Value.StorageClass == StorageClass.Uniform ) ) {
-			var ptr = (PointerVariable)uniform.Type.GetRuntimeType().CreateVariable();
-			var value = uniform.Type.Type.GetRuntimeType().CreateVariable();
-			ptr.Address = value;
-
 			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
-			UniformsByBinding.Add( binding, ptr );
+			UniformsByBinding.Add( binding, uniform.Type.GetRuntimeType() );
 			UniformIdByBinding.Add( binding, id );
-			GlobalScope.Variables.Add( id, ptr );
 		}
 		foreach ( var i in inputInterfaces ) {
 			var location = i.Decorations[DecorationName.Location].Data[0];
-			var ptr = (PointerVariable)i.Type.GetRuntimeType().CreateVariable();
-			var value = i.Type.Type.GetRuntimeType().CreateVariable();
-			ptr.Address = value;
 
-			InputsByLocation.Add( location, ptr );
+			InputsByLocation.Add( location, i.Type.GetRuntimeType() );
 			InputIdByLocation.Add( location, i.Id );
-			InterfacesById.Add( i.Id, ptr );
-			GlobalScope.Variables.Add( i.Id, ptr );
+			InterfacesById.Add( i.Id, i.Type.GetRuntimeType() );
 		}
 		foreach ( var i in outputInterfaces ) {
-			var ptr = (PointerVariable)i.Type.GetRuntimeType().CreateVariable();
-			var value = i.Type.Type.GetRuntimeType().CreateVariable();
-			ptr.Address = value;
-
-			Outputs.Add( (ptr, i.Id) );
-			InterfacesById.Add( i.Id, ptr );
-			GlobalScope.Variables.Add( i.Id, ptr );
+			Outputs.Add( (i.Type.GetRuntimeType(), i.Id) );
+			InterfacesById.Add( i.Id, i.Type.GetRuntimeType() );
 
 			if ( i.Decorations.TryGetValue( DecorationName.Location, out var location ) ) {
-				OutputsByLocation.Add( location.Data[0], ptr );
+				OutputsByLocation.Add( location.Data[0], i.Type.GetRuntimeType() );
 				OutputIdByLocation.Add( location.Data[0], i.Id );
 			}
 			else {
-				OutputsWithoutLocation.Add( (ptr, i.Id) );
+				OutputsWithoutLocation.Add( (i.Type.GetRuntimeType(), i.Id) );
 			}
 
 			var innerType = i.Type.Type;
 			if ( innerType is StructType structType ) {
 				for ( uint j = 0; j < structType.MemberTypeIds.Length; j++ ) {
 					if ( structType.GetMemberDecorations( j ).TryGetValue( DecorationName.BuiltIn, out var builtin ) ) {
-						BuiltinOutputs.Add( builtin.Data[0], ((ICompositeVariable)value)[j] );
 						BuiltinOutputOffsets.Add( builtin.Data[0], ((ICompositeRuntimeType)structType.GetRuntimeType()).GetMemberOffset( (int)j ) );
 					}
 				}
 			}
 		}
 
-		foreach ( var (id, constant) in compiler.Constants ) {
-			var variable = constant.CreateVariable();
-			Constants.Add( id, variable );
-			GlobalScope.Variables.Add( id, variable );
-		}
-
-		foreach ( var (id, constant) in compiler.CompositeConstants ) {
-			var variable = constant.CreateVariable();
-			Constants.Add( id, variable );
-			GlobalScope.Variables.Add( id, variable );
-		}
-
 		Entry = new( GlobalScope, entry.Function );
-	}
-
-	public void SetUniforms ( uint binding, ReadOnlySpan<byte> data ) {
-		if ( !UniformsByBinding.TryGetValue( binding, out var uniform ) )
-			return;
-
-		uniform.Address!.Parse( data );
 	}
 
 	protected void loadConstants ( ref ShaderMemory memory ) {
@@ -127,18 +91,9 @@ public class SoftwareShader {
 }
 
 public struct ShaderStageOutput {
-	public Dictionary<uint, IVariable> Outputs;
 	public Dictionary<uint, VariableInfo> OutputsByLocation;
 
 	public void Interpolate ( float a, float b, float c, ShaderStageOutput A, ShaderStageOutput B, ShaderStageOutput C, ShaderMemory memory ) {
-		foreach ( var (id, output) in Outputs ) {
-			var _A = A.Outputs[id];
-			var _B = B.Outputs[id];
-			var _C = C.Outputs[id];
-
-			output.Interpolate( a, b, c, _A, _B, _C );
-		}
-
 		foreach ( var (id, output) in OutputsByLocation ) {
 			var _A = A.OutputsByLocation[id];
 			var _B = B.OutputsByLocation[id];

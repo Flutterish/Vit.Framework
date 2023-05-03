@@ -10,13 +10,6 @@ public class CompositeConstruct : Instruction {
 	public uint ResultId;
 	public uint[] Values = Array.Empty<uint>();
 
-	public override void Execute ( RuntimeScope scope ) {
-		var to = (ICompositeVariable)scope.Variables[ResultId];
-		for ( uint i = 0; i < Values.Length; i++ ) {
-			to[i].Value = scope.Variables[Values[i]].Value;
-		}
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		var to = scope.VariableInfo[ResultId];
 		var composite = (ICompositeRuntimeType)to.Type;

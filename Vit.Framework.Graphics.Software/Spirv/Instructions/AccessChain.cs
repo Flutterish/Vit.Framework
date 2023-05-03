@@ -12,16 +12,6 @@ public class AccessChain : Instruction {
 	public uint BaseId;
 	public uint[] IndiceIds = Array.Empty<uint>();
 
-	public override void Execute ( RuntimeScope scope ) {
-		Debug.Assert( IndiceIds.Length == 1 );
-
-		var index = (IVariable<int>)scope.Variables[IndiceIds[0]];
-		var to = (PointerVariable)scope.Variables[ResultId];
-		var from = (ICompositeVariable)((PointerVariable)scope.Variables[BaseId]).Address!;
-
-		to.Address = from[(uint)index.Value];
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		Debug.Assert( IndiceIds.Length == 1 );
 

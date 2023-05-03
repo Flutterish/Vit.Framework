@@ -12,10 +12,6 @@ public abstract class Instruction : CompilerObject { // TODO in theory we can sp
 		SourceRef = sourceRef;
 	}
 
-	public virtual void Execute ( RuntimeScope scope ) {
-		Debug.Fail( "oops" );
-	}
-
 	public virtual void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		Debug.Fail( "oops" );
 	}

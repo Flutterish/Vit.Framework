@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
-using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Spirv.Types;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
@@ -12,13 +11,6 @@ public class Constant : CompilerObject, IValue {
 	public uint[] Data = Array.Empty<uint>();
 
 	public DataType Type => GetDataType( DataTypeId );
-
-	public IVariable CreateVariable () {
-		var type = Type.GetRuntimeType();
-		var variable = type.CreateVariable();
-		variable.Parse( MemoryMarshal.AsBytes( Data.AsSpan() ) );
-		return variable;
-	}
 
 	public override string ToString () {
 		var data = MemoryMarshal.Cast<uint, byte>( Data.AsSpan() );
@@ -33,22 +25,6 @@ public class ConstantComposite : CompilerObject, IValue {
 	public uint[] ValueIds = Array.Empty<uint>();
 
 	public DataType Type => GetDataType( DataTypeId );
-
-	public IVariable CreateVariable () {
-		var type = Type.GetRuntimeType();
-		var variable = type.CreateVariable();
-		for ( uint i = 0; i < ValueIds.Length; i++ ) {
-			IVariable parsed;
-			if ( Compiler.Constants.TryGetValue( ValueIds[i], out var constant ) )
-				parsed = constant.CreateVariable();
-			else
-				parsed = Compiler.CompositeConstants[ValueIds[i]].CreateVariable();
-
-			((ICompositeVariable)variable)[i].Value = parsed.Value;
-		}
-
-		return variable;
-	}
 
 	public override string ToString () {
 		var values = ValueIds.Select( GetValue );

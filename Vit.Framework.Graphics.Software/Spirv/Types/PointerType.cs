@@ -10,7 +10,11 @@ public class PointerType : DataType {
 	public uint TypeId;
 	public DataType Type => GetDataType( TypeId );
 
-	protected override IRuntimeType CreateRuntimeType () {
+	public override RuntimePointerType GetRuntimeType () {
+		return (RuntimePointerType)base.GetRuntimeType();
+	}
+
+	protected override RuntimePointerType CreateRuntimeType () {
 		return new RuntimePointerType( Type.GetRuntimeType() );
 	}
 

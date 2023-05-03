@@ -11,14 +11,6 @@ public class MatrixTimesVector : Instruction {
 	public uint MatrixId;
 	public uint VectorId;
 
-	public override void Execute ( RuntimeScope scope ) {
-		var matrix = scope.Variables[MatrixId];
-		var vector = scope.Variables[VectorId];
-		var result = scope.Variables[ResultId];
-
-		matrix.MultiplyVector( vector, result );
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		var matrix = scope.VariableInfo[MatrixId];
 		var vector = scope.VariableInfo[VectorId];

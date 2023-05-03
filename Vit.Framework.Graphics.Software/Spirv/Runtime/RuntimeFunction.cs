@@ -17,18 +17,6 @@ public class RuntimeFunction {
 		}
 	}
 
-	RuntimeScope createScope () {
-		var scope = new RuntimeScope();
-		foreach ( var (id, var) in parentScope.Variables ) {
-			scope.Variables.Add( id, var );
-		}
-		foreach ( var (id, type) in locals ) {
-			scope.Variables.Add( id, type.CreateVariable() );
-		}
-
-		return scope;
-	}
-
 	RuntimeScope createScope ( ref ShaderMemory memory ) {
 		var scope = new RuntimeScope();
 		foreach ( var (id, var) in parentScope.VariableInfo ) {
@@ -47,23 +35,6 @@ public class RuntimeFunction {
 
 		return scope;
 	}
-
-	public void Call () {
-		if ( !scopePool.TryPop( out var scope ) ) {
-			scope = createScope();
-		}
-		scope.CodePointer = 0;
-
-		var instructions = source.Instructions;
-		var length = instructions.Count;
-		while ( scope.CodePointer < length ) {
-			var instruction = instructions[scope.CodePointer++];
-			instruction.Execute( scope );
-		}
-
-		scopePool.Push( scope );
-	}
-
 
 	public void Call ( ShaderMemory memory ) {
 		var scope = createScope( ref memory );

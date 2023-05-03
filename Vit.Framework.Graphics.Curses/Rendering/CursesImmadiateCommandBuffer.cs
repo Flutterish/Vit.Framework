@@ -63,22 +63,19 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	ShaderStageOutput[] vertexAttributes = new ShaderStageOutput[] {
-		new() { Outputs = new(), OutputsByLocation = new() },
-		new() { Outputs = new(), OutputsByLocation = new() },
-		new() { Outputs = new(), OutputsByLocation = new() }
+		new() { OutputsByLocation = new() },
+		new() { OutputsByLocation = new() },
+		new() { OutputsByLocation = new() }
 	};
-	ShaderStageOutput interpolated = new() { Outputs = new(), OutputsByLocation = new() };
+	ShaderStageOutput interpolated = new() { OutputsByLocation = new() };
 	Dictionary<uint, VariableInfo> vertexInputsByLocation = new();
 	Dictionary<uint, VariableInfo> vertexOutputsByLocation = new();
 	void initializeAttributes ( SoftwareVertexShader shader, ref ShaderMemory memory ) {
 		int index = 0;
 		foreach ( var i in vertexAttributes.Append( interpolated ) ) {
-			i.Outputs.Clear();
 			i.OutputsByLocation.Clear();
 			foreach ( var (location, output) in shader.OutputsByLocation ) {
-				i.Outputs.Add( location, output.Type.Base.CreateVariable() );
-
-				var variable = memory.StackAlloc( output.Type.Base );
+				var variable = memory.StackAlloc( output.Base );
 #if SHADER_DEBUG
 				memory.AddDebug( new() {
 					Variable = variable,
@@ -93,7 +90,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 		vertexOutputsByLocation.Clear();
 		foreach ( var (location, output) in shader.OutputsByLocation ) {
-			var ptr = memory.StackAlloc( output.Type );
+			var ptr = memory.StackAlloc( output );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
@@ -106,7 +103,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 
 		foreach ( var (output, id) in shader.OutputsWithoutLocation ) {
-			var variable = memory.StackAlloc( output.Type.Base );
+			var variable = memory.StackAlloc( output.Base );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
@@ -114,7 +111,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 			} );
 #endif
 
-			var ptr = memory.StackAlloc( output.Type );
+			var ptr = memory.StackAlloc( output );
 			memory.Write( ptr.Address, value: variable.Address );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
@@ -128,7 +125,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 		vertexInputsByLocation.Clear();
 		foreach ( var (location, input) in shader.InputsByLocation ) {
-			var variable = memory.StackAlloc( input.Type.Base );
+			var variable = memory.StackAlloc( input.Base );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
@@ -137,7 +134,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 #endif
 			vertexInputsByLocation.Add( location, variable );
 
-			var ptr = memory.StackAlloc( input.Type );
+			var ptr = memory.StackAlloc( input );
 			memory.Write( ptr.Address, value: variable.Address );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
@@ -153,7 +150,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	void initializeAttributes ( SoftwareFragmentShader shader, ref ShaderMemory memory ) {
 		foreach ( var (location, input) in shader.InputsByLocation ) {
 			var output = interpolated.OutputsByLocation[location];
-			var ptr = memory.StackAlloc( input.Type );
+			var ptr = memory.StackAlloc( input );
 			memory.Write( ptr.Address, value: output.Address );
 			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
 
@@ -166,7 +163,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 
 		foreach ( var (location, output) in shader.OutputsByLocation ) {
-			var variable = memory.StackAlloc( output.Type.Base );
+			var variable = memory.StackAlloc( output.Base );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
@@ -174,7 +171,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 			} );
 #endif
 
-			var ptr = memory.StackAlloc( output.Type );
+			var ptr = memory.StackAlloc( output );
 			memory.Write( ptr.Address, value: variable.Address );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
@@ -258,7 +255,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	void setUniforms ( ref ShaderMemory memory ) {
 		var uniforms = shaders!.UniformBuffers;
 		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.SoftwareShader.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
-			var uniformType = uniform.Type.Base;
+			var uniformType = uniform.Base;
 			var variable = memory.StackAlloc( uniformType );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
@@ -270,7 +267,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 			var data = uniforms[binding];
 			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( variable.Address, (int)data.stride ) );
 
-			var ptr = memory.StackAlloc( uniform.Type );
+			var ptr = memory.StackAlloc( uniform );
 			memory.Write( ptr.Address, value: variable.Address );
 #if SHADER_DEBUG
 			memory.AddDebug( new() {
@@ -282,12 +279,6 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				if ( i.SoftwareShader.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
 					i.SoftwareShader.GlobalScope.VariableInfo[id] = ptr;
 				}
-			}
-		}
-
-		foreach ( var i in shaders!.Shaders ) {
-			foreach ( var (binding, data) in uniforms ) {
-				i.SoftwareShader.SetUniforms( binding, data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ) );
 			}
 		}
 	}

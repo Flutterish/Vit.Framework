@@ -7,7 +7,7 @@ namespace Vit.Framework.Graphics.Software.Shaders;
 public class SoftwareFragmentShader : SoftwareShader {
 	uint ColorOutputId;
 	public SoftwareFragmentShader ( SpirvCompiler compiler, ExecutionModel model ) : base( compiler, model ) {
-		ColorOutputId = OutputIdByLocation[OutputsByLocation.First( x => x.Value.Type.Base is RuntimeVector4Type<float> ).Key];
+		ColorOutputId = OutputIdByLocation[OutputsByLocation.First( x => x.Value.Base is RuntimeVector4Type<float> ).Key];
 	}
 
 	public FragmentShaderOutput Execute ( ShaderMemory memory ) {

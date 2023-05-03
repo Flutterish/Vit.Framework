@@ -12,16 +12,6 @@ public class CompositeExtract : Instruction {
 	public uint CompositeId;
 	public uint[] Indices = Array.Empty<uint>();
 
-	public override void Execute ( RuntimeScope scope ) {
-		Debug.Assert( Indices.Length == 1 );
-
-		var index = Indices[0];
-		var to = scope.Variables[ResultId];
-		var from = (ICompositeVariable)scope.Variables[CompositeId];
-
-		to.Value = from[index].Value;
-	}
-
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		Debug.Assert( Indices.Length == 1 );
 
