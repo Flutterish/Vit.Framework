@@ -1,6 +1,5 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Curses.Shaders;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -200,10 +199,10 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
 
 		var vertexBuffer = (IByteBuffer)this.vertexBuffer!;
-		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
+		var shaders = this.shaders!.Shaders;
 
-		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
-		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment ).SoftwareShader;
+		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex );
+		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment );
 		setUniforms( ref memory );
 
 		initializeAttributes( vert, ref memory );
@@ -251,7 +250,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 	void setUniforms ( ref ShaderMemory memory ) {
 		var uniforms = shaders!.UniformBuffers;
-		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.SoftwareShader.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
+		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
 			var uniformType = uniform.Base;
 			var variable = memory.StackAlloc( uniformType );
 #if SHADER_DEBUG
@@ -273,8 +272,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 			} );
 #endif
 			foreach ( var i in shaders!.Shaders ) {
-				if ( i.SoftwareShader.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
-					i.SoftwareShader.GlobalScope.VariableInfo[id] = ptr;
+				if ( i.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
+					i.GlobalScope.VariableInfo[id] = ptr;
 				}
 			}
 		}

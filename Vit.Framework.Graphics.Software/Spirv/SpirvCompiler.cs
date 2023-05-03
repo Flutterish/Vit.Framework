@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv.Instructions;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
@@ -38,9 +39,12 @@ public class SpirvCompiler {
 	public readonly Dictionary<uint, IAssignable> Assignables = new();
 
 	public readonly List<Instruction> Instructions = new();
+	public readonly SpirvBytecode Bytecode;
 
 	const uint MagicWord = 0x07230203;
-	public SpirvCompiler ( ReadOnlySpan<byte> spirv ) {
+	public SpirvCompiler ( SpirvBytecode bytecode ) {
+		Bytecode = bytecode;
+		ReadOnlySpan<byte> spirv = bytecode.Data;
 		var words = MemoryMarshal.Cast<byte, uint>( spirv );
 		var sourceLength = words.Length;
 		if ( read( ref words ) != MagicWord )

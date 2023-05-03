@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -7,7 +9,7 @@ using Vit.Framework.Graphics.Software.Spirv.Types;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
-public class SoftwareShader {
+public class SoftwareShader : IShaderPart {
 	public readonly SpirvCompiler Compiler;
 	public readonly ExecutionModel ExecutionModel;
 
@@ -86,6 +88,13 @@ public class SoftwareShader {
 		}
 
 		Debug.Assert( !Compiler.CompositeConstants.Any() );
+	}
+
+	public ShaderPartType Type => Compiler.Bytecode.Type;
+	public ShaderInfo ShaderInfo => Compiler.Bytecode.Reflections;
+
+	public void Dispose () {
+		
 	}
 }
 

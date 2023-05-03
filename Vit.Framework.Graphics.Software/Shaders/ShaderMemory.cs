@@ -15,9 +15,25 @@ public struct VariableInfo {
 	}
 }
 
+[DebuggerDisplay( "{ToString(),nq}" )]
 public struct MemoryDebugInfo {
 	public VariableInfo Variable;
 	public string Name;
+
+	public override string ToString () {
+		return $"{Name} : {Variable.Type} at 0x{Variable.Address:X}";
+	}
+}
+
+public class MemoryDebugFrame {
+	public MemoryDebugFrame? ParentFrame;
+	public Dictionary<int, MemoryDebugInfo> Info = new();
+	public int StackPointerOffset;
+
+	public void Add ( MemoryDebugInfo info ) {
+		info.Variable.Address -= StackPointerOffset;
+		Info.Add( info.Variable.Address, info );
+	}
 }
 
 public ref struct ShaderMemory { // TODO consider baked debug information instead
