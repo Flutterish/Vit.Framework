@@ -79,10 +79,12 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				i.Outputs.Add( location, output.Type.Base.CreateVariable() );
 
 				var variable = memory.StackAlloc( output.Type.Base );
+#if SHADER_DEBUG
 				memory.AddDebug( new() {
 					Variable = variable,
 					Name = $"Out (location = {location}) [{(index == 3 ? "Interpolated" : $"Vertex {index}")}]"
 				} );
+#endif
 				i.OutputsByLocation.Add( location, variable );
 			}
 
@@ -92,10 +94,12 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		vertexOutputsByLocation.Clear();
 		foreach ( var (location, output) in shader.OutputsByLocation ) {
 			var ptr = memory.StackAlloc( output.Type );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"Out (location = {location}) pointer"
 			} );
+#endif
 
 			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
 			vertexOutputsByLocation.Add( location, ptr );
@@ -103,17 +107,21 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 		foreach ( var (output, id) in shader.OutputsWithoutLocation ) {
 			var variable = memory.StackAlloc( output.Type.Base );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"Out (builtin)"
 			} );
+#endif
 
 			var ptr = memory.StackAlloc( output.Type );
 			memory.Write( ptr.Address, value: variable.Address );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"Out (builtin) pointer"
 			} );
+#endif
 
 			shader.GlobalScope.VariableInfo[id] = ptr;
 		}
@@ -121,18 +129,22 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		vertexInputsByLocation.Clear();
 		foreach ( var (location, input) in shader.InputsByLocation ) {
 			var variable = memory.StackAlloc( input.Type.Base );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"In (location = {location})"
 			} );
+#endif
 			vertexInputsByLocation.Add( location, variable );
 
 			var ptr = memory.StackAlloc( input.Type );
 			memory.Write( ptr.Address, value: variable.Address );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"In (location = {location}) pointer"
 			} );
+#endif
 
 			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
 		}
@@ -145,25 +157,31 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 			memory.Write( ptr.Address, value: output.Address );
 			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
 
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"Frag In (location = {location}) pointer"
 			} );
+#endif
 		}
 
 		foreach ( var (location, output) in shader.OutputsByLocation ) {
 			var variable = memory.StackAlloc( output.Type.Base );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"Frag Out (location = {location})"
 			} );
+#endif
 
 			var ptr = memory.StackAlloc( output.Type );
 			memory.Write( ptr.Address, value: variable.Address );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"Frag Out (location = {location}) pointer"
 			} );
+#endif
 
 			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
 		}
@@ -242,20 +260,24 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.SoftwareShader.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
 			var uniformType = uniform.Type.Base;
 			var variable = memory.StackAlloc( uniformType );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"Uniform (set = {binding})"
 			} );
+#endif
 
 			var data = uniforms[binding];
 			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( variable.Address, (int)data.stride ) );
 
 			var ptr = memory.StackAlloc( uniform.Type );
 			memory.Write( ptr.Address, value: variable.Address );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = ptr,
 				Name = $"Uniform (set = {binding}) pointer"
 			} );
+#endif
 			foreach ( var i in shaders!.Shaders ) {
 				if ( i.SoftwareShader.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
 					i.SoftwareShader.GlobalScope.VariableInfo[id] = ptr;

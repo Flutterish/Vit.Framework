@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -115,10 +114,12 @@ public class SoftwareShader {
 			MemoryMarshal.AsBytes( constant.Data.AsSpan() ).CopyTo( memory.Memory[variable.Address..] );
 			GlobalScope.VariableInfo[id] = variable;
 
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"Constant %{id}"
 			} );
+#endif
 		}
 
 		Debug.Assert( !Compiler.CompositeConstants.Any() );
@@ -167,11 +168,13 @@ public ref struct ShaderMemory {
 	public Span<byte> Memory;
 	public int StackPointer;
 
+#if SHADER_DEBUG
 	public Dictionary<int, MemoryDebugInfo>? DebugInfo;
 	public void AddDebug ( MemoryDebugInfo info ) {
 		DebugInfo ??= new();
 		DebugInfo[info.Variable.Address] = info;
 	}
+#endif
 
 	public Span<byte> GetMemory ( int offset, int length )
 		=> Memory.Slice( offset, length );
@@ -206,6 +209,7 @@ public ref struct ShaderMemory {
 		return new() { Address = ptr, Type = type };
 	}
 
+#if SHADER_DEBUG
 	public override string ToString () {
 		var memoryLength = Memory.Length.ToString( "X" ).Length;
 
@@ -256,4 +260,5 @@ public ref struct ShaderMemory {
 			return view;
 		}
 	}
+#endif
 }

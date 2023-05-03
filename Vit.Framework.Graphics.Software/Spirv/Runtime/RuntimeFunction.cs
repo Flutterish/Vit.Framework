@@ -37,10 +37,12 @@ public class RuntimeFunction {
 		foreach ( var (id, type) in locals ) {
 			var variable = memory.StackAlloc( type );
 			scope.VariableInfo.Add( id, variable );
+#if SHADER_DEBUG
 			memory.AddDebug( new() {
 				Variable = variable,
 				Name = $"Local %{id}"
 			} );
+#endif
 		}
 
 		return scope;
