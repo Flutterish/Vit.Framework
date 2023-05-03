@@ -35,5 +35,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public virtual IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
 		return new Buffer<T>();
 	}
-	public abstract IImmediateCommandBuffer CreateImmediateCommandBuffer ();
+
+	SoftwareImmadiateCommandBuffer commandBuffer = new();
+	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
+		return commandBuffer;
+	}
 }

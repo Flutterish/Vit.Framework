@@ -1,33 +1,34 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Interop;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Graphics.Curses.Rendering;
+namespace Vit.Framework.Graphics.Software.Rendering;
 
-public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
+
+public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 	TargetImage renderTarget = null!;
 	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		renderTarget = (TargetImage)framebuffer;
-		var color = (clearColor ?? ColorRgba.Black).ToByte().BitCast<ColorRgba<byte>, Rgba32>();
+		var color = ( clearColor ?? ColorRgba.Black ).ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 		renderTarget.AsSpan().Fill( color );
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
-			((CursesImmadiateCommandBuffer)self).renderTarget = null!;
+			( (SoftwareImmadiateCommandBuffer)self ).renderTarget = null!;
 		} );
 	}
 
 	public void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		((Buffer<T>)buffer).Upload( data, offset );
+		( (Buffer<T>)buffer ).Upload( data, offset );
 	}
 
 	ShaderSet? shaders;
@@ -194,7 +195,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var endXStep = ( c.X - endX ) / ( c.Y - b.Y );
 		var pixels = renderTarget.AsSpan2D();
 		for ( int y = (int)b.Y; y <= c.Y; y++ ) {
-			for ( int x = (int)Math.Ceiling(startX); x < endX; x++ ) {
+			for ( int x = (int)Math.Ceiling( startX ); x < endX; x++ ) {
 				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
 					continue;
 
@@ -219,7 +220,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		startX += startXStep;
 		endX += endXStep;
 		for ( int y = (int)b.Y - 1; y >= a.Y; y-- ) {
-			for ( int x = (int)Math.Ceiling(startX); x < endX; x++ ) {
+			for ( int x = (int)Math.Ceiling( startX ); x < endX; x++ ) {
 				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
 					continue;
 
@@ -238,6 +239,6 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	public void Dispose () {
-		
+
 	}
 }

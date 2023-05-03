@@ -1,9 +1,9 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using System.Text;
-using Vit.Framework.Graphics.Curses.Rendering;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Software.Rendering;
 using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
@@ -55,7 +55,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Console.Write( sb.ToString() );
 	}
 
-	CursesImmadiateCommandBuffer commandBuffer = new();
+	SoftwareImmadiateCommandBuffer commandBuffer = new();
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
 		return commandBuffer;
 	}
