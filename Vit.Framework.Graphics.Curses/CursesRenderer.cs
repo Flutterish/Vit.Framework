@@ -1,10 +1,10 @@
 ﻿using System.Numerics;
-using Vit.Framework.Graphics.Curses.Buffers;
 using Vit.Framework.Graphics.Curses.Rendering;
 using Vit.Framework.Graphics.Curses.Shaders;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 

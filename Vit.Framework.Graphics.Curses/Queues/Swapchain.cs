@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using System.Text;
 using Vit.Framework.Graphics.Curses.Rendering;
-using Vit.Framework.Graphics.Curses.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
 
@@ -13,14 +14,15 @@ public class Swapchain : DisposableObject, ISwapchain {
 	Window window;
 	public Swapchain ( Window window ) {
 		this.window = window;
-		backbuffer = new() { Size = window.PixelSize };
+		backbuffer = new( window.PixelSize );
 	}
 
 	public void Recreate () {
-		backbuffer = new() { Size = window.PixelSize };
+		backbuffer.Dispose();
+		backbuffer = new( window.PixelSize );
 	}
 
-	Sprite backbuffer;
+	TargetImage backbuffer;
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
 		if ( backbuffer.Size != window.Size )
 			Recreate();
@@ -34,16 +36,16 @@ public class Swapchain : DisposableObject, ISwapchain {
 		sb.Append( "\u001B[1;1H" );
 		sb.Append( "\u001B[?25l" );
 
-		ColorRgba<byte> lastColor = default;
+		Rgba32 lastColor = default;
 
-		var span = backbuffer.AsSpan();
+		var span = backbuffer.AsSpan2D();
 		for ( int i = 0; i < backbuffer.Size.Height; i++ ) {
 			foreach ( var px in span.GetRow( i ) ) {
-				if ( lastColor != px.Background ) {
-					sb.Append( $"\u001B[48;2;{px.Background.R};{px.Background.G};{px.Background.B}m" );
-					lastColor = px.Background;
+				if ( lastColor != px ) {
+					sb.Append( $"\u001B[48;2;{px.R};{px.G};{px.B}m" );
+					lastColor = px;
 				}
-				sb.Append( px.Symbol );
+				sb.Append( ' ' );
 			}
 			sb.Append( '\n' );
 		}
@@ -59,6 +61,6 @@ public class Swapchain : DisposableObject, ISwapchain {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		throw new NotImplementedException();
+		backbuffer.Dispose();
 	}
 }

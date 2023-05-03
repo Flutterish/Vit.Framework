@@ -18,7 +18,7 @@ public class RuntimeFunction {
 	}
 
 	RuntimeScope createScope ( ref ShaderMemory memory ) {
-		var scope = new RuntimeScope();
+		var scope = new RuntimeScope(); // TODO do better
 		foreach ( var (id, var) in parentScope.VariableInfo ) {
 			scope.VariableInfo.Add( id, var );
 		}

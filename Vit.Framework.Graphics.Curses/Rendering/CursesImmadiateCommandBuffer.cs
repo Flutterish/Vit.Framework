@@ -1,13 +1,14 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
-using Vit.Framework.Graphics.Curses.Buffers;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Curses.Shaders;
-using Vit.Framework.Graphics.Curses.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
+using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -15,15 +16,11 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.Curses.Rendering;
 
 public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
-	Sprite renderTarget = null!;
+	TargetImage renderTarget = null!;
 	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
-		renderTarget = (Sprite)framebuffer;
-		var color = (clearColor ?? ColorRgba.Black).ToByte();
-		renderTarget.AsSpan().Flat.Fill( new CursesPixel {
-			Symbol = new Rune( ' ' ),
-			Foreground = ColorRgba.White.ToByte(),
-			Background = color
-		} );
+		renderTarget = (TargetImage)framebuffer;
+		var color = (clearColor ?? ColorRgba.Black).ToByte().BitCast<ColorRgba<byte>, Rgba32>();
+		renderTarget.AsSpan().Fill( color );
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
 			((CursesImmadiateCommandBuffer)self).renderTarget = null!;
@@ -329,6 +326,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var endX = Math.Max( b.X, d.X );
 		var startXStep = ( c.X - startX ) / ( c.Y - b.Y );
 		var endXStep = ( c.X - endX ) / ( c.Y - b.Y );
+		var pixels = renderTarget.AsSpan2D();
 		for ( int y = (int)b.Y; y <= c.Y; y++ ) {
 			for ( int x = (int)Math.Ceiling(startX); x < endX; x++ ) {
 				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
@@ -339,7 +337,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
 
 				var fragData = frag.Execute( memory );
-				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
+				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 			}
 
 			startX += startXStep;
@@ -363,7 +361,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
 
 				var fragData = frag.Execute( memory );
-				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
+				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 			}
 
 			startX += startXStep;

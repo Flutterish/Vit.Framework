@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Graphics.Curses.Buffers;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Software.Buffers;
 
 namespace Vit.Framework.Graphics.Curses.Shaders;
 

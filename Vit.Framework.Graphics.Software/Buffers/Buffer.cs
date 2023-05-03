@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Buffers;
 
-namespace Vit.Framework.Graphics.Curses.Buffers;
+namespace Vit.Framework.Graphics.Software.Buffers;
 
 public class Buffer<T> : IHostBuffer<T>, IDeviceBuffer<T>, IByteBuffer where T : unmanaged {
 	public T[] Data { get; private set; } = Array.Empty<T>();
