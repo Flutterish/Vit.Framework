@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
+using System.Text;
 using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
-public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICompositeRuntimeType, IInterpolatableRuntimeType where T : unmanaged, INumber<T> where TVector : unmanaged {
+public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICompositeRuntimeType, IInterpolatableRuntimeType, IRuntimeType where T : unmanaged, INumber<T> where TVector : unmanaged {
 	public readonly IRuntimeType<T> ElementType;
 	public readonly int Length;
 	public RuntimeVectorType ( IRuntimeType<T> elementType, int length ) {
@@ -22,6 +23,21 @@ public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICom
 
 	public int GetMemberOffset ( int index ) {
 		return ElementType.Size * index;
+	}
+
+	object IRuntimeType.Parse ( ReadOnlySpan<byte> data ) {
+		StringBuilder sb = new();
+		sb.Append( '<' );
+		for ( int i = 0; i < Length; i++ ) {
+			var el = ElementType.Parse( data[..ElementType.Size] );
+			data = data[ElementType.Size..];
+			sb.Append( el.ToString() );
+			if ( i + 1 < Length )
+				sb.Append( ", " );
+		}
+		sb.Append( '>' );
+
+		return sb.ToString();
 	}
 
 	public void Interpolate ( float a, float b, float c, VariableInfo A, VariableInfo B, VariableInfo C, VariableInfo result, ShaderMemory memory ) {

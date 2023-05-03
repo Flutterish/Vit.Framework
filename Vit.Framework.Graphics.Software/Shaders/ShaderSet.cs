@@ -2,9 +2,10 @@
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Software.Buffers;
-using Vit.Framework.Graphics.Software.Spirv.Instructions;
 using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
+using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -20,12 +21,17 @@ public class ShaderSet : IShaderSet {
 		var frag = Shaders.OfType<SoftwareFragmentShader>().Single();
 
 		ShaderMemory memory = default;
+
+		UniformDebugFrame = BakedDebug = new() { Name = "Uniforms" };
 		VertexStage.PointerAdresses = new();
-		bakeUniforms( ref memory, ref VertexStage );
+		Uniforms = bakeUniforms( ref memory, ref VertexStage );
+
+		VertexDebugFrame = BakedDebug = new() { Name = "Vertex Shader", ParentFrame = BakedDebug, StackPointerOffset = memory.StackPointer };
 		(VertexStageLinkage, var vertexOutputs) = bakeVertexOutputs( vert, ref memory, ref VertexStage, "Vert" );
-		bakeInputs( vert, ref memory, ref VertexStage, "Vert" );
+		VertexInputs = bakeInputs( vert, ref memory, ref VertexStage, "Vert" );
 		VertexStage.StackPointer = memory.StackPointer;
 
+		FragmentDebugFrame = BakedDebug = new() { Name = "Fragment Shader", ParentFrame = BakedDebug, StackPointerOffset = memory.StackPointer };
 		FragmentStage.PointerAdresses = new();
 		bakeOutputs( frag, ref memory, ref FragmentStage, "Frag" );
 		bakeStageLink( frag, ref memory, ref FragmentStage, vertexOutputs, "Frag" );
@@ -33,7 +39,9 @@ public class ShaderSet : IShaderSet {
 	}
 
 	// TODO this assumes that shader parts are distinct, we should ensure that they are (compiler being "IShader" and shader set specializing them?)
-	void bakeUniforms ( ref ShaderMemory memory, ref BakedStageInfo stageInfo ) {
+	OutputLinkage bakeUniforms ( ref ShaderMemory memory, ref BakedStageInfo stageInfo ) {
+		OutputLinkage adresses = new();
+
 		foreach ( var (binding, ptrType) in Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
 			var uniform = memory.StackAlloc( ptrType.Base );
 			var ptr = memory.StackAlloc( ptrType );
@@ -53,18 +61,25 @@ public class ShaderSet : IShaderSet {
 				Variable = ptr,
 				Name = $"Uniform ptr (Set {binding})"
 			} );
+
+			adresses.Add(binding, uniform.Address);
 		}
+
+		return adresses;
 	}
 
-	(AddressLinkage[] linkage, OutputLinkage outputs) bakeVertexOutputs ( SoftwareVertexShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName ) {
-		AddressLinkage[] linkage = new AddressLinkage[4];
+	(VertexLinkage linkage, OutputLinkage outputs) bakeVertexOutputs ( SoftwareVertexShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName ) {
+		VertexLinkage linkage = new() {
+			Variables = new StageVariables[4],
+			PointerAddresses = new()
+		};
 		OutputLinkage outputs = new();
 
 		for ( int i = 0; i < 4; i++ ) {
-			var bakery = linkage[i] = new();
+			var bakery = linkage.Variables[i] = new();
 			foreach ( var (location, ptrType) in shader.OutputsByLocation ) {
 				var output = memory.StackAlloc( ptrType.Base );
-				bakery.Add(( -1, output.Address ));
+				bakery.Add(location, output);
 
 				BakedDebug.Add( new() {
 					Variable = output,
@@ -78,11 +93,10 @@ public class ShaderSet : IShaderSet {
 			}
 		}
 
-		int j = 0;
 		foreach ( var (location, ptrType) in shader.OutputsByLocation ) {
 			var ptr = memory.StackAlloc( ptrType );
-			var bakery = linkage[3];
-			bakery[j] = bakery[j++] with { ptrAddress = ptr.Address };
+			var bakery = linkage.PointerAddresses;
+			bakery.Add( location, ptr.Address );
 
 			BakedDebug.Add( new() {
 				Variable = ptr,
@@ -112,7 +126,9 @@ public class ShaderSet : IShaderSet {
 		return (linkage, outputs);
 	}
 
-	void bakeInputs ( SoftwareShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName ) {
+	StageVariables bakeInputs ( SoftwareShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName ) {
+		StageVariables inputs = new();
+
 		foreach ( var (location, input) in shader.InputsByLocation ) {
 			var variable = memory.StackAlloc( input.Base );
 			BakedDebug.Add( new() {
@@ -128,7 +144,10 @@ public class ShaderSet : IShaderSet {
 
 			stageInfo.PointerAdresses.Add((ptr.Address, variable.Address));
 			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
+			inputs.Add( location, variable );
 		}
+
+		return inputs;
 	}
 
 	void bakeStageLink ( SoftwareShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, OutputLinkage outputAddressByLocation, string debugName ) {
@@ -179,9 +198,25 @@ public class ShaderSet : IShaderSet {
 		public int StackPointer;
 	}
 
-	public MemoryDebugFrame BakedDebug = new();
+	public struct VertexLinkage {
+		public StageVariables[] Variables;
+		public OutputLinkage PointerAddresses;
+
+		public void Interpolate ( float a, float b, float c, ShaderMemory memory ) {
+			foreach ( var (location, output) in Variables[3] ) {
+				((IInterpolatableRuntimeType)output.Type).Interpolate( a, b, c, Variables[0][location], Variables[1][location], Variables[2][location], output, memory );
+			}
+		}
+	}
+
+	public MemoryDebugFrame BakedDebug;
+	public MemoryDebugFrame UniformDebugFrame;
+	public MemoryDebugFrame VertexDebugFrame;
+	public MemoryDebugFrame FragmentDebugFrame;
+	public OutputLinkage Uniforms;
+	public StageVariables VertexInputs;
 	public BakedStageInfo VertexStage;
-	public AddressLinkage[] VertexStageLinkage;
+	public VertexLinkage VertexStageLinkage;
 	public BakedStageInfo FragmentStage;
 
 	public void Dispose () {

@@ -97,17 +97,3 @@ public class SoftwareShader : IShaderPart {
 		
 	}
 }
-
-public struct ShaderStageOutput {
-	public Dictionary<uint, VariableInfo> OutputsByLocation;
-
-	public void Interpolate ( float a, float b, float c, ShaderStageOutput A, ShaderStageOutput B, ShaderStageOutput C, ShaderMemory memory ) {
-		foreach ( var (id, output) in OutputsByLocation ) {
-			var _A = A.OutputsByLocation[id];
-			var _B = B.OutputsByLocation[id];
-			var _C = C.OutputsByLocation[id];
-
-			((IInterpolatableRuntimeType)output.Type).Interpolate( a, b, c, _A, _B, _C, output, memory );
-		}
-	}
-}

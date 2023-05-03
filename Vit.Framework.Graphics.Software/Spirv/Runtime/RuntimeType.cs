@@ -12,10 +12,14 @@ public interface IRuntimeType {
 	int Size { get; }
 	IRuntimeType Vectorize ( uint count );
 	IRuntimeType Matrixize ( uint rows, uint columns );
+
+	object Parse ( ReadOnlySpan<byte> data );
 }
 public interface IRuntimeType<T> : IRuntimeType where T : unmanaged {
 	static readonly int size = Marshal.SizeOf( default(T) );
 	int IRuntimeType.Size => size;
+
+	object IRuntimeType.Parse ( ReadOnlySpan<byte> data ) => MemoryMarshal.Read<T>( data );
 }
 
 // TODO these are more like "specialised" types than "runtime" types. At some point we will want these to generate delegates/IL rather than using them directly
@@ -79,5 +83,9 @@ public class RuntimePointerType : IRuntimeType {
 
 	public override string ToString () {
 		return $"{Base}*";
+	}
+
+	public object Parse ( ReadOnlySpan<byte> data ) {
+		throw new NotImplementedException();
 	}
 }

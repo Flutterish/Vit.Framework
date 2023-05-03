@@ -58,128 +58,6 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		indexBuffer = buffer;
 	}
 
-	ShaderStageOutput[] vertexAttributes = new ShaderStageOutput[] {
-		new() { OutputsByLocation = new() },
-		new() { OutputsByLocation = new() },
-		new() { OutputsByLocation = new() }
-	};
-	ShaderStageOutput interpolated = new() { OutputsByLocation = new() };
-	Dictionary<uint, VariableInfo> vertexInputsByLocation = new();
-	Dictionary<uint, VariableInfo> vertexOutputsByLocation = new();
-	void initializeAttributes ( SoftwareVertexShader shader, ref ShaderMemory memory ) {
-		int index = 0;
-		foreach ( var i in vertexAttributes.Append( interpolated ) ) {
-			i.OutputsByLocation.Clear();
-			foreach ( var (location, output) in shader.OutputsByLocation ) {
-				var variable = memory.StackAlloc( output.Base );
-#if SHADER_DEBUG
-				memory.AddDebug( new() {
-					Variable = variable,
-					Name = $"Out (location = {location}) [{(index == 3 ? "Interpolated" : $"Vertex {index}")}]"
-				} );
-#endif
-				i.OutputsByLocation.Add( location, variable );
-			}
-
-			index++;
-		}
-
-		vertexOutputsByLocation.Clear();
-		foreach ( var (location, output) in shader.OutputsByLocation ) {
-			var ptr = memory.StackAlloc( output );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"Out (location = {location}) pointer"
-			} );
-#endif
-
-			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
-			vertexOutputsByLocation.Add( location, ptr );
-		}
-
-		foreach ( var (output, id) in shader.OutputsWithoutLocation ) {
-			var variable = memory.StackAlloc( output.Base );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"Out (builtin)"
-			} );
-#endif
-
-			var ptr = memory.StackAlloc( output );
-			memory.Write( ptr.Address, value: variable.Address );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"Out (builtin) pointer"
-			} );
-#endif
-
-			shader.GlobalScope.VariableInfo[id] = ptr;
-		}
-
-		vertexInputsByLocation.Clear();
-		foreach ( var (location, input) in shader.InputsByLocation ) {
-			var variable = memory.StackAlloc( input.Base );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"In (location = {location})"
-			} );
-#endif
-			vertexInputsByLocation.Add( location, variable );
-
-			var ptr = memory.StackAlloc( input );
-			memory.Write( ptr.Address, value: variable.Address );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"In (location = {location}) pointer"
-			} );
-#endif
-
-			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
-		}
-	}
-
-	void initializeAttributes ( SoftwareFragmentShader shader, ref ShaderMemory memory ) {
-		foreach ( var (location, input) in shader.InputsByLocation ) {
-			var output = interpolated.OutputsByLocation[location];
-			var ptr = memory.StackAlloc( input );
-			memory.Write( ptr.Address, value: output.Address );
-			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
-
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"Frag In (location = {location}) pointer"
-			} );
-#endif
-		}
-
-		foreach ( var (location, output) in shader.OutputsByLocation ) {
-			var variable = memory.StackAlloc( output.Base );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"Frag Out (location = {location})"
-			} );
-#endif
-
-			var ptr = memory.StackAlloc( output );
-			memory.Write( ptr.Address, value: variable.Address );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"Frag Out (location = {location}) pointer"
-			} );
-#endif
-
-			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
-		}
-	}
-
 	IEnumerable<uint> enumerateIndices ( uint count, uint offset ) {
 		var indexBuffer = (IByteBuffer)this.indexBuffer!;
 		bool isShort = indexBuffer is Buffer<ushort>;
@@ -194,6 +72,23 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 	}
 
+	void beginStage ( ShaderSet.BakedStageInfo stageInfo, ref ShaderMemory memory ) {
+		memory.StackPointer = stageInfo.StackPointer;
+		foreach ( var i in stageInfo.PointerAdresses ) {
+			memory.Write( i.ptrAddress, value: i.address );
+		}
+	}
+
+	void loadUniforms ( ref ShaderMemory memory ) {
+		var uniforms = shaders!.UniformBuffers;
+		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
+			var address = shaders!.Uniforms[binding];
+
+			var data = uniforms[binding];
+			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( address, (int)data.stride ) );
+		}
+	}
+
 	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		using var rentedMemory = new RentedArray<byte>( 1024 );
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
@@ -203,10 +98,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex );
 		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment );
-		setUniforms( ref memory );
-
-		initializeAttributes( vert, ref memory );
-		initializeAttributes( frag, ref memory );
+		loadUniforms( ref memory );
+		beginStage( this.shaders!.VertexStage, ref memory );
 
 		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
 		var vertexBytes = vertexBuffer.Bytes;
@@ -222,6 +115,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				var b = execute( vert, vertexBytes, indexB, memory, 1 );
 				var c = execute( vert, vertexBytes, indexC, memory, 2 );
 
+				beginStage( this.shaders!.FragmentStage, ref memory );
 				rasterize( a, b, c, frag, memory );
 			}
 		}
@@ -234,49 +128,19 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var offset = shader.Stride * (int)index;
 		data = data.Slice( offset, shader.Stride );
 		foreach ( var (location, id) in shader.InputIdByLocation.OrderBy( x => x.Key ) ) {
-			var info = vertexInputsByLocation[location];
+			var info = shaders!.VertexInputs[location];
 			var size = info.Type.Size;
 			data[..size].CopyTo( memory.GetMemory( info.Address, size ) );
 			data = data[size..];
 		}
-		foreach ( var (location, id) in shader.OutputIdByLocation ) {
-			var output = vertexAttributes[vertexIndex].OutputsByLocation[location];
-			var ptr = vertexOutputsByLocation[location];
-			memory.Write( ptr.Address, value: output.Address );
+
+		foreach ( var (location, variable) in shaders!.VertexStageLinkage.Variables[vertexIndex] ) {
+			var pointerAddress = shaders!.VertexStageLinkage.PointerAddresses[location];
+
+			memory.Write( pointerAddress, value: variable.Address );
 		}
 
 		return shader.Execute( memory );
-	}
-
-	void setUniforms ( ref ShaderMemory memory ) {
-		var uniforms = shaders!.UniformBuffers;
-		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
-			var uniformType = uniform.Base;
-			var variable = memory.StackAlloc( uniformType );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"Uniform (set = {binding})"
-			} );
-#endif
-
-			var data = uniforms[binding];
-			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( variable.Address, (int)data.stride ) );
-
-			var ptr = memory.StackAlloc( uniform );
-			memory.Write( ptr.Address, value: variable.Address );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = ptr,
-				Name = $"Uniform (set = {binding}) pointer"
-			} );
-#endif
-			foreach ( var i in shaders!.Shaders ) {
-				if ( i.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
-					i.GlobalScope.VariableInfo[id] = ptr;
-				}
-			}
-		}
 	}
 
 	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag, ShaderMemory memory ) {
@@ -292,14 +156,17 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var a = project( A.Position, resultSize );
 		var b = project( B.Position, resultSize );
 		var c = project( C.Position, resultSize );
+		var indexA = 0;
+		var indexB = 1;
+		var indexC = 2;
 
 		// sort them by Y in ascending order
 		if ( c.Y < b.Y )
-			(c, b, vertexAttributes[1], vertexAttributes[2]) = (b, c, vertexAttributes[2], vertexAttributes[1]);
+			(c, b, indexB, indexC) = (b, c, indexC, indexB);
 		if ( b.Y < a.Y )
-			(b, a, vertexAttributes[1], vertexAttributes[0]) = (a, b, vertexAttributes[0], vertexAttributes[1]);
+			(b, a, indexB, indexA) = (a, b, indexA, indexB);
 		if ( c.Y < b.Y )
-			(c, b, vertexAttributes[1], vertexAttributes[2]) = (b, c, vertexAttributes[2], vertexAttributes[1]);
+			(c, b, indexB, indexC) = (b, c, indexC, indexB);
 
 		if ( a.Y == c.Y )
 			return; // degenerate triangle
@@ -333,7 +200,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 				var point = new Point2<float>( x, y );
 				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
+				Span<float> weights = stackalloc[] { bA, bB, bC };
+				shaders!.VertexStageLinkage.Interpolate( weights[indexA], weights[indexB], weights[indexC], memory );
 
 				var fragData = frag.Execute( memory );
 				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
@@ -357,7 +225,8 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 				var point = new Point2<float>( x, y );
 				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
+				Span<float> weights = stackalloc[] { bA, bB, bC };
+				shaders!.VertexStageLinkage.Interpolate( weights[indexA], weights[indexB], weights[indexC], memory );
 
 				var fragData = frag.Execute( memory );
 				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();

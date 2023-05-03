@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
+﻿using System.Text;
+
+namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 public interface ICompositeRuntimeType {
 	int GetMemberOffset ( int index );
@@ -25,6 +27,21 @@ public class RuntimeArrayType : IRuntimeType {
 	public override string ToString () {
 		return $"{ElementType}[{Count}]";
 	}
+
+	public object Parse ( ReadOnlySpan<byte> data ) {
+		StringBuilder sb = new();
+		sb.Append( '[' );
+		for ( int i = 0; i < Count; i++ ) {
+			var el = ElementType.Parse( data[..ElementType.Size] );
+			data = data[ElementType.Size..];
+			sb.Append( el.ToString() );
+			if ( i + 1 < Count )
+				sb.Append( ", " );
+		}
+		sb.Append( ']' );
+
+		return sb.ToString();
+	}
 }
 
 public class RuntimeStructType : IRuntimeType, ICompositeRuntimeType {
@@ -50,5 +67,21 @@ public class RuntimeStructType : IRuntimeType, ICompositeRuntimeType {
 
 	public int GetMemberOffset ( int index ) {
 		return Members.Take( index ).Sum( x => x.Size ); // TODO this works until there is padding involved
+	}
+
+	public object Parse ( ReadOnlySpan<byte> data ) {
+		StringBuilder sb = new();
+		sb.Append( '{' );
+		for ( int i = 0; i < Members.Length; i++ ) {
+			var member = Members[i];
+			var el = member.Parse( data[..member.Size] );
+			data = data[member.Size..];
+			sb.Append( el.ToString() );
+			if ( i + 1 < Members.Length )
+				sb.Append( ", " );
+		}
+		sb.Append( '}' );
+
+		return sb.ToString();
 	}
 }

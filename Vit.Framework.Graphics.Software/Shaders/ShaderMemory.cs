@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Interop;
 
@@ -26,6 +27,7 @@ public struct MemoryDebugInfo {
 }
 
 public class MemoryDebugFrame {
+	public string Name = string.Empty;
 	public MemoryDebugFrame? ParentFrame;
 	public Dictionary<int, MemoryDebugInfo> Info = new();
 	public int StackPointerOffset;
@@ -34,19 +36,24 @@ public class MemoryDebugFrame {
 		info.Variable.Address -= StackPointerOffset;
 		Info.Add( info.Variable.Address, info );
 	}
+
+	public IEnumerable<MemoryDebugFrame> AllFrames {
+		get {
+			var frame = this;
+			do {
+				yield return frame;
+				frame = frame.ParentFrame;
+			}
+			while ( frame != null );
+		}
+	}
 }
 
-public ref struct ShaderMemory { // TODO consider baked debug information instead
+public ref struct ShaderMemory {
 	public Span<byte> Memory;
 	public int StackPointer;
 
-#if SHADER_DEBUG
-	public Dictionary<int, MemoryDebugInfo>? DebugInfo;
-	public void AddDebug ( MemoryDebugInfo info ) {
-		DebugInfo ??= new();
-		DebugInfo[info.Variable.Address] = info;
-	}
-#endif
+	public MemoryDebugFrame? DebugFrame;
 
 	public Span<byte> GetMemory ( int offset, int length )
 		=> Memory.Slice( offset, length );
@@ -81,32 +88,35 @@ public ref struct ShaderMemory { // TODO consider baked debug information instea
 		return new() { Address = ptr, Type = type };
 	}
 
-#if SHADER_DEBUG
 	public override string ToString () {
 		var memoryLength = Memory.Length.ToString( "X" ).Length;
 
 		var sb = new StringBuilder();
 		sb.AppendLine( $"Shader Memory [{Memory.Length}B] ({StackPointer}B used, {Memory.Length - StackPointer}B free)" );
-		if ( DebugInfo is null )
+		if ( DebugFrame is null )
 			return sb.ToString();
 
-		var stackPtr = StackPointer;
-		foreach ( var (address, i) in DebugInfo.Where( x => x.Key < stackPtr ).OrderBy( x => x.Key ) ) {
-			string value;
-			if ( i.Variable.Type is RuntimePointerType ) {
-				value = "0x" + Read<int>( i.Variable.Address ).ToString( "X" ).PadLeft( memoryLength, '0' );
+		foreach ( var frame in DebugFrame.AllFrames.Reverse() ) {
+			var ptrOffset = frame.StackPointerOffset;
+			sb.AppendLine( $"0x{ptrOffset.ToString("X").PadLeft(memoryLength, '0')}\t----- {frame.Name} -----" );
+
+			foreach ( var (address, info) in frame.Info ) {
+				string value;
+				if ( info.Variable.Type is RuntimePointerType ) {
+					value = "0x" + Read<int>( address + ptrOffset ).ToString( "X" ).PadLeft( memoryLength, '0' );
+				}
+				else {
+					value = info.Variable.Type.Parse( GetMemory( address + ptrOffset, info.Variable.Type.Size ) ).ToString()!;
+				}
+
+				sb.AppendLine( $"0x{(address + ptrOffset).ToString( "X" ).PadLeft( memoryLength, '0' )}\t{info.Name} : {info.Variable.Type} = {value}" );
 			}
-			else {
-				var variable = i.Variable.Type.CreateVariable();
-				variable.Parse( GetMemory( i.Variable.Address, i.Variable.Type.Size ) );
-				value = variable.ToString()!;
-			}
-			
-			sb.AppendLine( $"0x{i.Variable.Address.ToString("X").PadLeft(memoryLength, '0')}\t{i.Name} : {i.Variable.Type} = {value}" );
 		}
+
 		return sb.ToString();
 	}
 
+#if SHADER_DEBUG
 	[DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
 	private List<string> DebugView {
 		get {
