@@ -18,19 +18,17 @@ public class RuntimeFunction {
 	}
 
 	RuntimeScope createScope ( ref ShaderMemory memory ) {
-		var scope = new RuntimeScope(); // TODO do better
+		if ( !scopePool.TryPop( out var scope ) )
+			scope = new();
+		scope.CodePointer = 0;
+		scope.VariableInfo.Clear();
+
 		foreach ( var (id, var) in parentScope.VariableInfo ) {
 			scope.VariableInfo.Add( id, var );
 		}
 		foreach ( var (id, type) in locals ) {
 			var variable = memory.StackAlloc( type );
 			scope.VariableInfo.Add( id, variable );
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"Local %{id}"
-			} );
-#endif
 		}
 
 		return scope;
