@@ -1,26 +1,23 @@
 ﻿using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
-using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
 public class SoftwareFragmentShader : SoftwareShader {
-	IVariable<Vector4<float>> ColorOutput;
+	uint ColorOutputId;
 	public SoftwareFragmentShader ( SpirvCompiler compiler, ExecutionModel model ) : base( compiler, model ) {
-		ColorOutput = (IVariable<Vector4<float>>)OutputsByLocation.Values.First( x => x.Type.Base is RuntimeVector4Type<float> ).Address!;
+		ColorOutputId = OutputIdByLocation[OutputsByLocation.First( x => x.Value.Type.Base is RuntimeVector4Type<float> ).Key];
 	}
 
-	public FragmentShaderOutput Execute ( ShaderStageOutput vertexStageOutput ) {
-		foreach ( var (loc, variable) in vertexStageOutput.Outputs ) {
-			InputsByLocation[loc].Address!.Value = variable.Value;
-		}
+	public FragmentShaderOutput Execute ( ShaderMemory memory ) {
+		loadConstants( ref memory );
+		Entry.Call( memory );
 
-		Entry.Call();
-
-		var color = ColorOutput.Value;
+		var colorAddress = memory.Read<int>( GlobalScope.VariableInfo[ColorOutputId].Address );
+		var color = memory.Read<ColorRgba<float>>( colorAddress );
 		return new() {
-			Color = new() { R = color.X, G = color.Y, B = color.Z, A = color.W }
+			Color = color
 		};
 	}
 }

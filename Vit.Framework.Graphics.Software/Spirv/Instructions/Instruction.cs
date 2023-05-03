@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
@@ -12,6 +13,10 @@ public abstract class Instruction : CompilerObject { // TODO in theory we can sp
 	}
 
 	public virtual void Execute ( RuntimeScope scope ) {
+		Debug.Fail( "oops" );
+	}
+
+	public virtual void Execute ( RuntimeScope scope, ShaderMemory memory ) {
 		Debug.Fail( "oops" );
 	}
 

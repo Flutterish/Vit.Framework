@@ -63,17 +63,109 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	ShaderStageOutput[] vertexAttributes = new ShaderStageOutput[] {
-		new() { Outputs = new() },
-		new() { Outputs = new() },
-		new() { Outputs = new() }
+		new() { Outputs = new(), OutputsByLocation = new() },
+		new() { Outputs = new(), OutputsByLocation = new() },
+		new() { Outputs = new(), OutputsByLocation = new() }
 	};
-	ShaderStageOutput interpolated = new() { Outputs = new() };
-	void initializeAttributes ( SoftwareShader shader ) {
+	ShaderStageOutput interpolated = new() { Outputs = new(), OutputsByLocation = new() };
+	Dictionary<uint, VariableInfo> vertexInputsByLocation = new();
+	Dictionary<uint, VariableInfo> vertexOutputsByLocation = new();
+	void initializeAttributes ( SoftwareVertexShader shader, ref ShaderMemory memory ) {
+		int index = 0;
 		foreach ( var i in vertexAttributes.Append( interpolated ) ) {
 			i.Outputs.Clear();
+			i.OutputsByLocation.Clear();
 			foreach ( var (location, output) in shader.OutputsByLocation ) {
 				i.Outputs.Add( location, output.Type.Base.CreateVariable() );
+
+				var variable = memory.StackAlloc( output.Type.Base );
+				memory.AddDebug( new() {
+					Variable = variable,
+					Name = $"Out (location = {location}) [{(index == 3 ? "Interpolated" : $"Vertex {index}")}]"
+				} );
+				i.OutputsByLocation.Add( location, variable );
 			}
+
+			index++;
+		}
+
+		vertexOutputsByLocation.Clear();
+		foreach ( var (location, output) in shader.OutputsByLocation ) {
+			var ptr = memory.StackAlloc( output.Type );
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"Out (location = {location}) pointer"
+			} );
+
+			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
+			vertexOutputsByLocation.Add( location, ptr );
+		}
+
+		foreach ( var (output, id) in shader.OutputsWithoutLocation ) {
+			var variable = memory.StackAlloc( output.Type.Base );
+			memory.AddDebug( new() {
+				Variable = variable,
+				Name = $"Out (builtin)"
+			} );
+
+			var ptr = memory.StackAlloc( output.Type );
+			memory.Write( ptr.Address, value: variable.Address );
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"Out (builtin) pointer"
+			} );
+
+			shader.GlobalScope.VariableInfo[id] = ptr;
+		}
+
+		vertexInputsByLocation.Clear();
+		foreach ( var (location, input) in shader.InputsByLocation ) {
+			var variable = memory.StackAlloc( input.Type.Base );
+			memory.AddDebug( new() {
+				Variable = variable,
+				Name = $"In (location = {location})"
+			} );
+			vertexInputsByLocation.Add( location, variable );
+
+			var ptr = memory.StackAlloc( input.Type );
+			memory.Write( ptr.Address, value: variable.Address );
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"In (location = {location}) pointer"
+			} );
+
+			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
+		}
+	}
+
+	void initializeAttributes ( SoftwareFragmentShader shader, ref ShaderMemory memory ) {
+		foreach ( var (location, input) in shader.InputsByLocation ) {
+			var output = interpolated.OutputsByLocation[location];
+			var ptr = memory.StackAlloc( input.Type );
+			memory.Write( ptr.Address, value: output.Address );
+			shader.GlobalScope.VariableInfo[shader.InputIdByLocation[location]] = ptr;
+
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"Frag In (location = {location}) pointer"
+			} );
+		}
+
+		foreach ( var (location, output) in shader.OutputsByLocation ) {
+			var variable = memory.StackAlloc( output.Type.Base );
+			memory.AddDebug( new() {
+				Variable = variable,
+				Name = $"Frag Out (location = {location})"
+			} );
+
+			var ptr = memory.StackAlloc( output.Type );
+			memory.Write( ptr.Address, value: variable.Address );
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"Frag Out (location = {location}) pointer"
+			} );
+
+			shader.GlobalScope.VariableInfo[shader.OutputIdByLocation[location]] = ptr;
 		}
 	}
 
@@ -92,14 +184,18 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+		using var rentedMemory = new RentedArray<byte>( 1024 );
+		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
+
 		var vertexBuffer = (IByteBuffer)this.vertexBuffer!;
 		var shaders = this.shaders!.Shaders.Select( x => x.SoftwareShader );
 
 		var vert = (SoftwareVertexShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Vertex ).SoftwareShader;
 		var frag = (SoftwareFragmentShader)this.shaders!.Shaders.First( x => x.Type == ShaderPartType.Fragment ).SoftwareShader;
-		setUniforms();
+		setUniforms( ref memory );
 
-		initializeAttributes( vert );
+		initializeAttributes( vert, ref memory );
+		initializeAttributes( frag, ref memory );
 
 		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
 		var vertexBytes = vertexBuffer.Bytes;
@@ -111,11 +207,11 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 				indices.MoveNext();
 				var indexC = indices.Current;
 
-				var a = vert.Execute( vertexBytes, indexA, ref vertexAttributes[0] );
-				var b = vert.Execute( vertexBytes, indexB, ref vertexAttributes[1] );
-				var c = vert.Execute( vertexBytes, indexC, ref vertexAttributes[2] );
+				var a = execute( vert, vertexBytes, indexA, memory, 0 );
+				var b = execute( vert, vertexBytes, indexB, memory, 1 );
+				var c = execute( vert, vertexBytes, indexC, memory, 2 );
 
-				rasterize( a, b, c, frag );
+				rasterize( a, b, c, frag, memory );
 			}
 		}
 		else {
@@ -123,8 +219,50 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 	}
 
-	void setUniforms () {
+	VertexShaderOutput execute ( SoftwareVertexShader shader, ReadOnlySpan<byte> data, uint index, ShaderMemory memory, int vertexIndex ) {
+		var offset = shader.Stride * (int)index;
+		data = data.Slice( offset, shader.Stride );
+		foreach ( var (location, id) in shader.InputIdByLocation.OrderBy( x => x.Key ) ) {
+			var info = vertexInputsByLocation[location];
+			var size = info.Type.Size;
+			data[..size].CopyTo( memory.GetMemory( info.Address, size ) );
+			data = data[size..];
+		}
+		foreach ( var (location, id) in shader.OutputIdByLocation ) {
+			var output = vertexAttributes[vertexIndex].OutputsByLocation[location];
+			var ptr = vertexOutputsByLocation[location];
+			memory.Write( ptr.Address, value: output.Address );
+		}
+
+		return shader.Execute( memory );
+	}
+
+	void setUniforms ( ref ShaderMemory memory ) {
 		var uniforms = shaders!.UniformBuffers;
+		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.SoftwareShader.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
+			var uniformType = uniform.Type.Base;
+			var variable = memory.StackAlloc( uniformType );
+			memory.AddDebug( new() {
+				Variable = variable,
+				Name = $"Uniform (set = {binding})"
+			} );
+
+			var data = uniforms[binding];
+			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( variable.Address, (int)data.stride ) );
+
+			var ptr = memory.StackAlloc( uniform.Type );
+			memory.Write( ptr.Address, value: variable.Address );
+			memory.AddDebug( new() {
+				Variable = ptr,
+				Name = $"Uniform (set = {binding}) pointer"
+			} );
+			foreach ( var i in shaders!.Shaders ) {
+				if ( i.SoftwareShader.UniformIdByBinding.TryGetValue( binding, out var id ) ) {
+					i.SoftwareShader.GlobalScope.VariableInfo[id] = ptr;
+				}
+			}
+		}
+
 		foreach ( var i in shaders!.Shaders ) {
 			foreach ( var (binding, data) in uniforms ) {
 				i.SoftwareShader.SetUniforms( binding, data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ) );
@@ -132,7 +270,7 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 		}
 	}
 
-	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag ) {
+	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag, ShaderMemory memory ) {
 		var resultSize = renderTarget.Size.Cast<float>();
 		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
 			var point = ( vector.XYZ / vector.W ).FromOrigin();
@@ -185,9 +323,9 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 				var point = new Point2<float>( x, y );
 				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2] );
+				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
 
-				var fragData = frag.Execute( interpolated );
+				var fragData = frag.Execute( memory );
 				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
 			}
 
@@ -209,9 +347,9 @@ public class CursesImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 				var point = new Point2<float>( x, y );
 				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2] );
+				interpolated.Interpolate( bA, bB, bC, vertexAttributes[0], vertexAttributes[1], vertexAttributes[2], memory );
 
-				var fragData = frag.Execute( interpolated );
+				var fragData = frag.Execute( memory );
 				renderTarget.Pixels[y, x].Background = fragData.Color.ToByte();
 			}
 

@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Software.Spirv.Metadata;
+﻿using Vit.Framework.Graphics.Software.Shaders;
+using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
@@ -15,6 +16,14 @@ public class Store : Instruction {
 		var from = scope.Variables[ObjectId];
 
 		to.Value = from.Value;
+	}
+
+	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
+		var toPtr = scope.VariableInfo[PointerId];
+		var toAddress = memory.Read<int>( toPtr.Address );
+		var from = scope.VariableInfo[ObjectId];
+
+		memory.Copy( from, toAddress );
 	}
 
 	public override string ToString () {

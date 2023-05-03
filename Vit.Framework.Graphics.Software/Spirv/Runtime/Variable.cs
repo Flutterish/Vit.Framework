@@ -255,7 +255,10 @@ public class ArrayVariable : ICompositeVariable {
 	}
 
 	public void Parse ( ReadOnlySpan<byte> data ) {
-		throw new NotImplementedException();
+		for ( int i = 0; i < Elements.Length; i++ ) {
+			Elements[i].Parse( data[..Type.ElementType.Size] );
+			data = data[Type.ElementType.Size..];
+		}
 	}
 
 	public override string ToString () {

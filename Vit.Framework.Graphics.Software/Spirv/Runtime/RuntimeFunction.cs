@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Software.Spirv.Instructions;
+﻿using Vit.Framework.Graphics.Software.Shaders;
+using Vit.Framework.Graphics.Software.Spirv.Instructions;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
@@ -28,6 +29,23 @@ public class RuntimeFunction {
 		return scope;
 	}
 
+	RuntimeScope createScope ( ref ShaderMemory memory ) {
+		var scope = new RuntimeScope();
+		foreach ( var (id, var) in parentScope.VariableInfo ) {
+			scope.VariableInfo.Add( id, var );
+		}
+		foreach ( var (id, type) in locals ) {
+			var variable = memory.StackAlloc( type );
+			scope.VariableInfo.Add( id, variable );
+			memory.AddDebug( new() {
+				Variable = variable,
+				Name = $"Local %{id}"
+			} );
+		}
+
+		return scope;
+	}
+
 	public void Call () {
 		if ( !scopePool.TryPop( out var scope ) ) {
 			scope = createScope();
@@ -39,6 +57,20 @@ public class RuntimeFunction {
 		while ( scope.CodePointer < length ) {
 			var instruction = instructions[scope.CodePointer++];
 			instruction.Execute( scope );
+		}
+
+		scopePool.Push( scope );
+	}
+
+
+	public void Call ( ShaderMemory memory ) {
+		var scope = createScope( ref memory );
+
+		var instructions = source.Instructions;
+		var length = instructions.Count;
+		while ( scope.CodePointer < length ) {
+			var instruction = instructions[scope.CodePointer++];
+			instruction.Execute( scope, memory );
 		}
 
 		scopePool.Push( scope );

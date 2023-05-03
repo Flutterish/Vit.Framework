@@ -1,6 +1,9 @@
-﻿namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
+﻿using Vit.Framework.Graphics.Software.Shaders;
 
-public class RuntimeScope { // TODO instead of a scope like this, we should just use a span of memory
+namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
+
+public class RuntimeScope {
+	public readonly Dictionary<uint, VariableInfo> VariableInfo = new();
 	public readonly Dictionary<uint, IVariable> Variables = new();
 	public int CodePointer;
 }

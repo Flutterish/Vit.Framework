@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Software.Spirv.Runtime;
+﻿using Vit.Framework.Graphics.Software.Shaders;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 
@@ -13,6 +14,15 @@ public class CompositeConstruct : Instruction {
 		var to = (ICompositeVariable)scope.Variables[ResultId];
 		for ( uint i = 0; i < Values.Length; i++ ) {
 			to[i].Value = scope.Variables[Values[i]].Value;
+		}
+	}
+
+	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
+		var to = scope.VariableInfo[ResultId];
+		var composite = (ICompositeRuntimeType)to.Type;
+
+		for ( int i = 0; i < Values.Length; i++ ) {
+			memory.Copy( scope.VariableInfo[Values[i]], to.Address + composite.GetMemberOffset( i ) );
 		}
 	}
 

@@ -6,31 +6,22 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.Software.Shaders;
 
 public class SoftwareVertexShader : SoftwareShader {
-	readonly int Stride;
-	IVariable<Vector4<float>> PositionOutput;
+	public readonly int Stride;
+	int PositionOutputOffset;
 	(uint location, PointerVariable)[] inputs;
 	public SoftwareVertexShader ( SpirvCompiler compiler, ExecutionModel model ) : base( compiler, model ) {
 		Stride = InputsByLocation.Sum( x => x.Value.Type.Base.Size );
-		PositionOutput = (IVariable<Vector4<float>>)BuiltinOutputs[0];
+		PositionOutputOffset = BuiltinOutputOffsets[0];
 		inputs = InputsByLocation.OrderBy( x => x.Key ).Select( x => (x.Key, x.Value) ).ToArray();
 	}
 
-	public VertexShaderOutput Execute ( ReadOnlySpan<byte> data, uint index, ref ShaderStageOutput stageOutput ) {
-		var offset = Stride * (int)index;
-		data = data.Slice( offset, Stride );
-		foreach ( var (location, input) in inputs ) {
-			var size = input.Type.Base.Size;
-			input.Parse( data[..size] );
-			data = data[size..];
-		}
+	public VertexShaderOutput Execute ( ShaderMemory memory ) {
+		loadConstants( ref memory );
+		Entry.Call( memory );
 
-		Entry.Call();
-
-		foreach ( var (loc, variable) in stageOutput.Outputs ) {
-			variable.Value = OutputsByLocation[loc].Address!.Value;
-		}
+		var builtinPtr = memory.Read<int>( GlobalScope.VariableInfo[OutputsWithoutLocation.Single().id].Address );
 		return new() {
-			Position = PositionOutput.Value
+			Position = memory.Read<Vector4<float>>( builtinPtr + PositionOutputOffset )
 		};
 	}
 }
