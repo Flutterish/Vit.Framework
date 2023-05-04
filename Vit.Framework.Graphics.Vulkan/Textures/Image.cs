@@ -1,5 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vulkan;
@@ -64,6 +65,22 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		} );
 
 		GenerateMipMaps( commands, aspect );
+	}
+	public unsafe void Transfer<TPixel> ( ReadOnlySpan<TPixel> data, CommandBuffer commands ) where TPixel : unmanaged {
+		var length = Size.width * Size.height;
+		buffer.Allocate( length );
+
+		TransitionLayout( VkImageLayout.TransferDstOptimal, VkImageAspectFlags.Color, commands ); // TODO also bad! (aspect)
+
+		data.CopyTo( MemoryMarshal.Cast<Rgba32, TPixel>( buffer.GetDataSpan( (int)length ) ) ); // TODO bad!
+		buffer.Unmap();
+		commands.Copy( buffer, Handle, new VkExtent3D {
+			width = Size.width,
+			height = Size.height,
+			depth = 1
+		} );
+
+		GenerateMipMaps( commands, VkImageAspectFlags.Color );
 	}
 	public unsafe void Allocate ( 
 		VkExtent2D size, VkImageUsageFlags usage, VkFormat format, 

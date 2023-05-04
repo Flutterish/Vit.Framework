@@ -2,10 +2,13 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
+using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vulkan;
@@ -68,6 +71,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
 			_ => throw new ArgumentException( "Buffer type not supported", nameof( type ) )
 		} );
+	}
+
+	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+		return new ImageTexture( Device, size, format );
 	}
 
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {

@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Rendering;
@@ -22,6 +24,8 @@ public interface IRenderer : IDisposable {
 
 	IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged;
 	IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged;
+
+	ITexture CreateTexture ( Size2<uint> size, PixelFormat format );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
 }

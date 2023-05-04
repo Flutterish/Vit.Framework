@@ -30,6 +30,10 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 		((Buffer<T>)buffer).Upload( data, offset );
 	}
 
+	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		((Texture2D)texture).Upload( data );
+	}
+
 	IShaderSet? shaders;
 	int vao;
 	public void SetShaders ( IShaderSet? shaders ) {

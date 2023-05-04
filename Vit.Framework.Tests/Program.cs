@@ -2,7 +2,6 @@
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
-using Vit.Framework.Windowing.Console;
 using Vit.Framework.Windowing.Sdl;
 
 namespace Vit.Framework.Tests;
@@ -21,19 +20,19 @@ public partial class Program : App {
 	}
 
 	protected override void Initialize ( Host host ) {
-		var consoleHost = new ConsoleHost( this );
-		var d = consoleHost.CreateWindow( GraphicsApiType.Curses, this );
-		d.Title = "Window A [Curses]";
-		d.Initialized += _ => {
-			var api = consoleHost.CreateGraphicsApi( GraphicsApiType.Curses, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test04_Samplers( d, consoleHost, d.Title, api ) );
-		};
-		//var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
-		//a.Title = "Window A [DX11]";
-		//a.Initialized += _ => {
-		//	var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
-		//	ThreadRunner.RegisterThread( new Test04_Samplers( a, host, a.Title, api ) );
+		//var consoleHost = new ConsoleHost( this );
+		//var d = consoleHost.CreateWindow( GraphicsApiType.Curses, this );
+		//d.Title = "Window A [Curses]";
+		//d.Initialized += _ => {
+		//	var api = consoleHost.CreateGraphicsApi( GraphicsApiType.Curses, new[] { RenderingCapabilities.DrawToWindow } );
+		//	ThreadRunner.RegisterThread( new Test04_Samplers( d, consoleHost, d.Title, api ) );
 		//};
+		var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
+		a.Title = "Window A [DX11]";
+		a.Initialized += _ => {
+			var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new Test04_Samplers( a, host, a.Title, api ) );
+		};
 		//var b = host.CreateWindow( GraphicsApiType.Vulkan, this );
 		//b.Title = "Window A [Vulkan]";
 		//b.Initialized += _ => {
@@ -48,7 +47,7 @@ public partial class Program : App {
 		//};
 
 		Task.Run( async () => {
-			while ( /*!a.IsClosed || !b.IsClosed || !c.IsClosed ||*/ !d.IsClosed )
+			while ( !a.IsClosed /*|| !b.IsClosed || !c.IsClosed || !d.IsClosed*/ )
 				await Task.Delay( 1 );
 
 			Quit();

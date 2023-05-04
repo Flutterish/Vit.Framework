@@ -6,6 +6,7 @@ using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
 using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
+using Vit.Framework.Graphics.Rendering.Textures;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -221,5 +222,9 @@ public class ShaderSet : IShaderSet {
 
 	public void Dispose () {
 
+	}
+
+	public void SetSampler ( ITexture texture, uint binding = 0 ) {
+		throw new NotImplementedException();
 	}
 }

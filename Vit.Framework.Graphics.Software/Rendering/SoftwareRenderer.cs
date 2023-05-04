@@ -8,6 +8,8 @@ using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
+using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -39,5 +41,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	SoftwareImmadiateCommandBuffer commandBuffer = new();
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
+	}
+
+	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+		throw new NotImplementedException();
 	}
 }

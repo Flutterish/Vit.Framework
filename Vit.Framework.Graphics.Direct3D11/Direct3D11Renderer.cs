@@ -2,9 +2,12 @@
 using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Direct3D11.Rendering;
 using Vit.Framework.Graphics.Direct3D11.Shaders;
+using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
@@ -54,6 +57,10 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 
 	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
 		return (Buffer<T>)CreateHostBuffer<T>( type );
+	}
+
+	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+		return new Texture2D( Device, size, format );
 	}
 
 	Direct3D11ImmediateCommandBuffer commandBuffer;

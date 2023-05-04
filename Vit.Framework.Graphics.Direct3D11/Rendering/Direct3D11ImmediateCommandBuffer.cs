@@ -32,6 +32,10 @@ public class Direct3D11ImmediateCommandBuffer : DisposableObject, IImmediateComm
 		((Buffer<T>)buffer).Upload( data, offset );
 	}
 
+	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		((Texture2D)texture).Upload( data, Context );
+	}
+
 	ShaderSet? shaders;
 	public void SetShaders ( IShaderSet? shaders ) {
 		if ( shaders is null )

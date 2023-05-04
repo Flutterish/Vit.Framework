@@ -244,4 +244,8 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 	public void Dispose () {
 
 	}
+
+	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		throw new NotImplementedException();
+	}
 }

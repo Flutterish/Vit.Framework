@@ -51,6 +51,10 @@ public class VulkanCommandCache : ICommandCache {
 		((DeviceBuffer<T>)buffer).Transfer( data, offset, Buffer );
 	}
 
+	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		((ImageTexture)texture).Image.Transfer( data, Buffer );
+	}
+
 	ShaderSet? shaders;
 	Topology topology;
 	AxisAlignedBox2<uint> viewport;

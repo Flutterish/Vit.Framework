@@ -26,6 +26,14 @@ public interface ICommandBuffer {
 	void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
 
 	/// <summary>
+	/// Uploads data to a texture.
+	/// </summary>
+	/// <typeparam name="TPixel">The type of pixel to upload</typeparam>
+	/// <param name="texture">The texture to upload to.</param>
+	/// <param name="data">The image data to upload.</param>
+	void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
+
+	/// <summary>
 	/// Sets the shaders for the rendering pipeline.
 	/// </summary>
 	void SetShaders ( IShaderSet? shaders );

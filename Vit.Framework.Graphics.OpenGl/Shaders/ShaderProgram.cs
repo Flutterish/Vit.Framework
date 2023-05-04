@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.OpenGl.Buffers;
+using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
@@ -36,6 +38,10 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 		var index = binding; // TODO not correct, but whatever for now
 		GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)index, buf.Handle, (nint)offset * Buffer<T>.Stride, Buffer<T>.Stride );
 		GL.UniformBlockBinding( (uint)Handle, binding, index );
+	}
+
+	public unsafe void SetSampler ( ITexture texture, uint binding = 0 ) {
+		GL.BindTextureUnit( (int)binding, ((Texture2D)texture).Handle );
 	}
 
 	protected override void Dispose ( bool disposing ) {

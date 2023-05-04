@@ -1,4 +1,7 @@
-﻿using Vit.Framework.Graphics;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -30,6 +33,7 @@ public class Test04_Samplers : GenericRenderThread {
 	IDeviceBuffer<Vertex> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
+	ITexture texture = null!;
 	protected override void Initialize () {
 		base.Initialize();
 
@@ -37,24 +41,26 @@ public class Test04_Samplers : GenericRenderThread {
 			layout(location = 0) in vec2 inPosition;
 			layout(location = 1) in vec2 inUv;
 
-			layout(location = 0) out vec3 outColor;
+			layout(location = 0) out vec2 outUv;
 
 			layout(binding = 0) uniform Uniforms {
 				mat4 model;
 			} uniforms;
 
 			void main () {
-				outColor = vec3(1,0,1);
+				outUv = inUv;
 				gl_Position = uniforms.model * vec4(inPosition, 0, 1);
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 		fragment = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
-			layout(location = 0) in vec3 inColor;
+			layout(location = 0) in vec2 inUv;
 
 			layout(location = 0) out vec4 outColor;
 
+			layout(binding = 1) uniform sampler2D texSampler;
+
 			void main () {
-				outColor = vec4( inColor, 1 );
+				outColor = texture( texSampler, inUv );
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment } );
@@ -62,12 +68,16 @@ public class Test04_Samplers : GenericRenderThread {
 		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+		using var image = Image.Load<Rgba32>( "./texture.jpg" );
+		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
+		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.RGBA32 );
 
 		positions.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
 		indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
 		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.PerFrame );
 
 		shaderSet.SetUniformBuffer( uniformBuffer );
+		shaderSet.SetSampler( texture, 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Vertex[] {
 				new() { Position = new( -0.5f, 0.5f ), UV = new( 0, 1 ) },
@@ -79,6 +89,10 @@ public class Test04_Samplers : GenericRenderThread {
 				0, 1, 2,
 				0, 2, 3
 			} );
+
+			if ( !image.DangerousTryGetSinglePixelMemory( out var memory ) )
+				throw new Exception( "Oops, cant load image" );
+			commands.UploadTextureData<Rgba32>( texture, memory.Span );
 		}
 	}
 
@@ -110,6 +124,7 @@ public class Test04_Samplers : GenericRenderThread {
 		indices.Dispose();
 		positions.Dispose();
 		uniformBuffer.Dispose();
+		texture.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Buffers;
+using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
@@ -52,5 +54,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	protected override unsafe void Dispose ( bool disposing ) {
 		DescriptorPool.Dispose();
 		Vk.vkDestroyDescriptorSetLayout( Modules[0].Device, Uniforms, VulkanExtensions.TODO_Allocator );
+	}
+
+	public void SetSampler ( ITexture texture, uint binding = 0 ) {
+		var tex = (ImageTexture)texture;
+		DescriptorSet.ConfigureTexture( tex.Image, tex.Sampler, binding );
 	}
 }
