@@ -8,18 +8,24 @@ public class RuntimeFunction {
 	List<(uint id, IRuntimeType type)> locals = new();
 	Stack<RuntimeScope> scopePool = new();
 	Function source;
+	public readonly MemoryDebugFrame DebugFrame = new() { Name = "Function" };
 
 	public RuntimeFunction ( RuntimeScope parentScope, Function source ) {
 		this.source = source;
 		this.parentScope = parentScope;
+		ShaderMemory memory = default;
 		foreach ( var (id, intermediate) in source.Intermediates ) {
 			locals.Add(( id, intermediate.Type.GetRuntimeType() ));
+			DebugFrame.Add( new() {
+				Variable = memory.StackAlloc( intermediate.Type.GetRuntimeType() ),
+				Name = $"Local %{id}"
+			} );
 		}
 	}
 
 	RuntimeScope createScope ( ref ShaderMemory memory ) {
 		if ( !scopePool.TryPop( out var scope ) )
-			scope = new();
+			scope = new() { Opaques = parentScope.Opaques };
 		scope.CodePointer = 0;
 		scope.VariableInfo.Clear();
 

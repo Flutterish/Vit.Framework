@@ -7,6 +7,7 @@ using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int addr
 using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Software.Textures;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -20,6 +21,8 @@ public class ShaderSet : IShaderSet {
 		// TODO this asssumes "vertex -> fragment" shader set
 		var vert = Shaders.OfType<SoftwareVertexShader>().Single();
 		var frag = Shaders.OfType<SoftwareFragmentShader>().Single();
+
+		samplers = frag.GlobalScope.Opaques.Samplers;
 
 		ShaderMemory memory = default;
 
@@ -56,11 +59,34 @@ public class ShaderSet : IShaderSet {
 
 			BakedDebug.Add( new() {
 				Variable = uniform,
-				Name = $"Uniform (Set {binding})"
+				Name = $"Uniform (Binding {binding})"
 			} );
 			BakedDebug.Add( new() {
 				Variable = ptr,
-				Name = $"Uniform ptr (Set {binding})"
+				Name = $"Uniform ptr (Binding {binding})"
+			} );
+
+			adresses.Add(binding, uniform.Address);
+		}
+
+		foreach ( var (binding, ptrType) in Shaders.SelectMany( x => x.UniformConstantsByBinding ).DistinctBy( x => x.Key ) ) {
+			var uniform = memory.StackAlloc( ptrType.Base );
+			var ptr = memory.StackAlloc( ptrType );
+			stageInfo.PointerAdresses.Add( (ptr.Address, uniform.Address) );
+
+			foreach ( var i in Shaders ) {
+				if ( i.UniformConstantIdByBinding.TryGetValue( binding, out var id ) ) {
+					i.GlobalScope.VariableInfo[id] = ptr;
+				}
+			}
+
+			BakedDebug.Add( new() {
+				Variable = uniform,
+				Name = $"Uniform Constant (Binding {binding})"
+			} );
+			BakedDebug.Add( new() {
+				Variable = ptr,
+				Name = $"Uniform Constant ptr (Binding {binding})"
 			} );
 
 			adresses.Add(binding, uniform.Address);
@@ -194,6 +220,11 @@ public class ShaderSet : IShaderSet {
 		UniformBuffers[binding] = ((IByteBuffer)buffer, IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
 	}
 
+	Dictionary<uint, Texture> samplers;
+	public void SetSampler ( ITexture texture, uint binding = 0 ) {
+		samplers[binding] = (Texture)texture;
+	}
+
 	public struct BakedStageInfo {
 		public AddressLinkage PointerAdresses;
 		public int StackPointer;
@@ -222,9 +253,5 @@ public class ShaderSet : IShaderSet {
 
 	public void Dispose () {
 
-	}
-
-	public void SetSampler ( ITexture texture, uint binding = 0 ) {
-		throw new NotImplementedException();
 	}
 }

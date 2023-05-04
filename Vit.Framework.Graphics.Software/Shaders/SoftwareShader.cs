@@ -21,9 +21,11 @@ public class SoftwareShader : IShaderPart {
 
 	public readonly Dictionary<uint, RuntimePointerType> InterfacesById = new();
 	public readonly Dictionary<uint, RuntimePointerType> UniformsByBinding = new();
+	public readonly Dictionary<uint, RuntimePointerType> UniformConstantsByBinding = new();
 	public readonly Dictionary<uint, uint> UniformIdByBinding = new();
+	public readonly Dictionary<uint, uint> UniformConstantIdByBinding = new();
 
-	public readonly RuntimeScope GlobalScope = new();
+	public readonly RuntimeScope GlobalScope = new() { Opaques = new() };
 	public readonly RuntimeFunction Entry;
 	public SoftwareShader ( SpirvCompiler compiler, ExecutionModel model ) {
 		Compiler = compiler;
@@ -38,6 +40,11 @@ public class SoftwareShader : IShaderPart {
 			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
 			UniformsByBinding.Add( binding, uniform.Type.GetRuntimeType() );
 			UniformIdByBinding.Add( binding, id );
+		}
+		foreach ( var (id, uniform) in compiler.Variables.Where( x => x.Value.StorageClass == StorageClass.UniformConstant ) ) {
+			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
+			UniformConstantsByBinding.Add( binding, uniform.Type.GetRuntimeType() );
+			UniformConstantIdByBinding.Add( binding, id );
 		}
 		foreach ( var i in inputInterfaces ) {
 			var location = i.Decorations[DecorationName.Location].Data[0];

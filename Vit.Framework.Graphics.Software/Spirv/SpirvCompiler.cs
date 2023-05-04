@@ -194,6 +194,25 @@ public class SpirvCompiler {
 				ParameterTypeIds = readArray( ref data )
 			} );
 		}
+		else if ( code == OpCode.TypeImage ) {
+			var id = read( ref data );
+			DataTypes.Add( id, new ImageType( this, id ) {
+				SampledTypeId = read( ref data ),
+				Dimensionality = read( ref data ),
+				DepthType = read( ref data ),
+				Arrayed = read( ref data ),
+				IsMultiSampled = read( ref data ),
+				SamplingType = read( ref data ),
+				ImageFormat = read<ImageFormat>( ref data ),
+				AccessQualifier = readOptional<AccessQualifier>( ref data )
+			} );
+		}
+		else if ( code == OpCode.TypeSampledImage ) {
+			var id = read( ref data );
+			DataTypes.Add( id, new SampledImageType( this, id ) {
+				ImageTypeId = read( ref data )
+			} );
+		}
 		else if ( code == OpCode.Constant ) {
 			var type = read( ref data );
 			var id = read( ref data );
@@ -264,6 +283,20 @@ public class SpirvCompiler {
 			Instructions.Add( mul );
 			currentFunction!.AddInstruction( mul );
 			ensureResultExists( mul.ResultId, mul.ResultTypeId );
+		}
+		else if ( code == OpCode.ImageSampleImplicitLod ) {
+			var sample = new ImageSample( source ) {
+				ImplicitLod = true,
+				ResultTypeId = read( ref data ),
+				ResultId = read( ref data ),
+				SampledImageId = read( ref data ),
+				CoordinateId = read( ref data ),
+				Operands = readOptional<ImageOperands>( ref data ),
+				Ids = readArray( ref data )
+			};
+			Instructions.Add( sample );
+			currentFunction!.AddInstruction( sample );
+			ensureResultExists( sample.ResultId, sample.ResultTypeId );
 		}
 		else if ( code == OpCode.Return ) {
 			var @return = new Return( source );

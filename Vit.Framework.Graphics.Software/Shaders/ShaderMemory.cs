@@ -53,6 +53,7 @@ public ref struct ShaderMemory {
 	public Span<byte> Memory;
 	public int StackPointer;
 
+
 	public MemoryDebugFrame? DebugFrame;
 
 	public Span<byte> GetMemory ( int offset, int length )

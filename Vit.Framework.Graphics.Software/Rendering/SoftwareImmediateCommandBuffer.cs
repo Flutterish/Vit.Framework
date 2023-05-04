@@ -31,6 +31,10 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 		( (Buffer<T>)buffer ).Upload( data, offset );
 	}
 
+	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		MemoryMarshal.Cast<TPixel,byte>( data ).CopyTo( MemoryMarshal.Cast<Rgba32, byte>( ((Texture)texture).AsSpan() ) );
+	}
+
 	ShaderSet? shaders;
 	public void SetShaders ( IShaderSet? shaders ) {
 		this.shaders = (ShaderSet?)shaders;
@@ -87,6 +91,12 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 			var data = uniforms[binding];
 			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( address, (int)data.stride ) );
+		}
+
+		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.UniformConstantsByBinding ).DistinctBy( x => x.Key ) ) {
+			var address = shaders!.Uniforms[binding];
+
+			memory.Write( address, value: binding );
 		}
 	}
 
@@ -243,9 +253,5 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 	public void Dispose () {
 
-	}
-
-	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
-		throw new NotImplementedException();
 	}
 }
