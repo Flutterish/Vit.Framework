@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Shaders;
+﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
@@ -71,23 +69,35 @@ public class SoftwareShader : IShaderPart {
 		}
 
 		Entry = new( GlobalScope, entry.Function );
+		ConstantsDebugFrame = new() { Name = "Constants" };
+		ShaderMemory memory = default;
+		foreach ( var (id, constant) in compiler.Constants ) {
+			ConstantsDebugFrame.Add( new() {
+				Variable = memory.StackAlloc( constant.Type.GetRuntimeType() ),
+				Name = $"Constant %{id}"
+			} );
+		}
+		foreach ( var (id, constant) in compiler.CompositeConstants ) {
+			ConstantsDebugFrame.Add( new() {
+				Variable = memory.StackAlloc( constant.Type.GetRuntimeType() ),
+				Name = $"Constant %{id}"
+			} );
+		}
 	}
 
+	public MemoryDebugFrame ConstantsDebugFrame;
 	protected void loadConstants ( ref ShaderMemory memory ) {
 		foreach ( var (id, constant) in Compiler.Constants ) {
 			var variable = memory.StackAlloc( constant.Type.GetRuntimeType() );
-			MemoryMarshal.AsBytes( constant.Data.AsSpan() ).CopyTo( memory.Memory[variable.Address..] );
+			constant.Load( variable.Address, memory );
 			GlobalScope.VariableInfo[id] = variable;
-
-#if SHADER_DEBUG
-			memory.AddDebug( new() {
-				Variable = variable,
-				Name = $"Constant %{id}"
-			} );
-#endif
 		}
 
-		Debug.Assert( !Compiler.CompositeConstants.Any() );
+		foreach ( var (id, constant) in Compiler.CompositeConstants ) {
+			var variable = memory.StackAlloc( constant.Type.GetRuntimeType() );
+			constant.Load( variable.Address, memory );
+			GlobalScope.VariableInfo[id] = variable;
+		}
 	}
 
 	public ShaderPartType Type => Compiler.Bytecode.Type;

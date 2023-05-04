@@ -193,9 +193,12 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 		var endX = Math.Max( b.X, d.X );
 		var startXStep = ( c.X - startX ) / ( c.Y - b.Y );
 		var endXStep = ( c.X - endX ) / ( c.Y - b.Y );
+		var yOffset = MathF.Ceiling( b.Y ) - b.Y;
+		startX += yOffset * startXStep;
+		endX += yOffset * endXStep;
 		var pixels = renderTarget.AsSpan2D();
-		for ( int y = (int)b.Y; y <= c.Y; y++ ) {
-			for ( int x = (int)Math.Ceiling( startX ); x < endX; x++ ) {
+		for ( int y = (int)MathF.Ceiling(b.Y); y <= c.Y; y++ ) {
+			for ( int x = (int)Math.Ceiling( startX ); x <= endX; x++ ) {
 				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
 					continue;
 
@@ -217,10 +220,10 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 		endX = Math.Max( b.X, d.X );
 		startXStep = ( a.X - startX ) / ( b.Y - a.Y );
 		endXStep = ( a.X - endX ) / ( b.Y - a.Y );
-		startX += startXStep;
-		endX += endXStep;
-		for ( int y = (int)b.Y - 1; y >= a.Y; y-- ) {
-			for ( int x = (int)Math.Ceiling( startX ); x < endX; x++ ) {
+		startX += startXStep - yOffset * startXStep;
+		endX += endXStep - yOffset * endXStep;
+		for ( int y = (int)MathF.Ceiling(b.Y) - 1; y >= a.Y; y-- ) {
+			for ( int x = (int)Math.Ceiling( startX ); x <= endX; x++ ) {
 				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
 					continue;
 
