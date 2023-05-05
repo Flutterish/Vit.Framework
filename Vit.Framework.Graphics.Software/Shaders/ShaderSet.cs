@@ -1,14 +1,11 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Software.Buffers;
 using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
 using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
-using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Software.Uniforms;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -23,7 +20,7 @@ public class ShaderSet : IShaderSet {
 		var vert = Shaders.OfType<SoftwareVertexShader>().Single();
 		var frag = Shaders.OfType<SoftwareFragmentShader>().Single();
 
-		samplers = frag.GlobalScope.Opaques.Samplers;
+		frag.GlobalScope.Opaques.Samplers = ((UniformSet)GetUniformSet(0)).Samplers;
 
 		ShaderMemory memory = default;
 
@@ -215,15 +212,12 @@ public class ShaderSet : IShaderSet {
 		return outputs;
 	}
 
-	public readonly Dictionary<uint, (IByteBuffer buffer, uint stride, uint offset)> UniformBuffers = new();
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
-		var vertex = Shaders.First( x => x.Type == ShaderPartType.Vertex );
-		UniformBuffers[binding] = ((IByteBuffer)buffer, IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
-	}
+	public Dictionary<uint, UniformSet> uniformSets = new();
+	public IUniformSet GetUniformSet ( uint set = 0 ) {
+		if ( !uniformSets.TryGetValue( set, out var value ) )
+			uniformSets.Add( set, value = new() );
 
-	Dictionary<uint, Texture> samplers;
-	public void SetSampler ( ITexture texture, uint binding = 0 ) {
-		samplers[binding] = (Texture)texture;
+		return value;
 	}
 
 	public struct BakedStageInfo {
@@ -254,13 +248,5 @@ public class ShaderSet : IShaderSet {
 
 	public void Dispose () {
 
-	}
-
-	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		throw new NotImplementedException();
-	}
-
-	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
-		throw new NotImplementedException();
 	}
 }

@@ -11,6 +11,7 @@ using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
+using Vit.Framework.Graphics.Software.Uniforms;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -85,8 +86,8 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 	}
 
 	void loadUniforms ( ref ShaderMemory memory ) {
-		var uniforms = shaders!.UniformBuffers;
-		foreach ( var (binding, uniform) in shaders.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
+		var uniforms = ((UniformSet)shaders!.GetUniformSet(0)).UniformBuffers;
+		foreach ( var (binding, uniform) in shaders!.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
 			var address = shaders!.Uniforms[binding];
 
 			var data = uniforms[binding];

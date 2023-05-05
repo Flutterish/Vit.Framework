@@ -23,8 +23,8 @@ public partial class Program : App {
 
 	protected override void Initialize ( Host host ) {
 		List<GraphicsApiType> apis = new() {
-			//GraphicsApiType.Curses, 
-			GraphicsApiType.Direct3D11, 
+			GraphicsApiType.Curses, 
+			//GraphicsApiType.Direct3D11, 
 			//GraphicsApiType.Vulkan,
 			//GraphicsApiType.OpenGl
 		};
