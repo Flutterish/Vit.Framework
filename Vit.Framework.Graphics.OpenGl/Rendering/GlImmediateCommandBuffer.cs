@@ -1,24 +1,22 @@
-﻿using Vit.Framework.Graphics.OpenGl.Buffers;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.OpenGl.Buffers;
 using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.PrimitiveType;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
-public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
-		GL.BindFramebuffer( FramebufferTarget.Framebuffer, ((IGlFramebuffer)framebuffer).Handle );
+public class GlImmediateCommandBuffer : BasicCommandBuffer<IGlFramebuffer, Texture2D, ShaderProgram>, IImmediateCommandBuffer {
+	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+		GL.BindFramebuffer( FramebufferTarget.Framebuffer, framebuffer.Handle );
 
-		var color = clearColor ?? new( 0, 0, 0, 1 );
-		GL.ClearColor( color.R, color.G, color.B, color.A );
-		GL.ClearStencil( (int)(clearStencil ?? 0) );
-		GL.ClearDepth( clearDepth ?? 0 );
+		GL.ClearColor( clearColor.R, clearColor.G, clearColor.B, clearColor.A );
+		GL.ClearStencil( (int)clearStencil );
+		GL.ClearDepth( clearDepth );
 		GL.Clear( ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit | ClearBufferMask.ColorBufferBit );
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
@@ -26,68 +24,61 @@ public class GlImmediateCommandBuffer : IImmediateCommandBuffer {
 		} );
 	}
 
-	public void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
 		((Buffer<T>)buffer).Upload( data, offset );
 	}
 
-	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
-		((Texture2D)texture).Upload( data );
+	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {
+		texture.Upload( data );
 	}
 
-	IShaderSet? shaders;
+	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
+		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) )
+			GL.UseProgram( ShaderSet.Handle );
+
+		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
+			GL.Viewport( (int)Viewport.MinX, (int)Viewport.MinY, (int)Viewport.Width, (int)Viewport.Height );
+
+		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) )
+			GL.Scissor( (int)Scissors.MinX, (int)Scissors.MinY, (int)Scissors.Width, (int)Scissors.Height );
+	}
+
 	int vao;
-	public void SetShaders ( IShaderSet? shaders ) {
-		this.shaders = shaders;
-		GL.UseProgram( ((ShaderProgram?)shaders)?.Handle ?? 0 );
-	}
-
-	public void SetTopology ( Topology topology ) {
-		
-	}
-
-	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
-		GL.Viewport( (int)viewport.MinX, (int)viewport.MinY, (int)viewport.Width, (int)viewport.Height );
-	}
-
-	public void SetScissors ( AxisAlignedBox2<uint> scissors ) {
-		GL.Scissor( (int)scissors.MinX, (int)scissors.MinY, (int)scissors.Width, (int)scissors.Height );
-	}
-
-	public void BindVertexBuffer ( IBuffer buffer ) {
-		if ( vao == 0 ) {
-			vao = GL.GenVertexArray();
-			GL.BindVertexArray( vao );
-		}
-
-		GL.BindBuffer( BufferTarget.ArrayBuffer, ((IGlObject)buffer).Handle );
-		int offset = 0;
-
-		var stride = ((IGlBuffer)buffer).Stride;
-		foreach ( var i in shaders!.Parts.First( x => x.Type == ShaderPartType.Vertex ).ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
-			var length = (int)i.Type.FlattendedDimensions;
-			var (size, type) = i.Type.PrimitiveType switch {
-				PrimitiveType.Float32 => (sizeof(float), VertexAttribPointerType.Float),
-				var x when true => throw new Exception( $"Unknown data type: {x}" )
-			};
-
-			GL.VertexAttribPointer( i.Location, length, type, false, stride, offset );
-			GL.EnableVertexAttribArray( i.Location );
-			offset += length * size;
-		}
-	}
-
 	DrawElementsType indexType;
-	public void BindIndexBuffer ( IBuffer buffer ) {
+	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( vao == 0 ) {
 			vao = GL.GenVertexArray();
-			GL.BindVertexArray( vao );
 		}
 
-		GL.BindBuffer( BufferTarget.ElementArrayBuffer, ((IGlObject)buffer).Handle );
-		indexType = buffer is Buffer<uint> ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
+		GL.BindVertexArray( vao );
+
+		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
+			GL.BindBuffer( BufferTarget.ElementArrayBuffer, ((IGlObject)IndexBuffer).Handle );
+			indexType = IndexBufferType == IndexBufferType.UInt32 ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
+		}
+
+		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
+			var buffer = (IGlBuffer)VertexBuffer;
+			GL.BindBuffer( BufferTarget.ArrayBuffer, buffer.Handle );
+			int offset = 0;
+
+			var stride = buffer.Stride;
+			foreach ( var i in ShaderSet.Parts.First( x => x.Type == ShaderPartType.Vertex ).ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
+				var length = (int)i.Type.FlattendedDimensions;
+				var (size, type) = i.Type.PrimitiveType switch {
+					PrimitiveType.Float32 => (sizeof( float ), VertexAttribPointerType.Float),
+					var x when true => throw new Exception( $"Unknown data type: {x}" )
+				};
+
+				GL.VertexAttribPointer( i.Location, length, type, false, stride, offset );
+				GL.EnableVertexAttribArray( i.Location );
+				offset += length * size;
+			}
+		}
 	}
 
-	public void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+		Debug.Assert( Topology == Topology.Triangles );
 		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
 	}
 

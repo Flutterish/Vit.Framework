@@ -2,6 +2,7 @@
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
+using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
 using Vit.Framework.Windowing.Sdl;
 
@@ -21,34 +22,34 @@ public partial class Program : App {
 	}
 
 	protected override void Initialize ( Host host ) {
-		var consoleHost = new ConsoleHost( this );
-		var d = consoleHost.CreateWindow( GraphicsApiType.Curses, this );
-		d.Title = "Window A [Curses]";
-		d.Initialized += _ => {
-			var api = consoleHost.CreateGraphicsApi( GraphicsApiType.Curses, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test04_Samplers( d, consoleHost, d.Title, api ) );
+		List<GraphicsApiType> apis = new() {
+			GraphicsApiType.Curses, 
+			GraphicsApiType.Direct3D11, 
+			GraphicsApiType.Vulkan,
+			GraphicsApiType.OpenGl
 		};
-		//var a = host.CreateWindow( GraphicsApiType.Direct3D11, this );
-		//a.Title = "Window A [DX11]";
-		//a.Initialized += _ => {
-		//	var api = host.CreateGraphicsApi( GraphicsApiType.Direct3D11, new[] { RenderingCapabilities.DrawToWindow } );
-		//	ThreadRunner.RegisterThread( new Test04_Samplers( a, host, a.Title, api ) );
-		//};
-		//var b = host.CreateWindow( GraphicsApiType.Vulkan, this );
-		//b.Title = "Window A [Vulkan]";
-		//b.Initialized += _ => {
-		//	var api = host.CreateGraphicsApi( GraphicsApiType.Vulkan, new[] { RenderingCapabilities.DrawToWindow } );
-		//	ThreadRunner.RegisterThread( new Test04_Samplers( b, host, b.Title, api ) );
-		//};
-		//var c = host.CreateWindow( GraphicsApiType.OpenGl, this );
-		//c.Title = "Window A [OpenGl]";
-		//c.Initialized += _ => {
-		//	var api = host.CreateGraphicsApi( GraphicsApiType.OpenGl, new[] { RenderingCapabilities.DrawToWindow } );
-		//	ThreadRunner.RegisterThread( new Test04_Samplers( c, host, c.Title, api ) );
-		//};
+
+		List<Window> windows = new();
+		var Letters = "ABCD";
+		for ( int i = 0; i < apis.Count; i++ ) {
+			var api = apis[i];
+
+			var windowHost = host;
+			if ( api == GraphicsApiType.Curses ) {
+				windowHost = new ConsoleHost( this );
+			}
+
+			var window = windowHost.CreateWindow( api, this );
+			window.Title = $"Window {Letters[i]} [{api}]";
+			window.Initialized += _ => {
+				var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
+				ThreadRunner.RegisterThread( new Test04_Samplers( window, windowHost, window.Title, graphicsApi ) );
+			};
+			windows.Add( window );
+		}
 
 		Task.Run( async () => {
-			while ( /*!a.IsClosed || !b.IsClosed || !c.IsClosed ||*/ !d.IsClosed )
+			while ( windows.Any( x => !x.IsClosed ) )
 				await Task.Delay( 1 );
 
 			Quit();

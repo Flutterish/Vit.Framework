@@ -13,7 +13,7 @@ public abstract class App {
 	}
 
 	public void Run ( Host host ) {
-		Initialize( host );
+		Initialize( host ); // TODO does an app need to know the host?
 		while ( !HasQuit ) {
 			if ( !ThreadRunner.RunOnce() )
 				Thread.Sleep( 1 );
