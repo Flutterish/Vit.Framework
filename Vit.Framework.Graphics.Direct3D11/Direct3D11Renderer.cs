@@ -19,11 +19,18 @@ namespace Vit.Framework.Graphics.Direct3D11;
 public class Direct3D11Renderer : DisposableObject, IRenderer {
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
+	public readonly ID3D11RasterizerState RasterizerState;
 	public Direct3D11Renderer ( Direct3D11Api graphicsApi, ID3D11Device device, ID3D11DeviceContext context ) {
 		GraphicsApi = graphicsApi;
 		Device = device;
 		Context = context;
 		commandBuffer = new( Context );
+
+		RasterizerState = device.CreateRasterizerState( new() {
+			FillMode = FillMode.Solid,
+			CullMode = CullMode.None
+		} );
+		context.RSSetState( RasterizerState );
 	}
 
 	public GraphicsApi GraphicsApi { get; }
@@ -71,6 +78,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	protected override void Dispose ( bool disposing ) {
+		RasterizerState.Dispose();
 		Device.Dispose();
 		Context.Dispose();
 	}
