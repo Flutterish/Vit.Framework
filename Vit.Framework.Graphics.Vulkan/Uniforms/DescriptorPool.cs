@@ -1,7 +1,7 @@
 ﻿using Vit.Framework.Interop;
 using Vulkan;
 
-namespace Vit.Framework.Graphics.Vulkan.Shaders;
+namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
 public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool> {
 	public readonly VkDevice Device;

@@ -33,8 +33,10 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<IGlFramebuffer, Textu
 	}
 
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
-		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) )
+		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) ) {
 			GL.UseProgram( ShaderSet.Handle );
+			ShaderSet.UniformSets[0].Apply( ShaderSet );
+		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
 			GL.Viewport( (int)Viewport.MinX, (int)Viewport.MinY, (int)Viewport.Width, (int)Viewport.Height );

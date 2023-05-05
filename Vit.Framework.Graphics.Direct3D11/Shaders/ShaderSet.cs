@@ -1,10 +1,8 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Graphics.Direct3D11.Buffers;
-using Vit.Framework.Graphics.Direct3D11.Textures;
-using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Direct3D11.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -54,14 +52,12 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		Layout = vert.Handle.Device.CreateInputLayout( inputs, vert.Source.Span );
 	}
 
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
-		Context.VSSetConstantBuffer( (int)binding, ((Buffer<T>)buffer).Handle );
-		// TODO check which shaders need it set
-	}
+	public Dictionary<uint, UniformSet> UniformSets = new();
+	public IUniformSet GetUniformSet ( uint set = 0 ) {
+		if ( !UniformSets.TryGetValue( set, out var value ) )
+			UniformSets.Add( set, value = new() );
 
-	public void SetSampler ( ITexture texture, uint binding = 0 ) {
-		Context.PSSetShaderResource( (int)binding, ((Texture2D)texture).ResourceView );
-		Context.PSSetSampler( (int)binding, ((Texture2D)texture).Sampler );
+		return value;
 	}
 
 	protected override void Dispose ( bool disposing ) {

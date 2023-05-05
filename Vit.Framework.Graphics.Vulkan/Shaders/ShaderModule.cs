@@ -7,7 +7,7 @@ using Vulkan;
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
 
 public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart {
-	public readonly VkDevice Device;
+	public readonly Device Device;
 	public readonly VkPipelineShaderStageCreateInfo StageCreateInfo;
 	public readonly CString EntryPoint;
 	public readonly SpirvBytecode Spirv;
@@ -15,7 +15,7 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart 
 	public ShaderPartType Type => ShaderInfo.Type;
 	public ShaderInfo ShaderInfo => Spirv.Reflections;
 
-	public unsafe ShaderModule ( VkDevice device, SpirvBytecode bytecode ) {
+	public unsafe ShaderModule ( Device device, SpirvBytecode bytecode ) {
 		Spirv = bytecode;
 		Device = device;
 		VkShaderModuleCreateInfo info = new() {

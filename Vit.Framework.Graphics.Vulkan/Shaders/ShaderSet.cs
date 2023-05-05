@@ -1,10 +1,7 @@
 ﻿using System.Collections.Immutable;
-using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Vulkan.Buffers;
-using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Interop;
+using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Memory;
 using Vulkan;
 
@@ -25,39 +22,23 @@ public class ShaderSet : DisposableObject, IShaderSet {
 			Attributes = Array.Empty<VkVertexInputAttributeDescription>();
 			AttributeSets = Array.Empty<VkVertexInputBindingDescription>();
 		}
-
-		var device = Modules[0].Device;
-		var layouts = Modules.Select( x => x.Spirv.Reflections ).GenerateUniformBindingsSet( 0 );
-		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
-			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-			bindingCount = (uint)layouts.Length,
-			pBindings = layouts.Data()
-		};
-		Vk.vkCreateDescriptorSetLayout( device, &uniformInfo, VulkanExtensions.TODO_Allocator, out Uniforms ).Validate();
-		DescriptorPool = layouts.CreateDescriptorPool( device );
-		DescriptorSet = DescriptorPool.CreateSet( Uniforms );
 	}
 
 	// TODO binding and offset values of these should be generated based on some logical linking between mesh vertex buffers and material attributes
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	// TODO these are only for set = 0 and are not unique per shader set
-	public readonly VkDescriptorSetLayout Uniforms;
-	public readonly DescriptorPool DescriptorPool;
-	public readonly DescriptorSet DescriptorSet;
+	Dictionary<uint, UniformSet> uniformSets = new();
+	public IUniformSet GetUniformSet ( uint set = 0 ) {
+		if ( !uniformSets.TryGetValue( set, out var value ) )
+			uniformSets.Add( set, value = new( Modules[0].Device, this.CreateUniformSetInfo( set ) ) );
 
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
-		DescriptorSet.ConfigureUniforms( (Buffer<T>)buffer, binding, offset );
+		return value;
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		DescriptorPool.Dispose();
-		Vk.vkDestroyDescriptorSetLayout( Modules[0].Device, Uniforms, VulkanExtensions.TODO_Allocator );
-	}
-
-	public void SetSampler ( ITexture texture, uint binding = 0 ) {
-		var tex = (ImageTexture)texture;
-		DescriptorSet.ConfigureTexture( tex.Image, tex.Sampler, binding );
+		foreach ( var (_, set) in uniformSets ) {
+			set.Dispose();
+		}
 	}
 }

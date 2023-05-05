@@ -4,6 +4,7 @@ namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 public class UniformResourceInfo : ResourceInfo {
 	public uint Binding;
+	public HashSet<ShaderPartType> Stages = new();
 	public override void ParseSpriv ( spvc_compiler compiler, spvc_reflected_resource resource ) {
 		base.ParseSpriv( compiler, resource );
 

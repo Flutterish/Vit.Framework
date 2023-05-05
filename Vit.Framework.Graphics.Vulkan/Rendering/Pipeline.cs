@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Vulkan.Shaders;
+using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Interop;
 using Vulkan;
 
@@ -79,7 +80,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			stencilTestEnable = false
 		};
 
-		var unifomsHandle = shaders.Uniforms;
+		var unifomsHandle = ((UniformSet)shaders.GetUniformSet( 0 )).Uniforms; // TODO we always use only set 0
 		var layoutInfo = new VkPipelineLayoutCreateInfo() {
 			sType = VkStructureType.PipelineLayoutCreateInfo,
 			setLayoutCount = 1,

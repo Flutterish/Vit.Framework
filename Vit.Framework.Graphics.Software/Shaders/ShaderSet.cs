@@ -8,6 +8,7 @@ using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -253,5 +254,13 @@ public class ShaderSet : IShaderSet {
 
 	public void Dispose () {
 
+	}
+
+	public IUniformSet GetUniformSet ( uint set = 0 ) {
+		throw new NotImplementedException();
+	}
+
+	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
+		throw new NotImplementedException();
 	}
 }

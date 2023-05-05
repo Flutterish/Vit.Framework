@@ -11,6 +11,8 @@ using Vit.Framework.Memory;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -46,5 +48,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	SoftwareImmadiateCommandBuffer commandBuffer = new();
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
+	}
+
+	public IUniformSet CreateUniformSet ( UniformSetInfo info ) {
+		throw new NotImplementedException();
 	}
 }

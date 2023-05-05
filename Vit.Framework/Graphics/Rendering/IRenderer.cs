@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
@@ -21,6 +23,7 @@ public interface IRenderer : IDisposable {
 
 	IShaderPart CompileShaderPart ( SpirvBytecode spirv );
 	IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts );
+	IUniformSet CreateUniformSet ( UniformSetInfo info );
 
 	IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged;
 	IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged;

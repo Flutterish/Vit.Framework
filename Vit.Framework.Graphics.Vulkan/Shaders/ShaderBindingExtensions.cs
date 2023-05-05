@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
+using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
@@ -40,44 +41,19 @@ public static unsafe class ShaderBindingExtensions {
 		return (vertexAttributes, vertexBindings);
 	}
 
-	public static Dictionary<uint, VkDescriptorSetLayoutBinding[]> GenerateUniformBindings ( this IEnumerable<ShaderInfo> shaders ) {
-		var sets = shaders.SelectMany( x => new[] { x.Uniforms, x.Samplers } ).SelectMany( x => x.Sets.Keys ).Distinct();
-
-		return sets.ToDictionary(
-			x => x,
-			x => shaders.GenerateUniformBindingsSet( x )
-		);
-	}
-
-	public static VkDescriptorSetLayoutBinding[] GenerateUniformBindingsSet ( this IEnumerable<ShaderInfo> shaders, uint set ) {
+	public static VkDescriptorSetLayoutBinding[] GenerateUniformBindingsSet ( this UniformSetInfo shader ) {
 		Dictionary<uint, (VkDescriptorType format, VkShaderStageFlags stages)> bindings = new();
 
-		foreach ( var shader in shaders ) {
-			var stage = ShaderModule.FlagsFromPartType( shader.Type );
-			IEnumerable<UniformResourceInfo> resources = Enumerable.Empty<UniformResourceInfo>();
-			if ( shader.Uniforms.Sets.TryGetValue( set, out var setInfo ) )
-				resources = resources.Concat( setInfo.Resources );
-			if ( shader.Samplers.Sets.TryGetValue( set, out setInfo ) )
-				resources = resources.Concat( setInfo.Resources );
+		foreach ( var resource in shader.Resources ) {
+			var binding = resource.Binding;
+			var stage = resource.Stages.Aggregate( VkShaderStageFlags.None, (a,b) => a | ShaderModule.FlagsFromPartType(b) );
+			var format = resource.Type switch { 
+				{ PrimitiveType: PrimitiveType.Struct } => VkDescriptorType.UniformBuffer, 
+				{ PrimitiveType: PrimitiveType.Sampler } => VkDescriptorType.CombinedImageSampler,
+				_ => throw new Exception( "Unrecognized format" )
+			};
 
-			foreach ( var resource in resources ) {
-				var binding = resource.Binding;
-				var format = resource.Type switch {
-					{ PrimitiveType: PrimitiveType.Struct } => VkDescriptorType.UniformBuffer,
-					{ PrimitiveType: PrimitiveType.Sampler } => VkDescriptorType.CombinedImageSampler,
-					_ => throw new Exception( "Unrecognized format" )
-				};
-
-				if ( bindings.TryGetValue( binding, out var info ) ) {
-					if ( info.format != format )
-						throw new Exception( "Uniform formats dont match across shader modules" );
-
-					bindings[binding] = (format, stage | info.stages);
-				}
-				else {
-					bindings.Add( binding, (format, stage) );
-				}
-			}
+			bindings.Add( binding, (format, stage) );
 		}
 
 		return bindings.Select( x => new VkDescriptorSetLayoutBinding() {

@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
@@ -60,7 +61,7 @@ public class VulkanCommandCache : BasicCommandBuffer<FrameBuffer, ImageTexture, 
 			} );
 
 			Buffer.BindPipeline( pipeline );
-			Buffer.BindDescriptor( pipeline.Layout, ShaderSet.DescriptorSet );
+			Buffer.BindDescriptor( pipeline.Layout, ((UniformSet)ShaderSet.GetUniformSet(0)).DescriptorSet );
 			invalidations |= PipelineInvalidations.Scissors | PipelineInvalidations.Viewport;
 		}
 
