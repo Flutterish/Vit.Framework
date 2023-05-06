@@ -23,7 +23,7 @@ public class Buffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T>, IHostBuf
 	public void Allocate ( uint size, BufferUsage usageHint ) {
 		GL.BindBuffer( Type, Handle );
 
-		var offset = usageHint.HasFlag( BufferUsage.PerFrame ) ? 0 : usageHint.HasFlag( BufferUsage.Rarely ) ? 6 : 3;
+		var offset = usageHint.HasFlag( BufferUsage.GpuPerFrame ) ? 0 : usageHint.HasFlag( BufferUsage.GpuRarely ) ? 6 : 3;
 		GL.BufferData( Type, (int)size * Stride, (nint)null, 
 			usageHint.HasFlag( BufferUsage.CpuRead ) ? (BufferUsageHint.StreamRead + offset) :
 			usageHint.HasFlag( BufferUsage.CpuWrite ) ? (BufferUsageHint.StreamDraw + offset) :

@@ -23,6 +23,9 @@ public static class InteropExtensions {
 		return Encoding.UTF8.GetString( data );
 	}
 
+	public static Span<T> AsSpan<T> ( this List<T> list )
+		=> CollectionsMarshal.AsSpan( list );
+
 	public unsafe static T* Data<T> ( this T[] array ) where T : unmanaged {
 		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( array ) );
 	}
@@ -36,9 +39,7 @@ public static class InteropExtensions {
 	}
 
 	public unsafe static T* Data<T> ( this ImmutableArray<T> array ) where T : unmanaged {
-		fixed ( T* ptr = array.AsSpan() ) {
-			return ptr;
-		}
+		return array.AsSpan().Data();
 	}
 
 	public unsafe static T* Data<T> ( this Span<T> span ) where T : unmanaged {

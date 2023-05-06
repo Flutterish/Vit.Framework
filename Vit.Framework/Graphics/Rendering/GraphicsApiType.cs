@@ -6,5 +6,5 @@ public enum GraphicsApiType {
 	OpenGlEs,
 	Vulkan,
 	Direct3D11,
-	Curses
+	Software
 }

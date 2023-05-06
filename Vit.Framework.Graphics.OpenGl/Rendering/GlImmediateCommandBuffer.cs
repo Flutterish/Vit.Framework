@@ -43,6 +43,26 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<IGlFramebuffer, Textu
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) )
 			GL.Scissor( (int)Scissors.MinX, (int)Scissors.MinY, (int)Scissors.Width, (int)Scissors.Height );
+
+		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
+			if ( !DepthTest.IsEnabled ) {
+				GL.Disable( EnableCap.DepthTest );
+				return;
+			}
+
+			GL.Enable( EnableCap.DepthTest );
+			GL.DepthMask( DepthTest.WriteOnPass );
+			GL.DepthFunc( DepthTest.CompareOperation switch {
+				CompareOperation.LessThan => DepthFunction.Less,
+				CompareOperation.GreaterThan => DepthFunction.Greater,
+				CompareOperation.Equal => DepthFunction.Equal,
+				CompareOperation.NotEqual => DepthFunction.Notequal,
+				CompareOperation.LessThanOrEqual => DepthFunction.Lequal,
+				CompareOperation.GreaterThanOrEqual => DepthFunction.Gequal,
+				CompareOperation.Always => DepthFunction.Always,
+				CompareOperation.Never or _ => DepthFunction.Never
+			} );
+		}
 	}
 
 	int vao;

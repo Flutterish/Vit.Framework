@@ -25,8 +25,6 @@ public unsafe struct CString {
 		data = new byte[Encoding.UTF8.GetByteCount( str ) + 1];
 		Encoding.UTF8.GetBytes( str.AsSpan(), data.AsSpan( 0, data.Length - 1 ) );
 		data[^1] = 0;
-
-		ptr = (byte*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( data ) );
 	}
 
 	public override string ToString () {
@@ -34,7 +32,7 @@ public unsafe struct CString {
 	}
 
 	public static implicit operator string ( CString cstr )
-		=> Marshal.PtrToStringUTF8( (nint)cstr.ptr )!;
+		=> Marshal.PtrToStringUTF8( (nint)(byte*)cstr )!;
 
 	public static implicit operator CString ( string? str )
 		=> new( str );
@@ -45,8 +43,15 @@ public unsafe struct CString {
 	public static explicit operator CString ( nint str )
 		=> new( str );
 
-	public static unsafe implicit operator byte* ( CString str )
-		=> str.ptr;
+	public static unsafe implicit operator byte* ( CString str ) {
+		if ( str.ptr != null )
+			return str.ptr;
+
+		if ( str.data == null )
+			return null;
+
+		return (byte*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( str.data ) );
+	}
 }
 
 public static unsafe class CStringExtensions {

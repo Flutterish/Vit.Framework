@@ -30,8 +30,7 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart 
 		StageCreateInfo = new() {
 			sType = VkStructureType.PipelineShaderStageCreateInfo,
 			stage = FlagsFromPartType( bytecode.Type ),
-			module = Instance,
-			pName = EntryPoint
+			module = Instance
 		};
 	}
 

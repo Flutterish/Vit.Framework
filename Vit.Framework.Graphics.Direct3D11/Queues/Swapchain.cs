@@ -20,10 +20,22 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Handle = handle;
 		Renderer = renderer;
 		Window = window;
-		commandBuffer = new( renderer.Context );
+		commandBuffer = new( renderer, renderer.Context );
 
 		D3DExtensions.Validate( Handle.GetBuffer<ID3D11Texture2D>( 0, out var framebuffer ) );
-		backBuffer = new( renderer.Device.CreateRenderTargetView( framebuffer ) );
+		var depthStencil = renderer.Device.CreateTexture2D( new Texture2DDescription {
+			Width = (int)window.PixelWidth,
+			Height = (int)window.PixelHeight,
+			MipLevels = 1,
+			ArraySize = 1,
+			SampleDescription = {
+				Count = 1
+			},
+			Format = Format.D24_UNorm_S8_UInt,
+			BindFlags = BindFlags.DepthStencil
+		} );
+		var view = renderer.Device.CreateDepthStencilView( depthStencil );
+		backBuffer = new( renderer.Device.CreateRenderTargetView( framebuffer ), (depthStencil, view) );
 		backBuffer.Size = window.PixelSize.Cast<uint>();
 		framebuffer!.Release();
 	}

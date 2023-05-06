@@ -11,13 +11,17 @@ namespace Vit.Framework.Graphics.Direct3D11.Rendering;
 
 public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<TargetView, Texture2D, ShaderSet>, IImmediateCommandBuffer {
 	public readonly ID3D11DeviceContext Context;
-	public Direct3D11ImmediateCommandBuffer ( ID3D11DeviceContext context ) {
+	public readonly Direct3D11Renderer Renderer;
+	public Direct3D11ImmediateCommandBuffer ( Direct3D11Renderer renderer, ID3D11DeviceContext context ) {
 		Context = context;
+		Renderer = renderer;
 	}
 
 	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetView framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
-		Context.OMSetRenderTargets( framebuffer.Handle );
+		Context.OMSetRenderTargets( framebuffer.Handle, framebuffer.DepthStencil );
 		Context.ClearRenderTargetView( framebuffer.Handle, new( clearColor.R, clearColor.G, clearColor.B, clearColor.A ) );
+		if ( framebuffer.DepthStencil is ID3D11DepthStencilView depthStencil )
+			Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, clearDepth, (byte)clearStencil );
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
 			// TODO set to null?
@@ -54,6 +58,10 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<TargetView, T
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) ) {
 			// TODO scissors
+		}
+
+		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
+			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( DepthTest ) );
 		}
 	}
 

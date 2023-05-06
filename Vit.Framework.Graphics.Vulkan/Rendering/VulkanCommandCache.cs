@@ -52,17 +52,20 @@ public class VulkanCommandCache : BasicCommandBuffer<FrameBuffer, ImageTexture, 
 	}
 
 	Pipeline pipeline = null!;
+	const PipelineInvalidations pipelineInvalidations = PipelineInvalidations.Shaders | PipelineInvalidations.Framebuffer | PipelineInvalidations.Topology | PipelineInvalidations.DepthTest;
+	const PipelineInvalidations dynamicState = PipelineInvalidations.Scissors | PipelineInvalidations.Viewport;
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
-		if ( (invalidations & (PipelineInvalidations.Shaders | PipelineInvalidations.Framebuffer | PipelineInvalidations.Topology)) != 0 ) {
+		if ( (invalidations & pipelineInvalidations) != 0 ) {
 			Debug.Assert( Topology == Topology.Triangles ); // TODO topology
 			pipeline = Renderer.GetPipeline( new() { 
 				Shaders = ShaderSet,
-				RenderPass = frameBuffer.RenderPass
+				RenderPass = frameBuffer.RenderPass,
+				DepthTest = DepthTest
 			} );
 
 			Buffer.BindPipeline( pipeline );
 			Buffer.BindDescriptor( pipeline.Layout, ((UniformSet)ShaderSet.GetUniformSet(0)).DescriptorSet );
-			invalidations |= PipelineInvalidations.Scissors | PipelineInvalidations.Viewport;
+			invalidations |= dynamicState;
 		}
 
 		if ( (invalidations & PipelineInvalidations.Viewport) != 0 ) {

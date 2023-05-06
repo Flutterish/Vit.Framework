@@ -255,4 +255,8 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 	public void Dispose () {
 
 	}
+
+	public void SetDepthTest ( BufferTest test ) {
+		throw new NotImplementedException();
+	}
 }

@@ -9,11 +9,17 @@ public struct Point4<T> : IInterpolatable<Point4<T>, T> where T : INumber<T> {
 	public T Z;
 	public T W;
 
+	public Point3<T> XYZ => new( X, Y, Z );
+
 	public Point4 ( T x, T y, T z, T w ) {
 		X = x;
 		Y = y;
 		Z = z;
 		W = w;
+	}
+
+	public Point4 ( T all ) {
+		X = Y = Z = W = all;
 	}
 
 	public static Point4<T> operator + ( Point4<T> left, Vector4<T> right ) {

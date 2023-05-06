@@ -3,7 +3,7 @@
 namespace Vit.Framework.Graphics.Curses;
 
 public class CursesApi : GraphicsApi {
-	public CursesApi ( IEnumerable<RenderingCapabilities> capabilities ) : base( GraphicsApiType.Curses, capabilities ) {
+	public CursesApi ( IEnumerable<RenderingCapabilities> capabilities ) : base( GraphicsApiType.Software, capabilities ) {
 	}
 
 	protected override void Dispose ( bool disposing ) {

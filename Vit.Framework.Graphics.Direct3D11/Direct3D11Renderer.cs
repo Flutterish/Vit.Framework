@@ -24,7 +24,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		GraphicsApi = graphicsApi;
 		Device = device;
 		Context = context;
-		commandBuffer = new( Context );
+		commandBuffer = new( this, Context );
 
 		RasterizerState = device.CreateRasterizerState( new() {
 			FillMode = FillMode.Solid,
@@ -77,7 +77,34 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return commandBuffer;
 	}
 
+	Dictionary<BufferTest, ID3D11DepthStencilState> depthStencilStates = new();
+	public ID3D11DepthStencilState GetDepthStencilState ( BufferTest depth ) {
+		var key = depth;
+		if ( !depthStencilStates.TryGetValue( key, out var state ) ) {
+			depthStencilStates.Add( key, state = Device.CreateDepthStencilState( new() {
+				DepthEnable = depth.IsEnabled,
+				DepthWriteMask = depth.WriteOnPass ? DepthWriteMask.All : DepthWriteMask.Zero,
+				DepthFunc = depth.CompareOperation switch {
+					CompareOperation.LessThan => ComparisonFunction.Less,
+					CompareOperation.GreaterThan => ComparisonFunction.Greater,
+					CompareOperation.Equal => ComparisonFunction.Equal,
+					CompareOperation.NotEqual => ComparisonFunction.NotEqual,
+					CompareOperation.LessThanOrEqual => ComparisonFunction.LessEqual,
+					CompareOperation.GreaterThanOrEqual => ComparisonFunction.GreaterEqual,
+					CompareOperation.Always => ComparisonFunction.Always,
+					CompareOperation.Never or _ => ComparisonFunction.Never
+				}
+			} ) );
+		}
+
+		return state;
+	}
+
 	protected override void Dispose ( bool disposing ) {
+		foreach ( var (_, i) in depthStencilStates ) {
+			i.Dispose();
+		}
+
 		RasterizerState.Dispose();
 		Device.Dispose();
 		Context.Dispose();

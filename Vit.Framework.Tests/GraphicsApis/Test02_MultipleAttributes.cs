@@ -52,8 +52,8 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 
-		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
-		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
+		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Vertex[] {

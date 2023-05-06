@@ -95,7 +95,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		if ( pipelines.TryGetValue( args, out var pipeline ) )
 			return pipeline;
 
-		pipeline = new Pipeline( Device, args.Shaders, args.RenderPass );
+		pipeline = new Pipeline( Device, args );
 		pipelines.Add( args, pipeline );
 		return pipeline;
 	}
@@ -118,4 +118,5 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 public struct PipelineArgs {
 	public required ShaderSet Shaders;
 	public required RenderPass RenderPass;
+	public required BufferTest DepthTest;
 }

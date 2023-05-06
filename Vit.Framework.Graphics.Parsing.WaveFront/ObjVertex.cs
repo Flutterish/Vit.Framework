@@ -1,9 +1,10 @@
-﻿using Vit.Framework.Mathematics.LinearAlgebra;
+﻿using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Parsing.WaveFront;
 
 public struct ObjVertex {
-	public Vector4<float> Position;
-	public Vector3<float> TextureCoordinates;
+	public Point4<float> Position;
+	public Point3<float> TextureCoordinates;
 	public Vector3<float> Normal;
 }

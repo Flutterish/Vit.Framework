@@ -10,6 +10,9 @@ public enum BufferUsage {
 	GpuRead = 4,
 	GpuWrite = 8,
 
-	Rarely = 16,
-	PerFrame = 16 + 32
+	GpuRarely = 16,
+	GpuPerFrame = 16 + 32,
+
+	CpuRarely = 64,
+	CpuPerFrame = 64 + 128
 }

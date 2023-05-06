@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Interop;
 using Vulkan;
 
@@ -77,6 +78,17 @@ public static class VulkanExtensions {
 	public static unsafe string GetDescription ( this VkLayerProperties properties ) {
 		return InteropExtensions.GetString( properties.description, 256 );
 	}
+
+	public static VkCompareOp CompareOp ( this CompareOperation compare ) => compare switch {
+		CompareOperation.Always => VkCompareOp.Always,
+		CompareOperation.LessThan => VkCompareOp.Less,
+		CompareOperation.GreaterThan => VkCompareOp.Greater,
+		CompareOperation.Equal => VkCompareOp.Equal,
+		CompareOperation.NotEqual => VkCompareOp.NotEqual,
+		CompareOperation.LessThanOrEqual => VkCompareOp.Less,
+		CompareOperation.GreaterThanOrEqual => VkCompareOp.GreaterOrEqual,
+		CompareOperation.Never or _ => VkCompareOp.Never,
+	};
 
 	public static unsafe VkAllocationCallbacks* TODO_Allocator => (VkAllocationCallbacks*)0;
 }

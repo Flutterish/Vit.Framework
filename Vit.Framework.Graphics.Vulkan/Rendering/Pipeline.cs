@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Graphics.Vulkan.Shaders;
-using Vit.Framework.Graphics.Vulkan.Uniforms;
+﻿using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Interop;
 using Vulkan;
 
@@ -8,7 +7,8 @@ namespace Vit.Framework.Graphics.Vulkan.Rendering;
 public class Pipeline : DisposableVulkanObject<VkPipeline> {
 	public readonly VkDevice Device;
 	public readonly VkPipelineLayout Layout;
-	public unsafe Pipeline ( VkDevice device, ShaderSet shaders, RenderPass renderPass ) {
+	public unsafe Pipeline ( VkDevice device, PipelineArgs args ) {
+		var (shaders, renderPass, depthTest) = (args.Shaders, args.RenderPass, args.DepthTest);
 		Device = device;
 		var dynamicStates = new[] {
 			VkDynamicState.Viewport,
@@ -73,9 +73,9 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		};
 		var depthInfo = new VkPipelineDepthStencilStateCreateInfo() {
 			sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
-			depthTestEnable = true,
-			depthWriteEnable = true,
-			depthCompareOp = VkCompareOp.Less,
+			depthTestEnable = depthTest.IsEnabled,
+			depthWriteEnable = depthTest.WriteOnPass,
+			depthCompareOp = depthTest.CompareOperation.CompareOp(),
 			depthBoundsTestEnable = false,
 			stencilTestEnable = false
 		};
@@ -89,7 +89,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 
 		Vk.vkCreatePipelineLayout( Device, &layoutInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();
 
-		var stages = shaders.Modules.Select( x => x.StageCreateInfo ).ToArray();
+		var stages = shaders.Modules.Select( x => x.StageCreateInfo with { pName = x.EntryPoint } ).ToArray();
 		var info = new VkGraphicsPipelineCreateInfo() {
 			sType = VkStructureType.GraphicsPipelineCreateInfo,
 			stageCount = (uint)shaders.Modules.Length,

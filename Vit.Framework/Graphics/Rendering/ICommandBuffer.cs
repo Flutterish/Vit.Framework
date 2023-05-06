@@ -54,6 +54,11 @@ public interface ICommandBuffer {
 	void SetScissors ( AxisAlignedBox2<uint> scissors );
 
 	/// <summary>
+	/// Sets the depth testing behaviour.
+	/// </summary>
+	void SetDepthTest ( BufferTest test );
+
+	/// <summary>
 	/// Maps a packed vertex buffer to a all locations in the current shader set.
 	/// </summary>
 	void BindVertexBuffer ( IBuffer buffer ); // TODO allow multiple buffers with shader set and mesh descriptors
@@ -92,7 +97,7 @@ public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : I
 	}
 	protected abstract void UploadTextureData<TPixel> ( TTexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
 
-	protected PipelineInvalidations Invalidations { get; private set; }
+	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest;
 
 	protected TShaderSet ShaderSet { get; private set; } = null!;
 	public void SetShaders ( IShaderSet shaders ) {
@@ -122,6 +127,12 @@ public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : I
 	public void SetScissors ( AxisAlignedBox2<uint> scissors ) {
 		Scissors = scissors;
 		Invalidations |= PipelineInvalidations.Scissors;
+	}
+
+	protected BufferTest DepthTest { get; private set; }
+	public void SetDepthTest ( BufferTest test ) {
+		DepthTest = test;
+		Invalidations |= PipelineInvalidations.DepthTest;
 	}
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
@@ -175,7 +186,8 @@ public enum PipelineInvalidations : byte {
 	Topology = 0x2,
 	Viewport = 0x4,
 	Scissors = 0x8,
-	Framebuffer = 0x10
+	Framebuffer = 0x10,
+	DepthTest = 0x20
 }
 
 [Flags]

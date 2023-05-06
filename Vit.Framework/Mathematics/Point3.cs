@@ -14,6 +14,10 @@ public struct Point3<T> : IInterpolatable<Point3<T>, T> where T : INumber<T> {
 		Z = z;
 	}
 
+	public Point3 ( T all ) {
+		X = Y = Z = all;
+	}
+
 	public static Point3<T> operator + ( Point3<T> left, Vector3<T> right ) {
 		return new() {
 			X = left.X + right.X,

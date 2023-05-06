@@ -2,10 +2,12 @@
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Parsing.WaveFront;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -13,8 +15,8 @@ using Vit.Framework.Windowing;
 
 namespace Vit.Framework.Tests.GraphicsApis;
 
-public class Test04_Samplers : GenericRenderThread {
-	public Test04_Samplers ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
+public class Test05_Depth : GenericRenderThread {
+	public Test05_Depth ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 	}
 
 	IShaderPart vertex = null!;
@@ -22,7 +24,7 @@ public class Test04_Samplers : GenericRenderThread {
 	IShaderSet shaderSet = null!;
 
 	struct Vertex {
-		public Point2<float> Position;
+		public Point3<float> Position;
 		public Point2<float> UV;
 	}
 
@@ -30,6 +32,7 @@ public class Test04_Samplers : GenericRenderThread {
 		public Matrix4<float> ModelMatrix;
 	}
 
+	uint indexCount;
 	IDeviceBuffer<Vertex> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
@@ -38,7 +41,7 @@ public class Test04_Samplers : GenericRenderThread {
 		base.Initialize();
 
 		vertex = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
-			layout(location = 0) in vec2 inPosition;
+			layout(location = 0) in vec3 inPosition;
 			layout(location = 1) in vec2 inUv;
 
 			layout(location = 0) out vec2 outUv;
@@ -49,7 +52,7 @@ public class Test04_Samplers : GenericRenderThread {
 
 			void main () {
 				outUv = inUv;
-				gl_Position = uniforms.model * vec4(inPosition, 0, 1);
+				gl_Position = uniforms.model * vec4(inPosition, 1);
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
 		fragment = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
@@ -68,27 +71,23 @@ public class Test04_Samplers : GenericRenderThread {
 		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-		using var image = Image.Load<Rgba32>( "./texture.jpg" );
+		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.RGBA32 );
 
-		positions.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
+		positions.Allocate( (uint)model.Vertices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		indices.Allocate( indexCount = (uint)model.Indices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		shaderSet.SetUniformBuffer( uniformBuffer );
 		shaderSet.SetSampler( texture, 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, new Vertex[] {
-				new() { Position = new( -0.5f, 0.5f ), UV = new( 0, 1 ) },
-				new() { Position = new( 0.5f, 0.5f ), UV = new( 1, 1 ) },
-				new() { Position = new( 0.5f, -0.5f ), UV = new( 1, 0 ) },
-				new() { Position = new( -0.5f, -0.5f ), UV = new( 0, 0 ) }
-			} );
-			commands.Upload( indices, new uint[] {
-				0, 1, 2,
-				0, 2, 3
-			} );
+			commands.Upload( positions, model.Vertices.Select( x => new Vertex {
+				Position = x.Position.XYZ,
+				UV = x.TextureCoordinates.XY
+			} ).ToArray() );
+			commands.Upload( indices, model.Indices.AsSpan() );
 
 			if ( !image.DangerousTryGetSinglePixelMemory( out var memory ) )
 				throw new Exception( "Oops, cant load image" );
@@ -110,14 +109,17 @@ public class Test04_Samplers : GenericRenderThread {
 		commands.BindVertexBuffer( positions );
 		commands.BindIndexBuffer( indices );
 		uniformBuffer.Upload( new Uniforms {
-			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
+			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() )
+				* Matrix4<float>.CreateTranslation( 0, -0.3f, 0 )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, 0, 1.2f )
 				* Renderer.CreateLeftHandCorrectionMatrix<float>()
-				* Matrix4<float>.CreatePerspective( 1, 1, 0.01f, 100f )
+				* Matrix4<float>.CreatePerspective( framebuffer.Size.Width, framebuffer.Size.Height, 0.01f, 100f )
 		} );
 
 		commands.SetTopology( Topology.Triangles );
-		commands.DrawIndexed( 6 );
+		commands.SetDepthTest( new( CompareOperation.LessThan ) );
+		commands.DrawIndexed( indexCount );
 	}
 
 	protected override void Dispose () {

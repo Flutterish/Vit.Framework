@@ -63,9 +63,9 @@ public class Test03_Uniforms : GenericRenderThread {
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 
-		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
-		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.PerFrame );
-		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.PerFrame );
+		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		shaderSet.SetUniformBuffer( uniformBuffer );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Parsing.WaveFront;
@@ -49,8 +50,8 @@ public class SimpleObjModel {
 			return data;
 		}
 
-		List<Vector4<float>> positions = new() { new(0) };
-		List<Vector3<float>> textureCoords = new() { new(0) };
+		List<Point4<float>> positions = new() { new(0) };
+		List<Point3<float>> textureCoords = new() { new(0) };
 		List<Vector3<float>> normals = new() { new(0) };
 		Dictionary<(int, int, int), uint> vertices = new();
 		uint getVertex ( int pos, int uv, int normal ) {
