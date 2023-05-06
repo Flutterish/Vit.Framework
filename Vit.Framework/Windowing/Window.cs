@@ -63,6 +63,14 @@ public abstract class Window : IWindow, IDisposable {
 	public event Action<Key>? PhysicalKeyUp;
 
 	// TODO try to split this to just create the swapchain?
+	/// <summary>
+	/// Creates a swapchain and a renderer for it based on the provided options. 
+	/// If this is called for a second time, the previous swapchain is no longer valid 
+	/// and the renderer might - but doesn't have to - be the same object as returned last time.
+	/// </summary>
+	/// <remarks>
+	/// Depending on the graphics backend or the host, this might visually close and reopen the window.
+	/// </remarks>
 	public abstract (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
 
 	public bool IsClosed { get; private set; }

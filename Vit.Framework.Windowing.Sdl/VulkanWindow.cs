@@ -20,7 +20,16 @@ class VulkanWindow : SdlWindow, IVulkanWindow {
 		}
 	}
 
+	protected override void InitializeHints ( ref SDL.SDL_WindowFlags flags ) {
+		flags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+	}
+
+	bool swapchainCreated;
 	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+		if ( swapchainCreated )
+			throw new NotImplementedException( "Surface recreation not implemented" );
+		swapchainCreated = true;
+
 		if ( api is not VulkanApi vulkan )
 			throw new ArgumentException( "Graphics API must be a Vulkan API created from the same host as this window", nameof(api) );
 

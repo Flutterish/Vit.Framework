@@ -11,8 +11,16 @@ namespace Vit.Framework.Windowing.Sdl;
 class Direct3D11Window : SdlWindow {
 	public Direct3D11Window ( SdlHost host ) : base( host, GraphicsApiType.Direct3D11 ) { }
 
+	protected override void InitializeHints ( ref SDL.SDL_WindowFlags flags ) {
+		
+	}
+
+	bool swapchainCreated;
 	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
-		// TODO use args
+		if ( swapchainCreated )
+			throw new NotImplementedException( "Surface recreation not implemented" );
+		swapchainCreated = true;
+		
 		if ( api is not Direct3D11Api dx )
 			throw new ArgumentException( "Graphics API must be an Direct3D11 API created from the same host as this window", nameof( api ) );
 
@@ -29,7 +37,7 @@ class Direct3D11Window : SdlWindow {
 				Format = Format.B8G8R8A8_UNorm_SRgb
 			},
 			SampleDescription = {
-				Count = 1,
+				Count = (int)args.Multisample.Ideal,
 				Quality = 0
 			},
 			BufferUsage = Usage.RenderTargetOutput,
@@ -52,6 +60,6 @@ class Direct3D11Window : SdlWindow {
 
 		var renderer = new Direct3D11Renderer( dx, device!, context! );
 
-		return (new Graphics.Direct3D11.Queues.Swapchain( swapchain!, renderer, this ), renderer);
+		return (new Graphics.Direct3D11.Queues.Swapchain( swapchain!, renderer, this, args ), renderer);
 	}
 }

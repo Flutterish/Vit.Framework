@@ -99,11 +99,17 @@ public class SdlHost : Host {
 			GraphicsApiType.OpenGl => new GlWindow( this ),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
 		};
-		window.Initialized += _ => {
+		window.SdlWindowCreated += window => {
 			windowsById[window.Id] = window;
 		};
 		scheduledActions.Enqueue( window.Init );
 		return window;
+	}
+
+	internal void destroyWindow ( SdlWindow window ) {
+		SDL.SDL_DestroyWindow( window.Pointer );
+		windowsById.Remove( window.Id );
+		window.Pointer = 0;
 	}
 
 	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) => api switch {
@@ -149,12 +155,6 @@ public class SdlHost : Host {
 		GraphicsApiType.Vulkan,
 		GraphicsApiType.Direct3D11
 	};
-
-	internal void destroyWindow ( SdlWindow window ) {
-		SDL.SDL_DestroyWindow( window.Pointer );
-		windowsById.Remove( window.Id );
-		window.Pointer = 0;
-	}
 
 	public override void Dispose ( bool isDisposing ) {
 		foreach ( var i in windowsById )

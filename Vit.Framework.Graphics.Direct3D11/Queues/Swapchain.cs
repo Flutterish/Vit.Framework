@@ -16,7 +16,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 	public readonly Window Window;
 
 	TargetView backBuffer;
-	public Swapchain ( IDXGISwapChain handle, Direct3D11Renderer renderer, Window window ) {
+	public Swapchain ( IDXGISwapChain handle, Direct3D11Renderer renderer, Window window, SwapChainArgs args ) {
 		Handle = handle;
 		Renderer = renderer;
 		Window = window;
@@ -29,9 +29,9 @@ public class Swapchain : DisposableObject, ISwapchain {
 			MipLevels = 1,
 			ArraySize = 1,
 			SampleDescription = {
-				Count = 1
+				Count = (int)args.Multisample.Ideal
 			},
-			Format = Format.D24_UNorm_S8_UInt,
+			Format = Format.D24_UNorm_S8_UInt, // TODO use args for depth. idc for now
 			BindFlags = BindFlags.DepthStencil
 		} );
 		var view = renderer.Device.CreateDepthStencilView( depthStencil );

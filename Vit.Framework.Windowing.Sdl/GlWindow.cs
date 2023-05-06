@@ -11,10 +11,33 @@ class GlWindow : SdlWindow, IGlWindow {
 		
 	}
 
+	int multisamples = 1;
+	int minDepth = 0;
+	int minStencil = 0;
+	protected override void InitializeHints ( ref SDL.SDL_WindowFlags flags ) {
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 6 );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, multisamples );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, minDepth );
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, minStencil );
+
+		flags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+	}
+
+	bool swapchainCreated;
 	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
-		// TODO the args mean we might need to recreate the window
+		if ( swapchainCreated )
+			throw new NotImplementedException( "Surface recreation not implemented" );
+		swapchainCreated = true;
+		
 		if ( api is not OpenGlApi gl )
 			throw new ArgumentException( "Graphics API must be an OpenGl API created from the same host as this window", nameof( api ) );
+
+		multisamples = (int)args.Multisample.Ideal;
+		minDepth = (int)args.Depth.Minimum;
+		minStencil = (int)args.Stencil.Minimum;
+		Recreate().Wait(); // TODO this stalls on singlethreaded, probably make the swapchain (and window) creation a task
 
 		var swapchain = new GlSwapchain( this );
 		var renderer = new GlRenderer( gl );

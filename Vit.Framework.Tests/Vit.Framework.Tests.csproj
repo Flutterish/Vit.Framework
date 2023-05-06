@@ -52,4 +52,8 @@
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Platform\" />
+  </ItemGroup>
+
 </Project>

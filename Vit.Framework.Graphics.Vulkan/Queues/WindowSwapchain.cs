@@ -38,7 +38,7 @@ public class WindowSwapchain : DisposableObject, ISwapchain {
 			VkFormat.S8Uint,
 			VkFormat.Undefined
 		}.Select( x => (x.GetDepthFormat(), x.GetStencilFormat()) ), ( value, goal ) => {
-			return ( (int)goal.depth - (int)value.depth ) + (double)( (int)goal.stencil - (int)value.stencil ) / 64;
+			return Math.Log2( ( (int)goal.depth - (int)value.depth ) + (double)( (int)goal.stencil - (int)value.stencil ) / 64 );
 		} );
 
 		var attachmentFormat = device.PhysicalDevice.GetBestSupportedFormat(

@@ -42,21 +42,15 @@ public abstract class SdlWindow : Window {
 		this.host = host;
 	}
 
+	protected abstract void InitializeHints ( ref SDL.SDL_WindowFlags flags );
 	public void Init () {
-		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
-		if ( renderingApi == GraphicsApiType.OpenGl ) {
-			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
-			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 6 );
-			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
+		create();
+		OnInitialized();
+	}
 
-			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
-		}
-		else if ( renderingApi == GraphicsApiType.Vulkan ) {
-			windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
-		}
-		else if ( renderingApi == GraphicsApiType.Direct3D11 ) {
-			
-		}
+	void create () {
+		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+		InitializeHints( ref windowFlags );
 
 		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, (int)Width, (int)Height, windowFlags );
 		if ( Pointer == 0 ) {
@@ -64,8 +58,20 @@ public abstract class SdlWindow : Window {
 		}
 
 		Id = SDL.SDL_GetWindowID( Pointer );
-		OnInitialized();
+		SdlWindowCreated?.Invoke( this );
 	}
+
+	protected Task Recreate () {
+		var source = new TaskCompletionSource();
+		host.Shedule( () => {
+			host.destroyWindow( this );
+			create();
+			source.SetResult();
+		} );
+		return source.Task;
+	}
+
+	internal event Action<SdlWindow>? SdlWindowCreated;
 
 	public void OnEvent ( SDL.SDL_WindowEvent e ) {
 		if ( e.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE )
