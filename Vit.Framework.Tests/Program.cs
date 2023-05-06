@@ -23,9 +23,9 @@ public partial class Program : App {
 
 	protected override void Initialize ( Host host ) {
 		List<GraphicsApiType> apis = new() {
-			GraphicsApiType.Software, 
+			//GraphicsApiType.Software, 
 			//GraphicsApiType.Direct3D11, 
-			//GraphicsApiType.Vulkan,
+			GraphicsApiType.Vulkan,
 			//GraphicsApiType.OpenGl
 		};
 
@@ -39,7 +39,7 @@ public partial class Program : App {
 				windowHost = new ConsoleHost( this );
 			}
 
-			var window = windowHost.CreateWindow( api, this );
+			var window = windowHost.CreateWindow( api );
 			window.Title = $"Window {Letters[i]} [{api}]";
 			window.Initialized += _ => {
 				var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );

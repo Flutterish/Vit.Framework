@@ -10,13 +10,7 @@ public abstract class Host : IDisposable {
 	}
 
 	public Window CreateWindow () => CreateWindow( SupportedRenderingApis.First() );
-	public Window CreateWindow ( App app ) => CreateWindow( SupportedRenderingApis.First(), app );
 	public abstract Window CreateWindow ( GraphicsApiType renderingApi ); // TODO maybe this should be a task?
-	public Window CreateWindow ( GraphicsApiType renderingApi, App app ) {
-		var window = CreateWindow( renderingApi );
-		window.ThreadCreated += app.ThreadRunner.RegisterThread;
-		return window;
-	}
 
 	public abstract GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities );
 

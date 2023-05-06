@@ -2,7 +2,6 @@
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Threading;
 
 namespace Vit.Framework.Windowing;
 
@@ -26,11 +25,6 @@ public abstract class Window : IWindow, IDisposable {
 		Resized?.Invoke( this );
 	}
 	public event Action<Window>? Resized;
-
-	protected void RegisterThread ( AppThread thread ) {
-		ThreadCreated?.Invoke( thread );
-	}
-	public event Action<AppThread>? ThreadCreated;
 
 	public bool IsInitialized { get; private set; }
 	protected void OnInitialized () {
