@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Platform;
-using Vit.Framework.Threading;
+﻿using Vit.Framework.Threading;
 
 namespace Vit.Framework;
 
@@ -12,8 +11,8 @@ public abstract class App {
 		ThreadRunner = new( $"<{Name}> Thread Runner" );
 	}
 
-	public void Run ( Host host ) {
-		Initialize( host ); // TODO does an app need to know the host?
+	public void Run () {
+		Initialize();
 		while ( !HasQuit ) {
 			if ( !ThreadRunner.RunOnce() )
 				Thread.Sleep( 1 );
@@ -30,5 +29,5 @@ public abstract class App {
 		HasQuit = true;
 	}
 
-	protected abstract void Initialize ( Host host );
+	protected abstract void Initialize ();
 }

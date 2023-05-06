@@ -14,14 +14,13 @@ public partial class Program : App {
 	public static void Main () {
 		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
-		using var host = new SdlHost( app );
-		app.Run( host );
+		app.Run();
 
 		GC.Collect();
 		Thread.Sleep( 1000 );
 	}
 
-	protected override void Initialize ( Host host ) {
+	protected override void Initialize () {
 		List<GraphicsApiType> apis = new() {
 			//GraphicsApiType.Software, 
 			//GraphicsApiType.Direct3D11, 
@@ -29,6 +28,7 @@ public partial class Program : App {
 			//GraphicsApiType.OpenGl
 		};
 
+		using Host host = new SdlHost( this );
 		List<Window> windows = new();
 		var Letters = "ABCD";
 		for ( int i = 0; i < apis.Count; i++ ) {
