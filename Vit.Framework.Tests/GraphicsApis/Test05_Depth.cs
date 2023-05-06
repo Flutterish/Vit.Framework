@@ -111,7 +111,7 @@ public class Test05_Depth : GenericRenderThread {
 		uniformBuffer.Upload( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, -0.3f, 0 )
-				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
+				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 5).Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, 0, 1.2f )
 				* Renderer.CreateLeftHandCorrectionMatrix<float>()
 				* Matrix4<float>.CreatePerspective( framebuffer.Size.Width, framebuffer.Size.Height, 0.01f, 100f )

@@ -15,13 +15,18 @@ using Vit.Framework.Graphics.Software.Uniforms;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
-
 public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 	TargetImage renderTarget = null!;
 	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		renderTarget = (TargetImage)framebuffer;
 		var color = ( clearColor ?? ColorRgba.Black ).ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 		renderTarget.AsSpan().Fill( color );
+		if ( clearDepth != null || clearStencil != null ) {
+			renderTarget.DepthStencilAsSpan().Fill( new() {
+				Depth = clearDepth ?? 0,
+				Stencil = (byte)( clearStencil ?? 0 )
+			} );
+		}
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
 			( (SoftwareImmadiateCommandBuffer)self ).renderTarget = null!;
@@ -52,6 +57,11 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 
 	public void SetScissors ( AxisAlignedBox2<uint> scissors ) {
 		// TODO
+	}
+
+	BufferTest depthTest;
+	public void SetDepthTest ( BufferTest test ) {
+		depthTest = test;
 	}
 
 	IBuffer? vertexBuffer;
@@ -155,108 +165,76 @@ public class SoftwareImmadiateCommandBuffer : IImmediateCommandBuffer {
 		return shader.Execute( memory );
 	}
 
+	bool testDepth ( ref D24S8 pixel, float depth ) {
+		if ( !depthTest.IsEnabled )
+			return true;
+
+		bool testValue = depthTest.CompareOperation switch {
+			CompareOperation.LessThan => depth < pixel.Depth,
+			CompareOperation.GreaterThan => depth > pixel.Depth,
+			CompareOperation.Equal => depth == pixel.Depth,
+			CompareOperation.NotEqual => depth != pixel.Depth,
+			CompareOperation.LessThanOrEqual => depth <= pixel.Depth,
+			CompareOperation.GreaterThanOrEqual => depth >= pixel.Depth,
+			CompareOperation.Always => true,
+			CompareOperation.Never or _ => false
+		};
+
+		if ( depthTest.WriteOnPass && testValue )
+			pixel.Depth = depth;
+
+		return testValue;
+	}
+
 	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag, ShaderMemory memory ) {
 		var resultSize = renderTarget.Size.Cast<float>();
 		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
-			var point = ( vector.XYZ / vector.W ).FromOrigin();
-			return point with {
-				X = ( point.X + 1 ) * 0.5f * size.Width,
-				Y = ( point.Y + 1 ) * 0.5f * size.Height
+			var result = vector.XYZ / vector.W;
+			return new Point3<float>() {
+				X = ( result.X + 1 ) * 0.5f * size.Width,
+				Y = ( result.Y + 1 ) * 0.5f * size.Height,
+				Z = result.Z
 			};
 		}
 
 		var a = project( A.Position, resultSize );
 		var b = project( B.Position, resultSize );
 		var c = project( C.Position, resultSize );
-		var indexA = 0;
-		var indexB = 1;
-		var indexC = 2;
 
-		// sort them by Y in ascending order
-		if ( c.Y < b.Y )
-			(c, b, indexB, indexC) = (b, c, indexC, indexB);
-		if ( b.Y < a.Y )
-			(b, a, indexB, indexA) = (a, b, indexA, indexB);
-		if ( c.Y < b.Y )
-			(c, b, indexB, indexC) = (b, c, indexC, indexB);
-
-		if ( a.Y == c.Y )
-			return; // degenerate triangle
-
-		//     * C
-		//    / \
-		//    |  \
-		//    |   \
-		//   /     \
-		// B *______* D
-		//      \__  \
-		//         \__* A
-
-		var progress = ( b.Y - a.Y ) / ( c.Y - a.Y );
-		var d = new Point3<float>() {
-			X = a.X * ( 1 - progress ) + c.X * progress,
-			Y = b.Y,
-			Z = a.Z * ( 1 - progress ) + c.Z * progress
+		var min = new Point2<int> {
+			X = int.Max( int.Min( int.Min( (int)a.X, (int)b.X ), (int)c.X ), 0 ),
+			Y = int.Max( int.Min( int.Min( (int)a.Y, (int)b.Y ), (int)c.Y ), 0 )
+		};
+		var max = new Point2<int> {
+			X = int.Min( int.Max( int.Max( (int)a.X, (int)b.X ), (int)c.X ), (int)renderTarget.Size.Width - 1 ),
+			Y = int.Min( int.Max( int.Max( (int)a.Y, (int)b.Y ), (int)c.Y ), (int)renderTarget.Size.Height - 1 )
 		};
 
-		// top triangle
-		var startX = Math.Min( b.X, d.X );
-		var endX = Math.Max( b.X, d.X );
-		var startXStep = ( c.X - startX ) / ( c.Y - b.Y );
-		var endXStep = ( c.X - endX ) / ( c.Y - b.Y );
-		var yOffset = MathF.Ceiling( b.Y ) - b.Y;
-		startX += yOffset * startXStep;
-		endX += yOffset * endXStep;
-		var pixels = renderTarget.AsSpan2D();
-		for ( int y = (int)MathF.Ceiling(b.Y); y <= c.Y; y++ ) {
-			for ( int x = (int)Math.Ceiling( startX ); x <= endX; x++ ) {
-				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
+		var batch = new Triangle.BarycentricBatch<float>( a.XY, b.XY, c.XY );
+		var pixelSpan = renderTarget.AsSpan2D();
+		var depthSpan = renderTarget.DepthStencilAsSpan2D();
+		for ( int y = min.Y; y <= max.Y; y++ ) {
+			var pixelRow = pixelSpan.GetRow( y );
+			var depthRow = depthSpan.GetRow( y );
+			for ( int x = min.X; x <= max.X; x++ ) {
+				var point = new Point2<float>( x, y );
+
+				var (bA, bB, bC) = batch.Calculate( point );
+				if ( bA < 0 || bB < 0 || bC < 0 )
 					continue;
 
-				var point = new Point2<float>( x, y );
-				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				Span<float> weights = stackalloc[] { bA, bB, bC };
-				shaders!.VertexStageLinkage.Interpolate( weights[indexA], weights[indexB], weights[indexC], memory );
-
-				var fragData = frag.Execute( memory );
-				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
-			}
-
-			startX += startXStep;
-			endX += endXStep;
-		}
-
-		// bottom triangle
-		startX = Math.Min( b.X, d.X );
-		endX = Math.Max( b.X, d.X );
-		startXStep = ( a.X - startX ) / ( b.Y - a.Y );
-		endXStep = ( a.X - endX ) / ( b.Y - a.Y );
-		startX += startXStep - yOffset * startXStep;
-		endX += endXStep - yOffset * endXStep;
-		for ( int y = (int)MathF.Ceiling(b.Y) - 1; y >= a.Y; y-- ) {
-			for ( int x = (int)Math.Ceiling( startX ); x <= endX; x++ ) {
-				if ( x < 0 || x >= resultSize.Width || y < 0 || y >= resultSize.Height )
+				var depth = a.Z * bA + b.Z * bB + c.Z * bC;
+				if ( !testDepth( ref depthRow[x], depth ) )
 					continue;
 
-				var point = new Point2<float>( x, y );
-				var (bA, bB, bC) = Triangle.GetBarycentric( a.XY, b.XY, c.XY, point );
-				Span<float> weights = stackalloc[] { bA, bB, bC };
-				shaders!.VertexStageLinkage.Interpolate( weights[indexA], weights[indexB], weights[indexC], memory );
-
+				shaders!.VertexStageLinkage.Interpolate( bA, bB, bC, memory );
 				var fragData = frag.Execute( memory );
-				pixels[x, y] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
+				pixelRow[x] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 			}
-
-			startX += startXStep;
-			endX += endXStep;
 		}
 	}
 
 	public void Dispose () {
 
-	}
-
-	public void SetDepthTest ( BufferTest test ) {
-		throw new NotImplementedException();
 	}
 }

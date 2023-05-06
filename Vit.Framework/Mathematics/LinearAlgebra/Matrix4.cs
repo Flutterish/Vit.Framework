@@ -230,6 +230,14 @@ public struct Matrix4<T> where T : INumber<T> {
 		};
 	}
 
+	public Point3<T> Apply ( Point3<T> point ) {
+		return new() {
+			X = M03 + point.X * M00 + point.Y * M01 + point.Z * M02,
+			Y = M13 + point.X * M10 + point.Y * M11 + point.Z * M12,
+			Z = M23 + point.X * M20 + point.Y * M21 + point.Z * M22
+		};
+	}
+
 	public static Vector4<T> operator * ( Vector4<T> vector, Matrix4<T> matrix ) {
 		var m = matrix.AsReadOnlySpan();
 		return new Vector4<T>() {

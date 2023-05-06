@@ -54,6 +54,13 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
 		};
 	}
 
+	public Vector2<T> FromOrigin () {
+		return new Vector2<T> {
+			X = X,
+			Y = Y
+		};
+	}
+
 	public override bool Equals ( object? obj ) {
 		return obj is Point2<T> point && point == this;
 	}

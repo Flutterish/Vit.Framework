@@ -29,6 +29,13 @@ public struct Vector2<T> where T : INumber<T> {
 		return $"[{X}; {Y}]";
 	}
 
+	public Point2<T> FromOrigin () {
+		return new() {
+			X = X,
+			Y = Y
+		};
+	}
+
 	public static Vector2<T> operator + ( Vector2<T> left, Vector2<T> right ) {
 		return new() {
 			X = left.X + right.X,
@@ -44,6 +51,13 @@ public struct Vector2<T> where T : INumber<T> {
 	}
 
 	public static Vector2<T> operator * ( Vector2<T> left, T right ) {
+		return new() {
+			X = left.X * right,
+			Y = left.Y * right
+		};
+	}
+
+	public static Vector2<T> operator * ( T right, Vector2<T> left ) {
 		return new() {
 			X = left.X * right,
 			Y = left.Y * right
