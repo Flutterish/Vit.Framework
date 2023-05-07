@@ -17,6 +17,7 @@ namespace Vit.Framework.Graphics.OpenGl;
 public class GlRenderer : IRenderer {
 	public GlRenderer ( OpenGlApi graphicsApi ) {
 		GraphicsApi = graphicsApi;
+		immediateCommandBuffer = new( this );
 	}
 
 	public GraphicsApi GraphicsApi { get; }
@@ -54,7 +55,7 @@ public class GlRenderer : IRenderer {
 		return new Texture2D( size, format );
 	}
 
-	GlImmediateCommandBuffer immediateCommandBuffer = new();
+	GlImmediateCommandBuffer immediateCommandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return immediateCommandBuffer;
 	}

@@ -10,7 +10,9 @@ using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.Primi
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
-public class GlImmediateCommandBuffer : BasicCommandBuffer<IGlFramebuffer, Texture2D, ShaderProgram>, IImmediateCommandBuffer {
+public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, Texture2D, ShaderProgram>, IImmediateCommandBuffer {
+	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
+
 	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
 		GL.BindFramebuffer( FramebufferTarget.Framebuffer, framebuffer.Handle );
 
@@ -67,6 +69,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<IGlFramebuffer, Textu
 
 	int vao;
 	DrawElementsType indexType;
+
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( vao == 0 ) {
 			vao = GL.GenVertexArray();

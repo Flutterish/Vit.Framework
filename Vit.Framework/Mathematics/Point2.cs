@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Mathematics;
 
-public struct Point2<T> : IInterpolatable<Point2<T>, T> where T : INumber<T> {
+public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Point2<T>, Point2<T>, bool> where T : INumber<T> {
 	public T X;
 	public T Y;
 

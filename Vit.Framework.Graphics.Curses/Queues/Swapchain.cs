@@ -12,9 +12,10 @@ namespace Vit.Framework.Graphics.Curses.Queues;
 
 public class Swapchain : DisposableObject, ISwapchain {
 	Window window;
-	public Swapchain ( Window window ) {
+	public Swapchain ( SoftwareRenderer renderer, Window window ) {
 		this.window = window;
 		backbuffer = new( window.PixelSize );
+		commandBuffer = new( renderer );
 	}
 
 	public void Recreate () {
@@ -84,7 +85,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Console.Write( sb.ToString() );
 	}
 
-	SoftwareImmadiateCommandBuffer commandBuffer = new();
+	SoftwareImmadiateCommandBuffer commandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
 		return commandBuffer;
 	}

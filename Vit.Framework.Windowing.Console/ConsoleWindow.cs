@@ -24,7 +24,8 @@ public class ConsoleWindow : Window {
 		if ( api is not CursesApi curses )
 			throw new ArgumentException( "Graphics API must be a Curses API created from the same host as this window", nameof( api ) );
 
-		return (new Swapchain( this ), new CursesRenderer( curses ));
+		var renderer = new CursesRenderer( curses );
+		return (new Swapchain( renderer, this ), renderer);
 	}
 
 	protected override void Dispose ( bool disposing ) {

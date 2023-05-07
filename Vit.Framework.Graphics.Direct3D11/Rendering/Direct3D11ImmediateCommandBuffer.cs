@@ -9,12 +9,10 @@ using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Rendering;
 
-public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<TargetView, Texture2D, ShaderSet>, IImmediateCommandBuffer {
+public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Renderer, TargetView, Texture2D, ShaderSet>, IImmediateCommandBuffer {
 	public readonly ID3D11DeviceContext Context;
-	public readonly Direct3D11Renderer Renderer;
-	public Direct3D11ImmediateCommandBuffer ( Direct3D11Renderer renderer, ID3D11DeviceContext context ) {
+	public Direct3D11ImmediateCommandBuffer ( Direct3D11Renderer renderer, ID3D11DeviceContext context ) : base( renderer ) {
 		Context = context;
-		Renderer = renderer;
 	}
 
 	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetView framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {

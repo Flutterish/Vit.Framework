@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
-public struct Vector2<T> where T : INumber<T> {
+public struct Vector2<T> : IEqualityOperators<Vector2<T>, Vector2<T>, bool> where T : INumber<T> {
 	public T X;
 	public T Y;
 
@@ -62,6 +62,16 @@ public struct Vector2<T> where T : INumber<T> {
 			X = left.X * right,
 			Y = left.Y * right
 		};
+	}
+
+	public static bool operator == ( Vector2<T> left, Vector2<T> right ) {
+		return left.X == right.X
+			&& left.Y == right.Y;
+	}
+
+	public static bool operator != ( Vector2<T> left, Vector2<T> right ) {
+		return left.X != right.X
+			|| left.Y != right.Y;
 	}
 }
 

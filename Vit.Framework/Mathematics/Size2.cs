@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Mathematics;
 
-public struct Size2<T> : IEquatable<Size2<T>> where T : INumber<T> {
+public struct Size2<T> : IEquatable<Size2<T>>, IEqualityOperators<Size2<T>, Size2<T>, bool> where T : INumber<T> {
 	public T Width;
 	public T Height;
 

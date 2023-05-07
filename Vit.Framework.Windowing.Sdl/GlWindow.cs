@@ -39,8 +39,8 @@ class GlWindow : SdlWindow, IGlWindow {
 		minStencil = (int)args.Stencil.Minimum;
 		Recreate().Wait(); // TODO this stalls on singlethreaded, probably make the swapchain (and window) creation a task
 
-		var swapchain = new GlSwapchain( this );
 		var renderer = new GlRenderer( gl );
+		var swapchain = new GlSwapchain( renderer, this );
 
 		return (swapchain, renderer);
 	}

@@ -20,6 +20,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public GraphicsApi GraphicsApi { get; }
 	public SoftwareRenderer ( GraphicsApi graphicsApi ) {
 		GraphicsApi = graphicsApi;
+		commandBuffer = new( this );
 	}
 
 	public virtual void WaitIdle () { }
@@ -45,7 +46,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return new Texture( size, format );
 	}
 
-	SoftwareImmadiateCommandBuffer commandBuffer = new();
+	SoftwareImmadiateCommandBuffer commandBuffer;
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
 	}

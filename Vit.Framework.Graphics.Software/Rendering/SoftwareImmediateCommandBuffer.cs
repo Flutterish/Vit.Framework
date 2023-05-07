@@ -14,7 +14,9 @@ using Vit.Framework.Graphics.Software.Uniforms;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
-public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<TargetImage, Texture, ShaderSet>, IImmediateCommandBuffer {
+public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRenderer, TargetImage, Texture, ShaderSet>, IImmediateCommandBuffer {
+	public SoftwareImmadiateCommandBuffer ( SoftwareRenderer renderer ) : base( renderer ) { }
+
 	TargetImage renderTarget = null!;
 	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage renderTarget, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
 		var color = clearColor.ToByte().BitCast<ColorRgba<byte>, Rgba32>();

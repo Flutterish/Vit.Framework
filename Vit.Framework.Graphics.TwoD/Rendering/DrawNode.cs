@@ -4,23 +4,56 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD;
 
 public partial class Drawable {
-	private ulong invalidationId = 1;
+	public void InvalidateDrawNodes () {
+		drawNodeInvalidations = 0b_111;
+	}
+	private byte drawNodeInvalidations = 0b_111;
 
 	public abstract class DrawNode : DisposableObject {
 		protected readonly Drawable Source;
-		private ulong invalidationId = 0;
-		protected DrawNode ( Drawable source ) {
+		protected readonly int SubtreeIndex;
+		protected DrawNode ( Drawable source, int subtreeIndex ) {
 			Source = source;
+			SubtreeIndex = subtreeIndex;
 		}
 
+		/// <summary>
+		/// [Update Thread] <br/>
+		/// Sets the parameters required to draw this draw node if it is invalidated.
+		/// </summary>
 		public void Update () {
-			if ( Source.invalidationId == invalidationId )
+			if ( (Source.drawNodeInvalidations & (1 << SubtreeIndex)) == 0 )
 				return;
 
-			invalidationId = Source.invalidationId;
+			Source.drawNodeInvalidations &= (byte)(~(1 << SubtreeIndex));
 			UpdateState();
 		}
+
+		/// <summary>
+		/// [Update Thread] <br/>
+		/// Sets the parameters required to draw this draw node. They <strong>*can not*</strong> be mutated outside this method.
+		/// </summary>
 		protected abstract void UpdateState ();
+
+		/// <summary>
+		/// [Draw Thread] <br/>
+		/// Creates required resources and draws the element represented by this draw node.
+		/// </summary>
 		public abstract void Draw ( ICommandBuffer commands );
+
+		/// <summary>
+		/// [Draw Thread] <br/>
+		/// Releases any created resources. This might be called because:
+		/// <list type="number">
+		///		<item>The draw node is being disposed.</item>
+		///		<item>The renderer will be changed.</item>
+		///		<item>The draw node is in an incative branch of the draw tree.</item>
+		/// </list>
+		/// </summary>
+		/// <param name="willBeReused">Whether this draw node will be used again. If <see langword="false"/>, the draw node is allowed to enter invalid state.</param>
+		public abstract void ReleaseResources ( bool willBeReused );
+		protected sealed override void Dispose ( bool disposing ) {
+			ReleaseResources( willBeReused: false );
+		}
 	}
 }

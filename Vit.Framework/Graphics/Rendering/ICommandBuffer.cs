@@ -11,6 +11,8 @@ namespace Vit.Framework.Graphics.Rendering;
 /// An interface with which you can send commands to the GPU.
 /// </summary>
 public interface ICommandBuffer {
+	IRenderer Renderer { get; }
+
 	/// <summary>
 	/// Starts rendering to a frame buffer.
 	/// </summary>
@@ -131,11 +133,18 @@ public static class ICommandBufferExtensions {
 /// <summary>
 /// Basic implementation of state-tracking for an <see cref="ICommandBuffer"/>.
 /// </summary>
-public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : ICommandBuffer
+public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TShaderSet> : ICommandBuffer
+	where TRenderer : class, IRenderer
 	where TFramebuffer : class, IFramebuffer
 	where TTexture : class, ITexture
 	where TShaderSet : class, IShaderSet 
 {
+	IRenderer ICommandBuffer.Renderer => Renderer;
+	protected readonly TRenderer Renderer;
+	protected BasicCommandBuffer ( TRenderer renderer ) {
+		Renderer = renderer;
+	}
+
 	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		Invalidations |= PipelineInvalidations.Framebuffer;
 		return RenderTo( (TFramebuffer)framebuffer, clearColor ?? ColorRgba.Black, clearDepth ?? 0, clearStencil ?? 0 );

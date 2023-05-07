@@ -11,12 +11,10 @@ using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
-public class VulkanCommandCache : BasicCommandBuffer<FrameBuffer, ImageTexture, ShaderSet>, ICommandCache {
+public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer, ImageTexture, ShaderSet>, ICommandCache {
 	public readonly CommandBuffer Buffer;
-	public readonly VulkanRenderer Renderer;
-	public VulkanCommandCache ( CommandBuffer buffer, VulkanRenderer renderer ) {
+	public VulkanCommandCache ( CommandBuffer buffer, VulkanRenderer renderer ) : base( renderer ) {
 		Buffer = buffer;
-		Renderer = renderer;
 	}
 
 	public DisposeAction<ICommandCache> Begin () {

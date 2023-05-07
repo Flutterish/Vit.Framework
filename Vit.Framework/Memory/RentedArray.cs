@@ -3,7 +3,14 @@
 namespace Vit.Framework.Memory;
 
 public struct RentedArray<T> : IDisposable {
-	public readonly int Length;
+	/// <summary>
+	/// The size of the array. The underlying rented memory might be larger.
+	/// </summary>
+	public int Length;
+	/// <summary>
+	/// The amount of items this rented array can store in the underlying, rented memory.
+	/// </summary>
+	public int Capacity => array.Length;
 	ArrayPool<T> source;
 	T[] array;
 
@@ -34,6 +41,42 @@ public struct RentedArray<T> : IDisposable {
 	}
 
 	public void Clear () => AsSpan().Clear();
+
+	/// <summary>
+	/// Reallocates this rented array to have the given size.
+	/// </summary>
+	/// <remarks>
+	/// This might simply change the length if it is below the capacity of the rented array or rent new memory.
+	/// </remarks>
+	public void Reallocate ( int size ) {
+		if ( size <= Capacity ) {
+			Length = size;
+			return;
+		}
+
+		var @new = source.Rent( size );
+		var copyLength = int.Min( size, Length );
+		AsSpan( 0, copyLength ).CopyTo( @new.AsSpan() );
+		source.Return( array );
+		array = @new;
+	}
+
+	/// <summary>
+	/// Reallocates this rented array to have the given size. 
+	/// If it is reallocated, items from the old one will not be copied over.
+	/// </summary>
+	/// <remarks>
+	/// This might simply change the length if it is below the capacity of the rented array or rent new memory.
+	/// </remarks>
+	public void ReallocateStorage ( int size ) {
+		if ( size <= array.Length ) {
+			Length = size;
+			return;
+		}
+
+		source.Return( array );
+		array = source.Rent( size );
+	}
 
 	public ref T this[Index index] => ref array[index];
 	public ref T this[int index] => ref array[index];

@@ -10,10 +10,11 @@ public class GlSwapchain : ISwapchain {
 	IGlWindow window;
 	nint context;
 
-	public GlSwapchain ( IGlWindow window ) {
+	public GlSwapchain ( GlRenderer renderer, IGlWindow window ) {
 		this.window = window;
 		context = window.CreateContext();
 		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
+		immediateCommandBuffer = new( renderer );
 	}
 
 	public void Recreate () {
@@ -34,7 +35,7 @@ public class GlSwapchain : ISwapchain {
 		GL.Finish();
 	}
 
-	GlImmediateCommandBuffer immediateCommandBuffer = new();
+	GlImmediateCommandBuffer immediateCommandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
 		return immediateCommandBuffer;
 	}

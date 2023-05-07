@@ -1,4 +1,6 @@
-﻿using Vit.Framework.Hierarchy;
+﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Hierarchy;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
 
@@ -21,6 +23,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		child.Parent = this;
 		internalChildren.Add( child );
 		ChildAdded?.Invoke( this, child );
+		InvalidateDrawNodes();
 	}
 
 	public void RemoveInternalChildren ( IEnumerable<T> children ) {
@@ -41,6 +44,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		child.Parent = null;
 		internalChildren.Remove( child );
 		ChildRemoved?.Invoke( this, child );
+		InvalidateDrawNodes();
 		return true;
 	}
 
@@ -51,10 +55,45 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			internalChildren.RemoveAt( internalChildren.Count - 1 );
 			ChildRemoved?.Invoke( this, child );
 		}
+
+		InvalidateDrawNodes();
 	}
 
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;
+
+	protected override Drawable.DrawNode CreateDrawNode ( int subtreeIndex ) {
+		throw new NotImplementedException();
+	}
+
+	new public class DrawNode : Drawable.DrawNode {
+		new protected CompositeDrawable<T> Source => (CompositeDrawable<T>)base.Source;
+		public DrawNode ( CompositeDrawable<T> source, int subtreeIndex ) : base( source, subtreeIndex ) {
+			ChildNodes = new( source.internalChildren.Count );
+		}
+
+		protected RentedArray<Drawable.DrawNode> ChildNodes;
+		protected override void UpdateState () {
+			var count = Source.internalChildren.Count;
+			ChildNodes.ReallocateStorage( count );
+			for ( int i = 0; i < count; i++ ) {
+				ChildNodes[i] = Source.internalChildren[i].GetDrawNode( SubtreeIndex );
+			}
+		}
+
+		public override void Draw ( ICommandBuffer commands ) {
+			foreach ( var i in ChildNodes.AsSpan() ) {
+				i.Draw( commands );
+			}
+		}
+
+		public override void ReleaseResources ( bool willBeReused ) {
+			if ( willBeReused )
+				return;
+
+			ChildNodes.Dispose();
+		}
+	}
 }
 
 public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<Drawable, T> where T : Drawable {
