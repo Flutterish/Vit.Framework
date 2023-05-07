@@ -4,7 +4,7 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD;
 
 public partial class Drawable {
-	public void InvalidateDrawNodes () {
+	protected void InvalidateDrawNodes () {
 		drawNodeInvalidations = 0b_111;
 	}
 	private byte drawNodeInvalidations = 0b_111;

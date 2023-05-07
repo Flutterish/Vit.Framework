@@ -29,12 +29,14 @@ public struct Matrix3<T> where T : INumber<T> {
 		M22 = T.MultiplicativeIdentity
 	};
 
+	public static Matrix3<T> CreateScale ( Axes2<T> scale ) => CreateScale( scale.X, scale.Y );
 	public static Matrix3<T> CreateScale ( T x, T y ) => new() {
 		M00 = x,
 		M11 = y,
 		M22 = T.MultiplicativeIdentity
 	};
 
+	public static Matrix3<T> CreateShear ( Axes2<T> shear ) => CreateShear( shear.X, shear.Y );
 	public static Matrix3<T> CreateShear ( T x, T y ) => new() {
 		M00 = T.MultiplicativeIdentity,
 		M11 = T.MultiplicativeIdentity,
@@ -44,6 +46,7 @@ public struct Matrix3<T> where T : INumber<T> {
 		M10 = y
 	};
 
+	public static Matrix3<T> CreateTranslation ( Vector2<T> transformation ) => CreateTranslation( transformation.X, transformation.Y );
 	public static Matrix3<T> CreateTranslation ( T x, T y ) => new() {
 		M00 = T.MultiplicativeIdentity,
 		M11 = T.MultiplicativeIdentity,

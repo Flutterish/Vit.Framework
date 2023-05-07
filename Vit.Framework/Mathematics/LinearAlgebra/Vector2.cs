@@ -64,6 +64,10 @@ public struct Vector2<T> : IEqualityOperators<Vector2<T>, Vector2<T>, bool> wher
 		};
 	}
 
+	public static Vector2<T> operator - ( Vector2<T> vector ) {
+		return new( -vector.X, -vector.Y );
+	}
+
 	public static bool operator == ( Vector2<T> left, Vector2<T> right ) {
 		return left.X == right.X
 			&& left.Y == right.Y;

@@ -61,6 +61,10 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Poin
 		};
 	}
 
+	public Vector2<T> ToOrigin () {
+		return new( -X, -Y );
+	}
+
 	public override bool Equals ( object? obj ) {
 		return obj is Point2<T> point && point == this;
 	}
@@ -71,5 +75,9 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Poin
 
 	public override string ToString () {
 		return $"({X}, {Y})";
+	}
+
+	public Point2<T> ReflectAboutOrigin () {
+		return new( -X, -Y );
 	}
 }

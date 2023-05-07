@@ -4,7 +4,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> where T : Drawable {
+public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> where T : Drawable, IDrawable {
 	readonly List<T> internalChildren = new();
 	public IEnumerable<T> Children => internalChildren;
 
@@ -20,7 +20,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		if ( child.Parent != null )
 			throw new InvalidOperationException( "A drawable might only have 1 parent" );
 
-		child.Parent = this;
+		child.SetParent( this );
 		internalChildren.Add( child );
 		ChildAdded?.Invoke( this, child );
 		InvalidateDrawNodes();
@@ -41,7 +41,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		if ( child.Parent != this )
 			throw new InvalidOperationException( "This child does not belong to this parent" );
 
-		child.Parent = null;
+		child.SetParent( null );
 		internalChildren.Remove( child );
 		ChildRemoved?.Invoke( this, child );
 		InvalidateDrawNodes();
@@ -51,12 +51,17 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	protected void ClearInternalChildren () {
 		while ( internalChildren.Count != 0 ) {
 			var child = internalChildren[^1];
-			child.Parent = null;
+			child.SetParent( null );
 			internalChildren.RemoveAt( internalChildren.Count - 1 );
 			ChildRemoved?.Invoke( this, child );
 		}
 
 		InvalidateDrawNodes();
+	}
+
+	protected override void OnMatrixInvalidated () {
+		foreach ( var i in internalChildren )
+			i.OnParentMatrixInvalidated();
 	}
 
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;

@@ -7,7 +7,11 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.TwoD;
 
 public abstract partial class Drawable : IDrawable {
-	public ICompositeDrawable<Drawable>? Parent { get; internal set; }
+	public ICompositeDrawable<Drawable>? Parent { get; private set; }
+	void IDrawable.SetParent ( ICompositeDrawable<Drawable>? parent ) {
+		Parent = parent;
+		OnParentMatrixInvalidated();
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void trySet<T> ( ref T field, T value ) where T : IEqualityOperators<T, T, bool> {
@@ -15,7 +19,12 @@ public abstract partial class Drawable : IDrawable {
 			return;
 
 		field = value;
-		InvalidateDrawNodes();
+
+		if ( unitToLocal == null )
+			return;
+
+		unitToLocal = null;
+		OnMatrixInvalidated();
 	}
 
 	Point2<float> position;
@@ -30,20 +39,6 @@ public abstract partial class Drawable : IDrawable {
 	public float Y {
 		get => position.Y;
 		set => trySet( ref position.Y, value );
-	}
-
-	Size2<float> size;
-	public Size2<float> Size {
-		get => size;
-		set => trySet( ref size, value );
-	}
-	public float Width {
-		get => size.Width;
-		set => trySet( ref size.Width, value );
-	}
-	public float Height {
-		get => size.Height;
-		set => trySet( ref size.Height, value );
 	}
 
 	Radians<float> rotation;
@@ -66,8 +61,8 @@ public abstract partial class Drawable : IDrawable {
 		set => trySet( ref origin.Y, value );
 	}
 
-	Vector2<float> scale = Vector2<float>.One; // TODO dont really like this being a vector
-	public Vector2<float> Scale {
+	Axes2<float> scale = Axes2<float>.One;
+	public Axes2<float> Scale {
 		get => scale;
 		set => trySet( ref scale, value );
 	}
@@ -80,8 +75,8 @@ public abstract partial class Drawable : IDrawable {
 		set => trySet( ref scale.Y, value );
 	}
 
-	Vector2<float> shear;
-	public Vector2<float> Shear {
+	Axes2<float> shear;
+	public Axes2<float> Shear {
 		get => shear;
 		set => trySet( ref shear, value );
 	}
@@ -93,6 +88,30 @@ public abstract partial class Drawable : IDrawable {
 		get => shear.Y;
 		set => trySet( ref shear.Y, value );
 	}
+
+	internal void OnParentMatrixInvalidated () {
+		if ( unitToGlobal == null )
+			return;
+
+		unitToGlobal = null;
+		OnMatrixInvalidated();
+	}
+	protected virtual void OnMatrixInvalidated () {
+		InvalidateDrawNodes();
+	}
+
+	Matrix3<float>? unitToLocal;
+	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??=
+		Matrix3<float>.CreateTranslation( origin.ToOrigin() ) *
+		Matrix3<float>.CreateScale( scale ) *
+		Matrix3<float>.CreateShear( shear ) *
+		Matrix3<float>.CreateRotation( rotation ) *
+		Matrix3<float>.CreateTranslation( position.FromOrigin() );
+
+	Matrix3<float>? unitToGlobal;
+	public Matrix3<float> UnitToGlobalMatrix => unitToGlobal ??= Parent is null
+		? UnitToLocalMatrix
+		: UnitToLocalMatrix * Parent.UnitToGlobalMatrix;
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
@@ -106,5 +125,18 @@ public abstract partial class Drawable : IDrawable {
 
 public interface IDrawable : IComponent<Drawable> {
 	new ICompositeDrawable<Drawable>? Parent { get; }
+	internal void SetParent ( ICompositeDrawable<Drawable>? parent );
 	IReadOnlyCompositeComponent<Drawable, Drawable>? IComponent<Drawable>.Parent => Parent;
+
+	/// <summary>
+	/// A matrix such that (0,0) is mapped to the bottom left corner
+	/// and (1,1) is mapped to the top right corner in parent space.
+	/// </summary>
+	Matrix3<float> UnitToLocalMatrix { get; }
+
+	/// <summary>
+	/// A matrix such that (0,0) is mapped to the bottom left corner
+	/// and (1,1) is mapped to the top right corner in global space.
+	/// </summary>
+	Matrix3<float> UnitToGlobalMatrix { get; }
 }
