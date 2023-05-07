@@ -22,6 +22,19 @@ public readonly ref struct Span2D<T> {
 
 	public ref T this[int x, int y] => ref Flat[y * Width + x];
 
+	public void CopyTo ( Span2D<T> target ) {
+		if ( target.Width == Width ) {
+			Flat[..(int.Min(target.Height, Height) * Width)].CopyTo( target.Flat );
+			return;
+		}
+
+		var width = int.Min( Width, target.Width );
+		var height = int.Min( Height, target.Height );
+		for ( int y = 0; y < height; y++ ) {
+			GetRow( y )[..width].CopyTo( target.GetRow( y ) );
+		}
+	}
+
 	public Span<T> GetRow ( int y ) => Flat.Slice( y * Width, Width );
 	public SpanView<T> GetColumn ( int x ) => new( Flat[x..], Width );
 

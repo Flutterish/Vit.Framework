@@ -23,6 +23,19 @@ public readonly ref struct ReadOnlySpan2D<T> {
 
 	public T this[int x, int y] => Flat[y * Width + x];
 
+	public void CopyTo ( Span2D<T> target ) {
+		if ( target.Width == Width ) {
+			Flat[..(int.Min(target.Height, Height) * Width)].CopyTo( target.Flat );
+			return;
+		}
+
+		var width = int.Min( Width, target.Width );
+		var height = int.Min( Height, target.Height );
+		for ( int y = 0; y < height; y++ ) {
+			GetRow( y )[..width].CopyTo( target.GetRow( y ) );
+		}
+	}
+
 	public ReadOnlySpan<T> GetRow ( int y ) => Flat.Slice( y * Width, Width );
 	public ReadOnlySpanView<T> GetColumn ( int x ) => new( Flat[x..], Width );
 

@@ -3,10 +3,11 @@ using System.Runtime.CompilerServices;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public abstract partial class Drawable : IDrawable {
+public abstract partial class Drawable : DisposableObject, IDrawable {
 	public ICompositeDrawable<Drawable>? Parent { get; private set; }
 	void IDrawable.SetParent ( ICompositeDrawable<Drawable>? parent ) {
 		Parent = parent;
@@ -121,9 +122,13 @@ public abstract partial class Drawable : IDrawable {
 		node.Update();
 		return node;
 	}
+
+	protected override void Dispose ( bool disposing ) {
+		
+	}
 }
 
-public interface IDrawable : IComponent<Drawable> {
+public interface IDrawable : IComponent<Drawable>, IDisposable {
 	new ICompositeDrawable<Drawable>? Parent { get; }
 	internal void SetParent ( ICompositeDrawable<Drawable>? parent );
 	IReadOnlyCompositeComponent<Drawable, Drawable>? IComponent<Drawable>.Parent => Parent;

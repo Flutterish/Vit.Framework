@@ -11,8 +11,11 @@ public class Variable : CompilerObject, IValue, IAssignable {
 	public uint? InitializerId;
 
 	public PointerType Type => (PointerType)GetDataType( TypeId );
+	DataType IValue.Type => Type;
+	DataType IAssignable.Type => Type;
 
 	public override string ToString () {
 		return $"{GetName(Id) ?? $"var_{Id}" } ({StorageClass}) : {GetDataType(TypeId)}{(InitializerId == null ? "" : $" = %{InitializerId}")}";
 	}
+
 }

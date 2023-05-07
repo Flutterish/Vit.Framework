@@ -47,6 +47,9 @@ public class RuntimeNumberType<T> : RuntimeType<T>, IInterpolatableRuntimeType w
 		if ( rows == 4 && columns == 4 ) {
 			return new RuntimeMatrix4Type<T>( this );
 		}
+		if ( rows == 3 && columns == 3 ) {
+			return new RuntimeMatrix3Type<T>( this );
+		}
 
 		throw new NotImplementedException();
 	}

@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Graphics.OpenGl.Rendering;
-using Vit.Framework.Graphics.OpenGl.Textures;
+﻿using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -14,7 +13,7 @@ public class GlSwapchain : ISwapchain {
 		this.window = window;
 		context = window.CreateContext();
 		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
-		immediateCommandBuffer = new( renderer );
+		immediateCommandBuffer = renderer.CreateImmediateCommandBuffer();
 	}
 
 	public void Recreate () {
@@ -35,7 +34,7 @@ public class GlSwapchain : ISwapchain {
 		GL.Finish();
 	}
 
-	GlImmediateCommandBuffer immediateCommandBuffer;
+	IImmediateCommandBuffer immediateCommandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
 		return immediateCommandBuffer;
 	}

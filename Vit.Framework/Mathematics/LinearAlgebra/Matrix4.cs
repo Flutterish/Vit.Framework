@@ -248,6 +248,8 @@ public struct Matrix4<T> where T : INumber<T> {
 		};
 	}
 
+	public Matrix3<T> ToMatrix3 () => new( AsSpan2D() );
+
 	public override string ToString () {
 		return Matrix<T>.ToString( AsSpan2D() );
 	}

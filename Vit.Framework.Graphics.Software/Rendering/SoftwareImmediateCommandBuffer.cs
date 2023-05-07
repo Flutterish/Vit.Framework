@@ -18,7 +18,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	public SoftwareImmadiateCommandBuffer ( SoftwareRenderer renderer ) : base( renderer ) { }
 
 	TargetImage renderTarget = null!;
-	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage renderTarget, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+		renderTarget = framebuffer;
 		var color = clearColor.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
 		renderTarget.AsSpan().Fill( color );
 		renderTarget.DepthStencilAsSpan().Fill( new() {

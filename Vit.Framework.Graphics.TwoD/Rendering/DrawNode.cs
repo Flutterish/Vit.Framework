@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
@@ -54,6 +55,16 @@ public partial class Drawable {
 		public abstract void ReleaseResources ( bool willBeReused );
 		protected sealed override void Dispose ( bool disposing ) {
 			ReleaseResources( willBeReused: false );
+		}
+	}
+
+	public abstract class BasicDrawNode<T> : DrawNode where T : Drawable {
+		new protected T Source => (T)base.Source;
+		protected Matrix3<float> UnitToGlobalMatrix;
+		protected BasicDrawNode ( T source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+
+		protected override void UpdateState () {
+			UnitToGlobalMatrix = Source.UnitToGlobalMatrix;
 		}
 	}
 }

@@ -41,6 +41,9 @@ public class RuntimeFunction {
 	}
 
 	public void Call ( ShaderMemory memory ) {
+		//memory.DebugFrame = DebugFrame;
+		//DebugFrame.StackPointerOffset = memory.StackPointer;
+
 		var scope = createScope( ref memory );
 
 		var instructions = source.Instructions;

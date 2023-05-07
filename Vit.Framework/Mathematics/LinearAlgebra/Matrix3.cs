@@ -19,7 +19,7 @@ public struct Matrix3<T> where T : INumber<T> {
 
 #nullable disable
 	public Matrix3 ( ReadOnlySpan2D<T> data ) {
-		data.Flat.CopyTo( this.AsSpan() );
+		data.CopyTo( this.AsSpan2D() );
 	}
 #nullable restore
 
@@ -117,6 +117,16 @@ public struct Matrix3<T> where T : INumber<T> {
 			M02 = A[6] * B[0] + A[7] * B[3] + A[8] * B[6],
 			M12 = A[6] * B[1] + A[7] * B[4] + A[8] * B[7],
 			M22 = A[6] * B[2] + A[7] * B[5] + A[8] * B[8]
+		};
+	}
+
+	public static Vector3<T> operator * ( Vector3<T> vector, Matrix3<T> matrix ) {
+		var M = matrix.AsSpan();
+
+		return new() {
+			X = vector.Z * M[6] + vector.X * M[0] + vector.Y * M[3],
+			Y = vector.Z * M[7] + vector.X * M[1] + vector.Y * M[4],
+			Z = vector.Z * M[8] + vector.X * M[2] + vector.Y * M[5]
 		};
 	}
 

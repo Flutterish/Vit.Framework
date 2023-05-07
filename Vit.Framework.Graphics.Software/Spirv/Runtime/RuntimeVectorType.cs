@@ -5,7 +5,14 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
-public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICompositeRuntimeType, IInterpolatableRuntimeType, IRuntimeType where T : unmanaged, INumber<T> where TVector : unmanaged {
+public interface IRuntimeVectorType : IRuntimeType {
+	IRuntimeType ComponentType { get; }
+	uint Length { get; }
+}
+
+public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICompositeRuntimeType, 
+	IInterpolatableRuntimeType, IRuntimeType, IRuntimeVectorType where T : unmanaged, INumber<T> where TVector : unmanaged 
+{
 	public readonly IRuntimeType<T> ElementType;
 	public readonly int Length;
 	public RuntimeVectorType ( IRuntimeType<T> elementType, int length ) {
@@ -50,6 +57,9 @@ public abstract class RuntimeVectorType<T, TVector> : RuntimeType<TVector>, ICom
 			( (IInterpolatableRuntimeType)ElementType ).Interpolate( a, b, c, _A, _B, _C, _R, memory );
 		}
 	}
+
+	public IRuntimeType ComponentType => ElementType;
+	uint IRuntimeVectorType.Length => (uint)Length;
 }
 
 public class RuntimeVector2Type<T> : RuntimeVectorType<T, Vector2<T>> where T : unmanaged, INumber<T> {
