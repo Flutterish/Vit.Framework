@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Runtime.CompilerServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
@@ -15,7 +16,6 @@ public interface ICommandBuffer {
 	/// </summary>
 	/// <returns>An action which will finish rendering to the framebuffer.</returns>
 	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
-	// TODO instead of the action, perhaps we need a stack of state-related stuff
 
 	/// <summary>
 	/// Uploads data to a buffer.
@@ -33,26 +33,31 @@ public interface ICommandBuffer {
 	/// <param name="data">The image data to upload.</param>
 	void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
 
+	IShaderSet ShaderSet { get; }
 	/// <summary>
 	/// Sets the shaders for the rendering pipeline.
 	/// </summary>
 	void SetShaders ( IShaderSet shaders );
 
+	Topology Topology { get; }
 	/// <summary>
 	/// Sets the topology that will be used when drawing elements.
 	/// </summary>
 	void SetTopology ( Topology topology );
 
+	AxisAlignedBox2<uint> Viewport { get; }
 	/// <summary>
 	/// Maps NDC to frame buffer coordinates.
 	/// </summary>
 	void SetViewport ( AxisAlignedBox2<uint> viewport );
-	
+
+	AxisAlignedBox2<uint> Scissors { get; }
 	/// <summary>
 	/// Sets which region of the framebuffer pixels can be rendered to.
 	/// </summary>
 	void SetScissors ( AxisAlignedBox2<uint> scissors );
 
+	BufferTest DepthTest { get; }
 	/// <summary>
 	/// Sets the depth testing behaviour.
 	/// </summary>
@@ -74,6 +79,53 @@ public interface ICommandBuffer {
 	/// <param name="vertexCount">Amount of vertices to draw (*not* elements).</param>
 	/// <param name="offset">Offset from the start of the index buffer.</param>
 	void DrawIndexed ( uint vertexCount, uint offset = 0 );
+}
+
+public static class ICommandBufferExtensions {
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, IShaderSet shaderSet)> PushShaderSet ( this ICommandBuffer self, IShaderSet shaderSet ) {
+		var previous = self.ShaderSet;
+		self.SetShaders( shaderSet );
+		return new( (self, previous), static data => {
+			data.buffer.SetShaders( data.shaderSet );
+		} );
+	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, Topology topology)> PushTopology ( this ICommandBuffer self, Topology topology ) {
+		var previous = self.Topology;
+		self.SetTopology( topology );
+		return new( (self, previous), static data => {
+			data.buffer.SetTopology( data.topology );
+		} );
+	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, AxisAlignedBox2<uint> viewport)> PushViewport ( this ICommandBuffer self, AxisAlignedBox2<uint> viewport ) {
+		var previous = self.Viewport;
+		self.SetViewport( viewport );
+		return new( (self, previous), static data => {
+			data.buffer.SetViewport( data.viewport );
+		} );
+	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, AxisAlignedBox2<uint> scissors)> PushScissors ( this ICommandBuffer self, AxisAlignedBox2<uint> scissors ) {
+		var previous = self.Scissors;
+		self.SetScissors( scissors );
+		return new( (self, previous), static data => {
+			data.buffer.SetScissors( data.scissors );
+		} );
+	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, BufferTest depthTest)> PushDepthTest ( this ICommandBuffer self, BufferTest depthTest ) {
+		var previous = self.DepthTest;
+		self.SetDepthTest( depthTest );
+		return new( (self, previous), static data => {
+			data.buffer.SetDepthTest( data.depthTest );
+		} );
+	}
 }
 
 /// <summary>
@@ -99,6 +151,7 @@ public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : I
 
 	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest;
 
+	IShaderSet ICommandBuffer.ShaderSet => ShaderSet;
 	protected TShaderSet ShaderSet { get; private set; } = null!;
 	public void SetShaders ( IShaderSet shaders ) {
 		if ( shaders == ShaderSet )
@@ -108,7 +161,7 @@ public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : I
 		Invalidations |= PipelineInvalidations.Shaders;
 	}
 
-	protected Topology Topology { get; private set; }
+	public Topology Topology { get; private set; }
 	public void SetTopology ( Topology topology ) {
 		if ( topology == Topology )
 			return;
@@ -117,19 +170,19 @@ public abstract class BasicCommandBuffer<TFramebuffer, TTexture, TShaderSet> : I
 		Invalidations |= PipelineInvalidations.Topology;
 	}
 
-	protected AxisAlignedBox2<uint> Viewport { get; private set; }
+	public AxisAlignedBox2<uint> Viewport { get; private set; }
 	public void SetViewport ( AxisAlignedBox2<uint> viewport ) {
 		Viewport = viewport;
 		Invalidations |= PipelineInvalidations.Viewport;
 	}
 
-	protected AxisAlignedBox2<uint> Scissors { get; private set; }
+	public AxisAlignedBox2<uint> Scissors { get; private set; }
 	public void SetScissors ( AxisAlignedBox2<uint> scissors ) {
 		Scissors = scissors;
 		Invalidations |= PipelineInvalidations.Scissors;
 	}
 
-	protected BufferTest DepthTest { get; private set; }
+	public BufferTest DepthTest { get; private set; }
 	public void SetDepthTest ( BufferTest test ) {
 		DepthTest = test;
 		Invalidations |= PipelineInvalidations.DepthTest;

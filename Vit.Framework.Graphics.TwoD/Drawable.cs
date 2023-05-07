@@ -55,7 +55,7 @@ public abstract partial class Drawable : IDrawable {
 		set => origin.Y = value;
 	}
 
-	Vector2<float> scale = Vector2<float>.One;
+	Vector2<float> scale = Vector2<float>.One; // TODO dont really like this being a vector
 	public Vector2<float> Scale {
 		get => scale;
 		set => scale = value;
@@ -87,7 +87,9 @@ public abstract partial class Drawable : IDrawable {
 	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
 
 	public virtual DrawNode GetDrawNode ( int subtreeIndex ) {
-		return drawNodes[subtreeIndex] ??= CreateDrawNode( subtreeIndex );
+		var node = drawNodes[subtreeIndex] ??= CreateDrawNode( subtreeIndex );
+		node.Update();
+		return node;
 	}
 }
 

@@ -1,6 +1,7 @@
-﻿using Vit.Framework.Threading.Synchronisation;
+﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Threading.Synchronisation;
 
-namespace Vit.Framework.Graphics.TwoD;
+namespace Vit.Framework.Graphics.TwoD.Rendering;
 
 public class DrawableRenderer {
 	TripleBuffer drawNodeSwapchain = new();
@@ -16,20 +17,20 @@ public class DrawableRenderer {
 		drawNodes[index] = Root.GetDrawNode( index );
 	}
 
-	public void Draw () {
+	public void Draw ( ICommandBuffer commands ) {
 		using var _ = drawNodeSwapchain.GetForRead( out var index, out var _ );
-		draw( index );
+		draw( index, commands );
 	}
-	public bool DrawIfNew () {
+	public bool DrawIfNew ( ICommandBuffer commands ) {
 		if ( !drawNodeSwapchain.TryGetForRead( out var index, out var dispose ) )
 			return false;
 
 		using var _ = dispose;
-		draw( index );
+		draw( index, commands );
 		return true;
 	}
 
-	void draw ( int index ) {
-		drawNodes[index].Draw();
+	void draw ( int index, ICommandBuffer commands ) {
+		drawNodes[index].Draw( commands );
 	}
 }
