@@ -18,6 +18,8 @@ for ( int i = 1; i <= 4; i++ ) {
 	vector.Apply( i );
 }
 
-for ( int i = 2; i <= 4; i++ ) {
-	matrix.Apply( (i, i) );
+for ( int x = 2; x <= 4; x++ ) {
+	for ( int y = 2; y <= 4; y++ ) {
+		matrix.Apply( (x, y) );
+	}
 }

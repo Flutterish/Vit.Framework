@@ -276,53 +276,55 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 			sb.AppendLine( "}" );
 		}
 
-		var labels = new List<string>();
-		foreach ( var y in rowIndices ) {
-			foreach ( var x in columnIndices ) {
-				labels.Add( $"M[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
+		if ( columns == rows ) {
+			var labels = new List<string>();
+			foreach ( var y in rowIndices ) {
+				foreach ( var x in columnIndices ) {
+					labels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				}
 			}
-		}
-		sb.AppendLine();
-		sb.AppendLine( "public T Determinant {" );
-		using ( sb.Indent() ) {
-			sb.AppendLine( "get {" );
+			sb.AppendLine();
+			sb.AppendLine( "public T Determinant {" );
 			using ( sb.Indent() ) {
-				var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
+				sb.AppendLine( "get {" );
+				using ( sb.Indent() ) {
+					var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
 
-				sb.AppendLine( "var M = AsReadOnlySpan();" );
-				sb.Append( "return " );
-				appendNumber( generic.GetDeterminant(), sb, multiline: true );
-				sb.AppendLine( ";" );
+					sb.AppendLine( "var M = AsReadOnlySpan();" );
+					sb.Append( "return " );
+					appendNumber( generic.GetDeterminant(), sb, multiline: true );
+					sb.AppendLine( ";" );
+				}
+				sb.AppendLine( "}" );
 			}
 			sb.AppendLine( "}" );
-		}
-		sb.AppendLine( "}" );
 
-		sb.AppendLine();
-		sb.AppendLine( $"public {GetFullTypeName((columns, rows))} Inversed {{" );
-		using ( sb.Indent() ) {
-			sb.AppendLine( "get {" );
+			sb.AppendLine();
+			sb.AppendLine( $"public {GetFullTypeName( (columns, rows) )} Inversed {{" );
 			using ( sb.Indent() ) {
-				sb.AppendLine( "var M = AsReadOnlySpan();" );
-				sb.AppendLine( "var invDet = T.MultiplicativeIdentity / Determinant;" );
-				var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
-				generic = generic.GetMinors().GetCofactors().Adjugate();
-
-				sb.AppendLine( "return new() {" );
+				sb.AppendLine( "get {" );
 				using ( sb.Indent() ) {
-					foreach ( var y in columnIndices ) {
-						foreach ( var x in rowIndices ) {
-							sb.Append( $"{memberName(x, y)} = (" );
-							appendNumber( generic[x, y], sb, multiline: false );
-							sb.AppendLine( ") * invDet," );
+					sb.AppendLine( "var M = AsReadOnlySpan();" );
+					sb.AppendLine( "var invDet = T.MultiplicativeIdentity / Determinant;" );
+					var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
+					generic = generic.GetMinors().GetCofactors().Adjugate();
+
+					sb.AppendLine( "return new() {" );
+					using ( sb.Indent() ) {
+						foreach ( var y in columnIndices ) {
+							foreach ( var x in rowIndices ) {
+								sb.Append( $"{memberName( x, y )} = (" );
+								appendNumber( generic[x, y], sb, multiline: false );
+								sb.AppendLine( ") * invDet," );
+							}
 						}
 					}
+					sb.AppendLine( "};" );
 				}
-				sb.AppendLine( "};" );
+				sb.AppendLine( "}" );
 			}
 			sb.AppendLine( "}" );
 		}
-		sb.AppendLine( "}" );
 
 		sb.AppendLine();
 		generateMultiply( data, data, sb );
