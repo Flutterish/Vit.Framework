@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
@@ -18,6 +19,13 @@ public struct Vector4<T> where T : INumber<T> {
 	public Vector4 ( T all ) {
 		X = Y = Z = W = all;
 	}
+
+	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref X, 4 );
+#nullable disable
+	public Vector4 ( ReadOnlySpan<T> span ) {
+		span.CopyTo( this.AsSpan() );
+	}
+#nullable restore
 
 	public T LengthSquared => X * X + Y * Y + Z * Z + W * W;
 

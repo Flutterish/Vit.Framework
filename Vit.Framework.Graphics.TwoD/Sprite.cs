@@ -18,8 +18,10 @@ public class Sprite : Drawable {
 			public Point2<float> PositionAndUV;
 		}
 
-		struct Uniforms {
-			public Matrix3<float> Matrix;
+		struct Uniforms { // TODO we need a debug check for memory alignment in these
+			public Vector4<float> MatrixA;
+			public Vector4<float> MatrixB;
+			public Vector4<float> MatrixC;
 		}
 
 		IShaderPart? vertex;
@@ -82,7 +84,13 @@ public class Sprite : Drawable {
 			commands.SetShaders( shaders! );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
-			uniforms!.Upload( new Uniforms { Matrix = UnitToGlobalMatrix * commands.Renderer.CreateLeftHandCorrectionMatrix<float>().ToMatrix3() } );
+			var mat = UnitToGlobalMatrix * commands.Renderer.CreateLeftHandCorrectionMatrix<float>().ToMatrix3();
+			var span = mat.AsSpan2D();
+			uniforms!.Upload( new Uniforms { 
+				MatrixA = new Vector4<float>( span.GetRow( 0 ) ),
+				MatrixB = new Vector4<float>( span.GetRow( 1 ) ),
+				MatrixC = new Vector4<float>( span.GetRow( 2 ) )
+			} );
 			commands.DrawIndexed( 6 );
 		}
 

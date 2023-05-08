@@ -40,7 +40,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 				i.Bind( Context );
 			}
 			Context.IASetInputLayout( ShaderSet.Layout );
-			ShaderSet.UniformSets[0].Apply( Context );
+			ShaderSet.UniformSets.GetValueOrDefault( 0u )?.Apply( Context );
 		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Topology ) ) {
