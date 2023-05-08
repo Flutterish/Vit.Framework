@@ -84,7 +84,7 @@ public class Sprite : Drawable {
 			commands.SetShaders( shaders! );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
-			var mat = UnitToGlobalMatrix * commands.Renderer.CreateLeftHandCorrectionMatrix<float>().ToMatrix3();
+			var mat = UnitToGlobalMatrix * new Matrix3<float>( commands.Renderer.CreateLeftHandCorrectionMatrix<float>() );
 			var span = mat.AsSpan2D();
 			uniforms!.Upload( new Uniforms { 
 				MatrixA = new Vector4<float>( span.GetRow( 0 ) ),

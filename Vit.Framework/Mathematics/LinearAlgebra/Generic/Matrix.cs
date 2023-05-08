@@ -208,7 +208,7 @@ public record Matrix<T> where T : INumber<T> {
 		return new( data );
 	}
 
-	public static Matrix<MultiVector<T>> GenerateLabelMatrix ( string? name, int columns, int rows, string componentNames ) {
+	public static Matrix<MultiVector<T>> GenerateLabelMatrix ( string? name, int columns, int rows, IReadOnlyList<string> componentNames ) {
 		var data = new MultiVector<T>[rows, columns];
 		for ( int y = 0; y < rows; y++ ) {
 			for ( int x = 0; x < columns; x++ ) {

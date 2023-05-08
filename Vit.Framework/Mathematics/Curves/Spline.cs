@@ -138,7 +138,7 @@ public class Spline2<T> : Spline<Point2<T>, T> where T : INumber<T> {
 
 public static class SplineExtensions {
 	public static AxisAlignedBox2<T> GetBoundingBox<T> ( this Spline<Point2<T>, T> spline ) where T : INumber<T>, IFloatingPointIeee754<T> {
-		var box = AABox<T>.Undefined;
+		var box = AABox2<T>.Undefined;
 
 		foreach ( var (type, start) in spline ) {
 			T minx;

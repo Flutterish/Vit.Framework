@@ -53,6 +53,6 @@ public class Outline<T> where T : INumber<T> {
 
 public static class OutlineExtensions {
 	public static AxisAlignedBox2<T> CalculateBoundingBox<T> ( this Outline<T> outline ) where T : INumber<T>, IFloatingPointIeee754<T> {
-		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox<T>.Undefined, (a,b) => a.Contain(b) );
+		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<T>.Undefined, (a,b) => a.Contain(b) );
 	}
 }
