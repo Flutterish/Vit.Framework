@@ -145,7 +145,7 @@ public record Matrix<T> where T : INumber<T> {
 		return new Matrix<T>( new Span2D<T>( result, Columns, Rows ) );
 	}
 
-	public Matrix<T> GetCofactors () {
+	public Matrix<T> CofactorCheckerboard () {
 		using var result = new RentedArray<T>( Rows * Columns );
 		for ( int y = 0; y < Rows; y++ ) {
 			for ( int x = 0; x < Columns; x++ ) {
@@ -156,11 +156,9 @@ public record Matrix<T> where T : INumber<T> {
 		return new Matrix<T>( new Span2D<T>( result, Columns, Rows ) );
 	}
 
-	public Matrix<T> Adjugate () => Transposed();
-
 	public Matrix<T> GetInverse () {
 		var det = T.MultiplicativeIdentity / GetDeterminant();
-		var m = GetMinors().GetCofactors();
+		var m = GetMinors().CofactorCheckerboard();
 		using var data = new RentedArray<T>( Rows * Columns );
 		for ( int y = 0; y < Rows; y++ ) {
 			for ( int x = 0; x < Columns; x++ ) {
@@ -168,7 +166,7 @@ public record Matrix<T> where T : INumber<T> {
 			}
 		}
 
-		return new Matrix<T>( new Span2D<T>( data, Columns, Rows ) ).Adjugate();
+		return new Matrix<T>( new Span2D<T>( data, Columns, Rows ) ).Transposed();
 	}
 
 	public override string ToString () {

@@ -18,6 +18,18 @@ public struct Matrix4<T> where T : INumber<T> {
 	}
 	#nullable restore
 	
+	public Matrix4 (
+		T m00, T m10, T m20, T m30, 
+		T m01, T m11, T m21, T m31, 
+		T m02, T m12, T m22, T m32, 
+		T m03, T m13, T m23, T m33
+	) {
+		M00 = m00; M10 = m10; M20 = m20; M30 = m30; 
+		M01 = m01; M11 = m11; M21 = m21; M31 = m31; 
+		M02 = m02; M12 = m12; M22 = m22; M32 = m32; 
+		M03 = m03; M13 = m13; M23 = m23; M33 = m33; 
+	}
+	
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref M00, 16 );
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref M00, 16 );
 	public ReadOnlySpan2D<T> AsReadOnlySpan2D () => new( AsReadOnlySpan(), 4, 4 );
@@ -132,6 +144,73 @@ public struct Matrix4<T> where T : INumber<T> {
 			
 			M33 = TNumber.MultiplicativeIdentity
 		};
+	}
+	
+	public Matrix4<T> Transposed => new() {
+		M00 = M00,
+		M10 = M01,
+		M20 = M02,
+		M30 = M03,
+		M01 = M10,
+		M11 = M11,
+		M21 = M12,
+		M31 = M13,
+		M02 = M20,
+		M12 = M21,
+		M22 = M22,
+		M32 = M23,
+		M03 = M30,
+		M13 = M31,
+		M23 = M32,
+		M33 = M33,
+	};
+	
+	public Matrix4<T> CofactorCheckerboard {
+		get {
+			var M = AsReadOnlySpan();
+			return new() {
+				M00 = M[ 0],
+				M01 = -M[ 4],
+				M02 = M[ 8],
+				M03 = -M[12],
+				M10 = -M[ 1],
+				M11 = M[ 5],
+				M12 = -M[ 9],
+				M13 = M[13],
+				M20 = M[ 2],
+				M21 = -M[ 6],
+				M22 = M[10],
+				M23 = -M[14],
+				M30 = -M[ 3],
+				M31 = M[ 7],
+				M32 = -M[11],
+				M33 = M[15],
+			};
+		}
+	}
+	
+	public Matrix4<T> Minors {
+		get {
+			var M = AsReadOnlySpan();
+			return new() {
+				M00 = M[ 5] * M[10] * M[15] - M[ 5] * M[11] * M[14] - M[ 6] * M[ 9] * M[15] + M[ 6] * M[11] * M[13] + M[ 7] * M[ 9] * M[14] - M[ 7] * M[10] * M[13],
+				M10 = M[ 4] * M[10] * M[15] - M[ 4] * M[11] * M[14] - M[ 6] * M[ 8] * M[15] + M[ 6] * M[11] * M[12] + M[ 7] * M[ 8] * M[14] - M[ 7] * M[10] * M[12],
+				M20 = M[ 4] * M[ 9] * M[15] - M[ 4] * M[11] * M[13] - M[ 5] * M[ 8] * M[15] + M[ 5] * M[11] * M[12] + M[ 7] * M[ 8] * M[13] - M[ 7] * M[ 9] * M[12],
+				M30 = M[ 4] * M[ 9] * M[14] - M[ 4] * M[10] * M[13] - M[ 5] * M[ 8] * M[14] + M[ 5] * M[10] * M[12] + M[ 6] * M[ 8] * M[13] - M[ 6] * M[ 9] * M[12],
+				M01 = M[ 1] * M[10] * M[15] - M[ 1] * M[11] * M[14] - M[ 2] * M[ 9] * M[15] + M[ 2] * M[11] * M[13] + M[ 3] * M[ 9] * M[14] - M[ 3] * M[10] * M[13],
+				M11 = M[ 0] * M[10] * M[15] - M[ 0] * M[11] * M[14] - M[ 2] * M[ 8] * M[15] + M[ 2] * M[11] * M[12] + M[ 3] * M[ 8] * M[14] - M[ 3] * M[10] * M[12],
+				M21 = M[ 0] * M[ 9] * M[15] - M[ 0] * M[11] * M[13] - M[ 1] * M[ 8] * M[15] + M[ 1] * M[11] * M[12] + M[ 3] * M[ 8] * M[13] - M[ 3] * M[ 9] * M[12],
+				M31 = M[ 0] * M[ 9] * M[14] - M[ 0] * M[10] * M[13] - M[ 1] * M[ 8] * M[14] + M[ 1] * M[10] * M[12] + M[ 2] * M[ 8] * M[13] - M[ 2] * M[ 9] * M[12],
+				M02 = M[ 1] * M[ 6] * M[15] - M[ 1] * M[ 7] * M[14] - M[ 2] * M[ 5] * M[15] + M[ 2] * M[ 7] * M[13] + M[ 3] * M[ 5] * M[14] - M[ 3] * M[ 6] * M[13],
+				M12 = M[ 0] * M[ 6] * M[15] - M[ 0] * M[ 7] * M[14] - M[ 2] * M[ 4] * M[15] + M[ 2] * M[ 7] * M[12] + M[ 3] * M[ 4] * M[14] - M[ 3] * M[ 6] * M[12],
+				M22 = M[ 0] * M[ 5] * M[15] - M[ 0] * M[ 7] * M[13] - M[ 1] * M[ 4] * M[15] + M[ 1] * M[ 7] * M[12] + M[ 3] * M[ 4] * M[13] - M[ 3] * M[ 5] * M[12],
+				M32 = M[ 0] * M[ 5] * M[14] - M[ 0] * M[ 6] * M[13] - M[ 1] * M[ 4] * M[14] + M[ 1] * M[ 6] * M[12] + M[ 2] * M[ 4] * M[13] - M[ 2] * M[ 5] * M[12],
+				M03 = M[ 1] * M[ 6] * M[11] - M[ 1] * M[ 7] * M[10] - M[ 2] * M[ 5] * M[11] + M[ 2] * M[ 7] * M[ 9] + M[ 3] * M[ 5] * M[10] - M[ 3] * M[ 6] * M[ 9],
+				M13 = M[ 0] * M[ 6] * M[11] - M[ 0] * M[ 7] * M[10] - M[ 2] * M[ 4] * M[11] + M[ 2] * M[ 7] * M[ 8] + M[ 3] * M[ 4] * M[10] - M[ 3] * M[ 6] * M[ 8],
+				M23 = M[ 0] * M[ 5] * M[11] - M[ 0] * M[ 7] * M[ 9] - M[ 1] * M[ 4] * M[11] + M[ 1] * M[ 7] * M[ 8] + M[ 3] * M[ 4] * M[ 9] - M[ 3] * M[ 5] * M[ 8],
+				M33 = M[ 0] * M[ 5] * M[10] - M[ 0] * M[ 6] * M[ 9] - M[ 1] * M[ 4] * M[10] + M[ 1] * M[ 6] * M[ 8] + M[ 2] * M[ 4] * M[ 9] - M[ 2] * M[ 5] * M[ 8],
+			};
+		}
 	}
 	
 	public T Determinant {

@@ -16,6 +16,14 @@ public struct Matrix4x2<T> where T : INumber<T> {
 	}
 	#nullable restore
 	
+	public Matrix4x2 (
+		T m00, T m10, T m20, T m30, 
+		T m01, T m11, T m21, T m31
+	) {
+		M00 = m00; M10 = m10; M20 = m20; M30 = m30; 
+		M01 = m01; M11 = m11; M21 = m21; M31 = m31; 
+	}
+	
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref M00, 8 );
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref M00, 8 );
 	public ReadOnlySpan2D<T> AsReadOnlySpan2D () => new( AsReadOnlySpan(), 4, 2 );
@@ -48,6 +56,7 @@ public struct Matrix4x2<T> where T : INumber<T> {
 		M11 = T.MultiplicativeIdentity,
 		M01 = x
 	};
+	
 	public static Matrix4x2<T> CreateShear ( Axes2<T> shear )
 		=> CreateShear( shear.X, shear.Y );
 	public static Matrix4x2<T> CreateShear ( T x, T y ) => new() {
@@ -67,6 +76,33 @@ public struct Matrix4x2<T> where T : INumber<T> {
 			M10 = sin,
 			M11 = cos,
 		};
+	}
+	
+	public Matrix2x4<T> Transposed => new() {
+		M00 = M00,
+		M10 = M01,
+		M01 = M10,
+		M11 = M11,
+		M02 = M20,
+		M12 = M21,
+		M03 = M30,
+		M13 = M31,
+	};
+	
+	public Matrix4x2<T> CofactorCheckerboard {
+		get {
+			var M = AsReadOnlySpan();
+			return new() {
+				M00 = M[0],
+				M01 = -M[4],
+				M10 = -M[1],
+				M11 = M[5],
+				M20 = M[2],
+				M21 = -M[6],
+				M30 = -M[3],
+				M31 = M[7],
+			};
+		}
 	}
 	
 	public static Matrix4x2<T> operator * ( Matrix4x2<T> left, Matrix4x2<T> right ) {

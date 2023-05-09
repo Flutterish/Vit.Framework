@@ -17,6 +17,16 @@ public struct Matrix3<T> where T : INumber<T> {
 	}
 	#nullable restore
 	
+	public Matrix3 (
+		T m00, T m10, T m20, 
+		T m01, T m11, T m21, 
+		T m02, T m12, T m22
+	) {
+		M00 = m00; M10 = m10; M20 = m20; 
+		M01 = m01; M11 = m11; M21 = m21; 
+		M02 = m02; M12 = m12; M22 = m22; 
+	}
+	
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref M00, 9 );
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref M00, 9 );
 	public ReadOnlySpan2D<T> AsReadOnlySpan2D () => new( AsReadOnlySpan(), 3, 3 );
@@ -54,6 +64,7 @@ public struct Matrix3<T> where T : INumber<T> {
 		M02 = x,
 		M12 = y
 	};
+	
 	public static Matrix3<T> CreateShear ( Axes2<T> shear )
 		=> CreateShear( shear.X, shear.Y );
 	public static Matrix3<T> CreateShear ( T x, T y ) => new() {
@@ -105,6 +116,52 @@ public struct Matrix3<T> where T : INumber<T> {
 	
 	public static Matrix3<TNumber> CreateLookAt<TNumber> ( Vector2<TNumber> direction ) where TNumber : IFloatingPointIeee754<TNumber> {
 		return Matrix3<TNumber>.CreateRotation( direction.GetAngle() );
+	}
+	
+	public Matrix3<T> Transposed => new() {
+		M00 = M00,
+		M10 = M01,
+		M20 = M02,
+		M01 = M10,
+		M11 = M11,
+		M21 = M12,
+		M02 = M20,
+		M12 = M21,
+		M22 = M22,
+	};
+	
+	public Matrix3<T> CofactorCheckerboard {
+		get {
+			var M = AsReadOnlySpan();
+			return new() {
+				M00 = M[0],
+				M01 = -M[3],
+				M02 = M[6],
+				M10 = -M[1],
+				M11 = M[4],
+				M12 = -M[7],
+				M20 = M[2],
+				M21 = -M[5],
+				M22 = M[8],
+			};
+		}
+	}
+	
+	public Matrix3<T> Minors {
+		get {
+			var M = AsReadOnlySpan();
+			return new() {
+				M00 = M[4] * M[8] - M[5] * M[7],
+				M10 = M[3] * M[8] - M[5] * M[6],
+				M20 = M[3] * M[7] - M[4] * M[6],
+				M01 = M[1] * M[8] - M[2] * M[7],
+				M11 = M[0] * M[8] - M[2] * M[6],
+				M21 = M[0] * M[7] - M[1] * M[6],
+				M02 = M[1] * M[5] - M[2] * M[4],
+				M12 = M[0] * M[5] - M[2] * M[3],
+				M22 = M[0] * M[4] - M[1] * M[3],
+			};
+		}
 	}
 	
 	public T Determinant {

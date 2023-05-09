@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Interop;
+﻿using Vit.Framework.Collections;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 using Vit.Framework.Mathematics.LinearAlgebra.Generic;
 using Vit.Framework.Memory;
@@ -54,6 +55,33 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		}
 		sb.AppendLine( "}" );
 		sb.AppendLine( "#nullable restore" );
+
+
+		sb.AppendLine();
+		sb.AppendLine( $"public {nonGenericType} (" );
+		sb.Append( "\t" );
+		foreach ( var y in rowIndices ) {
+			foreach ( var x in columnIndices ) {
+				sb.Append( $"T {memberName( x, y ).ToLower()}" );
+				if ( x != columns - 1 || y != rows - 1 )
+					sb.Append( ", " );
+			}
+			if ( y != rows - 1 ) {
+				sb.AppendLine();
+				sb.Append( "\t" );
+			}
+		}
+		sb.AppendLine();
+		sb.AppendLine( ") {" );
+		using ( sb.Indent() ) {
+			foreach ( var y in rowIndices ) {
+				foreach ( var x in columnIndices ) {
+					sb.Append( $"{memberName( x, y )} = {memberName( x, y ).ToLower()}; " );
+				}
+				sb.AppendLine();
+			}
+		}
+		sb.AppendLine( "}" );
 
 		sb.AppendLine();
 		sb.AppendLine( $"public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref {memberName(0, 0)}, {columns * rows} );" );
@@ -121,6 +149,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		sb.AppendLine( "};" );
 
 		if ( min is 2 or 3 ) {
+			sb.AppendLine();
 			sb.AppendLine( $"public static {type} CreateShear ( {axisType.GetFullTypeName(2)} shear )" );
 			sb.AppendLine( $"\t=> CreateShear( shear.{axisType.AxisNames[0]}, shear.{axisType.AxisNames[1]} );" );
 
@@ -276,20 +305,79 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 			sb.AppendLine( "}" );
 		}
 
-		if ( columns == rows ) {
-			var labels = new List<string>();
-			foreach ( var y in rowIndices ) {
-				foreach ( var x in columnIndices ) {
-					labels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+		sb.AppendLine();
+		sb.AppendLine( $"public {GetFullTypeName((columns, rows))} Transposed => new() {{" );
+		using ( sb.Indent() ) {
+			foreach ( var x in columnIndices ) {
+				foreach ( var y in rowIndices ) {
+					sb.AppendLine( $"{memberName(y, x)} = {memberName(x, y)}," );
 				}
 			}
+		}
+		sb.AppendLine( "};" );
+
+		var labels = new List<string>();
+		foreach ( var y in rowIndices ) {
+			foreach ( var x in columnIndices ) {
+				labels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+			}
+		}
+		var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
+
+		var cofactors = generic.CofactorCheckerboard();
+		sb.AppendLine();
+		sb.AppendLine( $"public {GetFullTypeName( (rows, columns) )} CofactorCheckerboard {{" );
+		using ( sb.Indent() ) {
+			sb.AppendLine( "get {" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( "var M = AsReadOnlySpan();" );
+
+				sb.AppendLine( "return new() {" );
+				using ( sb.Indent() ) {
+					foreach ( var x in columnIndices ) {
+						foreach ( var y in rowIndices ) {
+							sb.Append( $"{memberName( x, y )} = " );
+							appendNumber( cofactors[x, y], sb, multiline: false );
+							sb.AppendLine( "," );
+						}
+					}
+				}
+				sb.AppendLine( "};" );
+			}
+			sb.AppendLine( "}" );
+		}
+		sb.AppendLine( "}" );
+
+		if ( columns == rows ) {
+			var minors = generic.GetMinors();
+			sb.AppendLine();
+			sb.AppendLine( $"public {GetFullTypeName( (columns, rows) )} Minors {{" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( "get {" );
+				using ( sb.Indent() ) {
+					sb.AppendLine( "var M = AsReadOnlySpan();" );
+
+					sb.AppendLine( "return new() {" );
+					using ( sb.Indent() ) {
+						foreach ( var y in columnIndices ) {
+							foreach ( var x in rowIndices ) {
+								sb.Append( $"{memberName( x, y )} = " );
+								appendNumber( minors[x, y], sb, multiline: false );
+								sb.AppendLine( "," );
+							}
+						}
+					}
+					sb.AppendLine( "};" );
+				}
+				sb.AppendLine( "}" );
+			}
+			sb.AppendLine( "}" );
+
 			sb.AppendLine();
 			sb.AppendLine( "public T Determinant {" );
 			using ( sb.Indent() ) {
 				sb.AppendLine( "get {" );
 				using ( sb.Indent() ) {
-					var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
-
 					sb.AppendLine( "var M = AsReadOnlySpan();" );
 					sb.Append( "return " );
 					appendNumber( generic.GetDeterminant(), sb, multiline: true );
@@ -306,15 +394,14 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 				using ( sb.Indent() ) {
 					sb.AppendLine( "var M = AsReadOnlySpan();" );
 					sb.AppendLine( "var invDet = T.MultiplicativeIdentity / Determinant;" );
-					var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
-					generic = generic.GetMinors().GetCofactors().Adjugate();
+					var inv = generic.GetMinors().CofactorCheckerboard().Transposed();
 
 					sb.AppendLine( "return new() {" );
 					using ( sb.Indent() ) {
 						foreach ( var y in columnIndices ) {
 							foreach ( var x in rowIndices ) {
 								sb.Append( $"{memberName( x, y )} = (" );
-								appendNumber( generic[x, y], sb, multiline: false );
+								appendNumber( inv[x, y], sb, multiline: false );
 								sb.AppendLine( ") * invDet," );
 							}
 						}

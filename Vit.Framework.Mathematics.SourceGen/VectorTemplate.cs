@@ -21,11 +21,11 @@ public class VectorTemplate : SpanLikeTemplate {
 			sb.AppendLine();
 		for ( int a = 0; a < size - 1; a++ ) {
 			for ( int b = a + 1; b < size; b++ ) {
-				sb.Append( $"public {type} RotatedClockwiseIn{AxisNames[a]}{AxisNames[b]} => new( " );
-				sb.AppendJoin( ", ", elements.Select( x => x == a ? $"{AxisNames[b]}" : x == b ? $"-{AxisNames[a]}" : $"{AxisNames[x]}" ) );
-				sb.AppendLine( " );" );
-				sb.Append( $"public {type} RotatedCounterClockwiseIn{AxisNames[a]}{AxisNames[b]} => new( " );
+				sb.Append( $"public {type} LeftIn{AxisNames[a]}{AxisNames[b]} => new( " );
 				sb.AppendJoin( ", ", elements.Select( x => x == a ? $"-{AxisNames[b]}" : x == b ? $"{AxisNames[a]}" : $"{AxisNames[x]}" ) );
+				sb.AppendLine( " );" );
+				sb.Append( $"public {type} RightIn{AxisNames[a]}{AxisNames[b]} => new( " );
+				sb.AppendJoin( ", ", elements.Select( x => x == a ? $"{AxisNames[b]}" : x == b ? $"-{AxisNames[a]}" : $"{AxisNames[x]}" ) );
 				sb.AppendLine( " );" );
 			}
 		}

@@ -31,8 +31,8 @@ public struct Vector2<T> : IInterpolatable<Vector2<T>, T>, IEqualityOperators<Ve
 	
 	public T LengthSquared => X * X + Y * Y;
 	
-	public Vector2<T> RotatedClockwiseInXY => new( Y, -X );
-	public Vector2<T> RotatedCounterClockwiseInXY => new( -Y, X );
+	public Vector2<T> LeftInXY => new( -Y, X );
+	public Vector2<T> RightInXY => new( Y, -X );
 	
 	public Vector2<T> Left => new( -Y, X );
 	public Vector2<T> Right => new( Y, -X );
