@@ -1,18 +1,29 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Shaders;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD;
 
 public class Sprite : Drawable {
+	Shader shader;
+	public Sprite ( ShaderStore shaders ) {
+		shader = shaders.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
+	}
+
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 
 	new public class DrawNode : BasicDrawNode<Sprite> {
 		public DrawNode ( Sprite source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+
+		protected override void UpdateState () {
+			base.UpdateState();
+			shader = Source.shader;
+		}
 
 		struct Vertex {
 			public Point2<float> PositionAndUV;
@@ -22,13 +33,13 @@ public class Sprite : Drawable {
 			public Matrix4x3<float> Matrix;
 		}
 
-		IShaderPart? vertex;
-		IShaderPart? fragment;
-		IShaderSet? shaders;
+		Shader shader = null!;
 		IDeviceBuffer<ushort>? indices;
 		IDeviceBuffer<Vertex>? vertices;
 		IHostBuffer<Uniforms>? uniforms;
 		public override void Draw ( ICommandBuffer commands ) {
+			var shaders = shader.Value;
+
 			if ( indices == null ) {
 				var renderer = commands.Renderer;
 				using var copy = renderer.CreateImmediateCommandBuffer();
@@ -49,37 +60,10 @@ public class Sprite : Drawable {
 				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 				uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
-				vertex = renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
-					layout(location = 0) in vec2 inPositionAndUv;
-
-					layout(location = 0) out vec2 outUv;
-
-					layout(binding = 0) uniform Uniforms {
-						mat3 model;
-					} uniforms;
-
-					void main () {
-						outUv = inPositionAndUv;
-						gl_Position = vec4((uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
-					}
-				", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
-				fragment = renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
-					layout(location = 0) in vec2 inUv;
-
-					layout(location = 0) out vec4 outColor;
-
-					//layout(binding = 1) uniform sampler2D texSampler;
-
-					void main () {
-						outColor = vec4(inUv, 0, 1);//texture( texSampler, inUv );
-					}
-				", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
-				shaders = renderer.CreateShaderSet( new[] { vertex, fragment } );
-
 				shaders.SetUniformBuffer( uniforms, binding: 0 );
 			}
 
-			commands.SetShaders( shaders! );
+			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
 			var mat = UnitToGlobalMatrix * new Matrix3<float>( commands.Renderer.CreateLeftHandCorrectionMatrix<float>() );
@@ -96,16 +80,10 @@ public class Sprite : Drawable {
 			indices!.Dispose();
 			vertices!.Dispose();
 			uniforms!.Dispose();
-			shaders!.Dispose();
-			vertex!.Dispose();
-			fragment!.Dispose();
 
 			indices = null;
 			vertices = null;
 			uniforms = null;
-			shaders = null;
-			vertex = null;
-			fragment = null;
 		}
 	}
 }

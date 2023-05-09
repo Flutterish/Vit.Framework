@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Collections;
-using Vit.Framework.Interop;
+﻿using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 using Vit.Framework.Mathematics.LinearAlgebra.Generic;
 using Vit.Framework.Memory;

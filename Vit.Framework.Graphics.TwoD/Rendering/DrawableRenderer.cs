@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Threading.Synchronisation;
 
 namespace Vit.Framework.Graphics.TwoD.Rendering;
@@ -33,4 +34,7 @@ public class DrawableRenderer {
 	void draw ( int index, ICommandBuffer commands ) {
 		drawNodes[index].Draw( commands );
 	}
+
+	public static readonly ShaderIdentifier TestVertex = new() { Name = "Vertex" };
+	public static readonly ShaderIdentifier TestFragment = new() { Name = "Fragment" };
 }
