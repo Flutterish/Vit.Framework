@@ -68,7 +68,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;
 
 	protected override Drawable.DrawNode CreateDrawNode ( int subtreeIndex ) {
-		throw new NotImplementedException();
+		return new DrawNode( this, subtreeIndex );
 	}
 
 	new public class DrawNode : Drawable.DrawNode {

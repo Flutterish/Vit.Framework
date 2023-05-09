@@ -1,9 +1,17 @@
 ﻿using System.Collections;
 using Vit.Framework.Hierarchy;
 
-namespace Vit.Framework.Graphics.TwoD;
+namespace Vit.Framework.Graphics.TwoD.Containers;
 
 public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : Drawable {
+	public T Child {
+		get => Children.Single();
+		set {
+			ClearChildren();
+			AddChild( value );
+		}
+	}
+
 	public void AddChild ( T child ) {
 		AddInternalChild( child );
 	}
@@ -33,7 +41,7 @@ public abstract class Container<T, TInternal> : CompositeDrawable<TInternal>, IC
 	}
 
 	IEnumerable<T> IReadOnlyCompositeComponent<T>.Children => Source.Children;
-	IEnumerator IEnumerable.GetEnumerator() {
+	IEnumerator IEnumerable.GetEnumerator () {
 		return Source.GetEnumerator();
 	}
 
@@ -60,9 +68,8 @@ public abstract class Container<T, TInternal> : CompositeDrawable<TInternal>, IC
 
 public interface IContainer<T> : IContainer<T, T> where T : Drawable { }
 
-public interface IContainer<in T, out TChild> : IDrawable, ICompositeComponent<Drawable, T, TChild> 
+public interface IContainer<in T, out TChild> : IDrawable, ICompositeComponent<Drawable, T, TChild>
 	where T : Drawable, TChild
-	where TChild : Drawable
-{
+	where TChild : Drawable {
 
 }

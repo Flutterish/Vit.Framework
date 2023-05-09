@@ -16,8 +16,8 @@ public class ConsoleWindow : Window {
 		set => System.Console.Title = value;
 	}
 	public override Size2<uint> Size {
-		get => new( (uint)System.Console.WindowWidth * 2, (uint)System.Console.WindowHeight * 3 );
-		set => System.Console.SetWindowSize( (int)value.Width / 2, (int)value.Height / 3 );
+		get => new( (uint)System.Console.WindowWidth, (uint)System.Console.WindowHeight * 2 );
+		set => System.Console.SetWindowSize( (int)value.Width, (int)value.Height / 2 );
 	}
 
 	public override Size2<uint> PixelSize => new( (uint)System.Console.WindowWidth, (uint)System.Console.WindowHeight );

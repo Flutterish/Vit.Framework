@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
+using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Windowing;
@@ -18,6 +19,7 @@ public class Test06_Sprite : GenericRenderThread {
 	ShaderStore shaderStore = new();
 	Texture texture;
 
+	Container<Drawable> container;
 	Sprite sprite;
 	public Test06_Sprite ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 		shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
@@ -50,8 +52,14 @@ public class Test06_Sprite : GenericRenderThread {
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
 
-		sprite = new( shaderStore, texture );
-		drawableRenderer = new( sprite );
+		sprite = new( shaderStore, texture ) {
+			Scale = new( 100 )
+		};
+		drawableRenderer = new( container = new() {
+			Child = sprite,
+			Position = new( -1 ),
+			Scale = new( 2f / window.Width, 2f / window.Height )
+		} );
 	}
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
