@@ -182,6 +182,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		var batch = new Triangle.BarycentricBatch<float>( a.XY, b.XY, c.XY );
 		var pixelSpan = renderTarget.AsSpan2D();
 		var depthSpan = renderTarget.DepthStencilAsSpan2D();
+		var (aW, bW, cW) = (1 / A.Position.W, 1 / B.Position.W, 1 / C.Position.W);
 		for ( int y = min.Y; y <= max.Y; y++ ) {
 			var pixelRow = pixelSpan.GetRow( y );
 			var depthRow = depthSpan.GetRow( y );
@@ -192,6 +193,10 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 				if ( bA < 0 || bB < 0 || bC < 0 )
 					continue;
 
+				var w = 1 / ( bA * aW + bB * bW + bC * cW );
+				bA *= aW * w;
+				bB *= bW * w;
+				bC *= cW * w;
 				var depth = a.Z * bA + b.Z * bB + c.Z * bC;
 				if ( !testDepth( ref depthRow[x], depth ) )
 					continue;
