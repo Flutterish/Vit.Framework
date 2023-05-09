@@ -67,15 +67,15 @@ public class RuntimeMatrix4Type<T> : RuntimeMatrixType<T, Matrix4<T>> where T : 
 	}
 }
 
-public class RuntimeMatrix3Type<T> : RuntimeMatrixType<T, Matrix3<T>> where T : unmanaged, INumber<T> {
-	public RuntimeMatrix3Type ( IRuntimeType<T> elementType ) : base( elementType, 3, 3 ) { }
+public class RuntimeMatrix3Type<T> : RuntimeMatrixType<T, Matrix4x3<T>> where T : unmanaged, INumber<T> {
+	public RuntimeMatrix3Type ( IRuntimeType<T> elementType ) : base( elementType, 3, 4 ) { }
 
 	public override string ToString () {
 		return $"Matrix3<{ElementType}>";
 	}
 
 	public override void Multiply ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory ) {
-		var mat = memory.Read<Matrix3<T>>( matrix.Address );
+		var mat = memory.Read<Matrix4x3<T>>( matrix.Address );
 		var vec = memory.Read<Vector3<T>>( vector.Address );
 		memory.Write( result.Address, vec * mat );
 	}

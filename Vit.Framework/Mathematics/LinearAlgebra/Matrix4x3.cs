@@ -173,9 +173,9 @@ public struct Matrix4x3<T> where T : INumber<T> {
 		};
 	}
 	
-	public Vector4<T> Apply ( Vector4<T> value )
+	public Vector3<T> Apply ( Vector3<T> value )
 		=> value * this;
-	public static Vector4<T> operator * ( Vector4<T> left, Matrix4x3<T> right ) {
+	public static Vector3<T> operator * ( Vector3<T> left, Matrix4x3<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
@@ -183,13 +183,12 @@ public struct Matrix4x3<T> where T : INumber<T> {
 			X = M[ 0] * V[0] + M[ 4] * V[1] + M[ 8] * V[2],
 			Y = M[ 1] * V[0] + M[ 5] * V[1] + M[ 9] * V[2],
 			Z = M[ 2] * V[0] + M[ 6] * V[1] + M[10] * V[2],
-			W = M[ 3] * V[0] + M[ 7] * V[1] + M[11] * V[2],
 		};
 	}
 	
-	public Point4<T> Apply ( Point4<T> value )
+	public Point3<T> Apply ( Point3<T> value )
 		=> value * this;
-	public static Point4<T> operator * ( Point4<T> left, Matrix4x3<T> right ) {
+	public static Point3<T> operator * ( Point3<T> left, Matrix4x3<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
@@ -197,29 +196,26 @@ public struct Matrix4x3<T> where T : INumber<T> {
 			X = M[ 0] * V[0] + M[ 4] * V[1] + M[ 8] * V[2],
 			Y = M[ 1] * V[0] + M[ 5] * V[1] + M[ 9] * V[2],
 			Z = M[ 2] * V[0] + M[ 6] * V[1] + M[10] * V[2],
-			W = M[ 3] * V[0] + M[ 7] * V[1] + M[11] * V[2],
 		};
 	}
 	
-	public Vector3<T> Apply ( Vector3<T> value ) {
+	public Vector2<T> Apply ( Vector2<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[ 0] * V[0] + M[ 4] * V[1] + M[ 8] * V[2],
-			Y = M[ 1] * V[0] + M[ 5] * V[1] + M[ 9] * V[2],
-			Z = M[ 2] * V[0] + M[ 6] * V[1] + M[10] * V[2],
+			X = M[ 8] + M[ 0] * V[0] + M[ 4] * V[1],
+			Y = M[ 9] + M[ 1] * V[0] + M[ 5] * V[1],
 		};
 	}
 	
-	public Point3<T> Apply ( Point3<T> value ) {
+	public Point2<T> Apply ( Point2<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[ 0] * V[0] + M[ 4] * V[1] + M[ 8] * V[2],
-			Y = M[ 1] * V[0] + M[ 5] * V[1] + M[ 9] * V[2],
-			Z = M[ 2] * V[0] + M[ 6] * V[1] + M[10] * V[2],
+			X = M[ 8] + M[ 0] * V[0] + M[ 4] * V[1],
+			Y = M[ 9] + M[ 1] * V[0] + M[ 5] * V[1],
 		};
 	}
 	

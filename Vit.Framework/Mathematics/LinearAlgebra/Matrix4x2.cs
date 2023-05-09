@@ -121,53 +121,45 @@ public struct Matrix4x2<T> where T : INumber<T> {
 		};
 	}
 	
-	public Vector4<T> Apply ( Vector4<T> value )
+	public Vector2<T> Apply ( Vector2<T> value )
 		=> value * this;
-	public static Vector4<T> operator * ( Vector4<T> left, Matrix4x2<T> right ) {
+	public static Vector2<T> operator * ( Vector2<T> left, Matrix4x2<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
 		return new() {
 			X = M[0] * V[0] + M[4] * V[1],
 			Y = M[1] * V[0] + M[5] * V[1],
-			Z = M[2] * V[0] + M[6] * V[1],
-			W = M[3] * V[0] + M[7] * V[1],
 		};
 	}
 	
-	public Point4<T> Apply ( Point4<T> value )
+	public Point2<T> Apply ( Point2<T> value )
 		=> value * this;
-	public static Point4<T> operator * ( Point4<T> left, Matrix4x2<T> right ) {
+	public static Point2<T> operator * ( Point2<T> left, Matrix4x2<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
 		return new() {
 			X = M[0] * V[0] + M[4] * V[1],
 			Y = M[1] * V[0] + M[5] * V[1],
-			Z = M[2] * V[0] + M[6] * V[1],
-			W = M[3] * V[0] + M[7] * V[1],
 		};
 	}
 	
-	public Vector3<T> Apply ( Vector3<T> value ) {
+	public Vector1<T> Apply ( Vector1<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[0] * V[0] + M[4] * V[1],
-			Y = M[1] * V[0] + M[5] * V[1],
-			Z = M[2] * V[0] + M[6] * V[1],
+			X = M[4] + M[0] * V[0],
 		};
 	}
 	
-	public Point3<T> Apply ( Point3<T> value ) {
+	public Point1<T> Apply ( Point1<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[0] * V[0] + M[4] * V[1],
-			Y = M[1] * V[0] + M[5] * V[1],
-			Z = M[2] * V[0] + M[6] * V[1],
+			X = M[4] + M[0] * V[0],
 		};
 	}
 	

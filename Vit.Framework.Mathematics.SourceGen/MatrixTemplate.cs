@@ -417,14 +417,14 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		generateMultiply( data, data, sb );
 
 		sb.AppendLine();
-		generateMultiply( data, columns, vectorType, sb );
+		generateMultiply( data, min, vectorType, sb );
 		sb.AppendLine();
-		generateMultiply( data, columns, pointType, sb );
+		generateMultiply( data, min, pointType, sb );
 
 		sb.AppendLine();
-		generateApply( data, columns - 1, vectorType, sb );
+		generateApply( data, min - 1, vectorType, sb );
 		sb.AppendLine();
-		generateApply( data, columns - 1, pointType, sb );
+		generateApply( data, min - 1, pointType, sb );
 
 		sb.AppendLine();
 		sb.AppendLine( $"public static implicit operator Span2D<T> ( {GetFullTypeName( data )} matrix )" );

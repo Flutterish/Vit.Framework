@@ -115,49 +115,45 @@ public struct Matrix3x2<T> where T : INumber<T> {
 		};
 	}
 	
-	public Vector3<T> Apply ( Vector3<T> value )
+	public Vector2<T> Apply ( Vector2<T> value )
 		=> value * this;
-	public static Vector3<T> operator * ( Vector3<T> left, Matrix3x2<T> right ) {
+	public static Vector2<T> operator * ( Vector2<T> left, Matrix3x2<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
 		return new() {
 			X = M[0] * V[0] + M[3] * V[1],
 			Y = M[1] * V[0] + M[4] * V[1],
-			Z = M[2] * V[0] + M[5] * V[1],
 		};
 	}
 	
-	public Point3<T> Apply ( Point3<T> value )
+	public Point2<T> Apply ( Point2<T> value )
 		=> value * this;
-	public static Point3<T> operator * ( Point3<T> left, Matrix3x2<T> right ) {
+	public static Point2<T> operator * ( Point2<T> left, Matrix3x2<T> right ) {
 		var M = right.AsSpan();
 		var V = left.AsSpan();
 		
 		return new() {
 			X = M[0] * V[0] + M[3] * V[1],
 			Y = M[1] * V[0] + M[4] * V[1],
-			Z = M[2] * V[0] + M[5] * V[1],
 		};
 	}
 	
-	public Vector2<T> Apply ( Vector2<T> value ) {
+	public Vector1<T> Apply ( Vector1<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[0] * V[0] + M[3] * V[1],
-			Y = M[1] * V[0] + M[4] * V[1],
+			X = M[3] + M[0] * V[0],
 		};
 	}
 	
-	public Point2<T> Apply ( Point2<T> value ) {
+	public Point1<T> Apply ( Point1<T> value ) {
 		var M = this.AsSpan();
 		var V = value.AsSpan();
 		
 		return new() {
-			X = M[0] * V[0] + M[3] * V[1],
-			Y = M[1] * V[0] + M[4] * V[1],
+			X = M[3] + M[0] * V[0],
 		};
 	}
 	

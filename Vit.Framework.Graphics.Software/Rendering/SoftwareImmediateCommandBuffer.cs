@@ -81,6 +81,9 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		using var rentedMemory = new RentedArray<byte>( 1024 );
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
 
+		//memory.DebugFrame = ShaderSet.BakedDebug;
+		//memory.DebugFrame.StackPointerOffset = memory.StackPointer;
+
 		var vertexBuffer = (IByteBuffer)VertexBuffer;
 		var shaders = ShaderSet.Shaders;
 
