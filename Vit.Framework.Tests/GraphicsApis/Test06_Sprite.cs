@@ -1,7 +1,11 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
+using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Platform;
@@ -12,6 +16,7 @@ namespace Vit.Framework.Tests.GraphicsApis;
 public class Test06_Sprite : GenericRenderThread {
 	DrawableRenderer drawableRenderer;
 	ShaderStore shaderStore = new();
+	Texture texture;
 
 	Sprite sprite;
 	public Test06_Sprite ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
@@ -34,14 +39,18 @@ public class Test06_Sprite : GenericRenderThread {
 
 			layout(location = 0) out vec4 outColor;
 
-			//layout(binding = 1) uniform sampler2D texSampler;
+			layout(binding = 1) uniform sampler2D texSampler;
 
 			void main () {
-				outColor = vec4(inUv, 0, 1);//texture( texSampler, inUv );
+				outColor = texture( texSampler, inUv );
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-		sprite = new( shaderStore );
+		var image = Image.Load<Rgba32>( "./texture.jpg" );
+		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
+		texture = new( image );
+
+		sprite = new( shaderStore, texture );
 		drawableRenderer = new( sprite );
 	}
 
@@ -59,5 +68,8 @@ public class Test06_Sprite : GenericRenderThread {
 
 	protected override void Dispose () {
 		sprite.Dispose();
+
+		texture.Dispose();
+		shaderStore.Dispose();
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Shaders;
+using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -9,8 +10,10 @@ namespace Vit.Framework.Graphics.TwoD;
 
 public class Sprite : Drawable {
 	Shader shader;
-	public Sprite ( ShaderStore shaders ) {
+	Texture texture;
+	public Sprite ( ShaderStore shaders, Texture texture ) {
 		shader = shaders.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
+		this.texture = texture;
 	}
 
 	struct Vertex {
@@ -39,17 +42,21 @@ public class Sprite : Drawable {
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
+			texture = Source.texture;
 		}
 
 		Shader shader = null!;
+		Texture texture = null!;
 		public override void Draw ( ICommandBuffer commands ) {
 			var shaders = shader.Value;
 			ref var indices = ref Source.indices;
 			ref var vertices = ref Source.vertices;
 			ref var uniforms = ref Source.uniforms;
 
+			var renderer = commands.Renderer;
+			texture.Update( renderer );
+
 			if ( indices == null ) {
-				var renderer = commands.Renderer;
 				using var copy = renderer.CreateImmediateCommandBuffer();
 				indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
 				indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
@@ -69,6 +76,7 @@ public class Sprite : Drawable {
 				uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 				shaders.SetUniformBuffer( uniforms, binding: 0 );
+				shaders.SetSampler( texture.Value, binding: 1 );
 			}
 
 			commands.SetShaders( shaders );
