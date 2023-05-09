@@ -13,8 +13,24 @@ public class Sprite : Drawable {
 		shader = shaders.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
 	}
 
+	struct Vertex {
+		public Point2<float> PositionAndUV;
+	}
+
+	struct Uniforms { // TODO we need a debug check for memory alignment in these
+		public Matrix4x3<float> Matrix;
+	}
+
+	IDeviceBuffer<ushort>? indices;
+	IDeviceBuffer<Vertex>? vertices;
+	IHostBuffer<Uniforms>? uniforms;
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
+	}
+
+	protected override void Dispose ( bool disposing ) {
+		base.Dispose( disposing );
+		throw new NotImplementedException();
 	}
 
 	new public class DrawNode : BasicDrawNode<Sprite> {
@@ -25,20 +41,12 @@ public class Sprite : Drawable {
 			shader = Source.shader;
 		}
 
-		struct Vertex {
-			public Point2<float> PositionAndUV;
-		}
-
-		struct Uniforms { // TODO we need a debug check for memory alignment in these
-			public Matrix4x3<float> Matrix;
-		}
-
 		Shader shader = null!;
-		IDeviceBuffer<ushort>? indices;
-		IDeviceBuffer<Vertex>? vertices;
-		IHostBuffer<Uniforms>? uniforms;
 		public override void Draw ( ICommandBuffer commands ) {
 			var shaders = shader.Value;
+			ref var indices = ref Source.indices;
+			ref var vertices = ref Source.vertices;
+			ref var uniforms = ref Source.uniforms;
 
 			if ( indices == null ) {
 				var renderer = commands.Renderer;
@@ -74,16 +82,7 @@ public class Sprite : Drawable {
 		}
 
 		public override void ReleaseResources ( bool willBeReused ) {
-			if ( indices == null )
-				return;
-
-			indices!.Dispose();
-			vertices!.Dispose();
-			uniforms!.Dispose();
-
-			indices = null;
-			vertices = null;
-			uniforms = null;
+			
 		}
 	}
 }
