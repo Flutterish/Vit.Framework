@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD.Rendering;
@@ -20,10 +21,11 @@ public class Sprite : Drawable {
 		public Point2<float> PositionAndUV;
 	}
 
-	struct Uniforms { // TODO we need a debug check for memory alignment in these
+	struct Uniforms {
 		public Matrix4x3<float> Matrix;
 	}
 
+	IUniformSet? uniformSet;
 	IDeviceBuffer<ushort>? indices;
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
@@ -52,6 +54,7 @@ public class Sprite : Drawable {
 			ref var indices = ref Source.indices;
 			ref var vertices = ref Source.vertices;
 			ref var uniforms = ref Source.uniforms;
+			ref var uniformSet = ref Source.uniformSet;
 
 			var renderer = commands.Renderer;
 			texture.Update( renderer );
@@ -75,16 +78,17 @@ public class Sprite : Drawable {
 				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 				uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
-				shaders.SetUniformBuffer( uniforms, binding: 0 );
-				shaders.SetSampler( texture.Value, binding: 1 );
+				uniformSet = shaders.CreateUniformSet( set: 1 );
+				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 			}
+			uniformSet!.SetSampler( texture.Value, binding: 1 );
+			shaders.SetUniformSet( uniformSet, set: 1 );
 
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
-			var mat = UnitToGlobalMatrix * new Matrix3<float>( commands.Renderer.CreateLeftHandCorrectionMatrix<float>() );
 			uniforms!.Upload( new Uniforms { 
-				Matrix = new( mat )
+				Matrix = new( UnitToGlobalMatrix )
 			} );
 			commands.DrawIndexed( 6 );
 		}

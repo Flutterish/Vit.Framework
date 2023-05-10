@@ -4,7 +4,8 @@ using Vit.Framework.Graphics.Rendering.Textures;
 namespace Vit.Framework.Graphics.Rendering.Uniforms;
 
 /// <summary>
-/// A set of uniform values. May be shared across multiple shaders and shader sets.
+/// A set of uniform values. May be shared across multiple shader parts and shader sets. <br/>
+/// A uniform set and its underlying data may not be modified while bound to a command buffer.
 /// </summary>
 /// <remarks>
 /// In SPIR-V, this is bound to a given <c>layout(set = #)</c>, and its individual components are bound to <c>layout(binding = #)</c>.

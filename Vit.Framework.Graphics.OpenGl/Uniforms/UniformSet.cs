@@ -19,11 +19,12 @@ public class UniformSet : IUniformSet {
 		Samplers[binding] = (Texture2D)texture;
 	}
 
-	public void Apply ( ShaderProgram shader ) {
+	public void Apply ( uint index, ShaderProgram shader ) {
 		foreach ( var (binding, (buffer, stride, offset)) in Buffers ) {
-			var index = binding; // TODO not correct, but whatever for now
-			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)index, buffer.Handle, (nint)offset, stride );
-			GL.UniformBlockBinding( (uint)shader.Handle, binding, index );
+			var blockIndex = index; // TODO figure out set+binding -> block index
+			var UBOindex = index;
+			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)blockIndex, buffer.Handle, (nint)offset, stride );
+			GL.UniformBlockBinding( (uint)shader.Handle, UBOindex, blockIndex );
 		}
 
 		foreach ( var (binding, texture) in Samplers ) {

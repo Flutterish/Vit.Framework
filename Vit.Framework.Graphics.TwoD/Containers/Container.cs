@@ -12,6 +12,14 @@ public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : Drawab
 		}
 	}
 
+	new public IEnumerable<T> Children {
+		get => base.Children;
+		set {
+			ClearChildren();
+			this.AddChildren( value );
+		}
+	}
+
 	public void AddChild ( T child ) {
 		AddInternalChild( child );
 	}

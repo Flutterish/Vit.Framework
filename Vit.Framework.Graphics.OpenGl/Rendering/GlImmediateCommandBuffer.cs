@@ -37,7 +37,6 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) ) {
 			GL.UseProgram( ShaderSet.Handle );
-			ShaderSet.UniformSets.GetValueOrDefault( 0u )?.Apply( ShaderSet );
 		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
@@ -76,6 +75,10 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 
 		GL.BindVertexArray( vao );
+
+		foreach ( var (index, set) in ShaderSet.UniformSets ) {
+			set.Apply( index, ShaderSet );
+		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			GL.BindBuffer( BufferTarget.ElementArrayBuffer, ((IGlObject)IndexBuffer).Handle );

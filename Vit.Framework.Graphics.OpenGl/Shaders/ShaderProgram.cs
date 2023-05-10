@@ -38,6 +38,14 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 		return value;
 	}
 
+	public IUniformSet CreateUniformSet ( uint set = 0 ) {
+		return new UniformSet();
+	}
+
+	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
+		UniformSets[set] = (UniformSet)uniforms;
+	}
+
 	protected override void Dispose ( bool disposing ) {
 		GL.DeleteProgram( Handle );
 	}

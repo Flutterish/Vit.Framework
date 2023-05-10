@@ -249,4 +249,12 @@ public class ShaderSet : IShaderSet {
 	public void Dispose () {
 
 	}
+
+	public IUniformSet CreateUniformSet ( uint set = 0 ) {
+		throw new NotImplementedException();
+	}
+
+	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
+		throw new NotImplementedException();
+	}
 }

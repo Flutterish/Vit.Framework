@@ -4,8 +4,8 @@ using Vulkan;
 namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
 public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool> {
-	public readonly VkDevice Device;
-	public unsafe DescriptorPool ( VkDevice device, params VkDescriptorPoolSize[] values ) {
+	public readonly Device Device;
+	public unsafe DescriptorPool ( Device device, params VkDescriptorPoolSize[] values ) {
 		Device = device;
 
 		var info = new VkDescriptorPoolCreateInfo() {

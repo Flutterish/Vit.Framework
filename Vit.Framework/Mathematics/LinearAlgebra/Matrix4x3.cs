@@ -111,7 +111,7 @@ public struct Matrix4x3<T> where T : INumber<T> {
 	}
 	
 	public static Matrix4x3<T> CreateViewport ( T x, T y, T width, T height ) {
-		return CreateTranslation( -x, -y ) * CreateScale( T.MultiplicativeIdentity / width, T.MultiplicativeIdentity / height );
+		return CreateScale( T.MultiplicativeIdentity / width, T.MultiplicativeIdentity / height ) * CreateTranslation( -x, -y );
 	}
 	
 	public static Matrix4x3<TNumber> CreateLookAt<TNumber> ( Vector2<TNumber> direction ) where TNumber : IFloatingPointIeee754<TNumber> {

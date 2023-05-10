@@ -22,22 +22,47 @@ public class ShaderSet : DisposableObject, IShaderSet {
 			Attributes = Array.Empty<VkVertexInputAttributeDescription>();
 			AttributeSets = Array.Empty<VkVertexInputBindingDescription>();
 		}
+
+		foreach ( var set in this.GetUniformSetIndices() ) {
+			UniformSets.Add( new( Modules[0].Device, this.CreateUniformSetInfo( set ) ) );
+		}
+		DescriptorSets = new VkDescriptorSet[UniformSets.Count];
+		defaultsCreated = new bool[UniformSets.Count];
+		for ( int i = 0; i < DescriptorSets.Length; i++ ) {
+			DescriptorSets[i] = UniformSets[i].DescriptorSet;
+		}
 	}
 
 	// TODO binding and offset values of these should be generated based on some logical linking between mesh vertex buffers and material attributes
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	Dictionary<uint, UniformSet> uniformSets = new();
+	public List<UniformSet> UniformSets = new();
+	public VkDescriptorSet[] DescriptorSets;
 	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		if ( !uniformSets.TryGetValue( set, out var value ) )
-			uniformSets.Add( set, value = new( Modules[0].Device, this.CreateUniformSetInfo( set ) ) );
+		defaultsCreated[set] = true;
+		return UniformSets[(int)set];
+	}
 
-		return value;
+	bool[] defaultsCreated;
+	public IUniformSet CreateUniformSet ( uint set = 0 ) {
+		if ( defaultsCreated[set] ) {
+			return new UniformSet( UniformSets[(int)set] );
+		}
+		else {
+			defaultsCreated[set] = true;
+			return UniformSets[(int)set];
+		}
+	}
+
+	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
+		UniformSets[(int)set] = (UniformSet)uniforms;
+		defaultsCreated[set] = true;
+		DescriptorSets[set] = ((UniformSet)uniforms).DescriptorSet;
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		foreach ( var (_, set) in uniformSets ) {
+		foreach ( var set in UniformSets ) {
 			set.Dispose();
 		}
 	}

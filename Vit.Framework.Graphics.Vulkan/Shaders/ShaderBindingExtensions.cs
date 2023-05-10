@@ -64,7 +64,7 @@ public static unsafe class ShaderBindingExtensions {
 		} ).ToArray();
 	}
 
-	public static DescriptorPool CreateDescriptorPool ( this VkDescriptorSetLayoutBinding[] layout, VkDevice device ) {
+	public static DescriptorPool CreateDescriptorPool ( this VkDescriptorSetLayoutBinding[] layout, Device device ) {
 		var sizes = new VkDescriptorPoolSize[layout.Length];
 		for ( int i = 0; i < sizes.Length; i++ ) {
 			sizes[i] = new() {

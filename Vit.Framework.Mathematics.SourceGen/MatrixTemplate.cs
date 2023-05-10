@@ -292,7 +292,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 			sb.AppendLine();
 			sb.AppendLine( $"public static {type} CreateViewport ( T {vectorType.AxisNames[0].ToLower()}, T {vectorType.AxisNames[1].ToLower()}, T {sizeType.AxisNames[0].ToLower()}, T {sizeType.AxisNames[1].ToLower()} ) {{" );
 			using ( sb.Indent() ) {
-				sb.AppendLine( $"return CreateTranslation( -{vectorType.AxisNames[0].ToLower()}, -{vectorType.AxisNames[1].ToLower()} ) * CreateScale( T.MultiplicativeIdentity / {sizeType.AxisNames[0].ToLower()}, T.MultiplicativeIdentity / {sizeType.AxisNames[1].ToLower()} );" );
+				sb.AppendLine( $"return CreateScale( T.MultiplicativeIdentity / {sizeType.AxisNames[0].ToLower()}, T.MultiplicativeIdentity / {sizeType.AxisNames[1].ToLower()} ) * CreateTranslation( -{vectorType.AxisNames[0].ToLower()}, -{vectorType.AxisNames[1].ToLower()} );" );
 			}
 			sb.AppendLine( "}" );
 

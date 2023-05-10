@@ -80,11 +80,11 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			stencilTestEnable = false
 		};
 
-		var unifomsHandle = ((UniformSet)shaders.GetUniformSet( 0 )).Uniforms; // TODO we always use only set 0
+		var uniforms = shaders.UniformSets.Select( x => x.Layout ).ToArray();
 		var layoutInfo = new VkPipelineLayoutCreateInfo() {
 			sType = VkStructureType.PipelineLayoutCreateInfo,
-			setLayoutCount = 1,
-			pSetLayouts = &unifomsHandle
+			setLayoutCount = (uint)uniforms.Length,
+			pSetLayouts = uniforms.Data()
 		};
 
 		Vk.vkCreatePipelineLayout( Device, &layoutInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();

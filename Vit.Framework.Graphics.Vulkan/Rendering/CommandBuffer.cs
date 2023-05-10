@@ -49,8 +49,8 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindPipeline( this, VkPipelineBindPoint.Graphics, pipeline );
 	}
 
-	public unsafe void BindDescriptor ( VkPipelineLayout layout, VkDescriptorSet descriptor ) {
-		Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, 1, &descriptor, 0, 0 );
+	public unsafe void BindDescriptors ( VkPipelineLayout layout, ReadOnlySpan<VkDescriptorSet> descriptors ) {
+		Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, (uint)descriptors.Length, descriptors.Data(), 0, 0 );
 	}
 
 	public unsafe void BindVertexBuffer ( IVulkanHandle<VkBuffer> buffer ) {

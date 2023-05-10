@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Net.WebSockets;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
@@ -65,19 +66,28 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet> {
 }
 
 public class UniformSet : DisposableObject, IUniformSet {
-	public readonly VkDescriptorSetLayout Uniforms;
+	public readonly VkDescriptorSetLayoutBinding[] LayoutBindings;
+	public readonly VkDescriptorSetLayout Layout;
 	public readonly DescriptorPool DescriptorPool;
 	public readonly DescriptorSet DescriptorSet;
 	public unsafe UniformSet ( Device device, UniformSetInfo info ) {
-		var layouts = info.GenerateUniformBindingsSet();
+		LayoutBindings = info.GenerateUniformBindingsSet();
 		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
 			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-			bindingCount = (uint)layouts.Length,
-			pBindings = layouts.Data()
+			bindingCount = (uint)LayoutBindings.Length,
+			pBindings = LayoutBindings.Data()
 		};
-		Vk.vkCreateDescriptorSetLayout( device, &uniformInfo, VulkanExtensions.TODO_Allocator, out Uniforms ).Validate();
-		DescriptorPool = layouts.CreateDescriptorPool( device );
-		DescriptorSet = DescriptorPool.CreateSet( Uniforms );
+		Vk.vkCreateDescriptorSetLayout( device, &uniformInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();
+		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
+		DescriptorSet = DescriptorPool.CreateSet( Layout );
+	}
+
+	public UniformSet ( UniformSet value ) {
+		var device = value.DescriptorPool.Device;
+		LayoutBindings = value.LayoutBindings;
+		Layout = value.Layout;
+		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
+		DescriptorSet = DescriptorPool.CreateSet( Layout );
 	}
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
@@ -91,6 +101,6 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		DescriptorPool.Dispose();
-		Vk.vkDestroyDescriptorSetLayout( DescriptorPool.Device, Uniforms, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroyDescriptorSetLayout( DescriptorPool.Device, Layout, VulkanExtensions.TODO_Allocator );
 	}
 }

@@ -11,8 +11,23 @@ namespace Vit.Framework.Graphics.Rendering.Shaders;
 public interface IShaderSet : IDisposable {
 	IEnumerable<IShaderPart> Parts { get; }
 
+	/// <summary>
+	/// Gets the currently bound uniform set.
+	/// </summary>
+	/// <remarks>
+	/// If no uniform set is bound, it will automatically be created.
+	/// </remarks>
 	IUniformSet GetUniformSet ( uint set = 0 );
-	//void SetUniformSet ( IUniformSet uniforms, uint set = 0 );
+
+	/// <summary>
+	/// Creates a new uniform set appropriate for binding to this shader set.
+	/// </summary>
+	IUniformSet CreateUniformSet ( uint set = 0 );
+
+	/// <summary>
+	/// Binds a uniform set to the shader set.
+	/// </summary>
+	void SetUniformSet ( IUniformSet uniforms, uint set = 0 );
 
 	/// <inheritdoc cref="IUniformSet.SetUniformBuffer{T}(IBuffer{T}, uint, uint)"/>
 	/// <param name="set">The uniform set to configure.</param>
@@ -28,6 +43,10 @@ public interface IShaderSet : IDisposable {
 }
 
 public static class IShaderSetExtensions {
+	public static IEnumerable<uint> GetUniformSetIndices ( this IShaderSet shaders ) {
+		return shaders.Parts.SelectMany( x => x.ShaderInfo.Uniforms.Sets.Keys ).Distinct().OrderBy( x => x );
+	}
+
 	public static UniformSetInfo CreateUniformSetInfo ( this IShaderSet shaders, uint set ) {
 		UniformSetInfo info = new();
 
