@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
+using UniformLinkage = System.Collections.Generic.Dictionary<(uint set, uint binding), int>;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
 using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -19,8 +20,6 @@ public class ShaderSet : IShaderSet {
 		// TODO this asssumes "vertex -> fragment" shader set
 		var vert = Shaders.OfType<SoftwareVertexShader>().Single();
 		var frag = Shaders.OfType<SoftwareFragmentShader>().Single();
-
-		frag.GlobalScope.Opaques.Samplers = ((UniformSet)GetUniformSet(0)).Samplers;
 
 		ShaderMemory memory = default;
 
@@ -41,8 +40,8 @@ public class ShaderSet : IShaderSet {
 	}
 
 	// TODO this assumes that shader parts are distinct, we should ensure that they are (compiler being "IShader" and shader set specializing them?)
-	OutputLinkage bakeUniforms ( ref ShaderMemory memory, ref BakedStageInfo stageInfo ) {
-		OutputLinkage adresses = new();
+	UniformLinkage bakeUniforms ( ref ShaderMemory memory, ref BakedStageInfo stageInfo ) {
+		UniformLinkage adresses = new();
 
 		foreach ( var (binding, ptrType) in Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
 			var uniform = memory.StackAlloc( ptrType.Base );
@@ -57,11 +56,11 @@ public class ShaderSet : IShaderSet {
 
 			BakedDebug.Add( new() {
 				Variable = uniform,
-				Name = $"Uniform (Binding {binding})"
+				Name = $"Uniform (Binding {binding.binding} Set {binding.set})"
 			} );
 			BakedDebug.Add( new() {
 				Variable = ptr,
-				Name = $"Uniform ptr (Binding {binding})"
+				Name = $"Uniform ptr (Binding {binding.binding} Set {binding.set})"
 			} );
 
 			adresses.Add(binding, uniform.Address);
@@ -80,11 +79,11 @@ public class ShaderSet : IShaderSet {
 
 			BakedDebug.Add( new() {
 				Variable = uniform,
-				Name = $"Uniform Constant (Binding {binding})"
+				Name = $"Uniform Constant (Binding {binding.binding} Set {binding.set})"
 			} );
 			BakedDebug.Add( new() {
 				Variable = ptr,
-				Name = $"Uniform Constant ptr (Binding {binding})"
+				Name = $"Uniform Constant ptr (Binding {binding.set} Set {binding.set})"
 			} );
 
 			adresses.Add(binding, uniform.Address);
@@ -212,12 +211,20 @@ public class ShaderSet : IShaderSet {
 		return outputs;
 	}
 
-	public Dictionary<uint, UniformSet> uniformSets = new();
+	public Dictionary<uint, UniformSet> UniformSets = new();
 	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		if ( !uniformSets.TryGetValue( set, out var value ) )
-			uniformSets.Add( set, value = new() );
+		if ( !UniformSets.TryGetValue( set, out var value ) )
+			UniformSets.Add( set, value = new() );
 
 		return value;
+	}
+
+	public IUniformSet CreateUniformSet ( uint set = 0 ) {
+		return new UniformSet();
+	}
+
+	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
+		UniformSets[set] = (UniformSet)uniforms;
 	}
 
 	public struct BakedStageInfo {
@@ -240,7 +247,7 @@ public class ShaderSet : IShaderSet {
 	public MemoryDebugFrame UniformDebugFrame;
 	public MemoryDebugFrame VertexDebugFrame;
 	public MemoryDebugFrame FragmentDebugFrame;
-	public OutputLinkage Uniforms;
+	public UniformLinkage Uniforms;
 	public StageVariables VertexInputs;
 	public BakedStageInfo VertexStage;
 	public VertexLinkage VertexStageLinkage;
@@ -248,13 +255,5 @@ public class ShaderSet : IShaderSet {
 
 	public void Dispose () {
 
-	}
-
-	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		throw new NotImplementedException();
-	}
-
-	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
-		throw new NotImplementedException();
 	}
 }

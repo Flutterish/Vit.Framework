@@ -10,5 +10,15 @@ public class RuntimeScope {
 }
 
 public class ShaderOpaques {
-	public Dictionary<uint, Texture> Samplers = new();
+	public Dictionary<OpaqueHandle, Texture> Samplers = new();
+}
+
+
+public struct OpaqueHandle {
+	public uint Set;
+	public uint Binding;
+
+	public override string ToString () {
+		return $"[Binding {Binding} Set {Set}]";
+	}
 }

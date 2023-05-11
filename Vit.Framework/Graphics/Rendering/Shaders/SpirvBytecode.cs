@@ -1,5 +1,4 @@
 ﻿using SPIRVCross;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Interop;

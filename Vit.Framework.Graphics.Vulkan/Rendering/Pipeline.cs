@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Graphics.Vulkan.Uniforms;
-using Vit.Framework.Interop;
+﻿using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;

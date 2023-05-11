@@ -1,11 +1,7 @@
-﻿using SPIRVCross;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Shaders;
+﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
-using Vortice.ShaderCompiler;
 
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
 

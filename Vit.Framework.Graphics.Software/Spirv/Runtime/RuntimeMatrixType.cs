@@ -6,13 +6,17 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 public interface IMatrixType {
-	void Multiply ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory );
+	int Rows { get; }
+	int Columns { get; }
+
+	void MultiplyVector ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory );
+	void MultiplyMatrix ( VariableInfo left, VariableInfo right, VariableInfo result, ShaderMemory memory );
 }
 
 public abstract class RuntimeMatrixType<T, TMatrix> : RuntimeType<TMatrix>, IMatrixType, IRuntimeType where T : unmanaged, INumber<T> where TMatrix : unmanaged {
 	public readonly IRuntimeType<T> ElementType;
-	public readonly int Rows;
-	public readonly int Columns;
+	public int Rows { get; }
+	public int Columns { get; }
 	public RuntimeMatrixType ( IRuntimeType<T> elementType, int rows, int columns ) {
 		ElementType = elementType;
 		Rows = rows;
@@ -50,7 +54,8 @@ public abstract class RuntimeMatrixType<T, TMatrix> : RuntimeType<TMatrix>, IMat
 		return sb.ToString();
 	}
 
-	public abstract void Multiply ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory );
+	public abstract void MultiplyVector ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory );
+	public abstract void MultiplyMatrix ( VariableInfo left, VariableInfo right, VariableInfo result, ShaderMemory memory );
 }
 
 public class RuntimeMatrix4Type<T> : RuntimeMatrixType<T, Matrix4<T>> where T : unmanaged, INumber<T> {
@@ -60,10 +65,14 @@ public class RuntimeMatrix4Type<T> : RuntimeMatrixType<T, Matrix4<T>> where T : 
 		return $"Matrix4<{ElementType}>";
 	}
 
-	public override void Multiply ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory ) {
+	public override void MultiplyVector ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory ) {
 		var mat = memory.Read<Matrix4<T>>( matrix.Address );
 		var vec = memory.Read<Vector4<T>>( vector.Address );
 		memory.Write( result.Address, vec * mat );
+	}
+
+	public override void MultiplyMatrix ( VariableInfo left, VariableInfo right, VariableInfo result, ShaderMemory memory ) {
+		throw new NotImplementedException();
 	}
 }
 
@@ -74,9 +83,23 @@ public class RuntimeMatrix3Type<T> : RuntimeMatrixType<T, Matrix4x3<T>> where T 
 		return $"Matrix3<{ElementType}>";
 	}
 
-	public override void Multiply ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory ) {
+	public override void MultiplyVector ( VariableInfo matrix, VariableInfo vector, VariableInfo result, ShaderMemory memory ) {
 		var mat = memory.Read<Matrix4x3<T>>( matrix.Address );
 		var vec = memory.Read<Vector3<T>>( vector.Address );
 		memory.Write( result.Address, vec * mat );
+	}
+
+	public override void MultiplyMatrix ( VariableInfo left, VariableInfo right, VariableInfo result, ShaderMemory memory ) {
+		var otherType = (IMatrixType)right.Type;
+
+		if ( otherType.Rows == 3 ) {
+			var a = memory.Read<Matrix4x3<T>>( left.Address );
+			var b = memory.Read<Matrix4x3<T>>( right.Address );
+
+			memory.Write( result.Address, b * a );
+		}
+		else {
+			throw new NotImplementedException();
+		}
 	}
 }

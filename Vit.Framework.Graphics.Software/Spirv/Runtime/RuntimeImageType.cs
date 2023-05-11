@@ -33,7 +33,7 @@ public class RuntimeSamplerType : IRuntimeType {
 		ImageType = imageType;
 	}
 
-	public int Size { get; } = sizeof(int);
+	public int Size { get; } = Marshal.SizeOf( default( OpaqueHandle ) );
 
 	public IRuntimeType Vectorize ( uint count ) {
 		throw new NotImplementedException();
@@ -44,7 +44,7 @@ public class RuntimeSamplerType : IRuntimeType {
 	}
 
 	public object Parse ( ReadOnlySpan<byte> data ) {
-		return MemoryMarshal.Read<int>( data );
+		return MemoryMarshal.Read<OpaqueHandle>( data );
 	}
 
 	public override string ToString () {

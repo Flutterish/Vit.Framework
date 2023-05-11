@@ -10,7 +10,7 @@ using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
-using Vit.Framework.Graphics.Software.Uniforms;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -62,18 +62,17 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	void loadUniforms ( ref ShaderMemory memory ) {
-		var uniforms = ((UniformSet)ShaderSet.GetUniformSet(0)).UniformBuffers;
-		foreach ( var (binding, uniform) in ShaderSet.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
-			var address = ShaderSet.Uniforms[binding];
+		foreach ( var ((set, binding), uniform) in ShaderSet.Shaders.SelectMany( x => x.UniformsByBinding ).DistinctBy( x => x.Key ) ) {
+			var address = ShaderSet.Uniforms[(set, binding)];
 
-			var data = uniforms[binding];
+			var data = ShaderSet.UniformSets[set].UniformBuffers[binding];
 			data.buffer.Bytes.Slice( (int)data.offset, (int)data.stride ).CopyTo( memory.GetMemory( address, (int)data.stride ) );
 		}
 
-		foreach ( var (binding, uniform) in ShaderSet.Shaders.SelectMany( x => x.UniformConstantsByBinding ).DistinctBy( x => x.Key ) ) {
-			var address = ShaderSet.Uniforms[binding];
+		foreach ( var ((set, binding), uniform) in ShaderSet.Shaders.SelectMany( x => x.UniformConstantsByBinding ).DistinctBy( x => x.Key ) ) {
+			var address = ShaderSet.Uniforms[(set, binding)];
 
-			memory.Write( address, value: binding );
+			memory.Write( address, value: new OpaqueHandle { Set = set, Binding = binding } );
 		}
 	}
 
@@ -91,6 +90,13 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		var frag = (SoftwareFragmentShader)ShaderSet.Shaders.First( x => x.Type == ShaderPartType.Fragment );
 		loadUniforms( ref memory );
 		beginStage( ShaderSet.VertexStage, ref memory );
+
+		frag.GlobalScope.Opaques.Samplers.Clear();
+		foreach ( var (set, uniforms) in ShaderSet.UniformSets ) {
+			foreach ( var (binding, sampler) in uniforms.Samplers ) {
+				frag.GlobalScope.Opaques.Samplers.Add( new OpaqueHandle { Set = set, Binding = binding }, sampler );
+			}
+		}
 
 		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
 		var vertexBytes = vertexBuffer.Bytes;

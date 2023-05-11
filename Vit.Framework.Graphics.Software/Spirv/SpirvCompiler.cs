@@ -284,6 +284,12 @@ public class SpirvCompiler {
 			currentFunction!.AddInstruction( mul );
 			ensureResultExists( mul.ResultId, mul.ResultTypeId );
 		}
+		else if ( code == OpCode.MatrixTimesMatrix ) {
+			var mul = new MatrixTimesMatrix( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), LeftMatrixId = read( ref data ), RightMatrixId = read( ref data ) };
+			Instructions.Add( mul );
+			currentFunction!.AddInstruction( mul );
+			ensureResultExists( mul.ResultId, mul.ResultTypeId );
+		}
 		else if ( code == OpCode.VectorShuffle ) {
 			var shuffle = new VectorShuffle( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), VectorAId = read( ref data ), VectorBId = read( ref data ), Components = readArray( ref data ) };
 			Instructions.Add( shuffle );

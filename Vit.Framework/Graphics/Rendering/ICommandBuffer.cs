@@ -162,7 +162,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	IShaderSet ICommandBuffer.ShaderSet => ShaderSet;
 	protected TShaderSet ShaderSet { get; private set; } = null!;
-	public void SetShaders ( IShaderSet shaders ) {
+	public void SetShaders ( IShaderSet shaders ) { // TODO we need to detect uniform changes so we don't waste time binding them again
 		if ( shaders == ShaderSet )
 			return;
 

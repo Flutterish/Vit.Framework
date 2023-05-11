@@ -17,7 +17,7 @@ public class ImageSample : Instruction {
 	public uint[] Ids = Array.Empty<uint>();
 
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
-		var sampler = scope.Opaques.Samplers[(uint)memory.Read<int>( scope.VariableInfo[SampledImageId].Address )];
+		var sampler = scope.Opaques.Samplers[memory.Read<OpaqueHandle>( scope.VariableInfo[SampledImageId].Address )];
 		var coordType = scope.VariableInfo[CoordinateId];
 
 		var coord = memory.Read<Point2<float>>( coordType.Address );

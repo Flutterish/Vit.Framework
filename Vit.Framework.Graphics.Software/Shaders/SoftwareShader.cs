@@ -20,10 +20,10 @@ public class SoftwareShader : IShaderPart {
 	public readonly Dictionary<uint, int> BuiltinOutputOffsets = new();
 
 	public readonly Dictionary<uint, RuntimePointerType> InterfacesById = new();
-	public readonly Dictionary<uint, RuntimePointerType> UniformsByBinding = new();
-	public readonly Dictionary<uint, RuntimePointerType> UniformConstantsByBinding = new();
-	public readonly Dictionary<uint, uint> UniformIdByBinding = new();
-	public readonly Dictionary<uint, uint> UniformConstantIdByBinding = new();
+	public readonly Dictionary<(uint set, uint binding), RuntimePointerType> UniformsByBinding = new();
+	public readonly Dictionary<(uint set, uint binding), RuntimePointerType> UniformConstantsByBinding = new();
+	public readonly Dictionary<(uint set, uint binding), uint> UniformIdByBinding = new();
+	public readonly Dictionary<(uint set, uint binding), uint> UniformConstantIdByBinding = new();
 
 	public readonly RuntimeScope GlobalScope = new() { Opaques = new() };
 	public readonly RuntimeFunction Entry;
@@ -38,13 +38,15 @@ public class SoftwareShader : IShaderPart {
 
 		foreach ( var (id, uniform) in compiler.Variables.Where( x => x.Value.StorageClass == StorageClass.Uniform ) ) {
 			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
-			UniformsByBinding.Add( binding, uniform.Type.GetRuntimeType() );
-			UniformIdByBinding.Add( binding, id );
+			var set = uniform.Decorations[DecorationName.DescriptorSet].Data[0];
+			UniformsByBinding.Add( (set, binding), uniform.Type.GetRuntimeType() );
+			UniformIdByBinding.Add( (set, binding), id );
 		}
 		foreach ( var (id, uniform) in compiler.Variables.Where( x => x.Value.StorageClass == StorageClass.UniformConstant ) ) {
 			var binding = uniform.Decorations[DecorationName.Binding].Data[0];
-			UniformConstantsByBinding.Add( binding, uniform.Type.GetRuntimeType() );
-			UniformConstantIdByBinding.Add( binding, id );
+			var set = uniform.Decorations[DecorationName.DescriptorSet].Data[0];
+			UniformConstantsByBinding.Add( (set, binding), uniform.Type.GetRuntimeType() );
+			UniformConstantIdByBinding.Add( (set, binding), id );
 		}
 		foreach ( var i in inputInterfaces ) {
 			var location = i.Decorations[DecorationName.Location].Data[0];

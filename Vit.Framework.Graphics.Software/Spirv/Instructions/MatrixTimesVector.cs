@@ -16,7 +16,7 @@ public class MatrixTimesVector : Instruction {
 		var vector = scope.VariableInfo[VectorId];
 		var result = scope.VariableInfo[ResultId];
 
-		((IMatrixType)matrix.Type).Multiply( matrix, vector, result, memory );
+		((IMatrixType)matrix.Type).MultiplyVector( matrix, vector, result, memory );
 	}
 
 	public override string ToString () {
