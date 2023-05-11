@@ -3,7 +3,9 @@ using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
@@ -78,6 +80,16 @@ public class UniformFlatMapping {
 		}
 
 		return true;
+	}
+
+	public void Apply ( SpirvBytecode spirv, Span<byte> data ) {
+		var wordView = MemoryMarshal.Cast<byte, uint>( data );
+		foreach ( var ((set, oiginalBinding), binding) in Bindings ) {
+			if ( !spirv.Reflections.Uniforms.Sets.TryGetValue( set, out var setInfo ) || setInfo.Resources.FirstOrDefault( x => x.Binding == oiginalBinding ) is not UniformResourceInfo resource )
+				continue;
+
+			wordView[(int)resource.BindingBinaryOffset] = binding;
+		}
 	}
 }
 

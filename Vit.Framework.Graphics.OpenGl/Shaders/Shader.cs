@@ -44,13 +44,7 @@ public class Shader : DisposableObject {
 		} );
 
 		var dataArray = new RentedArray<byte>( spirv.Data );
-		var wordView = MemoryMarshal.Cast<byte, uint>( dataArray.AsSpan() );
-		foreach ( var ((set, oiginalBinding), binding) in mapping.Bindings ) {
-			if ( !spirv.Reflections.Uniforms.Sets.TryGetValue( set, out var setInfo ) || setInfo.Resources.FirstOrDefault( x => x.Binding == oiginalBinding ) is not UniformResourceInfo resource )
-				continue;
-
-			wordView[(int)resource.BindingBinaryOffset] = binding;
-		}
+		mapping.Apply( spirv, dataArray );
 
 		GL.ShaderBinary( 1, &handle, BinaryFormat.ShaderBinaryFormatSpirV, (nint)dataArray.Data(), dataArray.Length );
 		Handle = handle;
