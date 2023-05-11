@@ -11,23 +11,29 @@ namespace Vit.Framework.Graphics.Direct3D11.Shaders;
 
 public class ShaderSet : DisposableObject, IShaderSet {
 	public IEnumerable<IShaderPart> Parts => Shaders;
-	public readonly ImmutableArray<Shader> Shaders;
+	public readonly ImmutableArray<UnlinkedShader> Shaders;
+	public readonly ImmutableArray<Shader> LinkedShaders;
 
 	public readonly ID3D11InputLayout? Layout;
 	public readonly ID3D11DeviceContext Context;
 	public readonly int Stride;
+	public readonly UniformFlatMapping UniformMapping;
 	public ShaderSet ( IEnumerable<IShaderPart> parts, ID3D11DeviceContext context ) {
 		Context = context;
-		Shaders = parts.Select( x => (Shader)x ).ToImmutableArray();
+		Shaders = parts.Select( x => (UnlinkedShader)x ).ToImmutableArray();
 
-		var vert = Shaders.OfType<VertexShader>().FirstOrDefault();
+		UniformMapping = this.CreateUniformInfo().CreateFlatMapping();
+		LinkedShaders = Shaders.Select( x => x.GetShader( UniformMapping ) ).ToImmutableArray();
+
+		var vert = LinkedShaders.OfType<VertexShader>().FirstOrDefault();
 		if ( vert is null )
 			return;
 
-		var inputs = new InputElementDescription[vert.ShaderInfo.Input.Resources.Count];
+		var vertInfo = Shaders.First( x => x.Type == ShaderPartType.Vertex );
+		var inputs = new InputElementDescription[vertInfo.ShaderInfo.Input.Resources.Count];
 		int i = 0;
 		int offset = 0;
-		foreach ( var vertex in vert.ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
+		foreach ( var vertex in vertInfo.ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
 			var (size, format) = (vertex.Type.PrimitiveType, vertex.Type.Dimensions) switch {
 				(PrimitiveType.Float32, [2]) => (sizeof(float), Format.R32G32_Float),
 				(PrimitiveType.Float32, [3]) => (sizeof(float), Format.R32G32B32_Float),
@@ -55,20 +61,20 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public Dictionary<uint, UniformSet> UniformSets = new();
 	public IUniformSet GetUniformSet ( uint set = 0 ) {
 		if ( !UniformSets.TryGetValue( set, out var value ) )
-			UniformSets.Add( set, value = new() );
+			UniformSets.Add( set, value = new( set ) );
 
 		return value;
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		Layout?.Dispose();
-	}
-
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		throw new NotImplementedException();
+		return new UniformSet( set );
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
-		throw new NotImplementedException();
+		UniformSets[set] = (UniformSet)uniforms;
+	}
+
+	protected override void Dispose ( bool disposing ) {
+		Layout?.Dispose();
 	}
 }

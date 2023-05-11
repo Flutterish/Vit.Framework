@@ -44,11 +44,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {
-		return spirv.Type switch {
-			ShaderPartType.Vertex => new VertexShader( spirv, Device ),
-			ShaderPartType.Fragment => new PixelShader( spirv, Device ),
-			_ => throw new ArgumentException( $"Unsupported shader type: {spirv.Type}", nameof( spirv ) )
-		};
+		return new UnlinkedShader( spirv, Device );
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {

@@ -23,9 +23,9 @@ public partial class Program : App {
 	protected override void Initialize () {
 		List<GraphicsApiType> apis = new() {
 			//GraphicsApiType.Software, 
-			//GraphicsApiType.Direct3D11, 
+			GraphicsApiType.Direct3D11, 
 			//GraphicsApiType.Vulkan,
-			GraphicsApiType.OpenGl
+			//GraphicsApiType.OpenGl
 		};
 
 		using Host host = new SdlHost( this );
