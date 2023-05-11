@@ -16,6 +16,10 @@ public abstract class CompilerObject {
 		? decorations
 		: emptyDecorations;
 
+	public Constant GetConstant ( uint id ) {
+		return Compiler.Constants[id];
+	}
+
 	public IValue GetValue ( uint id ) {
 		return Compiler.Values[id];
 	}

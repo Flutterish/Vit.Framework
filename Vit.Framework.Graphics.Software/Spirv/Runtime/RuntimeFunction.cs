@@ -41,6 +41,7 @@ public class RuntimeFunction {
 	}
 
 	public void Call ( ShaderMemory memory ) {
+		//DebugFrame.ParentFrame = memory.DebugFrame;
 		//memory.DebugFrame = DebugFrame;
 		//DebugFrame.StackPointerOffset = memory.StackPointer;
 

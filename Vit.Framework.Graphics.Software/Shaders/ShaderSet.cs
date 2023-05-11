@@ -1,12 +1,12 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
-using UniformLinkage = System.Collections.Generic.Dictionary<(uint set, uint binding), int>;
-using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
-using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
-using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Uniforms;
+using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
+using OutputLinkage = System.Collections.Generic.Dictionary<uint, int>;
+using StageVariables = System.Collections.Generic.Dictionary<uint, Vit.Framework.Graphics.Software.Shaders.VariableInfo>;
+using UniformLinkage = System.Collections.Generic.Dictionary<(uint set, uint binding), int>;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 

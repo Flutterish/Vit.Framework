@@ -10,6 +10,8 @@ public class Return : Instruction {
 		scope.CodePointer = int.MaxValue;
 	}
 
+	protected override string DeuggerDisplay => ToString();
+
 	public override string ToString () {
 		return "return";
 	}

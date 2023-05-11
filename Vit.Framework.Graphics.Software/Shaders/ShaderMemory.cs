@@ -83,6 +83,10 @@ public ref struct ShaderMemory {
 		GetMemory( from.Address, from.Type.Size ).CopyTo( Memory[to..] );
 	}
 
+	public void Copy ( int from, int to, int size ) {
+		GetMemory( from, size ).CopyTo( Memory[to..] );
+	}
+
 	public VariableInfo StackAlloc ( IRuntimeType type ) {
 		var ptr = StackPointer;
 		StackPointer += type.Size;

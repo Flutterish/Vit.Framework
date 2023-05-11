@@ -1,5 +1,5 @@
-﻿using Vit.Framework.Parsing.Binary;
-using Vit.Framework.Parsing;
+﻿using Vit.Framework.Parsing;
+using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Adobe;
 

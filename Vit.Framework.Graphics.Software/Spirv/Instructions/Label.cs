@@ -8,6 +8,8 @@ public class Label : Instruction {
 
 	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) { }
 
+	protected override string DeuggerDisplay => ToString();
+
 	public override string ToString () {
 		return $"label {Id}:";
 	}

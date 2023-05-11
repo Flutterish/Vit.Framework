@@ -18,9 +18,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using OpenTK;
+using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Graphics.OpenGl;
 

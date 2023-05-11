@@ -11,12 +11,26 @@ public class Store : Instruction {
 	public uint ObjectId;
 	public MemoryOperands? MemoryOperands;
 
-	public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
-		var toPtr = scope.VariableInfo[PointerId];
-		var toAddress = memory.Read<int>( toPtr.Address );
-		var from = scope.VariableInfo[ObjectId];
+	//public override void Execute ( RuntimeScope scope, ShaderMemory memory ) {
+	//	var toPtr = scope.VariableInfo[PointerId];
+	//	var toAddress = memory.Read<int>( toPtr.Address );
+	//	var from = scope.VariableInfo[ObjectId];
 
-		memory.Copy( from, toAddress );
+	//	memory.Copy( from, toAddress );
+	//}
+
+	JitedVariable pointer;
+	JitedVariable source;
+	protected override void JitCompile ( RuntimeScope scope, int stackPointer ) {
+		pointer = JitVariable( PointerId, scope, stackPointer );
+		source = JitVariable( ObjectId, scope, stackPointer );
+	}
+
+	protected override void ExecuteCompiled ( ShaderOpaques opaques, ShaderMemory memory ) {
+		var toAddress = memory.Read<int>( pointer.Address( memory.StackPointer ) );
+		var from = source.Address( memory.StackPointer );
+
+		memory.Copy( from, toAddress, source.Size );
 	}
 
 	public override string ToString () {

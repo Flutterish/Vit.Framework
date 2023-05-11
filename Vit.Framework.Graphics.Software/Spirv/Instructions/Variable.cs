@@ -17,5 +17,4 @@ public class Variable : CompilerObject, IValue, IAssignable {
 	public override string ToString () {
 		return $"{GetName(Id) ?? $"var_{Id}" } ({StorageClass}) : {GetDataType(TypeId)}{(InitializerId == null ? "" : $" = %{InitializerId}")}";
 	}
-
 }

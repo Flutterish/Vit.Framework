@@ -267,7 +267,7 @@ public class SpirvCompiler {
 			ensureResultExists( extract.ResultId, extract.ResultTypeId );
 		}
 		else if ( code == OpCode.CompositeConstruct ) {
-			var construct = new CompositeConstruct( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), Values = readArray( ref data ) };
+			var construct = new CompositeConstruct( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), ValueIds = readArray( ref data ) };
 			Instructions.Add( construct );
 			currentFunction!.AddInstruction( construct );
 			ensureResultExists( construct.ResultId, construct.ResultTypeId );

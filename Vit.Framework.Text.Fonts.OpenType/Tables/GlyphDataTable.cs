@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Memory;
-using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Parsing;
+using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 

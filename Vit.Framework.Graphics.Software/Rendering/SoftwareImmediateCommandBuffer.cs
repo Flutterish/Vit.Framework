@@ -1,16 +1,16 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
+using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Interop;
-using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
-using Vit.Framework.Graphics.Software.Spirv.Runtime;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -81,7 +81,6 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
 
 		//memory.DebugFrame = ShaderSet.BakedDebug;
-		//memory.DebugFrame.StackPointerOffset = memory.StackPointer;
 
 		var vertexBuffer = (IByteBuffer)VertexBuffer;
 		var shaders = ShaderSet.Shaders;

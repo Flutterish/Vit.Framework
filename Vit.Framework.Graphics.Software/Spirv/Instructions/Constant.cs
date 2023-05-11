@@ -11,6 +11,7 @@ public class Constant : CompilerObject, IValue {
 
 	public uint DataTypeId;
 	public uint[] Data = Array.Empty<uint>();
+	public ReadOnlySpan<byte> DataSpan => MemoryMarshal.Cast<uint, byte>( Data.AsSpan() );
 
 	public DataType Type => GetDataType( DataTypeId );
 
