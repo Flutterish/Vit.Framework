@@ -92,6 +92,33 @@ public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<
 		};
 	}
 	
+	public static Size4<T> operator * ( Size4<T> left, T right ) {
+		return new() {
+			Width = left.Width * right,
+			Height = left.Height * right,
+			Depth = left.Depth * right,
+			Anakata = left.Anakata * right
+		};
+	}
+	
+	public static Size4<T> operator * ( T left, Size4<T> right ) {
+		return new() {
+			Width = left * right.Width,
+			Height = left * right.Height,
+			Depth = left * right.Depth,
+			Anakata = left * right.Anakata
+		};
+	}
+	
+	public static Size4<T> operator / ( Size4<T> left, T right ) {
+		return new() {
+			Width = left.Width / right,
+			Height = left.Height / right,
+			Depth = left.Depth / right,
+			Anakata = left.Anakata / right
+		};
+	}
+	
 	public static bool operator == ( Size4<T> left, Size4<T> right ) {
 		return left.Width == right.Width
 			&& left.Height == right.Height

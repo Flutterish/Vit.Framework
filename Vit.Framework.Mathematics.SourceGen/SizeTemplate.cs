@@ -11,6 +11,12 @@ public class SizeTemplate : SpanLikeTemplate {
 		return $"Size{size}";
 	}
 
+	protected override void GenerateOperators ( int size, SourceStringBuilder sb ) {
+		GenerateComponentwiseScalarOperatorRight( size, sb, "*" );
+		GenerateComponentwiseScalarOperatorLeft( size, sb, "*" );
+		GenerateComponentwiseScalarOperatorRight( size, sb, "/" );
+	}
+
 	protected override void GenerateToString ( int size, SourceStringBuilder sb ) {
 		var elements = Enumerable.Range( 0, size );
 		sb.Append( "return $\"" );

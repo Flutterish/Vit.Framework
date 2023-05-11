@@ -21,7 +21,7 @@ public class TestFinal_2D : GenericRenderThread {
 	ShaderStore shaderStore = new();
 	Texture texture;
 
-	Container<Drawable> container;
+	ViewportContainer<Drawable> container;
 	public TestFinal_2D ( Window window, Host host, string name, GraphicsApi api ) : base( window, host, name, api ) {
 		shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
 			layout(location = 0) in vec2 inPositionAndUv;
@@ -57,18 +57,17 @@ public class TestFinal_2D : GenericRenderThread {
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
 
-		drawableRenderer = new( container = new() {
-			Position = new( -1 ),
-			Scale = new( 2 )
+		drawableRenderer = new( container = new( new( 1920, 1080 ), window.Size.Cast<float>(), FillMode.Fit ) {
+			Position = new( -1 )
 		} );
 		container.AddChild( new Sprite( shaderStore, texture ) {
-			Scale = new( 200 )
+			Scale = new( 1080, 1080 )
 		} );
 		for ( int i = 0; i < 10; i++ ) {
 			container.AddChild( new Sprite( shaderStore, texture ) {
-				Scale = new( 100 * float.Pow( 0.5f, i ) ),
-				X = 200,
-				Y = 200 - 200 * float.Pow( 0.5f, i )
+				Scale = new( 1080 / 2 * float.Pow( 0.5f, i ) ),
+				X = 1080,
+				Y = 1080 - 1080 * float.Pow( 0.5f, i )
 			} );
 		}
 	}
@@ -91,8 +90,11 @@ public class TestFinal_2D : GenericRenderThread {
 	}
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
+		container.AvailableSize = Window.Size.Cast<float>();
+		drawableRenderer.CollectDrawData();
+
 		shaderStore.CompileNew( commands.Renderer );
-		var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width, Window.Height ) * new Matrix3<float>( commands.Renderer.CreateLeftHandCorrectionMatrix<float>() );
+		var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( commands.Renderer.CreateLeftHandCorrectionMatrix<float>() );
 		globalUniformBuffer.Upload( new GlobalUniforms {
 			Matrix = new( mat )
 		} );
@@ -102,7 +104,6 @@ public class TestFinal_2D : GenericRenderThread {
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );
 
-		drawableRenderer.CollectDrawData();
 		drawableRenderer.Draw( commands );
 	}
 

@@ -46,6 +46,27 @@ public struct Size2<T> : IInterpolatable<Size2<T>, T>, IEqualityOperators<Size2<
 		};
 	}
 	
+	public static Size2<T> operator * ( Size2<T> left, T right ) {
+		return new() {
+			Width = left.Width * right,
+			Height = left.Height * right
+		};
+	}
+	
+	public static Size2<T> operator * ( T left, Size2<T> right ) {
+		return new() {
+			Width = left * right.Width,
+			Height = left * right.Height
+		};
+	}
+	
+	public static Size2<T> operator / ( Size2<T> left, T right ) {
+		return new() {
+			Width = left.Width / right,
+			Height = left.Height / right
+		};
+	}
+	
 	public static bool operator == ( Size2<T> left, Size2<T> right ) {
 		return left.Width == right.Width
 			&& left.Height == right.Height;

@@ -25,6 +25,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 			return;
 
 		unitToLocal = null;
+		unitToGlobal = null;
 		OnMatrixInvalidated();
 	}
 
@@ -112,7 +113,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	Matrix3<float>? unitToGlobal;
 	public Matrix3<float> UnitToGlobalMatrix => unitToGlobal ??= Parent is null
 		? UnitToLocalMatrix
-		: UnitToLocalMatrix * Parent.UnitToGlobalMatrix;
+		: (UnitToLocalMatrix * Parent.UnitToGlobalMatrix);
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );

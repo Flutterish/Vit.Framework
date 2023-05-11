@@ -22,10 +22,10 @@ public partial class Program : App {
 
 	protected override void Initialize () {
 		List<GraphicsApiType> apis = new() {
-			GraphicsApiType.Software, 
+			//GraphicsApiType.Software, 
 			//GraphicsApiType.Direct3D11, 
 			//GraphicsApiType.Vulkan,
-			//GraphicsApiType.OpenGl
+			GraphicsApiType.OpenGl
 		};
 
 		using Host host = new SdlHost( this );
@@ -43,7 +43,7 @@ public partial class Program : App {
 			window.Title = $"Window {Letters[i]} [{api}]";
 			window.Initialized += _ => {
 				var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
-				ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
+				ThreadRunner.RegisterThread( new TestFinal_2D( window, windowHost, window.Title, graphicsApi ) );
 			};
 			windows.Add( window );
 		}

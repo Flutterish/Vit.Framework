@@ -60,6 +60,8 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 
 	protected override void OnMatrixInvalidated () {
+		base.OnMatrixInvalidated();
+
 		foreach ( var i in internalChildren )
 			i.OnParentMatrixInvalidated();
 	}
