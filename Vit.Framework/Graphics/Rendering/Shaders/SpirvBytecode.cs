@@ -1,4 +1,5 @@
 ﻿using SPIRVCross;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Interop;
@@ -46,7 +47,7 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		Reflections = ShaderInfo.FromSpirv( type, this ); // TODO merge with cross compile when applicable
 	}
 
-	public unsafe string CrossCompile ( ShaderLanguage target ) {
+	public unsafe string CrossCompile ( ShaderLanguage target, Action<spvc_compiler>? action = null ) {
 		void validate ( spvc_result result ) {
 			if ( result != spvc_result.SPVC_SUCCESS ) {
 				throw new Exception( $"{result}" );
@@ -63,6 +64,7 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		SPIRV.spvc_context_set_error_callback( context, callback, null );
 		spvc_parsed_ir ir;
 		validate( SPIRV.spvc_context_parse_spirv( context, MemoryMarshal.Cast<byte, SpvId>( Data ).Data(), (nuint)Data.Length / 4, &ir ) );
+		
 		spvc_compiler compiler;
 		validate( SPIRV.spvc_context_create_compiler( context, target switch {
 			ShaderLanguage.GLSL => spvc_backend.Glsl,
@@ -81,6 +83,7 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		}
 
 		SPIRV.spvc_compiler_install_compiler_options( compiler, options );
+		action?.Invoke( compiler );
 
 		byte* res = null;
 		validate( SPIRV.spvc_compiler_compile( compiler, (byte*)&res ) );

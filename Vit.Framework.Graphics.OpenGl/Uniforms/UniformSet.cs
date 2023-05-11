@@ -8,6 +8,11 @@ using Vit.Framework.Graphics.Rendering.Uniforms;
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
 public class UniformSet : IUniformSet {
+	public readonly uint Set;
+	public UniformSet ( uint set ) {
+		Set = set;
+	}
+
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		var buf = (Buffer<T>)buffer;
@@ -19,15 +24,20 @@ public class UniformSet : IUniformSet {
 		Samplers[binding] = (Texture2D)texture;
 	}
 
-	public void Apply ( uint index, ShaderProgram shader ) {
-		foreach ( var (binding, (buffer, stride, offset)) in Buffers ) {
-			var blockIndex = index; // TODO figure out set+binding -> block index
-			var UBOindex = index;
-			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)blockIndex, buffer.Handle, (nint)offset, stride );
-			GL.UniformBlockBinding( (uint)shader.Handle, UBOindex, blockIndex );
+	public void Apply ( ShaderProgram program ) {
+		var mapping = program.UniformMapping;
+
+		foreach ( var (originalBinding, (buffer, stride, offset)) in Buffers ) {
+			var binding = mapping.Bindings[(Set, originalBinding)];
+
+			var UBOindex = binding;
+			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)binding, buffer.Handle, (nint)offset, stride );
+			GL.UniformBlockBinding( (uint)program.Handle, UBOindex, binding );
 		}
 
-		foreach ( var (binding, texture) in Samplers ) {
+		foreach ( var (originalBinding, texture) in Samplers ) {
+			var binding = mapping.Bindings[(Set, originalBinding)];
+
 			GL.BindTextureUnit( (int)binding, texture.Handle );
 		}
 	}

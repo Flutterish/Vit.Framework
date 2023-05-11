@@ -37,6 +37,10 @@ public class ShaderStore : DisposableObject {
 		}
 
 		while ( shadersToCompile.TryDequeue( out var shader ) ) {
+			foreach ( var i in shader.Parts ) {
+				if ( i.Value == null ) // this is a fix for that, but we should just do it better
+					i.Compile( renderer );
+			}
 			shader.Compile( renderer );
 		}
 	}

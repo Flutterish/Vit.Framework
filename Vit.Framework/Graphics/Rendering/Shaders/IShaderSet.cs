@@ -43,6 +43,15 @@ public interface IShaderSet : IDisposable {
 }
 
 public static class IShaderSetExtensions {
+	public static UniformInfo CreateUniformInfo ( this IShaderSet shaders ) {
+		var info = new UniformInfo();
+		foreach ( var i in shaders.GetUniformSetIndices() ) {
+			info.Sets.Add( i, shaders.CreateUniformSetInfo( i ) );
+		}
+
+		return info;
+	}
+
 	public static IEnumerable<uint> GetUniformSetIndices ( this IShaderSet shaders ) {
 		return shaders.Parts.SelectMany( x => x.ShaderInfo.Uniforms.Sets.Keys ).Distinct().OrderBy( x => x );
 	}
@@ -58,7 +67,8 @@ public static class IShaderSetExtensions {
 				Name = rep.Name,
 				Type = rep.Type,
 				Binding = rep.Binding,
-				Stages = i.SelectMany( x => x.Stages ).ToHashSet()
+				Stages = i.SelectMany( x => x.Stages ).ToHashSet(),
+				Id = uint.MaxValue
 			} );
 		}
 

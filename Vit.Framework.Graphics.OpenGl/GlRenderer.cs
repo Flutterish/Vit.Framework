@@ -31,11 +31,11 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {
-		return new Shader( spirv );
+		return new UnlinkedShader( spirv );
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
-		return new ShaderProgram( parts.Select( x => x as Shader )! );
+		return new ShaderProgram( parts.Select( x => x as UnlinkedShader )! );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
