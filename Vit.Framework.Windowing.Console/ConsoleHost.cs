@@ -11,20 +11,20 @@ public class ConsoleHost : Host {
 
 	public override Window CreateWindow ( GraphicsApiType renderingApi ) {
 		return renderingApi switch {
-			GraphicsApiType.Software => new ConsoleWindow(),
+			var x when x == CursesApi.GraphicsApiType => new ConsoleWindow(),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof( renderingApi ) )
 		};
 	}
 
 	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) {
 		return api switch {
-			GraphicsApiType.Software => new CursesApi( capabilities ),
+			var x when x == CursesApi.GraphicsApiType => new CursesApi( capabilities ),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof( api ) )
 		};
 	}
 
 	public override IEnumerable<GraphicsApiType> SupportedRenderingApis { get; } = new[] {
-		GraphicsApiType.Software
+		CursesApi.GraphicsApiType
 	};
 
 	public override void Dispose ( bool isDisposing ) {

@@ -4,9 +4,15 @@ using Vit.Framework.Graphics.Rendering;
 namespace Vit.Framework.Graphics.OpenGl;
 
 public class OpenGlApi : GraphicsApi {
+	public static readonly GraphicsApiType GraphicsApiType = new() {
+		KnownName = KnownGraphicsApiName.OpenGl,
+		Name = "OpenGL Core",
+		Version = 460
+	};
+
 	static IBindingsContext? bindings;
 	static object loadLock = new();
-	public OpenGlApi ( IEnumerable<RenderingCapabilities> capabilities ) : base( GraphicsApiType.OpenGl, capabilities ) {
+	public OpenGlApi ( IEnumerable<RenderingCapabilities> capabilities ) : base( GraphicsApiType, capabilities ) {
 		
 	}
 

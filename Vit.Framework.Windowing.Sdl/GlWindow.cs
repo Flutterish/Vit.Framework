@@ -7,7 +7,7 @@ using Vit.Framework.Graphics.Rendering.Queues;
 namespace Vit.Framework.Windowing.Sdl;
 
 class GlWindow : SdlWindow, IGlWindow {
-	public GlWindow ( SdlHost host ) : base( host, GraphicsApiType.OpenGl ) { 
+	public GlWindow ( SdlHost host ) : base( host, OpenGlApi.GraphicsApiType ) { 
 		
 	}
 

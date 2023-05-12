@@ -7,7 +7,7 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Windowing.Console;
 
 public class ConsoleWindow : Window {
-	public ConsoleWindow () : base( GraphicsApiType.Software ) {
+	public ConsoleWindow () : base( CursesApi.GraphicsApiType ) {
 		OnInitialized();
 	}
 

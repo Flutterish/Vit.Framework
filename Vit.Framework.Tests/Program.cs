@@ -1,4 +1,8 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using Vit.Framework.Graphics.Curses;
+using Vit.Framework.Graphics.Direct3D11;
+using Vit.Framework.Graphics.OpenGl;
+using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
@@ -22,10 +26,10 @@ public partial class Program : App {
 
 	protected override void Initialize () {
 		List<GraphicsApiType> apis = new() {
-			//GraphicsApiType.Software, 
-			//GraphicsApiType.Direct3D11, 
-			//GraphicsApiType.Vulkan,
-			GraphicsApiType.OpenGl
+			//CursesApi.GraphicsApiType,
+			//Direct3D11Api.GraphicsApiType,
+			//VulkanApi.GraphicsApiType,
+			OpenGlApi.GraphicsApiType
 		};
 
 		using Host host = new SdlHost( this );
@@ -35,7 +39,7 @@ public partial class Program : App {
 			var api = apis[i];
 
 			var windowHost = host;
-			if ( api == GraphicsApiType.Software ) {
+			if ( api == CursesApi.GraphicsApiType ) {
 				windowHost = new ConsoleHost( this );
 			}
 

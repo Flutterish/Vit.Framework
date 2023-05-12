@@ -94,9 +94,9 @@ public class SdlHost : Host {
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
 		SdlWindow window = renderingApi switch {
-			GraphicsApiType.Vulkan => new VulkanWindow( this ),
-			GraphicsApiType.Direct3D11 => new Direct3D11Window( this ),
-			GraphicsApiType.OpenGl => new GlWindow( this ),
+			var x when x == VulkanApi.GraphicsApiType => new VulkanWindow( this ),
+			var x when x == Direct3D11Api.GraphicsApiType => new Direct3D11Window( this ),
+			var x when x == OpenGlApi.GraphicsApiType => new GlWindow( this ),
 			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
 		};
 		window.SdlWindowCreated += window => {
@@ -113,9 +113,9 @@ public class SdlHost : Host {
 	}
 
 	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) => api switch {
-		GraphicsApiType.OpenGl => new OpenGlApi( capabilities ),
-		GraphicsApiType.Vulkan => createVulkanApi( capabilities ),
-		GraphicsApiType.Direct3D11 => new Direct3D11Api( capabilities ),
+		var x when x == OpenGlApi.GraphicsApiType => new OpenGlApi( capabilities ),
+		var x when x == VulkanApi.GraphicsApiType => createVulkanApi( capabilities ),
+		var x when x == Direct3D11Api.GraphicsApiType => new Direct3D11Api( capabilities ),
 		_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof(api) )
 	};
 
@@ -151,9 +151,9 @@ public class SdlHost : Host {
 	}
 
 	public override IEnumerable<GraphicsApiType> SupportedRenderingApis { get; } = new[] { 
-		GraphicsApiType.OpenGl,
-		GraphicsApiType.Vulkan,
-		GraphicsApiType.Direct3D11
+		OpenGlApi.GraphicsApiType,
+		VulkanApi.GraphicsApiType,
+		Direct3D11Api.GraphicsApiType
 	};
 
 	public override void Dispose ( bool isDisposing ) {
