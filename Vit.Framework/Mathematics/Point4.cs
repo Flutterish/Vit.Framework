@@ -170,6 +170,11 @@ public struct Point4<T> : IInterpolatable<Point4<T>, T>, IEqualityOperators<Poin
 			|| left.W != right.W;
 	}
 	
+	public static implicit operator Span<T> ( Point4<T> value )
+		=> value.AsSpan();
+	public static implicit operator ReadOnlySpan<T> ( Point4<T> value )
+		=> value.AsReadOnlySpan();
+	
 	public override bool Equals ( object? obj ) {
 		return obj is Point4<T> axes && Equals( axes );
 	}

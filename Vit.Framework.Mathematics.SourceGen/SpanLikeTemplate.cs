@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Vit.Framework.Mathematics.SourceGen;
 
 public abstract class SpanLikeTemplate : ClassTemplate<int> {
 	protected override string ClassType => "struct";
@@ -112,6 +114,12 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 			sb.AppendLine( ";" );
 		}
 		sb.AppendLine( "}" );
+
+		sb.AppendLine();
+		sb.AppendLine( $"public static implicit operator Span<T> ( {GetFullTypeName( size )} value )" );
+		sb.AppendLine( "\t=> value.AsSpan();" );
+		sb.AppendLine( $"public static implicit operator ReadOnlySpan<T> ( {GetFullTypeName( size )} value )" );
+		sb.AppendLine( "\t=> value.AsReadOnlySpan();" );
 
 		sb.AppendLine();
 		sb.AppendLine( "public override bool Equals ( object? obj ) {" );

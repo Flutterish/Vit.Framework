@@ -63,6 +63,11 @@ public struct Size1<T> : IInterpolatable<Size1<T>, T>, IEqualityOperators<Size1<
 		return left.Width != right.Width;
 	}
 	
+	public static implicit operator Span<T> ( Size1<T> value )
+		=> value.AsSpan();
+	public static implicit operator ReadOnlySpan<T> ( Size1<T> value )
+		=> value.AsReadOnlySpan();
+	
 	public override bool Equals ( object? obj ) {
 		return obj is Size1<T> axes && Equals( axes );
 	}

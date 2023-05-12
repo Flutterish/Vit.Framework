@@ -95,6 +95,11 @@ public struct Vector1<T> : IInterpolatable<Vector1<T>, T>, IEqualityOperators<Ve
 		return left.X != right.X;
 	}
 	
+	public static implicit operator Span<T> ( Vector1<T> value )
+		=> value.AsSpan();
+	public static implicit operator ReadOnlySpan<T> ( Vector1<T> value )
+		=> value.AsReadOnlySpan();
+	
 	public override bool Equals ( object? obj ) {
 		return obj is Vector1<T> axes && Equals( axes );
 	}

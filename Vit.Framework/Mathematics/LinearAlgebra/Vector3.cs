@@ -150,6 +150,11 @@ public struct Vector3<T> : IInterpolatable<Vector3<T>, T>, IEqualityOperators<Ve
 			|| left.Z != right.Z;
 	}
 	
+	public static implicit operator Span<T> ( Vector3<T> value )
+		=> value.AsSpan();
+	public static implicit operator ReadOnlySpan<T> ( Vector3<T> value )
+		=> value.AsReadOnlySpan();
+	
 	public override bool Equals ( object? obj ) {
 		return obj is Vector3<T> axes && Equals( axes );
 	}

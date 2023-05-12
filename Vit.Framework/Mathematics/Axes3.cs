@@ -69,6 +69,11 @@ public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<
 			|| left.Z != right.Z;
 	}
 	
+	public static implicit operator Span<T> ( Axes3<T> value )
+		=> value.AsSpan();
+	public static implicit operator ReadOnlySpan<T> ( Axes3<T> value )
+		=> value.AsReadOnlySpan();
+	
 	public override bool Equals ( object? obj ) {
 		return obj is Axes3<T> axes && Equals( axes );
 	}
