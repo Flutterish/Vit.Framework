@@ -110,6 +110,15 @@ public struct Axes4<T> : IInterpolatable<Axes4<T>, T>, IEqualityOperators<Axes4<
 		=> value.AsSpan();
 	public static implicit operator ReadOnlySpan<T> ( Axes4<T> value )
 		=> value.AsReadOnlySpan();
+	public static implicit operator Axes4<T> ( (T, T, T, T) value )
+		=> new( value.Item1, value.Item2, value.Item3, value.Item4 );
+	
+	public void Deconstruct ( out T x, out T y, out T z, out T w ) {
+		x = X;
+		y = Y;
+		z = Z;
+		w = W;
+	}
 	
 	public override bool Equals ( object? obj ) {
 		return obj is Axes4<T> axes && Equals( axes );

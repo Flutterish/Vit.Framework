@@ -99,6 +99,10 @@ public struct Vector1<T> : IInterpolatable<Vector1<T>, T>, IEqualityOperators<Ve
 		=> value.AsSpan();
 	public static implicit operator ReadOnlySpan<T> ( Vector1<T> value )
 		=> value.AsReadOnlySpan();
+	public static implicit operator Vector1<T> ( T value )	=> new( value );
+	public void Deconstruct ( out T x ) {
+		x = X;
+	}
 	
 	public override bool Equals ( object? obj ) {
 		return obj is Vector1<T> axes && Equals( axes );

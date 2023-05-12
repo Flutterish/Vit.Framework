@@ -154,6 +154,14 @@ public struct Vector3<T> : IInterpolatable<Vector3<T>, T>, IEqualityOperators<Ve
 		=> value.AsSpan();
 	public static implicit operator ReadOnlySpan<T> ( Vector3<T> value )
 		=> value.AsReadOnlySpan();
+	public static implicit operator Vector3<T> ( (T, T, T) value )
+		=> new( value.Item1, value.Item2, value.Item3 );
+	
+	public void Deconstruct ( out T x, out T y, out T z ) {
+		x = X;
+		y = Y;
+		z = Z;
+	}
 	
 	public override bool Equals ( object? obj ) {
 		return obj is Vector3<T> axes && Equals( axes );

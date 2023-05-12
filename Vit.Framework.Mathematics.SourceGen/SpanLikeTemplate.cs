@@ -121,6 +121,30 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 		sb.AppendLine( $"public static implicit operator ReadOnlySpan<T> ( {GetFullTypeName( size )} value )" );
 		sb.AppendLine( "\t=> value.AsReadOnlySpan();" );
 
+		if ( size != 1 ) {
+			sb.Append( $"public static implicit operator {type} ( (" );
+			sb.AppendJoin( ", ", elements.Select( x => "T" ) );
+			sb.AppendLine( ") value )" );
+			sb.Append( "\t=> new( " );
+			sb.AppendJoin( ", ", elements.Select( x => $"value.Item{x + 1}" ) );
+			sb.AppendLine( " );" );
+		}
+		else {
+			sb.Append( $"public static implicit operator {type} ( T value )" );
+			sb.Append( "\t=> new( value );" );
+		}
+
+		sb.AppendLine();
+		sb.Append( "public void Deconstruct ( " );
+		sb.AppendJoin( ", ", elements.Select( x => $"out T {AxisNames[x].ToLower()}" ) );
+		sb.AppendLine( " ) {" );
+		using ( sb.Indent() ) {
+			foreach ( var i in elements ) {
+				sb.AppendLine( $"{AxisNames[i].ToLower()} = {AxisNames[i]};" );
+			}
+		}
+		sb.AppendLine( "}" );
+
 		sb.AppendLine();
 		sb.AppendLine( "public override bool Equals ( object? obj ) {" );
 		using ( sb.Indent() )

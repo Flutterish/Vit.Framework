@@ -130,6 +130,14 @@ public struct Point3<T> : IInterpolatable<Point3<T>, T>, IEqualityOperators<Poin
 		=> value.AsSpan();
 	public static implicit operator ReadOnlySpan<T> ( Point3<T> value )
 		=> value.AsReadOnlySpan();
+	public static implicit operator Point3<T> ( (T, T, T) value )
+		=> new( value.Item1, value.Item2, value.Item3 );
+	
+	public void Deconstruct ( out T x, out T y, out T z ) {
+		x = X;
+		y = Y;
+		z = Z;
+	}
 	
 	public override bool Equals ( object? obj ) {
 		return obj is Point3<T> axes && Equals( axes );

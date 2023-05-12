@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
 using Vit.Framework.Windowing;
@@ -57,11 +58,12 @@ public class TestFinal_2D : GenericRenderThread {
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
 
-		drawableRenderer = new( container = new( new( 1920, 1080 ), window.Size.Cast<float>(), FillMode.Fit ) {
+		drawableRenderer = new( container = new( (1920, 1080), window.Size.Cast<float>(), FillMode.Fit ) {
 			Position = new( -1 )
 		} );
+
 		container.AddChild( new Sprite( shaderStore, texture ) {
-			Scale = new( 1080, 1080 )
+			Scale = (1080, 1080)
 		} );
 		for ( int i = 0; i < 10; i++ ) {
 			container.AddChild( new Sprite( shaderStore, texture ) {
