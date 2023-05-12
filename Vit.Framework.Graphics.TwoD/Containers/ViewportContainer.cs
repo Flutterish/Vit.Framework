@@ -1,13 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class ViewportContainer<T> : Container<T> where T : Drawable {
+public class ViewportContainer<T> : Container<T>, ILayoutContainer where T : Drawable {
+	Size2<float> size;
+	public Size2<float> Size {
+		get => size;
+		private set {
+			size = value;
+			ScaleX = availableSize.Width / value.Width;
+			ScaleY = availableSize.Height / value.Height;
+		}
+	}
+
+
 	Size2<float> availableSize;
 	public Size2<float> AvailableSize {
 		get => availableSize;
@@ -45,36 +58,29 @@ public class ViewportContainer<T> : Container<T> where T : Drawable {
 		var targetAspect = targetSize.Width / targetSize.Height;
 
 		if ( fillMode == FillMode.Stretch ) {
-			ScaleX = availableSize.Width / targetSize.Width;
-			ScaleY = availableSize.Height / targetSize.Height;
+			Size = targetSize;
 		}
 		else if ( fillMode == FillMode.Fit ) {
 			if ( aspect < targetAspect ) {
-				ScaleX = availableSize.Width / targetSize.Width;
-				ScaleY = availableSize.Height / (targetSize.Width / aspect);
+				Size = new( targetSize.Width, targetSize.Width / aspect );
 			}
 			else {
-				ScaleX = availableSize.Width / (targetSize.Height * aspect);
-				ScaleY = availableSize.Height / targetSize.Height;
+				Size = new( targetSize.Height * aspect, targetSize.Height );
 			}
 		}
 		else if ( fillMode == FillMode.Fill ) {
 			if ( aspect >= targetAspect ) {
-				ScaleX = availableSize.Width / targetSize.Width;
-				ScaleY = availableSize.Height / (targetSize.Width / aspect);
+				Size = new( targetSize.Width, targetSize.Width / aspect );
 			}
 			else {
-				ScaleX = availableSize.Width / (targetSize.Height * aspect);
-				ScaleY = availableSize.Height / targetSize.Height;
+				Size = new( targetSize.Height * aspect, targetSize.Height );
 			}
 		}
 		else if ( fillMode == FillMode.MatchWidth ) {
-			ScaleX = availableSize.Width / targetSize.Width;
-			ScaleY = availableSize.Height / (targetSize.Width / aspect);
+			size = new( targetSize.Width, targetSize.Width / aspect );
 		}
 		else if ( fillMode == FillMode.MatchHeight ) {
-			ScaleX = availableSize.Width / (targetSize.Height * aspect);
-			ScaleY = availableSize.Height / targetSize.Height;
+			size = new( targetSize.Height * aspect, targetSize.Height );
 		}
 		else {
 			throw new NotImplementedException();

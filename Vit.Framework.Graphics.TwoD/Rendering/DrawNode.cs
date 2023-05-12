@@ -6,7 +6,13 @@ namespace Vit.Framework.Graphics.TwoD;
 
 public partial class Drawable {
 	protected void InvalidateDrawNodes () {
+		if ( drawNodeInvalidations == 0b_111 )
+			return;
+		
 		drawNodeInvalidations = 0b_111;
+		if ( Parent != null ) {
+			((Drawable)Parent).InvalidateDrawNodes();
+		}
 	}
 	private byte drawNodeInvalidations = 0b_111;
 
