@@ -31,7 +31,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Windowing.Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Software", "Vit.Framework.Graphics.Software\Vit.Framework.Graphics.Software.csproj", "{24C0D091-5883-43AD-82A7-7457AC937F89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Mathematics.SourceGen", "Vit.Framework.Mathematics.SourceGen\Vit.Framework.Mathematics.SourceGen.csproj", "{D2AB83B6-EA02-47C7-977C-D10870D0B308}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Mathematics.SourceGen", "Vit.Framework.Mathematics.SourceGen\Vit.Framework.Mathematics.SourceGen.csproj", "{D2AB83B6-EA02-47C7-977C-D10870D0B308}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Audio.Bass", "Vit.Framework.Audio.Bass\Vit.Framework.Audio.Bass.csproj", "{77C09082-7701-4B1C-A97E-A448F6324873}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +101,10 @@ Global
 		{D2AB83B6-EA02-47C7-977C-D10870D0B308}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2AB83B6-EA02-47C7-977C-D10870D0B308}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2AB83B6-EA02-47C7-977C-D10870D0B308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77C09082-7701-4B1C-A97E-A448F6324873}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77C09082-7701-4B1C-A97E-A448F6324873}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77C09082-7701-4B1C-A97E-A448F6324873}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77C09082-7701-4B1C-A97E-A448F6324873}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

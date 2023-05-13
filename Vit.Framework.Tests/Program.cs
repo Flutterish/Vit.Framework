@@ -1,9 +1,8 @@
 ﻿using Vit.Framework.Graphics.Curses;
-using Vit.Framework.Graphics.Direct3D11;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Platform;
+using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
@@ -25,6 +24,10 @@ public partial class Program : App {
 	}
 
 	protected override void Initialize () {
+		initAudio();
+	}
+
+	void initGraphics () {
 		List<GraphicsApiType> apis = new() {
 			//CursesApi.GraphicsApiType,
 			//Direct3D11Api.GraphicsApiType,
@@ -58,5 +61,9 @@ public partial class Program : App {
 
 			Quit();
 		} );
+	}
+
+	void initAudio () {
+		ThreadRunner.RegisterThread( new Test01_Samples( "bass" ) );
 	}
 }

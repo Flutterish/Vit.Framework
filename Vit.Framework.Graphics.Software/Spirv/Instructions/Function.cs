@@ -6,7 +6,6 @@ namespace Vit.Framework.Graphics.Software.Spirv.Instructions;
 public class Function : Instruction {
 	public Function ( SourceRef source, uint id ) : base( source, id ) { }
 
-	public uint Id;
 	public uint ReturnTypeId;
 	public FunctionControl Control;
 	public uint TypeId;

@@ -12,9 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="combobreak.wav" />
     <None Remove="texture.jpg" />
     <None Remove="viking_room.obj" />
     <None Remove="viking_room.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="combobreak.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +51,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Vit.Framework.Audio.Bass\Vit.Framework.Audio.Bass.csproj">
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Vit.Framework.Graphics.Parsing.WaveFront\Vit.Framework.Graphics.Parsing.WaveFront.csproj" />
     <ProjectReference Include="..\Vit.Framework.Graphics.TwoD\Vit.Framework.Graphics.TwoD.csproj" />
     <ProjectReference Include="..\Vit.Framework.Text.Fonts.OpenType\Vit.Framework.Text.Fonts.OpenType.csproj" />

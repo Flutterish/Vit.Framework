@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace Vit.Framework.Mathematics.SourceGen;
+﻿namespace Vit.Framework.Mathematics.SourceGen;
 
 public abstract class SpanLikeTemplate : ClassTemplate<int> {
 	protected override string ClassType => "struct";
