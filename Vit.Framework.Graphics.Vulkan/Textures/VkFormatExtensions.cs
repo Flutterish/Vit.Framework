@@ -23,8 +23,9 @@ public static class VkFormatExtensions {
 
 	public static VkFormat GetFormat ( this (DepthFormat depth, StencilFormat stencil) type ) => type switch {
 		(DepthFormat.Bits16, StencilFormat.None) => VkFormat.D16Unorm,
-		(DepthFormat.Bits16, StencilFormat.Bits8) => VkFormat.D24UnormS8Uint,
-		(DepthFormat.Bits32, StencilFormat.None) => VkFormat.D32Sfloat,
+		(DepthFormat.Bits16, StencilFormat.Bits8) => VkFormat.D16UnormS8Uint,
+		(DepthFormat.Bits24, StencilFormat.Bits8) => VkFormat.D24UnormS8Uint,
+ 		(DepthFormat.Bits32, StencilFormat.None) => VkFormat.D32Sfloat,
 		(DepthFormat.Bits32, StencilFormat.Bits8) => VkFormat.D32SfloatS8Uint,
 		(DepthFormat.None, StencilFormat.Bits8) => VkFormat.S8Uint,
 		_ => VkFormat.Undefined

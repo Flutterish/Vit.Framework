@@ -46,10 +46,8 @@ public class TwoDTestApp : App {
 			var shaderStore = new ShaderStore();
 			deps.Cache( shaderStore );
 
-			var image = Image.Load<Rgba32>( "./texture.jpg" );
-			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-			var sampleTexture = new Texture( image );
-			deps.Cache( sampleTexture );
+			var textureStore = new TextureStore();
+			deps.Cache( textureStore );
 
 			shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPositionAndUv;
@@ -81,17 +79,25 @@ public class TwoDTestApp : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
+			var image = Image.Load<Rgba32>( "./texture.jpg" );
+			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
+			var sampleTexture = new Texture( image );
+			TextureIdentifier identifier = new() { Name = "./texture.jpg" };
+			textureStore.AddTexture( identifier, sampleTexture );
+
 			root.AddChild( new Sprite() {
 				Scale = (1920, 1080)
 			} );
 			root.AddChild( new Sprite() {
-				Scale = (1080, 1080)
+				Scale = (1080, 1080),
+				Texture = sampleTexture
 			} );
 			for ( int i = 0; i < 10; i++ ) {
 				root.AddChild( new Sprite() {
 					Scale = new( 1080 / 2 * float.Pow( 0.5f, i ) ),
 					X = 1080,
-					Y = 1080 - 1080 * float.Pow( 0.5f, i )
+					Y = 1080 - 1080 * float.Pow( 0.5f, i ),
+					Texture = sampleTexture
 				} );
 			}
 
@@ -129,6 +135,7 @@ public class TwoDTestApp : App {
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
 			shaderStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<ShaderStore>();
+			textureStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<TextureStore>();
 			var basic = shaderStore.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
 
 			shaderStore.CompileNew( renderer );
@@ -137,6 +144,7 @@ public class TwoDTestApp : App {
 		}
 
 		ShaderStore shaderStore = null!;
+		TextureStore textureStore = null!;
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;
@@ -156,6 +164,7 @@ public class TwoDTestApp : App {
 				return;
 
 			shaderStore.CompileNew( renderer );
+			textureStore.UploadNew( renderer );
 			var mat = Matrix3<float>.CreateViewport( 1, 1, window.Width / 2, window.Height / 2 ) * new Matrix3<float>( renderer.CreateLeftHandCorrectionMatrix<float>() );
 			globalUniformBuffer.Upload( new GlobalUniforms {
 				Matrix = new( mat )

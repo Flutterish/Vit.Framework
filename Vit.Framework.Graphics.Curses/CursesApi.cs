@@ -4,7 +4,7 @@ namespace Vit.Framework.Graphics.Curses;
 
 public class CursesApi : GraphicsApi {
 	public static readonly GraphicsApiType GraphicsApiType = new() {
-		KnownName = KnownGraphicsApiName.Vulkan,
+		KnownName = null,
 		Name = "Curses [Software]",
 		Version = -1
 	};

@@ -31,6 +31,20 @@ public class Texture : DisposableObject {
 		data = null;
 	}
 
+	public void Update ( ICommandBuffer commands ) {
+		if ( data == null )
+			return;
+
+		if ( Value == null )
+			Value = commands.Renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.RGBA32 );
+
+		data.DangerousTryGetSinglePixelMemory( out var memory );
+		commands.UploadTextureData<Rgba32>( Value, memory.Span );
+
+		data.Dispose();
+		data = null;
+	}
+
 	protected override void Dispose ( bool disposing ) {
 		Value?.Dispose();
 	}

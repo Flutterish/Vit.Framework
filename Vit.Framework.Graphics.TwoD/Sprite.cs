@@ -18,7 +18,18 @@ public class Sprite : Drawable {
 		var deps = Parent!.Dependencies;
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
-		texture = deps.Resolve<Texture>();
+		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
+	}
+
+	public Texture Texture {
+		get => texture;
+		set {
+			if ( texture == value )
+				return;
+
+			texture = value;
+			InvalidateDrawNodes();
+		}
 	}
 
 	struct Vertex {
