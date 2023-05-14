@@ -26,7 +26,7 @@ public class BassDevice : DisposableObject, IAudioDevice {
 	public void UseDevice () {
 		if ( boundDevice == Info.Index )
 			return;
-
+		
 		BASS.CurrentDevice = boundDevice = Info.Index;
 	}
 
