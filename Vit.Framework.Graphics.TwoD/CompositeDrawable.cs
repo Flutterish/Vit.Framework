@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Memory;
 
@@ -22,6 +23,8 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 
 		child.SetParent( this );
 		internalChildren.Add( child );
+		if ( IsLoaded )
+			child.TryLoad();
 		ChildAdded?.Invoke( this, child );
 		InvalidateDrawNodes();
 	}
@@ -58,6 +61,27 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 
 		InvalidateDrawNodes();
 	}
+
+	public override void Update () {
+		UpdateSubtree();
+	}
+
+	protected void UpdateSubtree () {
+		foreach ( var i in internalChildren ) {
+			i.Update();
+		}
+	}
+
+	public IReadonlyDependencyCache Dependencies => dependencies;
+	IDependencyCache dependencies = null!;
+	protected override void Load () {
+		dependencies = CreateDependencies();
+		foreach ( var i in internalChildren ) {
+			i.TryLoad();
+		}
+	}
+
+	protected virtual IDependencyCache CreateDependencies () => new DependencyCache( Parent?.Dependencies );
 
 	protected override void OnMatrixInvalidated () {
 		base.OnMatrixInvalidated();
@@ -104,6 +128,8 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 }
 
 public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<Drawable, T> where T : Drawable {
+	IReadonlyDependencyCache Dependencies { get; }
+
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;
 

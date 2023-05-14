@@ -71,10 +71,10 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer where T : Dra
 			}
 		}
 		else if ( fillMode == FillMode.MatchWidth ) {
-			size = new( targetSize.Width, targetSize.Width / aspect );
+			Size = new( targetSize.Width, targetSize.Width / aspect );
 		}
 		else if ( fillMode == FillMode.MatchHeight ) {
-			size = new( targetSize.Height * aspect, targetSize.Height );
+			Size = new( targetSize.Height * aspect, targetSize.Height );
 		}
 		else {
 			throw new NotImplementedException();

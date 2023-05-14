@@ -10,6 +10,10 @@ namespace Vit.Framework.Graphics.TwoD;
 public abstract partial class Drawable : DisposableObject, IDrawable {
 	public ICompositeDrawable<Drawable>? Parent { get; private set; }
 	void IDrawable.SetParent ( ICompositeDrawable<Drawable>? parent ) {
+		if ( Parent != null && parent != null ) {
+			throw new InvalidOperationException( $"Drawable may not have multiple parents." );
+		}
+
 		Parent = parent;
 		OnParentMatrixInvalidated();
 	}
@@ -89,6 +93,21 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	public float ShearY {
 		get => shear.Y;
 		set => trySet( ref shear.Y, value );
+	}
+
+	public bool IsLoaded { get; private set; }
+	public virtual void Update () {
+		
+	}
+
+	public void TryLoad () {
+		if ( !IsLoaded ) {
+			Load();
+			IsLoaded = true;
+		}
+	}
+	protected virtual void Load () { // TODO should we have an "unload" method?
+
 	}
 
 	internal void OnParentMatrixInvalidated () {

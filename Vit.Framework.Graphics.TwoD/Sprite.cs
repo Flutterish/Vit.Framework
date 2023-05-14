@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
@@ -10,11 +11,14 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.TwoD;
 
 public class Sprite : Drawable {
-	Shader shader;
-	Texture texture;
-	public Sprite ( ShaderStore shaders, Texture texture ) {
-		shader = shaders.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
-		this.texture = texture;
+	Shader shader = null!;
+	Texture texture = null!;
+
+	protected override void Load () {
+		var deps = Parent!.Dependencies;
+
+		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
+		texture = deps.Resolve<Texture>();
 	}
 
 	struct Vertex {
