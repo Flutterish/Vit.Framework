@@ -121,6 +121,9 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 		InvalidateDrawNodes();
 	}
 
+	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
+		=> UnitToGlobalMatrix.Inversed.Apply( point );
+
 	Matrix3<float>? unitToLocal;
 	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??=
 		Matrix3<float>.CreateTranslation( origin.ToOrigin() ) *

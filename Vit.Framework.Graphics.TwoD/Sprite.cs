@@ -32,12 +32,25 @@ public class Sprite : Drawable {
 		}
 	}
 
+	ColorRgba<float> tint = ColorRgba.White;
+	public ColorRgba<float> Tint {
+		get => tint;
+		set {
+			if ( tint == value )
+				return;
+
+			tint = value;
+			InvalidateDrawNodes();
+		}
+	}
+
 	struct Vertex {
 		public Point2<float> PositionAndUV;
 	}
 
 	struct Uniforms {
 		public Matrix4x3<float> Matrix;
+		public ColorRgba<float> Tint;
 	}
 
 	IUniformSet? uniformSet;
@@ -56,14 +69,16 @@ public class Sprite : Drawable {
 	new public class DrawNode : BasicDrawNode<Sprite> {
 		public DrawNode ( Sprite source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
+		ColorRgba<float> tint;
+		Shader shader = null!;
+		Texture texture = null!;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
+			tint = Source.tint;
 		}
 
-		Shader shader = null!;
-		Texture texture = null!;
 		public override void Draw ( ICommandBuffer commands ) {
 			var shaders = shader.Value;
 			ref var indices = ref Source.indices;
@@ -103,7 +118,8 @@ public class Sprite : Drawable {
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
 			uniforms!.Upload( new Uniforms { 
-				Matrix = new( UnitToGlobalMatrix )
+				Matrix = new( UnitToGlobalMatrix ),
+				Tint = tint
 			} );
 			commands.DrawIndexed( 6 );
 		}

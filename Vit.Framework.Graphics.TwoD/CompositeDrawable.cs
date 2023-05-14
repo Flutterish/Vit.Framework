@@ -9,11 +9,11 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	readonly List<T> internalChildren = new();
 	public IEnumerable<T> Children => internalChildren;
 
-	public void AddInternalChildren ( IEnumerable<T> children ) {
+	protected void AddInternalChildren ( IEnumerable<T> children ) {
 		foreach ( var i in children )
 			AddInternalChild( i );
 	}
-	public void AddInternalChildren ( params T[] children ) {
+	protected void AddInternalChildren ( params T[] children ) {
 		foreach ( var i in children )
 			AddInternalChild( i );
 	}
@@ -29,11 +29,11 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		InvalidateDrawNodes();
 	}
 
-	public void RemoveInternalChildren ( IEnumerable<T> children ) {
+	protected void RemoveInternalChildren ( IEnumerable<T> children ) {
 		foreach ( var i in children )
 			RemoveInternalChild( i );
 	}
-	public void RemoveInternalChildren ( params T[] children ) {
+	protected void RemoveInternalChildren ( params T[] children ) {
 		foreach ( var i in children )
 			RemoveInternalChild( i );
 	}

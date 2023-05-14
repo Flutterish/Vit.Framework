@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Queues;
@@ -60,6 +61,7 @@ public class TwoDTestApp : App {
 
 				layout(binding = 0, set = 1) uniform Uniforms {
 					mat3 model;
+					vec4 tint;
 				} uniforms;
 
 				void main () {
@@ -73,9 +75,13 @@ public class TwoDTestApp : App {
 				layout(location = 0) out vec4 outColor;
 
 				layout(binding = 1, set = 1) uniform sampler2D texSampler;
+				layout(binding = 0, set = 1) uniform Uniforms {
+					mat3 model;
+					vec4 tint;
+				} uniforms;
 
 				void main () {
-					outColor = texture( texSampler, inUv );
+					outColor = texture( texSampler, inUv ) * uniforms.tint;
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
@@ -195,11 +201,19 @@ public class TwoDTestApp : App {
 	}
 
 	public class UpdateThread : AppThread {
+		Sprite cursor;
+
 		DrawableRenderer drawableRenderer;
 		Window window;
 		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, string name ) : base( name ) {
 			this.drawableRenderer = drawableRenderer;
 			this.window = window;
+
+			cursor = new Sprite {
+				Scale = new( 18 ),
+				Tint = ColorRgba.HotPink
+			};
+			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
 		}
 
 		protected override void Initialize () {
@@ -208,6 +222,11 @@ public class TwoDTestApp : App {
 
 		protected override void Loop () {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
+			var pos = window.CursorPosition.Cast<float>();
+			pos.Y = window.Height - pos.Y;
+			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
+			cursor.Position = parent - new Vector2<float>( 8f );
+
 			drawableRenderer.CollectDrawData();
 		}
 	}
