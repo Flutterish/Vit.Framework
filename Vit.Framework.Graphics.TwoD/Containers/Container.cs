@@ -3,7 +3,7 @@ using Vit.Framework.Hierarchy;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : Drawable {
+public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : IDrawable {
 	public T Child {
 		get => Children.Single();
 		set {
@@ -24,8 +24,16 @@ public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : Drawab
 		AddInternalChild( child );
 	}
 
+	public void InsertChild ( T child, int index ) {
+		InsertInternalChild( child, index );
+	}
+
 	public bool RemoveChild ( T child ) {
 		return RemoveInternalChild( child );
+	}
+
+	public void RemoveChildAt ( int index ) {
+		RemoveInternalChildAt( index );
 	}
 
 	public void ClearChildren () {
@@ -40,15 +48,23 @@ public abstract class Container<T, TInternal> : CompositeDrawable<TInternal>, IC
 		Source.AddChild( child );
 	}
 
+	public void InsertChild ( T child, int index ) {
+		Source.InsertChild( child, index );
+	}
+
 	public bool RemoveChild ( T child ) {
 		return Source.RemoveChild( child );
+	}
+
+	public void RemoveChildAt ( int index ) {
+		Source.RemoveChildAt( index );
 	}
 
 	public void ClearChildren () {
 		Source.ClearChildren();
 	}
 
-	IEnumerable<T> IReadOnlyCompositeComponent<T>.Children => Source.Children;
+	IReadOnlyList<T> IReadOnlyCompositeComponent<T>.Children => Source.Children;
 	IEnumerator IEnumerable.GetEnumerator () {
 		return Source.GetEnumerator();
 	}
@@ -74,10 +90,10 @@ public abstract class Container<T, TInternal> : CompositeDrawable<TInternal>, IC
 	}
 }
 
-public interface IContainer<T> : IContainer<T, T> where T : Drawable { }
+public interface IContainer<T> : IContainer<T, T> where T : IDrawable { }
 
-public interface IContainer<in T, out TChild> : IDrawable, ICompositeComponent<Drawable, T, TChild>
-	where T : Drawable, TChild
-	where TChild : Drawable {
+public interface IContainer<in T, out TChild> : IDrawable, ICompositeComponent<IDrawable, T, TChild>
+	where T : TChild
+	where TChild : IDrawable {
 
 }

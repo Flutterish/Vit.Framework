@@ -9,8 +9,8 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		get => size;
 		private set {
 			size = value;
-			ScaleX = availableSize.Width / value.Width;
-			ScaleY = availableSize.Height / value.Height;
+			ScaleX = (availableSize.Width - padding.Horizontal) / value.Width;
+			ScaleY = (availableSize.Height - padding.Vertical) / value.Height;
 		}
 	}
 
@@ -27,6 +27,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 			updateScale();
 		}
 	}
+
 	Size2<float> targetSize;
 	public Size2<float> TargetSize {
 		get => targetSize;
@@ -35,6 +36,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 			updateScale();
 		}
 	}
+
 	FillMode fillMode;
 	public FillMode FillMode {
 		get => fillMode;
@@ -44,6 +46,16 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		}
 	}
 
+	Padding<float> padding;
+	public Padding<float> Padding {
+		get => padding;
+		set {
+			padding = value;
+			updateScale();
+		}
+	}
+
+
 	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
 		this.targetSize = targetSize;
 		this.fillMode = fillMode;
@@ -52,7 +64,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 	}
 
 	void updateScale () {
-		var aspect = availableSize.Width / availableSize.Height;
+		var aspect = Math.Abs((availableSize.Width - padding.Horizontal) / (availableSize.Height - padding.Horizontal));
 		var targetAspect = targetSize.Width / targetSize.Height;
 
 		if ( fillMode == FillMode.Stretch ) {
@@ -83,6 +95,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		else {
 			throw new NotImplementedException();
 		}
+		Origin = (-padding.Left / ScaleX, -padding.Bottom / ScaleY);
 	}
 }
 

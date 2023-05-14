@@ -8,14 +8,10 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD;
 
 public abstract partial class Drawable : DisposableObject, IDrawable {
-	public ICompositeDrawable<Drawable>? Parent { get; private set; }
-	void IDrawable.SetParent ( ICompositeDrawable<Drawable>? parent ) {
-		if ( Parent != null && parent != null ) {
-			throw new InvalidOperationException( $"Drawable may not have multiple parents." );
-		}
-
+	public ICompositeDrawable<IDrawable>? Parent { get; private set; }
+	void IDrawable.SetParent ( ICompositeDrawable<IDrawable>? parent ) {
 		Parent = parent;
-		OnParentMatrixInvalidated();
+		onParentMatrixInvalidated();
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -110,7 +106,9 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 
 	}
 
-	internal void OnParentMatrixInvalidated () {
+	void IDrawable.OnParentMatrixInvalidated ()
+		=> onParentMatrixInvalidated();
+	void onParentMatrixInvalidated () {
 		if ( unitToGlobal == null )
 			return;
 
@@ -151,10 +149,35 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 }
 
-public interface IDrawable : IComponent<Drawable>, IDisposable {
-	new ICompositeDrawable<Drawable>? Parent { get; }
-	internal void SetParent ( ICompositeDrawable<Drawable>? parent );
-	IReadOnlyCompositeComponent<Drawable, Drawable>? IComponent<Drawable>.Parent => Parent;
+public interface IDrawable : IComponent<IDrawable>, IDisposable {
+	new ICompositeDrawable<IDrawable>? Parent { get; }
+	internal void SetParent ( ICompositeDrawable<IDrawable>? parent );
+	IReadOnlyCompositeComponent<IDrawable, IDrawable>? IComponent<IDrawable>.Parent => Parent;
+
+	public Point2<float> Position { get; set; }
+	public float X { get; set; }
+	public float Y { get; set; }
+
+	public Radians<float> Rotation { get; set; }
+
+	public Point2<float> Origin { get; set; }
+	public float OriginX { get; set; }
+	public float OriginY { get; set; }
+
+	public Axes2<float> Scale { get; set; }
+	public float ScaleX { get; set; }
+	public float ScaleY { get; set; }
+
+	public Axes2<float> Shear { get; set; }
+	public float ShearX { get; set; }
+	public float ShearY { get; set; }
+
+	public bool IsLoaded { get; }
+	void Update ();
+
+	void TryLoad ();
+
+	internal void OnParentMatrixInvalidated ();
 
 	/// <summary>
 	/// A matrix such that (0,0) is mapped to the bottom left corner
@@ -167,4 +190,9 @@ public interface IDrawable : IComponent<Drawable>, IDisposable {
 	/// and (1,1) is mapped to the top right corner in global space.
 	/// </summary>
 	Matrix3<float> UnitToGlobalMatrix { get; }
+
+	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
+		=> UnitToGlobalMatrix.Inversed.Apply( point );
+
+	Drawable.DrawNode GetDrawNode ( int subtreeIndex );
 }

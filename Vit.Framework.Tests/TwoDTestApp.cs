@@ -37,7 +37,8 @@ public class TwoDTestApp : App {
 		window.Title = $"New Window [{Name}] [{api}]";
 		window.Initialized += _ => {
 			root = new( (1920, 1080), window.Size.Cast<float>(), FillMode.Fit ) {
-				Position = (-1, -1)
+				Position = (-1, -1),
+				Padding = new( 100 )
 			};
 
 			drawableRenderer = new( root );

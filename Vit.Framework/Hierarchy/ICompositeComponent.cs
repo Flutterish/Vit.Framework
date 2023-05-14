@@ -76,7 +76,7 @@ public interface IHierarchyObserverContract {
 }
 
 public interface IReadOnlyCompositeComponent<out T> : IComponent, IEnumerable<T> where T : IComponent {
-	IEnumerable<T> Children { get; }
+	IReadOnlyList<T> Children { get; }
 
 	IEnumerator<T> IEnumerable<T>.GetEnumerator () {
 		return Children.GetEnumerator();
@@ -123,7 +123,9 @@ public interface IReadOnlyCompositeComponent<out TBase, out T> : IComponent<TBas
 
 public interface ICompositeComponent<in T> : IComponent where T : IComponent {
 	void AddChild ( T child );
+	void InsertChild ( T child, int index );
 	bool RemoveChild ( T child );
+	void RemoveChildAt ( int index );
 	void ClearChildren ();
 }
 

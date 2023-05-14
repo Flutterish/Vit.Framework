@@ -1,13 +1,14 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Runtime.InteropServices;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> where T : Drawable, IDrawable {
+public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> where T : IDrawable {
 	readonly List<T> internalChildren = new();
-	public IEnumerable<T> Children => internalChildren;
+	public IReadOnlyList<T> Children => internalChildren;
 
 	protected void AddInternalChildren ( IEnumerable<T> children ) {
 		foreach ( var i in children )
@@ -21,8 +22,19 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		if ( child.Parent != null )
 			throw new InvalidOperationException( "A drawable might only have 1 parent" );
 
-		child.SetParent( this );
+		child.SetParent( (ICompositeDrawable<IDrawable>)this );
 		internalChildren.Add( child );
+		if ( IsLoaded )
+			child.TryLoad();
+		ChildAdded?.Invoke( this, child );
+		InvalidateDrawNodes();
+	}
+	protected void InsertInternalChild ( T child, int index ) {
+		if ( child.Parent != null )
+			throw new InvalidOperationException( "A drawable might only have 1 parent" );
+
+		child.SetParent( (ICompositeDrawable<IDrawable>)this );
+		internalChildren.Insert( index, child );
 		if ( IsLoaded )
 			child.TryLoad();
 		ChildAdded?.Invoke( this, child );
@@ -49,6 +61,19 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		ChildRemoved?.Invoke( this, child );
 		InvalidateDrawNodes();
 		return true;
+	}
+	protected void RemoveInternalChildAt ( int index ) {
+		var child = internalChildren[index];
+		if ( child.Parent == null )
+			return;
+
+		if ( child.Parent != this )
+			throw new InvalidOperationException( "This child does not belong to this parent" );
+
+		child.SetParent( null );
+		internalChildren.RemoveAt( index );
+		ChildRemoved?.Invoke( this, child );
+		InvalidateDrawNodes();
 	}
 
 	protected void ClearInternalChildren () {
@@ -127,18 +152,18 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 }
 
-public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<Drawable, T> where T : Drawable {
+public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<IDrawable, T> where T : IDrawable {
 	IReadonlyDependencyCache Dependencies { get; }
 
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;
 
-	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<Drawable, T>, T>? IReadOnlyCompositeComponent<Drawable, T>.ChildAdded {
+	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<IDrawable, T>, T>? IReadOnlyCompositeComponent<IDrawable, T>.ChildAdded {
 		add => ChildAdded += value;
 		remove => ChildAdded -= value;
 	}
 
-	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<Drawable, T>, T>? IReadOnlyCompositeComponent<Drawable, T>.ChildRemoved {
+	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<IDrawable, T>, T>? IReadOnlyCompositeComponent<IDrawable, T>.ChildRemoved {
 		add => ChildRemoved += value;
 		remove => ChildRemoved -= value;
 	}
