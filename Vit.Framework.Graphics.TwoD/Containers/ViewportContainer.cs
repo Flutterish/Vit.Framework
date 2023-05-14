@@ -3,9 +3,9 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class ViewportContainer<T> : Container<T>, ILayoutContainer where T : Drawable {
+public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutElement where T : Drawable {
 	Size2<float> size;
-	public Size2<float> Size {
+	public Size2<float> ContentSize {
 		get => size;
 		private set {
 			size = value;
@@ -14,6 +14,10 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer where T : Dra
 		}
 	}
 
+	public Size2<float> Size {
+		get => AvailableSize;
+		set => AvailableSize = value;
+	}
 
 	Size2<float> availableSize;
 	public Size2<float> AvailableSize {
@@ -52,29 +56,29 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer where T : Dra
 		var targetAspect = targetSize.Width / targetSize.Height;
 
 		if ( fillMode == FillMode.Stretch ) {
-			Size = targetSize;
+			ContentSize = targetSize;
 		}
 		else if ( fillMode == FillMode.Fit ) {
 			if ( aspect < targetAspect ) {
-				Size = new( targetSize.Width, targetSize.Width / aspect );
+				ContentSize = new( targetSize.Width, targetSize.Width / aspect );
 			}
 			else {
-				Size = new( targetSize.Height * aspect, targetSize.Height );
+				ContentSize = new( targetSize.Height * aspect, targetSize.Height );
 			}
 		}
 		else if ( fillMode == FillMode.Fill ) {
 			if ( aspect >= targetAspect ) {
-				Size = new( targetSize.Width, targetSize.Width / aspect );
+				ContentSize = new( targetSize.Width, targetSize.Width / aspect );
 			}
 			else {
-				Size = new( targetSize.Height * aspect, targetSize.Height );
+				ContentSize = new( targetSize.Height * aspect, targetSize.Height );
 			}
 		}
 		else if ( fillMode == FillMode.MatchWidth ) {
-			Size = new( targetSize.Width, targetSize.Width / aspect );
+			ContentSize = new( targetSize.Width, targetSize.Width / aspect );
 		}
 		else if ( fillMode == FillMode.MatchHeight ) {
-			Size = new( targetSize.Height * aspect, targetSize.Height );
+			ContentSize = new( targetSize.Height * aspect, targetSize.Height );
 		}
 		else {
 			throw new NotImplementedException();
