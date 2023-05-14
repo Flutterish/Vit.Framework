@@ -15,7 +15,7 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new Program();
+		var app = new TwoDTestApp( "Test App" );//new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 

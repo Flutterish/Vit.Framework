@@ -10,7 +10,7 @@ public abstract class Host : IDisposable {
 	}
 
 	public Window CreateWindow () => CreateWindow( SupportedRenderingApis.First() );
-	public abstract Window CreateWindow ( GraphicsApiType renderingApi ); // TODO maybe this should be a task?
+	public abstract Window CreateWindow ( GraphicsApiType renderingApi ); // TODO maybe this should be a task? also TODO maybe windows shouldnt be initialized with a graphics api?
 
 	public abstract GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities );
 

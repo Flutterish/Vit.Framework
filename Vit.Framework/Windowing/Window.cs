@@ -32,7 +32,7 @@ public abstract class Window : IWindow, IDisposable {
 		initialized?.Invoke( this );
 		initialized = null;
 	}
-	public event Action<Window>? initialized;
+	event Action<Window>? initialized;
 	public event Action<Window>? Initialized {
 		add {
 			if ( IsInitialized )
@@ -74,6 +74,7 @@ public abstract class Window : IWindow, IDisposable {
 	public abstract (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
 
 	public bool IsClosed { get; private set; }
+	public event Action<Window>? Closed;
 	protected abstract void Dispose ( bool disposing );
 
 	~Window () {
@@ -90,6 +91,7 @@ public abstract class Window : IWindow, IDisposable {
 
 		Dispose( disposing: true );
 		IsClosed = true;
+		Closed?.Invoke( this );
 		GC.SuppressFinalize( this );
 	}
 }
