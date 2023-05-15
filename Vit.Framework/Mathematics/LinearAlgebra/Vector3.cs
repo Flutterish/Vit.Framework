@@ -52,7 +52,7 @@ public struct Vector3<T> : IInterpolatable<Vector3<T>, T>, IEqualityOperators<Ve
 	public Vector3<T> LeftInYZ => new( X, -Z, Y );
 	public Vector3<T> RightInYZ => new( X, Z, -Y );
 	
-	public Generic.Vector<T> AsUnsized () => new( AsSpan() );
+	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref X, 3 );
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref X, 3 );

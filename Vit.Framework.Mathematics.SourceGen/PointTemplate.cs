@@ -1,9 +1,12 @@
 ﻿namespace Vit.Framework.Mathematics.SourceGen;
 
 public class PointTemplate : SpanLikeTemplate {
+	protected virtual VectorTemplate CreateVectorTemplate () => new() { Path = string.Empty };
+	VectorTemplate? _vector;
+	VectorTemplate vector => _vector ??= CreateVectorTemplate();
+
 	protected override string Namespace => "Vit.Framework.Mathematics";
 
-	VectorTemplate vector = new() { Path = string.Empty };
 	public override string GetTypeName ( int size ) {
 		return $"Point{size}";
 	}

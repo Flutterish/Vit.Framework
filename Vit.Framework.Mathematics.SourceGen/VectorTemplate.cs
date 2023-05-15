@@ -1,6 +1,10 @@
 ﻿namespace Vit.Framework.Mathematics.SourceGen;
 
 public class VectorTemplate : SpanLikeTemplate {
+	protected virtual PointTemplate CreatePointTemplate () => new() { Path = string.Empty };
+	PointTemplate? _point;
+	PointTemplate point => _point ??= CreatePointTemplate();
+
 	protected override string Namespace => "Vit.Framework.Mathematics.LinearAlgebra";
 
 	public override string GetTypeName ( int size ) {
@@ -37,11 +41,10 @@ public class VectorTemplate : SpanLikeTemplate {
 		}
 
 		sb.AppendLine();
-		sb.AppendLine( $"public Generic.Vector<T> AsUnsized () => new( AsSpan() );" );
+		sb.AppendLine( $"public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );" );
 	}
 
 	protected override void GenerateMethods ( int size, SourceStringBuilder sb ) {
-		var point = new PointTemplate { Path = string.Empty };
 		var elements = Enumerable.Range( 0, size );
 		var type = GetFullTypeName( size );
 
