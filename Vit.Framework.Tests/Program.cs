@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
+using Vit.Framework.Tests.Layout;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
@@ -15,7 +16,7 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new TwoDTestApp( "Test App" );//new Program();
+		var app = new TwoDTestApp( typeof(LayoutContainerTest) ); //new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 

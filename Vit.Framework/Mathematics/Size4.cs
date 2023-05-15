@@ -1,10 +1,11 @@
 /// This file [Size4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.SizeTemplate and parameter 4 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
 
-public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<T>, Size4<T>, bool>, IEquatable<Size4<T>> where T : INumber<T> {
+public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<T>, Size4<T>, bool>, IEquatable<Size4<T>>, IValueSpan<T> where T : INumber<T> {
 	public T Width;
 	public T Height;
 	public T Depth;
@@ -24,6 +25,10 @@ public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<
 	#nullable disable
 	public Size4 ( ReadOnlySpan<T> span ) {
 		span.CopyTo( this.AsSpan() );
+	}
+	
+	public Size4 ( IReadOnlyValueSpan<T> span ) {
+		span.AsReadOnlySpan().CopyTo( this.AsSpan() );
 	}
 	#nullable restore
 	
@@ -132,11 +137,6 @@ public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<
 			|| left.Depth != right.Depth
 			|| left.Anakata != right.Anakata;
 	}
-	
-	public static implicit operator Span<T> ( Size4<T> value )
-		=> value.AsSpan();
-	public static implicit operator ReadOnlySpan<T> ( Size4<T> value )
-		=> value.AsReadOnlySpan();
 	public static implicit operator Size4<T> ( (T, T, T, T) value )
 		=> new( value.Item1, value.Item2, value.Item3, value.Item4 );
 	

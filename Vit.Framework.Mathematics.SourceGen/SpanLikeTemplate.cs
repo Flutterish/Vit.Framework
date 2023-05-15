@@ -8,7 +8,7 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 	protected override void GenerateInterfaces ( int size, SourceStringBuilder sb ) {
 		var nonGenericType = GetTypeName( size );
 		var type = $"{nonGenericType}<T>";
-		sb.Append( $" : IInterpolatable<{type}, T>, IEqualityOperators<{type}, {type}, bool>, IEquatable<{type}> where T : INumber<T>" );
+		sb.Append( $" : IInterpolatable<{type}, T>, IEqualityOperators<{type}, {type}, bool>, IEquatable<{type}>, IValueSpan<T> where T : INumber<T>" );
 	}
 	public IReadOnlyList<string> AxisNames { get; protected set; } = new[] { "X", "Y", "Z", "W" };
 
@@ -48,6 +48,13 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 		sb.AppendLine( $"public {nonGenericType} ( ReadOnlySpan<T> span ) {{" );
 		using ( sb.Indent() ) {
 			sb.AppendLine( "span.CopyTo( this.AsSpan() );" );
+		}
+		sb.AppendLine( "}" );
+
+		sb.AppendLine();
+		sb.AppendLine( $"public {nonGenericType} ( IReadOnlyValueSpan<T> span ) {{" );
+		using ( sb.Indent() ) {
+			sb.AppendLine( "span.AsReadOnlySpan().CopyTo( this.AsSpan() );" );
 		}
 		sb.AppendLine( "}" );
 		sb.AppendLine( "#nullable restore" );
@@ -112,12 +119,6 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 			sb.AppendLine( ";" );
 		}
 		sb.AppendLine( "}" );
-
-		sb.AppendLine();
-		sb.AppendLine( $"public static implicit operator Span<T> ( {GetFullTypeName( size )} value )" );
-		sb.AppendLine( "\t=> value.AsSpan();" );
-		sb.AppendLine( $"public static implicit operator ReadOnlySpan<T> ( {GetFullTypeName( size )} value )" );
-		sb.AppendLine( "\t=> value.AsReadOnlySpan();" );
 
 		if ( size != 1 ) {
 			sb.Append( $"public static implicit operator {type} ( (" );
@@ -242,6 +243,7 @@ public abstract class SpanLikeTemplate : ClassTemplate<int> {
 	protected override void GenerateUsings ( int size, SourceStringBuilder sb ) {
 		sb.AppendLine( "using System.Numerics;" );
 		sb.AppendLine( "using System.Runtime.InteropServices;" );
+		sb.AppendLine( "using Vit.Framework.Memory;" );
 	}
 
 	protected virtual void GenerateProperties ( int size, SourceStringBuilder sb ) {

@@ -55,7 +55,6 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		}
 	}
 
-
 	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
 		this.targetSize = targetSize;
 		this.fillMode = fillMode;

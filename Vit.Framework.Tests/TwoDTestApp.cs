@@ -22,8 +22,9 @@ using Vit.Framework.Windowing.Sdl;
 namespace Vit.Framework.Tests;
 
 public class TwoDTestApp : App {
-	public TwoDTestApp ( string name ) : base( name ) {
-		
+	Type type;
+	public TwoDTestApp ( Type type ) : base( "Test App" ) {
+		this.type = type;
 	}
 
 	Host host = null!;
@@ -34,11 +35,10 @@ public class TwoDTestApp : App {
 		host = new SdlHost( primaryApp: this );
 		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
 		window = host.CreateWindow( api );
-		window.Title = $"New Window [{Name}] [{api}]";
+		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		window.Initialized += _ => {
 			root = new( (1920, 1080), window.Size.Cast<float>(), FillMode.Fit ) {
-				Position = (-1, -1),
-				Padding = new( 100 )
+				Position = (-1, -1)
 			};
 
 			drawableRenderer = new( root );
@@ -86,27 +86,11 @@ public class TwoDTestApp : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			var image = Image.Load<Rgba32>( "./texture.jpg" );
-			image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-			var sampleTexture = new Texture( image );
-			TextureIdentifier identifier = new() { Name = "./texture.jpg" };
-			textureStore.AddTexture( identifier, sampleTexture );
-
 			root.AddChild( new Sprite() {
-				Scale = (1920, 1080)
+				Scale = (1920, 1080),
+				Tint = ColorRgba.DarkGray
 			} );
-			root.AddChild( new Sprite() {
-				Scale = (1080, 1080),
-				Texture = sampleTexture
-			} );
-			for ( int i = 0; i < 10; i++ ) {
-				root.AddChild( new Sprite() {
-					Scale = new( 1080 / 2 * float.Pow( 0.5f, i ) ),
-					X = 1080,
-					Y = 1080 - 1080 * float.Pow( 0.5f, i ),
-					Texture = sampleTexture
-				} );
-			}
+			root.AddChild( (Drawable)Activator.CreateInstance( type )! );
 
 			ThreadRunner.RegisterThread( new UpdateThread( drawableRenderer, window, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
 			ThreadRunner.RegisterThread( new RenderThread( drawableRenderer, host, window, api, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
@@ -211,7 +195,7 @@ public class TwoDTestApp : App {
 			this.window = window;
 
 			cursor = new Sprite {
-				Scale = new( 18 ),
+				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
@@ -227,6 +211,7 @@ public class TwoDTestApp : App {
 			pos.Y = window.Height - pos.Y;
 			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
 			cursor.Position = parent - new Vector2<float>( 8f );
+			drawableRenderer.Root.Update();
 
 			drawableRenderer.CollectDrawData();
 		}

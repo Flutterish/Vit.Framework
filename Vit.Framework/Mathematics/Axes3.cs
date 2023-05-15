@@ -1,10 +1,11 @@
 /// This file [Axes3.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.AxesTemplate and parameter 3 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
 
-public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<T>, Axes3<T>, bool>, IEquatable<Axes3<T>> where T : INumber<T> {
+public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<T>, Axes3<T>, bool>, IEquatable<Axes3<T>>, IValueSpan<T> where T : INumber<T> {
 	public T X;
 	public T Y;
 	public T Z;
@@ -22,6 +23,10 @@ public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<
 	#nullable disable
 	public Axes3 ( ReadOnlySpan<T> span ) {
 		span.CopyTo( this.AsSpan() );
+	}
+	
+	public Axes3 ( IReadOnlyValueSpan<T> span ) {
+		span.AsReadOnlySpan().CopyTo( this.AsSpan() );
 	}
 	#nullable restore
 	
@@ -68,11 +73,6 @@ public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<
 			|| left.Y != right.Y
 			|| left.Z != right.Z;
 	}
-	
-	public static implicit operator Span<T> ( Axes3<T> value )
-		=> value.AsSpan();
-	public static implicit operator ReadOnlySpan<T> ( Axes3<T> value )
-		=> value.AsReadOnlySpan();
 	public static implicit operator Axes3<T> ( (T, T, T) value )
 		=> new( value.Item1, value.Item2, value.Item3 );
 	

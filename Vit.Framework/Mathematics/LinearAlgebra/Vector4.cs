@@ -1,10 +1,11 @@
 /// This file [Vector4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.VectorTemplate and parameter 4 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics.LinearAlgebra;
 
-public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Vector4<T>, Vector4<T>, bool>, IEquatable<Vector4<T>> where T : INumber<T> {
+public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Vector4<T>, Vector4<T>, bool>, IEquatable<Vector4<T>>, IValueSpan<T> where T : INumber<T> {
 	public T X;
 	public T Y;
 	public T Z;
@@ -24,6 +25,10 @@ public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Ve
 	#nullable disable
 	public Vector4 ( ReadOnlySpan<T> span ) {
 		span.CopyTo( this.AsSpan() );
+	}
+	
+	public Vector4 ( IReadOnlyValueSpan<T> span ) {
+		span.AsReadOnlySpan().CopyTo( this.AsSpan() );
 	}
 	#nullable restore
 	
@@ -189,11 +194,6 @@ public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Ve
 			|| left.Z != right.Z
 			|| left.W != right.W;
 	}
-	
-	public static implicit operator Span<T> ( Vector4<T> value )
-		=> value.AsSpan();
-	public static implicit operator ReadOnlySpan<T> ( Vector4<T> value )
-		=> value.AsReadOnlySpan();
 	public static implicit operator Vector4<T> ( (T, T, T, T) value )
 		=> new( value.Item1, value.Item2, value.Item3, value.Item4 );
 	

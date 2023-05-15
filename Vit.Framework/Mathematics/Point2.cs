@@ -1,11 +1,12 @@
 /// This file [Point2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.PointTemplate and parameter 2 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Memory;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Mathematics;
 
-public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Point2<T>, Point2<T>, bool>, IEquatable<Point2<T>> where T : INumber<T> {
+public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Point2<T>, Point2<T>, bool>, IEquatable<Point2<T>>, IValueSpan<T> where T : INumber<T> {
 	public T X;
 	public T Y;
 	
@@ -21,6 +22,10 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Poin
 	#nullable disable
 	public Point2 ( ReadOnlySpan<T> span ) {
 		span.CopyTo( this.AsSpan() );
+	}
+	
+	public Point2 ( IReadOnlyValueSpan<T> span ) {
+		span.AsReadOnlySpan().CopyTo( this.AsSpan() );
 	}
 	#nullable restore
 	
@@ -105,11 +110,6 @@ public struct Point2<T> : IInterpolatable<Point2<T>, T>, IEqualityOperators<Poin
 		return left.X != right.X
 			|| left.Y != right.Y;
 	}
-	
-	public static implicit operator Span<T> ( Point2<T> value )
-		=> value.AsSpan();
-	public static implicit operator ReadOnlySpan<T> ( Point2<T> value )
-		=> value.AsReadOnlySpan();
 	public static implicit operator Point2<T> ( (T, T) value )
 		=> new( value.Item1, value.Item2 );
 	
