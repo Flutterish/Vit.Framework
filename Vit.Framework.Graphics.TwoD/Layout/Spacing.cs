@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
-public struct Padding<T> where T : INumber<T> {
+public struct Spacing<T> where T : INumber<T> {
 	public T Top;
 	public T Bottom;
 	public T Left;
@@ -22,7 +22,7 @@ public struct Padding<T> where T : INumber<T> {
 		set => Left = Right = value;
 	}
 
-	public Padding ( T all ) {
+	public Spacing ( T all ) {
 		Top = Bottom = Left = Right = all;
 	}
 }

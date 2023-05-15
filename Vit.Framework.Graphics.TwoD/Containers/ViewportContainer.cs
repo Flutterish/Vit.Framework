@@ -46,8 +46,8 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		}
 	}
 
-	Padding<float> padding;
-	public Padding<float> Padding {
+	Spacing<float> padding;
+	public Spacing<float> Padding { // TODO I implemented this as a margin because Im a dingus
 		get => padding;
 		set {
 			padding = value;

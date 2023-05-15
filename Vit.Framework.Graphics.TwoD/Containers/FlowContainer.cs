@@ -65,5 +65,5 @@ public struct FlowParams {
 	/// Margins might collapse. For example, if the margins between 2 elements (including <see cref="ILayoutContainer.Padding"/>) are 10 and 20, the effective margin will be 20 or 30, depending on the container settings. <br/>
 	/// Margins may be negative. This indicates that neighboring margins (including <see cref="ILayoutContainer.Padding"/>) should be shrunk.
 	/// </remarks>
-	public Padding<float> Margins;
+	public Spacing<float> Margins;
 }

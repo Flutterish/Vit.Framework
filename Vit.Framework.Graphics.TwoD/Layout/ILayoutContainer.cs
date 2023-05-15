@@ -17,7 +17,7 @@ public interface ILayoutContainer : IDrawable {
 	/// Padding provides spacing between the container edges and elements. 
 	/// It is in-set into the container, so that the container layout size does not change because of padding.
 	/// </summary>
-	Padding<float> Padding { get; set; }
+	Spacing<float> Padding { get; set; }
 }
 
 /// <inheritdoc cref="ILayoutContainer"/>

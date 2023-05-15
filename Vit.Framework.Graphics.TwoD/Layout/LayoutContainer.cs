@@ -23,8 +23,8 @@ public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayout
 		}
 	}
 
-	Padding<float> padding;
-	public Padding<float> Padding {
+	Spacing<float> padding;
+	public Spacing<float> Padding {
 		get => padding;
 		set {
 			padding = value;
