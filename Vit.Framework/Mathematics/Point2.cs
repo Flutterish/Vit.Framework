@@ -1,8 +1,8 @@
 /// This file [Point2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.PointTemplate and parameter 2 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Vit.Framework.Memory;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
 

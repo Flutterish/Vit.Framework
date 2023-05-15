@@ -20,6 +20,14 @@ public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : IDrawa
 		}
 	}
 
+	public IReadOnlyList<T> ChildList {
+		get => base.Children;
+		set {
+			ClearChildren();
+			this.AddChildren( value );
+		}
+	}
+
 	public void AddChild ( T child ) {
 		AddInternalChild( child );
 	}

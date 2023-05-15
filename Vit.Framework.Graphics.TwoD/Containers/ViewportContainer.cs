@@ -3,14 +3,14 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutElement where T : Drawable {
+public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawable {
 	Size2<float> size;
 	public Size2<float> ContentSize {
 		get => size;
 		private set {
 			size = value;
-			ScaleX = (availableSize.Width - padding.Horizontal) / value.Width;
-			ScaleY = (availableSize.Height - padding.Vertical) / value.Height;
+			ScaleX = availableSize.Width / value.Width;
+			ScaleY = availableSize.Height / value.Height;
 		}
 	}
 
@@ -46,15 +46,6 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		}
 	}
 
-	Spacing<float> padding;
-	public Spacing<float> Padding { // TODO I implemented this as a margin because Im a dingus
-		get => padding;
-		set {
-			padding = value;
-			updateScale();
-		}
-	}
-
 	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
 		this.targetSize = targetSize;
 		this.fillMode = fillMode;
@@ -63,7 +54,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 	}
 
 	void updateScale () {
-		var aspect = Math.Abs((availableSize.Width - padding.Horizontal) / (availableSize.Height - padding.Horizontal));
+		var aspect = Math.Abs(availableSize.Width / availableSize.Height);
 		var targetAspect = targetSize.Width / targetSize.Height;
 
 		if ( fillMode == FillMode.Stretch ) {
@@ -94,7 +85,6 @@ public class ViewportContainer<T> : Container<T>, ILayoutContainer, ILayoutEleme
 		else {
 			throw new NotImplementedException();
 		}
-		Origin = (-padding.Left / ScaleX, -padding.Bottom / ScaleY);
 	}
 }
 

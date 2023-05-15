@@ -1,7 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using Vit.Framework.DependencyInjection;
+﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -12,6 +9,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -211,6 +209,9 @@ public class TwoDTestApp : App {
 			pos.Y = window.Height - pos.Y;
 			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
 			cursor.Position = parent - new Vector2<float>( 8f );
+			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList[1] is ILayoutElement el )
+				el.Size = ((ViewportContainer<Drawable>)drawableRenderer.Root).ContentSize;
+
 			drawableRenderer.Root.Update();
 
 			drawableRenderer.CollectDrawData();

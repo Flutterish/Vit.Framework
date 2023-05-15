@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.TwoD.Layout;
+﻿using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : class, ILayoutElement {
+public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayoutElement {
 	bool collapseMargins = true;
 	public bool CollapseMargins {
 		get => collapseMargins;
@@ -48,13 +43,6 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : class, 
 	protected override void PerformLayout () {
 		
 	}
-}
-
-public enum FlowDirection {
-	HorizontalThenVertical,
-	VerticalThenHorizontal,
-	Horizontal,
-	Vertical
 }
 
 public struct FlowParams {

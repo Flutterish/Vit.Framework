@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.TwoD.Containers;
+﻿using System.Diagnostics;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
-public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayoutContainer<T, TParam, T>, ILayoutElement where T : class, ILayoutElement where TParam : struct {
+public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayoutContainer<T, TParam, T>, ILayoutElement where T : ILayoutElement where TParam : struct {
 	Size2<float> size;
-	public Size2<float> ContentSize => size;
+	public Size2<float> ContentSize => new( size.Width - padding.Horizontal, size.Height - padding.Vertical );
 	public Size2<float> Size {
 		get => size;
 		set {

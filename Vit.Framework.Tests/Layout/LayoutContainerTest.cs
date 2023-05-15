@@ -1,26 +1,42 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.Textures;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Layout;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class LayoutContainerTest : Container<IDrawable> {
+public class LayoutContainerTest : LayoutContainer<ILayoutElement> {
 	public LayoutContainerTest () {
-		AddChild( new Sprite {
-			Size = (1080, 1080)
+		Padding = new( 100 );
+
+		AddChild( new Sprite { Tint = ColorRgba.Green }, new() {
+			Size = new(1f.Relative(), 1f.Relative())
 		} );
 
-
-		//var image = Image.Load<Rgba32>( "./texture.jpg" );
-		//image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-		//var sampleTexture = new Texture( image );
-		//TextureIdentifier identifier = new() { Name = "./texture.jpg" };
-		//textureStore.AddTexture( identifier, sampleTexture );
+		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
+			Size = new(100, 100),
+			Origin = Anchor.BottomLeft,
+			Anchor = Anchor.BottomLeft
+		} );
+		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
+			Size = new( 100, 100 ),
+			Origin = Anchor.TopRight,
+			Anchor = Anchor.TopRight
+		} );
+		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
+			Size = new( 10, 1f.Relative() ),
+			Origin = Anchor.Centre,
+			Anchor = Anchor.Centre
+		} );
+		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
+			Size = new( 1f.Relative(), 10 ),
+			Origin = Anchor.Centre,
+			Anchor = Anchor.Centre
+		} );
+		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
+			Size = new( 100, 100 ),
+			Origin = Anchor.BottomRight,
+			Anchor = Anchor.TopLeft
+		} );
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Mathematics.SourceGen;
+using Vit.Framework.Mathematics.SourceGen.Layout;
 
 var path = "./../../../../Vit.Framework/Mathematics";
 var axis = new AxesTemplate { Path = path };
@@ -23,3 +24,7 @@ for ( int x = 2; x <= 4; x++ ) {
 		matrix.Apply( (x, y) );
 	}
 }
+
+path = "./../../../../Vit.Framework.Graphics.TwoD/Layout";
+var flowSize = new FlowSizeTemplate { Path = path };
+flowSize.Apply( 2 );

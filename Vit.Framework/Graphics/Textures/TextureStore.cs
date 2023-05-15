@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Textures;
