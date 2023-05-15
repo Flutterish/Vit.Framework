@@ -3,8 +3,8 @@
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
 public struct Spacing<T> where T : INumber<T> {
-	public T Top;
 	public T Bottom;
+	public T Top;
 	public T Left;
 	public T Right;
 

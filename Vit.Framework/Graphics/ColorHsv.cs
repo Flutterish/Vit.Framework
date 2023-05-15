@@ -17,6 +17,12 @@ public struct ColorHsv<TAngle, T>
 	static readonly TAngle _240 = _180 + _60;
 	static readonly TAngle _300 = _240 + _60;
 
+	public ColorHsv ( TAngle h, T s, T v ) {
+		H = h;
+		S = s;
+		V = v;
+	}
+
 	public ColorRgba<T> ToRgba () {
 		var c = V * S;
 		var h = H.Mod( TAngle.FullRotation );

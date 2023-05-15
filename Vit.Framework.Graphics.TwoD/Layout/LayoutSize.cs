@@ -55,14 +55,28 @@ public struct LayoutSize<T> where T : INumber<T> {
 		}
 	}
 
-	public Size2<T> GetSize ( FlowDirection flowDirection, Size2<T> availableSize ) {
+	public Size2<T> GetSize ( FlowDirection flowDirection, Size2<T> availableSpace ) {
 		if ( Mode is LayoutMode.Unset )
 			return Size2<T>.Zero;
 
 		if ( Mode is LayoutMode.Cardinal || flowDirection is FlowDirection.Horizontal or FlowDirection.HorizontalThenVertical )
-			return new() { Width = _a.GetValue( availableSize.Width ), Height = _b.GetValue( availableSize.Height ) };
+			return new() { Width = _a.GetValue( availableSpace.Width ), Height = _b.GetValue( availableSpace.Height ) };
 
-		return new() { Width = _b.GetValue( availableSize.Width ), Height = _a.GetValue( availableSize.Height ) };
+		return new() { Width = _b.GetValue( availableSpace.Width ), Height = _a.GetValue( availableSpace.Height ) };
+	}
+
+	public FlowSize2<T> GetFlowSize ( FlowDirection flowDirection, FlowSize2<T> availableSpace ) {
+		if ( Mode is LayoutMode.Unset )
+			return FlowSize2<T>.Zero;
+
+		if ( Mode is LayoutMode.FlowCross || flowDirection is FlowDirection.Horizontal or FlowDirection.HorizontalThenVertical )
+			return new() { Flow = _a.GetValue( availableSpace.Flow ), Cross = _b.GetValue( availableSpace.Cross ) };
+
+		return new() { Flow = _b.GetValue( availableSpace.Flow ), Cross = _a.GetValue( availableSpace.Cross ) };
+	}
+
+	public override string ToString () {
+		return $"{Mode} {_a}x{_b}";
 	}
 }
 

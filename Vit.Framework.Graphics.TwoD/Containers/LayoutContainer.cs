@@ -12,8 +12,8 @@ public class LayoutContainer<T> : LayoutContainer<T, LayoutParams> where T : ILa
 		foreach ( var (i, param) in LayoutChildren ) {
 			i.Size = param.Size.GetSize( size ).Contain( i.RequiredSize );
 
-			var origin = param.Origin.GetValue( i.Size );
-			var anchor = param.Anchor.GetValue( size );
+			var origin = i.Size * param.Origin;
+			var anchor = size * param.Anchor;
 
 			i.Position = (anchor - origin + offset).FromOrigin();
 		}
@@ -29,8 +29,8 @@ public class LayoutContainer<T> : LayoutContainer<T, LayoutParams> where T : ILa
 		foreach ( var (i, param) in LayoutChildren ) {
 			var childSize = param.Size.GetSize( size ).Contain( i.RequiredSize );
 
-			var origin = param.Origin.GetValue( childSize );
-			var anchor = param.Anchor.GetValue( size );
+			var origin = childSize * param.Origin;
+			var anchor = size * param.Anchor;
 
 			var position = anchor - origin;
 
@@ -57,9 +57,9 @@ public struct LayoutParams {
 	/// <summary>
 	/// Point on the element which will be placed on <see cref="Anchor"/>.
 	/// </summary>
-	public RelativePoint2<float> Origin;
+	public RelativeAxes2<float> Origin;
 	/// <summary>
 	/// Point on the parent on which <see cref="Origin"/> will be placed.
 	/// </summary>
-	public RelativePoint2<float> Anchor;
+	public RelativeAxes2<float> Anchor;
 }
