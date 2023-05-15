@@ -45,6 +45,11 @@ public struct FlowSize2<T> : IInterpolatable<FlowSize2<T>, T>, IEqualityOperator
 		};
 	}
 	
+	public FlowSize2<T> Contain ( FlowSize2<T> other ) => new() {
+		Flow = T.Max( Flow, other.Flow ),
+		Cross = T.Max( Cross, other.Cross ),
+	};
+	
 	public FlowSize2<T> Lerp ( FlowSize2<T> goal, T time ) {
 		return new() {
 			Flow = Flow.Lerp( goal.Flow, time ),

@@ -10,9 +10,15 @@ namespace Vit.Framework.Graphics.TwoD;
 public abstract partial class Drawable : DisposableObject, IDrawable {
 	public ICompositeDrawable<IDrawable>? Parent { get; private set; }
 	void IDrawable.SetParent ( ICompositeDrawable<IDrawable>? parent ) {
+		var old = Parent;
+
 		Parent = parent;
 		onParentMatrixInvalidated();
+
+		OnParentChanged( old, parent );
 	}
+
+	protected virtual void OnParentChanged ( ICompositeDrawable<IDrawable>? from, ICompositeDrawable<IDrawable>? to ) { }
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void trySet<T> ( ref T field, T value ) where T : IEqualityOperators<T, T, bool> {

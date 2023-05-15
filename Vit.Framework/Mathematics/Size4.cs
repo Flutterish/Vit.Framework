@@ -88,6 +88,13 @@ public struct Size4<T> : IInterpolatable<Size4<T>, T>, IEqualityOperators<Size4<
 		};
 	}
 	
+	public Size4<T> Contain ( Size4<T> other ) => new() {
+		Width = T.Max( Width, other.Width ),
+		Height = T.Max( Height, other.Height ),
+		Depth = T.Max( Depth, other.Depth ),
+		Anakata = T.Max( Anakata, other.Anakata ),
+	};
+	
 	public Size4<T> Lerp ( Size4<T> goal, T time ) {
 		return new() {
 			Width = Width.Lerp( goal.Width, time ),

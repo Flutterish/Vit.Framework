@@ -19,6 +19,8 @@ public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawa
 		set => AvailableSize = value;
 	}
 
+	public Size2<float> RequiredSize => Size2<float>.Zero;
+
 	Size2<float> availableSize;
 	public Size2<float> AvailableSize {
 		get => availableSize;

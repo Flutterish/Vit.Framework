@@ -1,8 +1,9 @@
 ﻿namespace Vit.Framework.Graphics.TwoD.Layout;
 
+[Flags]
 public enum LayoutDirection {
-	None,
-	Vertical,
-	Horizontal,
-	Both
+	None = 0,
+	Vertical = 1,
+	Horizontal = 2,
+	Both = Vertical | Horizontal
 }

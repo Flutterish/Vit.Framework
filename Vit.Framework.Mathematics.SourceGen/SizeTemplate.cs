@@ -11,6 +11,20 @@ public class SizeTemplate : SpanLikeTemplate {
 		return $"Size{size}";
 	}
 
+	protected override void GenerateMethods ( int size, SourceStringBuilder sb ) {
+		base.GenerateMethods( size, sb );
+
+		var elements = Enumerable.Range( 0, size );
+		sb.AppendLine();
+		sb.AppendLine( $"public {GetFullTypeName(size)} Contain ( {GetFullTypeName(size)} other ) => new() {{" );
+		using ( sb.Indent() ) {
+			foreach ( var i in elements ) {
+				sb.AppendLine( $"{AxisNames[i]} = T.Max( {AxisNames[i]}, other.{AxisNames[i]} )," );
+			}
+		}
+		sb.AppendLine( "};" );
+	}
+
 	protected override void GenerateOperators ( int size, SourceStringBuilder sb ) {
 		GenerateComponentwiseScalarOperatorRight( size, sb, "*" );
 		GenerateComponentwiseScalarOperatorLeft( size, sb, "*" );

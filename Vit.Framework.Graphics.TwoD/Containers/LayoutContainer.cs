@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.TwoD.Layout;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
@@ -9,13 +10,42 @@ public class LayoutContainer<T> : LayoutContainer<T, LayoutParams> where T : ILa
 		var offset = new Vector2<float>( Padding.Left, Padding.Bottom );
 
 		foreach ( var (i, param) in LayoutChildren ) {
-			i.Size = param.Size.GetSize( size );
+			i.Size = param.Size.GetSize( size ).Contain( i.RequiredSize );
 
 			var origin = param.Origin.GetValue( i.Size );
 			var anchor = param.Anchor.GetValue( size );
 
 			i.Position = (anchor - origin + offset).FromOrigin();
 		}
+	}
+
+	protected override Size2<float> PerformAbsoluteLayout () {
+		if ( AutoSizeDirection == LayoutDirection.None )
+			return new Size2<float>( Padding.Horizontal, Padding.Vertical );
+
+		var result = new Size2<float>();
+
+		var size = Size2<float>.Zero;
+		foreach ( var (i, param) in LayoutChildren ) {
+			var childSize = param.Size.GetSize( size ).Contain( i.RequiredSize );
+
+			var origin = param.Origin.GetValue( childSize );
+			var anchor = param.Anchor.GetValue( size );
+
+			var position = anchor - origin;
+
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) ) {
+				result.Width = float.Max( result.Width, position.X + childSize.Width );
+			}
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) ) {
+				result.Height = float.Max( result.Height, position.Y + childSize.Height );
+			}
+		}
+
+		return new() {
+			Width = result.Width + Padding.Horizontal,
+			Height = result.Height + Padding.Vertical
+		};
 	}
 }
 

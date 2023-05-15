@@ -11,5 +11,11 @@ public interface ILayoutElement : IDrawable {
 	/// </summary>
 	Size2<float> Size { get; set; }
 
-	// TODO "required size"
+	/// <summary>
+	/// The minumum size this element needs to display correctly.
+	/// </summary>
+	/// <remarks>
+	/// This usually indicates the space absolutely sized children in <see cref="ILayoutContainer"/>s occupy.
+	/// </remarks>
+	Size2<float> RequiredSize { get; }
 }

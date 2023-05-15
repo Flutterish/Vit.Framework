@@ -26,6 +26,7 @@ public class Sprite : Drawable, ILayoutElement {
 		get => new(Scale);
 		set => Scale = new(value);
 	}
+	public Size2<float> RequiredSize => Size2<float>.Zero;
 
 	public Texture Texture {
 		get => texture;

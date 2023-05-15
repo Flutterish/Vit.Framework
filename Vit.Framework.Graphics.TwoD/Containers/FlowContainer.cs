@@ -43,6 +43,10 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 	protected override void PerformLayout () {
 		
 	}
+
+	protected override Size2<float> PerformAbsoluteLayout () {
+		throw new NotImplementedException();
+	}
 }
 
 public struct FlowParams {
