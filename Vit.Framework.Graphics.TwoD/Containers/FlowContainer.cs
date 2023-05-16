@@ -16,11 +16,11 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		}
 	}
 
-	RelativeAxes2<float> flowOrigin = Anchor.TopLeft;
+	RelativeAxes2<float> flowOrigin;
 	/// <summary>
 	/// What point the flow elements are aligned to.
 	/// </summary>
-	public RelativeAxes2<float> FlowOrigin {
+	public required RelativeAxes2<float> FlowOrigin {
 		get => flowOrigin;
 		set {
 			if ( flowOrigin == value )
@@ -31,8 +31,8 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		}
 	}
 
-	FlowDirection flowDirection = FlowDirection.HorizontalThenVertical;
-	public FlowDirection FlowDirection {
+	FlowDirection flowDirection;
+	public required FlowDirection FlowDirection {
 		get => flowDirection;
 		set {
 			if ( flowDirection == value )
@@ -65,15 +65,18 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		flowOrigin.Flow /= contentFlowSize.Flow;
 		flowOrigin.Cross /= contentFlowSize.Cross;
 
+		var positionOffset = flowDirection.MakePositionOffsetBySizeAxes<float>();
+
 		void finalizeSpan () {
 			crossPosition += tryCollapse( previousCrossMargin, crossStartMargin );
 
 			var remainingFlow = contentFlowSize.Flow - (spanSize.Flow - flowPadding.Flow) - tryCollapse( previousFlowMargin, flowPadding.FlowEnd );
 			foreach ( var (i, flow) in spanElements ) {
+				var childSize = flowDirection.ToFlow( i.Size );
 				i.Position = flowDirection.FromFlow( new FlowPoint2<float> {
-					Flow = flow + remainingFlow * flowOrigin.Flow,
+					Flow = flow + remainingFlow * flowOrigin.Flow + childSize.Flow * positionOffset.Flow,
 					Cross = crossPosition
-				} );
+				}, size );
 			}
 
 			crossPosition += spanSize.Cross;
@@ -127,10 +130,11 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		// finalize spans
 		var remainingCross = contentFlowSize.Cross - (crossPosition - flowPadding.Cross) - tryCollapse( previousCrossMargin, flowPadding.CrossEnd );
 		foreach ( var i in Children ) {
-			var flowPosition = flowDirection.ToFlow( i.Position );
+			var childSize = flowDirection.ToFlow( i.Size );
+			var flowPosition = flowDirection.ToFlow( i.Position, size );
 			i.Position = flowDirection.FromFlow( flowPosition with {
-				Cross = flowPosition.Cross + remainingCross * flowOrigin.Cross
-			} );
+				Cross = flowPosition.Cross + remainingCross * flowOrigin.Cross + childSize.Cross * positionOffset.Cross
+			}, size );
 		}
 	}
 

@@ -26,27 +26,13 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 		AddChild( createFlowContainer(), new() {
 			Size = new( 1f.Relative() )
 		} );
-
-		LayoutContainer<ILayoutElement> padded;
-		AddChild( padded = new LayoutContainer<ILayoutElement> {
-			Padding = new( padding )
-		}, new() {
-			Size = new( 1f.Relative() )
-		} );
-		foreach ( var i in new[] { Anchor.TopRight, Anchor.BottomRight, Anchor.TopLeft, Anchor.BottomLeft } ) {
-			padded.AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
-				Size = new( margin, margin ),
-				Origin = i,
-				Anchor = i
-			} );
-		}
 	}
 
 	FlowContainer<ILayoutElement> createFlowContainer () {
 		FlowContainer<ILayoutElement> container = new() {
 			Padding = new( padding ),
-			FlowOrigin = Anchor.CentreRight,
-			FlowDirection = FlowDirection.Horizontal
+			FlowOrigin = Anchor.TopRight,
+			FlowDirection = FlowDirection.DownThenLeft,
 			//CollapseMargins = false
 		};
 

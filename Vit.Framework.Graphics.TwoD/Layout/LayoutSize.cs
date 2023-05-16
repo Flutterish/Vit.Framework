@@ -59,7 +59,7 @@ public struct LayoutSize<T> where T : INumber<T> {
 		if ( Mode is LayoutMode.Unset )
 			return Size2<T>.Zero;
 
-		if ( Mode is LayoutMode.Cardinal || flowDirection is FlowDirection.Horizontal or FlowDirection.HorizontalThenVertical )
+		if ( Mode is LayoutMode.Cardinal || flowDirection.GetFlowDirection() is LayoutDirection.Horizontal )
 			return new() { Width = _a.GetValue( availableSpace.Width ), Height = _b.GetValue( availableSpace.Height ) };
 
 		return new() { Width = _b.GetValue( availableSpace.Width ), Height = _a.GetValue( availableSpace.Height ) };
@@ -69,7 +69,7 @@ public struct LayoutSize<T> where T : INumber<T> {
 		if ( Mode is LayoutMode.Unset )
 			return FlowSize2<T>.Zero;
 
-		if ( Mode is LayoutMode.FlowCross || flowDirection is FlowDirection.Horizontal or FlowDirection.HorizontalThenVertical )
+		if ( Mode is LayoutMode.FlowCross || flowDirection.GetFlowDirection() is LayoutDirection.Horizontal )
 			return new() { Flow = _a.GetValue( availableSpace.Flow ), Cross = _b.GetValue( availableSpace.Cross ) };
 
 		return new() { Flow = _b.GetValue( availableSpace.Flow ), Cross = _a.GetValue( availableSpace.Cross ) };

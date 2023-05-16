@@ -18,11 +18,8 @@ public struct RelativeAxes2<T> : IEquatable<RelativeAxes2<T>> where T : INumber<
 	};
 
 	public FlowAxes2<T> ToFlow ( FlowDirection direction, Size2<T> availableSpace ) {
-		if ( direction.GetFlowDirection() == LayoutDirection.Horizontal )
-			return new( availableSpace * this );
-		else {
-			return new( new Size2<T>( availableSpace.Height, availableSpace.Width ) * new RelativeAxes2<T>( Y, X ) );
-		}
+		var point = direction.ToFlow( availableSpace * this, direction.ToFlow( availableSpace ) );
+		return new( point );
 	}
 
 	public static implicit operator RelativeAxes2<T> ( Axes2<T> axes ) => new() {
