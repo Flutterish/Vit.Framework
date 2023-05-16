@@ -29,6 +29,8 @@ path = "./../../../../Vit.Framework.Graphics.TwoD/Layout";
 var flowSize = new FlowSizeTemplate { Path = path };
 var flowPoint = new FlowPointTemplate { Path = path };
 var flowVector = new FlowVectorTemplate { Path = path };
+var flowAxes = new FlowAxesTemplate { Path = path };
 flowSize.Apply( 2 );
 flowPoint.Apply( 2 );
 flowVector.Apply( 2 );
+flowAxes.Apply( 2 );

@@ -44,7 +44,10 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 
 	FlowContainer<ILayoutElement> createFlowContainer () {
 		FlowContainer<ILayoutElement> container = new() {
-			Padding = new( padding )
+			Padding = new( padding ),
+			FlowOrigin = Anchor.CentreRight,
+			FlowDirection = FlowDirection.Horizontal
+			//CollapseMargins = false
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
