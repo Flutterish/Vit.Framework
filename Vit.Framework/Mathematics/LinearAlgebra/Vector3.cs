@@ -45,12 +45,12 @@ public struct Vector3<T> : IInterpolatable<Vector3<T>, T>, IEqualityOperators<Ve
 	
 	public T LengthSquared => X * X + Y * Y + Z * Z;
 	
-	public Vector3<T> LeftInXY => new( -Y, X, Z );
-	public Vector3<T> RightInXY => new( Y, -X, Z );
-	public Vector3<T> LeftInXZ => new( -Z, Y, X );
-	public Vector3<T> RightInXZ => new( Z, Y, -X );
-	public Vector3<T> LeftInYZ => new( X, -Z, Y );
-	public Vector3<T> RightInYZ => new( X, Z, -Y );
+	public Vector3<T> RotatedByXY => new( -Y, X, Z );
+	public Vector3<T> RotatedByYX => new( Y, -X, Z );
+	public Vector3<T> RotatedByXZ => new( -Z, Y, X );
+	public Vector3<T> RotatedByZX => new( Z, Y, -X );
+	public Vector3<T> RotatedByYZ => new( X, -Z, Y );
+	public Vector3<T> RotatedByZY => new( X, Z, -Y );
 	
 	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	

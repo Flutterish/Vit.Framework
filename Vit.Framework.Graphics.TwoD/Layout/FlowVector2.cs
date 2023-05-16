@@ -37,8 +37,8 @@ public struct FlowVector2<T> : IInterpolatable<FlowVector2<T>, T>, IEqualityOper
 	
 	public T LengthSquared => Flow * Flow + Cross * Cross;
 	
-	public FlowVector2<T> LeftInFlowCross => new( -Cross, Flow );
-	public FlowVector2<T> RightInFlowCross => new( Cross, -Flow );
+	public FlowVector2<T> RotatedByFlowCross => new( -Cross, Flow );
+	public FlowVector2<T> RotatedByCrossFlow => new( Cross, -Flow );
 	
 	public FlowVector2<T> Left => new( -Cross, Flow );
 	public FlowVector2<T> Right => new( Cross, -Flow );

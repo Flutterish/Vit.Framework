@@ -78,18 +78,18 @@ public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Ve
 	
 	public T LengthSquared => X * X + Y * Y + Z * Z + W * W;
 	
-	public Vector4<T> LeftInXY => new( -Y, X, Z, W );
-	public Vector4<T> RightInXY => new( Y, -X, Z, W );
-	public Vector4<T> LeftInXZ => new( -Z, Y, X, W );
-	public Vector4<T> RightInXZ => new( Z, Y, -X, W );
-	public Vector4<T> LeftInXW => new( -W, Y, Z, X );
-	public Vector4<T> RightInXW => new( W, Y, Z, -X );
-	public Vector4<T> LeftInYZ => new( X, -Z, Y, W );
-	public Vector4<T> RightInYZ => new( X, Z, -Y, W );
-	public Vector4<T> LeftInYW => new( X, -W, Z, Y );
-	public Vector4<T> RightInYW => new( X, W, Z, -Y );
-	public Vector4<T> LeftInZW => new( X, Y, -W, Z );
-	public Vector4<T> RightInZW => new( X, Y, W, -Z );
+	public Vector4<T> RotatedByXY => new( -Y, X, Z, W );
+	public Vector4<T> RotatedByYX => new( Y, -X, Z, W );
+	public Vector4<T> RotatedByXZ => new( -Z, Y, X, W );
+	public Vector4<T> RotatedByZX => new( Z, Y, -X, W );
+	public Vector4<T> RotatedByXW => new( -W, Y, Z, X );
+	public Vector4<T> RotatedByWX => new( W, Y, Z, -X );
+	public Vector4<T> RotatedByYZ => new( X, -Z, Y, W );
+	public Vector4<T> RotatedByZY => new( X, Z, -Y, W );
+	public Vector4<T> RotatedByYW => new( X, -W, Z, Y );
+	public Vector4<T> RotatedByWY => new( X, W, Z, -Y );
+	public Vector4<T> RotatedByZW => new( X, Y, -W, Z );
+	public Vector4<T> RotatedByWZ => new( X, Y, W, -Z );
 	
 	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	
