@@ -1,13 +1,11 @@
 ﻿using Vit.Framework.Mathematics.SourceGen.Mathematics;
+using Vit.Framework.Mathematics.SourceGen.Mathematics.GeometricAlgebra;
 
 namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
-public class FlowAxesTemplate : AxesTemplate {
+public class FlowBiVectorTemplate : BiVectorTemplate {
+	protected override VectorTemplate CreateVectorTemplate () => new FlowVectorTemplate() { Path = string.Empty };
 	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";
-
-	public FlowAxesTemplate () {
-		AxisNames = new[] { "Flow", "Cross" };
-	}
 
 	protected override void GenerateUsings ( int size, SourceStringBuilder sb ) {
 		base.GenerateUsings( size, sb );
@@ -15,6 +13,6 @@ public class FlowAxesTemplate : AxesTemplate {
 	}
 
 	public override string GetTypeName ( int size ) {
-		return $"FlowAxes{size}";
+		return $"FlowBiVector{size}";
 	}
 }

@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen.Layout;
+﻿using Vit.Framework.Mathematics.SourceGen.Mathematics;
+
+namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
 public class FlowPointTemplate : PointTemplate {
 	protected override VectorTemplate CreateVectorTemplate () => new FlowVectorTemplate() { Path = string.Empty };

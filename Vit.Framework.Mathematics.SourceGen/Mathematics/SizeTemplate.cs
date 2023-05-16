@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class SizeTemplate : SpanLikeTemplate {
 	protected override string Namespace => "Vit.Framework.Mathematics";
@@ -16,7 +16,7 @@ public class SizeTemplate : SpanLikeTemplate {
 
 		var elements = Enumerable.Range( 0, size );
 		sb.AppendLine();
-		sb.AppendLine( $"public {GetFullTypeName(size)} Contain ( {GetFullTypeName(size)} other ) => new() {{" );
+		sb.AppendLine( $"public {GetFullTypeName( size )} Contain ( {GetFullTypeName( size )} other ) => new() {{" );
 		using ( sb.Indent() ) {
 			foreach ( var i in elements ) {
 				sb.AppendLine( $"{AxisNames[i]} = T.Max( {AxisNames[i]}, other.{AxisNames[i]} )," );

@@ -1,7 +1,15 @@
-﻿using Vit.Framework.Mathematics.SourceGen;
-using Vit.Framework.Mathematics.SourceGen.Layout;
+﻿using Vit.Framework.Mathematics.SourceGen.Layout;
+using Vit.Framework.Mathematics.SourceGen.Mathematics;
+using Vit.Framework.Mathematics.SourceGen.Mathematics.GeometricAlgebra;
+using Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra;
 
-var path = "./../../../../Vit.Framework/Mathematics";
+var path = "./../../../../Vit.Framework/Mathematics/GeometricAlgebra";
+var bivector = new BiVectorTemplate { Path = path };
+for ( int i = 2; i <= 4; i++ ) {
+	bivector.Apply( i );
+}
+
+path = "./../../../../Vit.Framework/Mathematics";
 var axis = new AxesTemplate { Path = path };
 var point = new PointTemplate { Path = path };
 var vector = new VectorTemplate { Path = path };
@@ -34,3 +42,8 @@ flowSize.Apply( 2 );
 flowPoint.Apply( 2 );
 flowVector.Apply( 2 );
 flowAxes.Apply( 2 );
+
+var flowbivector = new FlowBiVectorTemplate { Path = path };
+for ( int i = 2; i <= 2; i++ ) {
+	flowbivector.Apply( i );
+}

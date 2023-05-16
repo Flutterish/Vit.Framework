@@ -56,10 +56,26 @@ public struct FlowVector2<T> : IInterpolatable<FlowVector2<T>, T>, IEqualityOper
 	}
 	
 	public T Dot ( FlowVector2<T> other )
-		=> Dot( this, other );
-	public static T Dot ( FlowVector2<T> left, FlowVector2<T> right ) {
+		=> Inner( this, other );
+	public static T Dot ( FlowVector2<T> left, FlowVector2<T> right )
+		=> Inner( left, right );
+	public T Inner ( FlowVector2<T> other )
+		=> Inner( this, other );
+	public static T Inner ( FlowVector2<T> left, FlowVector2<T> right ) {
 		return left.Flow * right.Flow
 			+ left.Cross * right.Cross;
+	}
+	
+	public FlowBiVector2<T> CrossProduct ( FlowVector2<T> other )
+		=> Outer( this, other );
+	public static FlowBiVector2<T> CrossProduct ( FlowVector2<T> left, FlowVector2<T> right )
+		=> Outer( left, right );
+	public FlowBiVector2<T> Outer ( FlowVector2<T> other )
+		=> Outer( this, other );
+	public static FlowBiVector2<T> Outer ( FlowVector2<T> left, FlowVector2<T> right ) {
+		return new() {
+			FlowCross = left.Flow * right.Cross - left.Cross * right.Flow,
+		};
 	}
 	
 	public FlowPoint2<T> FromOrigin () {

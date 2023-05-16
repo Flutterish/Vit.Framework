@@ -1,4 +1,4 @@
-/// This file [Axes4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.AxesTemplate and parameter 4 (System.Int32)
+/// This file [Axes4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.AxesTemplate and parameter 4 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Memory;

@@ -1,4 +1,4 @@
-/// This file [Vector1.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.VectorTemplate and parameter 1 (System.Int32)
+/// This file [Vector1.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.VectorTemplate and parameter 1 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Memory;
@@ -41,8 +41,12 @@ public struct Vector1<T> : IInterpolatable<Vector1<T>, T>, IEqualityOperators<Ve
 	}
 	
 	public T Dot ( Vector1<T> other )
-		=> Dot( this, other );
-	public static T Dot ( Vector1<T> left, Vector1<T> right ) {
+		=> Inner( this, other );
+	public static T Dot ( Vector1<T> left, Vector1<T> right )
+		=> Inner( left, right );
+	public T Inner ( Vector1<T> other )
+		=> Inner( this, other );
+	public static T Inner ( Vector1<T> left, Vector1<T> right ) {
 		return left.X * right.X;
 	}
 	

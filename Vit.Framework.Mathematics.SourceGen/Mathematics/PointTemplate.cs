@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class PointTemplate : SpanLikeTemplate {
 	protected virtual VectorTemplate CreateVectorTemplate () => new() { Path = string.Empty };

@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 	protected override string Namespace => "Vit.Framework.Mathematics";
@@ -48,7 +48,7 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 		sb.AppendLine( " );" );
 
 		sb.AppendLine();
-		sb.AppendLine( $"public {nonGenericType} ( {sizeType.GetFullTypeName(size)} size ) {{" );
+		sb.AppendLine( $"public {nonGenericType} ( {sizeType.GetFullTypeName( size )} size ) {{" );
 		using ( sb.Indent() ) {
 			foreach ( var i in elements ) {
 				sb.AppendLine( $"Min{pointType.AxisNames[i]} = T.Zero;" );
@@ -96,7 +96,7 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 		sb.AppendLine( "}" );
 
 		sb.AppendLine();
-		sb.AppendLine( $"public static implicit operator {type} ( {sizeType.GetFullTypeName(size)} size ) => new( size );" );
+		sb.AppendLine( $"public static implicit operator {type} ( {sizeType.GetFullTypeName( size )} size ) => new( size );" );
 
 		sb.AppendLine();
 		sb.AppendLine( "public override string ToString () {" );
@@ -112,7 +112,7 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 		sb.AppendLine();
 		sb.AppendLine( $"public static class AABox{size}<T> where T : INumber<T>, IFloatingPointIeee754<T> {{" );
 		using ( sb.Indent() ) {
-			sb.AppendLine( $"public static {GetFullTypeName(size)} Undefined {{ get; }} = new() {{" );
+			sb.AppendLine( $"public static {GetFullTypeName( size )} Undefined {{ get; }} = new() {{" );
 			using ( sb.Indent() )
 				sb.AppendLinePostJoin( ",", elements.Select( x => $"Min{pointType.AxisNames[x]} = T.PositiveInfinity" ) );
 			sb.AppendLine( "," );

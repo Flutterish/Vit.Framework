@@ -1,9 +1,10 @@
-﻿using Vit.Framework.Interop;
+﻿using System.Diagnostics;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.GeometricAlgebra.Generic;
 using Vit.Framework.Mathematics.LinearAlgebra.Generic;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Mathematics.SourceGen;
+namespace Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra;
 
 public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 	public override string GetTypeName ( (int rows, int columns) data ) {
@@ -33,7 +34,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 	}
 	protected override void GenerateClassBody ( (int rows, int columns) data, SourceStringBuilder sb ) {
 		var (rows, columns) = data;
-		var min = int.Min(rows, columns);
+		var min = int.Min( rows, columns );
 		var minIndices = Enumerable.Range( 0, min );
 		var min1Indices = Enumerable.Range( 0, min - 1 );
 		var rowIndices = Enumerable.Range( 0, rows );
@@ -42,7 +43,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var type = GetFullTypeName( data );
 
 		foreach ( var y in rowIndices ) {
-			sb.AppendJoin( " ", columnIndices.Select( x => $"public T {memberName(x,y)};" ) );
+			sb.AppendJoin( " ", columnIndices.Select( x => $"public T {memberName( x, y )};" ) );
 			sb.AppendLine();
 		}
 
@@ -83,7 +84,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		sb.AppendLine( "}" );
 
 		sb.AppendLine();
-		sb.AppendLine( $"public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref {memberName(0, 0)}, {columns * rows} );" );
+		sb.AppendLine( $"public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref {memberName( 0, 0 )}, {columns * rows} );" );
 		sb.AppendLine( $"public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref {memberName( 0, 0 )}, {columns * rows} );" );
 		sb.AppendLine( $"public ReadOnlySpan2D<T> AsReadOnlySpan2D () => new( AsReadOnlySpan(), {columns}, {rows} );" );
 		sb.AppendLine( $"public Span2D<T> AsSpan2D () => new( AsSpan(), {columns}, {rows} );" );
@@ -105,7 +106,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var sizeType = new SizeTemplate() { Path = string.Empty };
 
 		sb.AppendLine();
-		sb.AppendLine( $"public static {type} CreateScale ( {axisType.GetFullTypeName(min)} axes )" );
+		sb.AppendLine( $"public static {type} CreateScale ( {axisType.GetFullTypeName( min )} axes )" );
 		sb.Append( $"\t=> CreateScale( " );
 		sb.AppendJoin( ", ", minIndices.Select( x => $"axes.{axisType.AxisNames[x]}" ) );
 		sb.AppendLine( " );" );
@@ -142,31 +143,31 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		using ( sb.Indent() ) {
 			sb.AppendLinePostJoin( ",", minIndices.Select( x => $"{memberName( x, x )} = T.MultiplicativeIdentity" ) );
 			sb.AppendLine( "," );
-			sb.AppendLinePostJoin( ",", min1Indices.Select( x => $"{memberName(x, min - 1)} = {vectorType.AxisNames[x].ToLower()}" ) );
+			sb.AppendLinePostJoin( ",", min1Indices.Select( x => $"{memberName( x, min - 1 )} = {vectorType.AxisNames[x].ToLower()}" ) );
 			sb.AppendLine();
 		}
 		sb.AppendLine( "};" );
 
 		if ( min is 2 or 3 ) {
 			sb.AppendLine();
-			sb.AppendLine( $"public static {type} CreateShear ( {axisType.GetFullTypeName(2)} shear )" );
+			sb.AppendLine( $"public static {type} CreateShear ( {axisType.GetFullTypeName( 2 )} shear )" );
 			sb.AppendLine( $"\t=> CreateShear( shear.{axisType.AxisNames[0]}, shear.{axisType.AxisNames[1]} );" );
 
 			sb.AppendLine( $"public static {type} CreateShear ( T {axisType.AxisNames[0].ToLower()}, T {axisType.AxisNames[1].ToLower()} ) => new() {{" );
 			using ( sb.Indent() ) {
-				sb.AppendLine( $"{memberName(0, 0)} = T.MultiplicativeIdentity," );
-				sb.AppendLine( $"{memberName(1, 1)} = T.MultiplicativeIdentity," );
-				if ( min == 3 ) sb.AppendLine( $"{memberName(2, 2)} = T.MultiplicativeIdentity," );
+				sb.AppendLine( $"{memberName( 0, 0 )} = T.MultiplicativeIdentity," );
+				sb.AppendLine( $"{memberName( 1, 1 )} = T.MultiplicativeIdentity," );
+				if ( min == 3 ) sb.AppendLine( $"{memberName( 2, 2 )} = T.MultiplicativeIdentity," );
 				sb.AppendLine();
-				sb.AppendLine( $"{memberName(0, 1)} = {axisType.AxisNames[0].ToLower()}," );
-				sb.AppendLine( $"{memberName(1, 0)} = {axisType.AxisNames[1].ToLower()}" );
+				sb.AppendLine( $"{memberName( 0, 1 )} = {axisType.AxisNames[0].ToLower()}," );
+				sb.AppendLine( $"{memberName( 1, 0 )} = {axisType.AxisNames[1].ToLower()}" );
 			}
 			sb.AppendLine( "};" );
 		}
 
 		if ( min is 3 or 4 ) {
 			sb.AppendLine();
-			sb.AppendLine( $"public static {type} FromAxisAngle<TAngle> ( {vectorType.GetFullTypeName(3)} axis, TAngle angle ) where TAngle : IAngle<TAngle, T> {{" );
+			sb.AppendLine( $"public static {type} FromAxisAngle<TAngle> ( {vectorType.GetFullTypeName( 3 )} axis, TAngle angle ) where TAngle : IAngle<TAngle, T> {{" );
 			using ( sb.Indent() ) {
 				sb.AppendLine( $"T x = axis.{vectorType.AxisNames[0]}, y = axis.{vectorType.AxisNames[1]}, z = axis.{vectorType.AxisNames[2]};" );
 				sb.AppendLine( $"T sa = TAngle.Sin( angle ), ca = TAngle.Cos( angle );" );
@@ -175,21 +176,21 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 				sb.AppendLine();
 				sb.AppendLine( "return new() {" );
 				using ( sb.Indent() ) {
-					sb.AppendLine( $"{memberName(0,0)} = xx + ca * ( T.One - xx )," );
-					sb.AppendLine( $"{memberName(1,0)} = xy - ca * xy + sa * z," );
-					sb.AppendLine( $"{memberName(2,0)} = xz - ca * xz - sa * y," );
+					sb.AppendLine( $"{memberName( 0, 0 )} = xx + ca * ( T.One - xx )," );
+					sb.AppendLine( $"{memberName( 1, 0 )} = xy - ca * xy + sa * z," );
+					sb.AppendLine( $"{memberName( 2, 0 )} = xz - ca * xz - sa * y," );
 					sb.AppendLine();
-					sb.AppendLine( $"{memberName(0,1)} = xy - ca * xy - sa * z," );
-					sb.AppendLine( $"{memberName(1,1)} = yy + ca * ( T.One - yy )," );
-					sb.AppendLine( $"{memberName(2,1)} = yz - ca * yz + sa * x," );
+					sb.AppendLine( $"{memberName( 0, 1 )} = xy - ca * xy - sa * z," );
+					sb.AppendLine( $"{memberName( 1, 1 )} = yy + ca * ( T.One - yy )," );
+					sb.AppendLine( $"{memberName( 2, 1 )} = yz - ca * yz + sa * x," );
 					sb.AppendLine();
-					sb.AppendLine( $"{memberName(0, 2)} = xz - ca * xz + sa * y," );
-					sb.AppendLine( $"{memberName(1, 2)} = yz - ca * yz - sa * x," );
-					sb.Append( $"{memberName(2, 2)} = zz + ca * ( T.One - zz )" );
+					sb.AppendLine( $"{memberName( 0, 2 )} = xz - ca * xz + sa * y," );
+					sb.AppendLine( $"{memberName( 1, 2 )} = yz - ca * yz - sa * x," );
+					sb.Append( $"{memberName( 2, 2 )} = zz + ca * ( T.One - zz )" );
 					if ( min == 4 ) {
 						sb.AppendLine( "," );
 						sb.AppendLine();
-						sb.AppendLine( $"{memberName(3,3)} = T.MultiplicativeIdentity" );
+						sb.AppendLine( $"{memberName( 3, 3 )} = T.MultiplicativeIdentity" );
 					}
 					else {
 						sb.AppendLine();
@@ -208,13 +209,13 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 				sb.AppendLine();
 				sb.AppendLine( "return new() {" );
 				using ( sb.Indent() ) {
-					sb.AppendLine( $"{memberName(0,0)} = cos," );
-					sb.AppendLine( $"{memberName(0,1)} = -sin," );
-					sb.AppendLine( $"{memberName(1,0)} = sin," );
-					sb.AppendLine( $"{memberName(1,1)} = cos," );
+					sb.AppendLine( $"{memberName( 0, 0 )} = cos," );
+					sb.AppendLine( $"{memberName( 0, 1 )} = -sin," );
+					sb.AppendLine( $"{memberName( 1, 0 )} = sin," );
+					sb.AppendLine( $"{memberName( 1, 1 )} = cos," );
 					if ( min == 3 ) {
 						sb.AppendLine();
-						sb.AppendLine( $"{memberName(2,2)} = T.MultiplicativeIdentity" );
+						sb.AppendLine( $"{memberName( 2, 2 )} = T.MultiplicativeIdentity" );
 					}
 				}
 				sb.AppendLine( "};" );
@@ -233,59 +234,59 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 				sb.AppendLine();
 				sb.AppendLine( "return new() {" );
 				using ( sb.Indent() ) {
-					sb.AppendLine( $"{memberName(0,0)} = aspectRatio > T.MultiplicativeIdentity ? height / width : T.MultiplicativeIdentity," );
-					sb.AppendLine( $"{memberName(1,1)} = aspectRatio < T.MultiplicativeIdentity ? aspectRatio : T.MultiplicativeIdentity," );
+					sb.AppendLine( $"{memberName( 0, 0 )} = aspectRatio > T.MultiplicativeIdentity ? height / width : T.MultiplicativeIdentity," );
+					sb.AppendLine( $"{memberName( 1, 1 )} = aspectRatio < T.MultiplicativeIdentity ? aspectRatio : T.MultiplicativeIdentity," );
 					sb.AppendLine();
-					sb.AppendLine( $"{memberName(2,2)} = a," );
-					sb.AppendLine( $"{memberName(2,3)} = -b," );
+					sb.AppendLine( $"{memberName( 2, 2 )} = a," );
+					sb.AppendLine( $"{memberName( 2, 3 )} = -b," );
 					sb.AppendLine();
-					sb.AppendLine( $"{memberName(3,2)} = T.MultiplicativeIdentity" );
+					sb.AppendLine( $"{memberName( 3, 2 )} = T.MultiplicativeIdentity" );
 				}
 				sb.AppendLine( "};" );
 			}
 			sb.AppendLine( "}" );
 
-			sb.AppendLine();
-			sb.AppendLine( $"public static {nonGenericType}<TNumber> CreateLookAt<TNumber> ( {vectorType.GetTypeName(3)}<TNumber> direction, {vectorType.GetTypeName(3)}<TNumber> upDirection ) " );
-			sb.AppendLine( "\twhere TNumber : IFloatingPointIeee754<TNumber> " );
-			sb.AppendLine( "{" );
-			using ( sb.Indent() ) {
-				sb.AppendLine( "var forward = direction.Normalized();" );
-				sb.AppendLine( "var right = upDirection.Cross( forward );" );
-				sb.AppendLine( "if ( right.LengthSquared <= TNumber.Epsilon ) {" );
-				using ( sb.Indent() ) {
-					sb.AppendLine( $"if ( TNumber.Abs( upDirection.{vectorType.AxisNames[0]} ) < TNumber.Abs( upDirection.{vectorType.AxisNames[1]} ) )" );
-					using ( sb.Indent() )
-						sb.AppendLine( $"upDirection.{vectorType.AxisNames[0]} += TNumber.One;" );
-					sb.AppendLine( "else" );
-					using ( sb.Indent() )
-						sb.AppendLine( $"upDirection.{vectorType.AxisNames[1]} += TNumber.One;" );
-					sb.AppendLine();
-					sb.AppendLine( "right = upDirection.Cross( forward );" );
-				}
-				sb.AppendLine( "}" );
-				sb.AppendLine( "right.Normalize();" );
-				sb.AppendLine( "var up = forward.Cross( right );" );
-				sb.AppendLine();
-				sb.AppendLine( "return new() {" );
-				using ( sb.Indent() ) {
-					sb.AppendLine( $"{memberName(0,2)} = forward.{vectorType.AxisNames[0]}," );
-					sb.AppendLine( $"{memberName(1,2)} = forward.{vectorType.AxisNames[1]}," );
-					sb.AppendLine( $"{memberName(2,2)} = forward.{vectorType.AxisNames[2]}," );
-					sb.AppendLine();
-					sb.AppendLine( $"{memberName(0,1)} = up.{vectorType.AxisNames[0]}," );
-					sb.AppendLine( $"{memberName(1,1)} = up.{vectorType.AxisNames[1]}," );
-					sb.AppendLine( $"{memberName(2,1)} = up.{vectorType.AxisNames[2]}," );
-					sb.AppendLine();
-					sb.AppendLine( $"{memberName(0,0)} = right.{vectorType.AxisNames[0]}," );
-					sb.AppendLine( $"{memberName(1,0)} = right.{vectorType.AxisNames[1]}," );
-					sb.AppendLine( $"{memberName(2,0)} = right.{vectorType.AxisNames[2]}," );
-					sb.AppendLine();
-					sb.AppendLine( $"{memberName(3,3)} = TNumber.MultiplicativeIdentity" );
-				}
-				sb.AppendLine( "};" );
-			}
-			sb.AppendLine( "}" );
+			//sb.AppendLine();
+			//sb.AppendLine( $"public static {nonGenericType}<TNumber> CreateLookAt<TNumber> ( {vectorType.GetTypeName( 3 )}<TNumber> direction, {vectorType.GetTypeName( 3 )}<TNumber> upDirection ) " );
+			//sb.AppendLine( "\twhere TNumber : IFloatingPointIeee754<TNumber> " );
+			//sb.AppendLine( "{" );
+			//using ( sb.Indent() ) {
+			//	sb.AppendLine( "var forward = direction.Normalized();" );
+			//	sb.AppendLine( "var right = upDirection.Cross( forward );" );
+			//	sb.AppendLine( "if ( right.LengthSquared <= TNumber.Epsilon ) {" );
+			//	using ( sb.Indent() ) {
+			//		sb.AppendLine( $"if ( TNumber.Abs( upDirection.{vectorType.AxisNames[0]} ) < TNumber.Abs( upDirection.{vectorType.AxisNames[1]} ) )" );
+			//		using ( sb.Indent() )
+			//			sb.AppendLine( $"upDirection.{vectorType.AxisNames[0]} += TNumber.One;" );
+			//		sb.AppendLine( "else" );
+			//		using ( sb.Indent() )
+			//			sb.AppendLine( $"upDirection.{vectorType.AxisNames[1]} += TNumber.One;" );
+			//		sb.AppendLine();
+			//		sb.AppendLine( "right = upDirection.Cross( forward );" );
+			//	}
+			//	sb.AppendLine( "}" );
+			//	sb.AppendLine( "right.Normalize();" );
+			//	sb.AppendLine( "var up = forward.Cross( right );" );
+			//	sb.AppendLine();
+			//	sb.AppendLine( "return new() {" );
+			//	using ( sb.Indent() ) {
+			//		sb.AppendLine( $"{memberName( 0, 2 )} = forward.{vectorType.AxisNames[0]}," );
+			//		sb.AppendLine( $"{memberName( 1, 2 )} = forward.{vectorType.AxisNames[1]}," );
+			//		sb.AppendLine( $"{memberName( 2, 2 )} = forward.{vectorType.AxisNames[2]}," );
+			//		sb.AppendLine();
+			//		sb.AppendLine( $"{memberName( 0, 1 )} = up.{vectorType.AxisNames[0]}," );
+			//		sb.AppendLine( $"{memberName( 1, 1 )} = up.{vectorType.AxisNames[1]}," );
+			//		sb.AppendLine( $"{memberName( 2, 1 )} = up.{vectorType.AxisNames[2]}," );
+			//		sb.AppendLine();
+			//		sb.AppendLine( $"{memberName( 0, 0 )} = right.{vectorType.AxisNames[0]}," );
+			//		sb.AppendLine( $"{memberName( 1, 0 )} = right.{vectorType.AxisNames[1]}," );
+			//		sb.AppendLine( $"{memberName( 2, 0 )} = right.{vectorType.AxisNames[2]}," );
+			//		sb.AppendLine();
+			//		sb.AppendLine( $"{memberName( 3, 3 )} = TNumber.MultiplicativeIdentity" );
+			//	}
+			//	sb.AppendLine( "};" );
+			//}
+			//sb.AppendLine( "}" );
 		}
 
 		if ( min == 3 ) {
@@ -297,7 +298,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 			sb.AppendLine( "}" );
 
 			sb.AppendLine();
-			sb.AppendLine( $"public static {nonGenericType}<TNumber> CreateLookAt<TNumber> ( {vectorType.GetTypeName(2)}<TNumber> direction ) where TNumber : IFloatingPointIeee754<TNumber> {{" );
+			sb.AppendLine( $"public static {nonGenericType}<TNumber> CreateLookAt<TNumber> ( {vectorType.GetTypeName( 2 )}<TNumber> direction ) where TNumber : IFloatingPointIeee754<TNumber> {{" );
 			using ( sb.Indent() ) {
 				sb.AppendLine( $"return {nonGenericType}<TNumber>.CreateRotation( direction.GetAngle() );" );
 			}
@@ -305,11 +306,11 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		}
 
 		sb.AppendLine();
-		sb.AppendLine( $"public {GetFullTypeName((columns, rows))} Transposed => new() {{" );
+		sb.AppendLine( $"public {GetFullTypeName( (columns, rows) )} Transposed => new() {{" );
 		using ( sb.Indent() ) {
 			foreach ( var x in columnIndices ) {
 				foreach ( var y in rowIndices ) {
-					sb.AppendLine( $"{memberName(y, x)} = {memberName(x, y)}," );
+					sb.AppendLine( $"{memberName( y, x )} = {memberName( x, y )}," );
 				}
 			}
 		}
@@ -318,7 +319,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var labels = new List<string>();
 		foreach ( var y in rowIndices ) {
 			foreach ( var x in columnIndices ) {
-				labels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				labels.Add( $"M[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
 			}
 		}
 		var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, labels );
@@ -444,14 +445,14 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var (rows, columns) = left;
 		foreach ( var y in Enumerable.Range( 0, rows ) ) {
 			foreach ( var x in Enumerable.Range( 0, columns ) ) {
-				leftLabels.Add( $"A[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				leftLabels.Add( $"A[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
 			}
 		}
 		var rightLabels = new List<string>();
 		(rows, columns) = right;
 		foreach ( var y in Enumerable.Range( 0, rows ) ) {
 			foreach ( var x in Enumerable.Range( 0, columns ) ) {
-				rightLabels.Add( $"B[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				rightLabels.Add( $"B[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
 			}
 		}
 
@@ -459,7 +460,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var rightMatrix = Matrix<float>.GenerateLabelMatrix( null, right.columns, right.rows, rightLabels );
 		var result = leftMatrix * rightMatrix;
 
-		sb.AppendLine( $"public static {GetFullTypeName((result.Rows, result.Columns))} operator * ( {GetFullTypeName(left)} left, {GetFullTypeName(right)} right ) {{" );
+		sb.AppendLine( $"public static {GetFullTypeName( (result.Rows, result.Columns) )} operator * ( {GetFullTypeName( left )} left, {GetFullTypeName( right )} right ) {{" );
 		using ( sb.Indent() ) {
 			sb.AppendLine( "var A = left.AsSpan();" );
 			sb.AppendLine( "var B = right.AsSpan();" );
@@ -468,7 +469,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 			using ( sb.Indent() ) {
 				for ( int y = 0; y < result.Rows; y++ ) {
 					for ( int x = 0; x < result.Columns; x++ ) {
-						sb.Append( $"{memberName(x, y)} = " );
+						sb.Append( $"{memberName( x, y )} = " );
 						appendNumber( result[x, y], sb, multiline: false );
 						sb.AppendLine( "," );
 					}
@@ -484,7 +485,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var (rows, columns) = matrix;
 		foreach ( var y in Enumerable.Range( 0, rows ) ) {
 			foreach ( var x in Enumerable.Range( 0, columns ) ) {
-				matrixLabels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				matrixLabels.Add( $"M[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
 			}
 		}
 		var vecLabels = new List<string>();
@@ -521,7 +522,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 		var (rows, columns) = matrix;
 		foreach ( var y in Enumerable.Range( 0, rows ) ) {
 			foreach ( var x in Enumerable.Range( 0, columns ) ) {
-				matrixLabels.Add( $"M[{( x + y * columns ).ToString().PadLeft( ( rows * columns ).ToString().Length, ' ' )}]" );
+				matrixLabels.Add( $"M[{(x + y * columns).ToString().PadLeft( (rows * columns).ToString().Length, ' ' )}]" );
 			}
 		}
 		var vecLabels = new List<string>();
@@ -531,7 +532,7 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 
 		var generic = Matrix<float>.GenerateLabelMatrix( null, columns, rows, matrixLabels );
 		var vec = Matrix<float>.GenerateLabelMatrix( null, length, 1, vecLabels );
-		List<MultiVector<float>> values = new( vec.Components.GetRow(0).ToArray() );
+		List<MultiVector<float>> values = new( vec.Components.GetRow( 0 ).ToArray() );
 		values.Add( 1 );
 		vec = new( new Span2D<MultiVector<float>>( values.AsSpan(), length + 1, 1 ) );
 
@@ -557,6 +558,8 @@ public class MatrixTemplate : ClassTemplate<(int rows, int columns)> {
 	void appendNumber ( MultiVector<float> value, SourceStringBuilder sb, bool multiline ) {
 		bool first = true;
 		foreach ( var i in value.Components ) {
+			Debug.Assert( i.Scale is -1 or 1 );
+
 			if ( first ) {
 				if ( i.Scale < 0 )
 					sb.Append( "-" );

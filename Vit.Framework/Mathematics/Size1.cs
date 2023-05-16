@@ -1,4 +1,4 @@
-/// This file [Size1.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.SizeTemplate and parameter 1 (System.Int32)
+/// This file [Size1.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.SizeTemplate and parameter 1 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Memory;

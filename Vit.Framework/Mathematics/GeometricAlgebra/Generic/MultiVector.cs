@@ -104,7 +104,7 @@ public partial record MultiVector<T> where T : INumber<T> {
 		if ( Components.Length == 0 )
 			return $"{T.AdditiveIdentity}";
 
-		StringBuilder sb = new();
+		var sb = new StringBuilder();
 
 		bool isFirst = true;
 		foreach ( var i in Components ) {

@@ -1,4 +1,4 @@
-/// This file [Matrix4x2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.MatrixTemplate and parameter (2, 4) (System.ValueTuple`2[System.Int32,System.Int32])
+/// This file [Matrix4x2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra.MatrixTemplate and parameter (2, 4) (System.ValueTuple`2[System.Int32,System.Int32])
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Mathematics.LinearAlgebra.Generic;

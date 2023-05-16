@@ -1,4 +1,4 @@
-/// This file [Matrix4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.MatrixTemplate and parameter (4, 4) (System.ValueTuple`2[System.Int32,System.Int32])
+/// This file [Matrix4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra.MatrixTemplate and parameter (4, 4) (System.ValueTuple`2[System.Int32,System.Int32])
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Mathematics.LinearAlgebra.Generic;
@@ -110,39 +110,6 @@ public struct Matrix4<T> where T : INumber<T> {
 			M23 = -b,
 			
 			M32 = T.MultiplicativeIdentity
-		};
-	}
-	
-	public static Matrix4<TNumber> CreateLookAt<TNumber> ( Vector3<TNumber> direction, Vector3<TNumber> upDirection ) 
-		where TNumber : IFloatingPointIeee754<TNumber> 
-	{
-		var forward = direction.Normalized();
-		var right = upDirection.Cross( forward );
-		if ( right.LengthSquared <= TNumber.Epsilon ) {
-			if ( TNumber.Abs( upDirection.X ) < TNumber.Abs( upDirection.Y ) )
-				upDirection.X += TNumber.One;
-			else
-				upDirection.Y += TNumber.One;
-			
-			right = upDirection.Cross( forward );
-		}
-		right.Normalize();
-		var up = forward.Cross( right );
-		
-		return new() {
-			M02 = forward.X,
-			M12 = forward.Y,
-			M22 = forward.Z,
-			
-			M01 = up.X,
-			M11 = up.Y,
-			M21 = up.Z,
-			
-			M00 = right.X,
-			M10 = right.Y,
-			M20 = right.Z,
-			
-			M33 = TNumber.MultiplicativeIdentity
 		};
 	}
 	

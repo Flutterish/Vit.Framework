@@ -1,4 +1,4 @@
-/// This file [AxisAlignedBox2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.AxisAlignedBoxTemplate and parameter 2 (System.Int32)
+/// This file [AxisAlignedBox2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.AxisAlignedBoxTemplate and parameter 2 (System.Int32)
 using System.Numerics;
 
 namespace Vit.Framework.Mathematics;

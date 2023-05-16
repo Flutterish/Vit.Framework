@@ -131,15 +131,17 @@ public record SimpleBlade<T> : IComparable<SimpleBlade<T>> where T : INumber<T> 
 		if ( Bases.Length == 0 )
 			return $"{scale}";
 
+		var nested = !typeof( T ).IsAssignableTo( typeof(IConvertible) );
+
 		string bases = string.Join( "", Bases.Select( x => x.Name ) );
 		if ( scale == T.MultiplicativeIdentity )
 			return bases;
 		else if ( scale == -T.MultiplicativeIdentity )
 			return $"-{bases}";
 		else if ( scale == T.AdditiveIdentity )
-			return $"{scale}";
+			return nested ? $"({scale})" : $"{scale}";
 		else
-			return $"{scale}{bases}";
+			return nested ? $"({scale}){bases}" : $"{scale}{bases}";
 	}
 
 	public override string ToString () {

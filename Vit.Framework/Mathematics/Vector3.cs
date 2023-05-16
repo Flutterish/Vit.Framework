@@ -1,6 +1,7 @@
-/// This file [Vector3.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.VectorTemplate and parameter 3 (System.Int32)
+/// This file [Vector3.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.VectorTemplate and parameter 3 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Mathematics.GeometricAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
@@ -66,20 +67,28 @@ public struct Vector3<T> : IInterpolatable<Vector3<T>, T>, IEqualityOperators<Ve
 	}
 	
 	public T Dot ( Vector3<T> other )
-		=> Dot( this, other );
-	public static T Dot ( Vector3<T> left, Vector3<T> right ) {
+		=> Inner( this, other );
+	public static T Dot ( Vector3<T> left, Vector3<T> right )
+		=> Inner( left, right );
+	public T Inner ( Vector3<T> other )
+		=> Inner( this, other );
+	public static T Inner ( Vector3<T> left, Vector3<T> right ) {
 		return left.X * right.X
 			+ left.Y * right.Y
 			+ left.Z * right.Z;
 	}
 	
-	public Vector3<T> Cross ( Vector3<T> other )
-		=> Cross( this, other );
-	public static Vector3<T> Cross ( Vector3<T> left, Vector3<T> right ) {
+	public BiVector3<T> Cross ( Vector3<T> other )
+		=> Outer( this, other );
+	public static BiVector3<T> Cross ( Vector3<T> left, Vector3<T> right )
+		=> Outer( left, right );
+	public BiVector3<T> Outer ( Vector3<T> other )
+		=> Outer( this, other );
+	public static BiVector3<T> Outer ( Vector3<T> left, Vector3<T> right ) {
 		return new() {
-			X = left.Y * right.Z - left.Z * right.Y,
-			Y = left.Z * right.X - left.X * right.Z,
-			Z = left.X * right.Y - left.Y * right.X
+			XY = left.X * right.Y - left.Y * right.X,
+			XZ = left.X * right.Z - left.Z * right.X,
+			YZ = left.Y * right.Z - left.Z * right.Y,
 		};
 	}
 	

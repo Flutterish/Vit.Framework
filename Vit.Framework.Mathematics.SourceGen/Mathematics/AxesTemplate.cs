@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class AxesTemplate : SpanLikeTemplate {
 	protected override string Namespace => "Vit.Framework.Mathematics";

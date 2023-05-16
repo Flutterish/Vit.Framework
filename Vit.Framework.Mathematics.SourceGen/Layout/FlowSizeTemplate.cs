@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen.Layout;
+﻿using Vit.Framework.Mathematics.SourceGen.Mathematics;
+
+namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
 public class FlowSizeTemplate : SizeTemplate {
 	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";

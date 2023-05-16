@@ -1,14 +1,25 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen;
+﻿using Vit.Framework.Mathematics.SourceGen.Mathematics.GeometricAlgebra;
+
+namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class VectorTemplate : SpanLikeTemplate {
 	protected virtual PointTemplate CreatePointTemplate () => new() { Path = string.Empty };
 	PointTemplate? _point;
 	PointTemplate point => _point ??= CreatePointTemplate();
 
+	protected virtual BiVectorTemplate CreateBiVectorTemplate () => new() { Path = string.Empty };
+	BiVectorTemplate? _biVector;
+	BiVectorTemplate biVector => _biVector ??= CreateBiVectorTemplate();
+
 	protected override string Namespace => "Vit.Framework.Mathematics";
 
 	public override string GetTypeName ( int size ) {
 		return $"Vector{size}";
+	}
+
+	protected override void GenerateUsings ( int size, SourceStringBuilder sb ) {
+		base.GenerateUsings( size, sb );
+		sb.AppendLine( "using Vit.Framework.Mathematics.GeometricAlgebra;" );
 	}
 
 	protected override void GenerateProperties ( int size, SourceStringBuilder sb ) {
@@ -50,8 +61,12 @@ public class VectorTemplate : SpanLikeTemplate {
 
 		sb.AppendLine();
 		sb.AppendLine( $"public T Dot ( {type} other )" );
-		sb.AppendLine( $"\t=> Dot( this, other );" );
-		sb.AppendLine( $"public static T Dot ( {type} left, {type} right ) {{" );
+		sb.AppendLine( $"\t=> Inner( this, other );" );
+		sb.AppendLine( $"public static T Dot ( {type} left, {type} right )" );
+		sb.AppendLine( $"\t=> Inner( left, right );" );
+		sb.AppendLine( $"public T Inner ( {type} other )" );
+		sb.AppendLine( $"\t=> Inner( this, other );" );
+		sb.AppendLine( $"public static T Inner ( {type} left, {type} right ) {{" );
 		using ( sb.Indent() ) {
 			sb.Append( "return " );
 			using var _ = sb.Indent();
@@ -60,17 +75,36 @@ public class VectorTemplate : SpanLikeTemplate {
 		}
 		sb.AppendLine( "}" );
 
-		if ( size == 3 ) {
+		if ( size >= 2 ) {
+			var bivectorType = biVector.GetFullTypeName( size );
+			var vectorType = GetFullTypeName( size );
 			sb.AppendLine();
-			sb.AppendLine( $"public {type} Cross ( {type} other )" ); // TODO this is applicable to all vector sizes as a bivector
-			sb.AppendLine( $"\t=> Cross( this, other );" );
-			sb.AppendLine( $"public static {type} Cross ( {type} left, {type} right ) {{" );
+			var crossName = AxisNames.Contains( "Cross" ) ? "CrossProduct" : "Cross";
+			sb.AppendLine( $"public {bivectorType} {crossName} ( {vectorType} other )" );
+			sb.AppendLine( $"\t=> Outer( this, other );" );
+			sb.AppendLine( $"public static {bivectorType} {crossName} ( {vectorType} left, {vectorType} right )" );
+			sb.AppendLine( $"\t=> Outer( left, right );" );
+			sb.AppendLine( $"public {bivectorType} Outer ( {vectorType} other )" );
+			sb.AppendLine( $"\t=> Outer( this, other );" );
+			sb.AppendLine( $"public static {bivectorType} Outer ( {vectorType} left, {vectorType} right ) {{" );
 			using ( sb.Indent() ) {
 				sb.AppendLine( "return new() {" );
 				using ( sb.Indent() ) {
-					sb.AppendLine( $"{AxisNames[0]} = left.{AxisNames[1]} * right.{AxisNames[2]} - left.{AxisNames[2]} * right.{AxisNames[1]}," );
-					sb.AppendLine( $"{AxisNames[1]} = left.{AxisNames[2]} * right.{AxisNames[0]} - left.{AxisNames[0]} * right.{AxisNames[2]}," );
-					sb.AppendLine( $"{AxisNames[2]} = left.{AxisNames[0]} * right.{AxisNames[1]} - left.{AxisNames[1]} * right.{AxisNames[0]}" );
+					var result = BasisVectors.MakeVector( size, BasisVectors.ANames ).OuterProduct( BasisVectors.MakeVector( size, BasisVectors.BNames ) );
+					foreach ( var i in result.Components ) {
+						var scale = i.Scale;
+						var basis = i.Bases;
+
+						sb.AppendJoin( "", basis.Select( x => AxisNames[x.Name switch {
+							"X" => 0,
+							"Y" => 1,
+							"Z" => 2,
+							"Z" or _ => 3,
+						}] ) );
+						sb.Append( " = " );
+						biVector.ScaleToString( scale, sb, multiline: false, aName: "left", bName: "right" );
+						sb.AppendLine( "," );
+					}
 				}
 				sb.AppendLine( "};" );
 			}
@@ -78,7 +112,7 @@ public class VectorTemplate : SpanLikeTemplate {
 		}
 
 		sb.AppendLine();
-		sb.AppendLine( $"public {point.GetFullTypeName(size)} FromOrigin () {{" );
+		sb.AppendLine( $"public {point.GetFullTypeName( size )} FromOrigin () {{" );
 		using ( sb.Indent() ) {
 			sb.AppendLine( $"return new() {{" );
 			using ( sb.Indent() )

@@ -1,6 +1,7 @@
-/// This file [Vector2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.VectorTemplate and parameter 2 (System.Int32)
+/// This file [Vector2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.VectorTemplate and parameter 2 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Mathematics.GeometricAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
@@ -55,10 +56,26 @@ public struct Vector2<T> : IInterpolatable<Vector2<T>, T>, IEqualityOperators<Ve
 	}
 	
 	public T Dot ( Vector2<T> other )
-		=> Dot( this, other );
-	public static T Dot ( Vector2<T> left, Vector2<T> right ) {
+		=> Inner( this, other );
+	public static T Dot ( Vector2<T> left, Vector2<T> right )
+		=> Inner( left, right );
+	public T Inner ( Vector2<T> other )
+		=> Inner( this, other );
+	public static T Inner ( Vector2<T> left, Vector2<T> right ) {
 		return left.X * right.X
 			+ left.Y * right.Y;
+	}
+	
+	public BiVector2<T> Cross ( Vector2<T> other )
+		=> Outer( this, other );
+	public static BiVector2<T> Cross ( Vector2<T> left, Vector2<T> right )
+		=> Outer( left, right );
+	public BiVector2<T> Outer ( Vector2<T> other )
+		=> Outer( this, other );
+	public static BiVector2<T> Outer ( Vector2<T> left, Vector2<T> right ) {
+		return new() {
+			XY = left.X * right.Y - left.Y * right.X,
+		};
 	}
 	
 	public Point2<T> FromOrigin () {

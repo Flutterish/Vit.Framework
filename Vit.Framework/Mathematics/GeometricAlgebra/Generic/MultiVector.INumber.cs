@@ -186,11 +186,13 @@ public partial record MultiVector<T> : INumber<MultiVector<T>> {
 	public static MultiVector<T> Zero { get; } = new MultiVector<T>( new SimpleBlade<T>[] { new( T.Zero, Array.Empty<BasisVector<T>>() ) } );
 
 	public bool TryFormat ( Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider ) {
-		throw new NotImplementedException();
+		var str = ToString();
+		charsWritten = str.Length;
+		return str.AsSpan().TryCopyTo( destination );
 	}
 
 	public string ToString ( string? format, IFormatProvider? formatProvider ) {
-		throw new NotImplementedException();
+		return ToString();
 	}
 
 	public static MultiVector<T> Parse ( ReadOnlySpan<char> s, IFormatProvider? provider ) {

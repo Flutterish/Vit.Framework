@@ -1,6 +1,7 @@
-/// This file [Vector4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.VectorTemplate and parameter 4 (System.Int32)
+/// This file [Vector4.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.VectorTemplate and parameter 4 (System.Int32)
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vit.Framework.Mathematics.GeometricAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Mathematics;
@@ -106,12 +107,33 @@ public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Ve
 	}
 	
 	public T Dot ( Vector4<T> other )
-		=> Dot( this, other );
-	public static T Dot ( Vector4<T> left, Vector4<T> right ) {
+		=> Inner( this, other );
+	public static T Dot ( Vector4<T> left, Vector4<T> right )
+		=> Inner( left, right );
+	public T Inner ( Vector4<T> other )
+		=> Inner( this, other );
+	public static T Inner ( Vector4<T> left, Vector4<T> right ) {
 		return left.X * right.X
 			+ left.Y * right.Y
 			+ left.Z * right.Z
 			+ left.W * right.W;
+	}
+	
+	public BiVector4<T> Cross ( Vector4<T> other )
+		=> Outer( this, other );
+	public static BiVector4<T> Cross ( Vector4<T> left, Vector4<T> right )
+		=> Outer( left, right );
+	public BiVector4<T> Outer ( Vector4<T> other )
+		=> Outer( this, other );
+	public static BiVector4<T> Outer ( Vector4<T> left, Vector4<T> right ) {
+		return new() {
+			XY = left.X * right.Y - left.Y * right.X,
+			XZ = left.X * right.Z - left.Z * right.X,
+			XW = left.X * right.W - left.W * right.X,
+			YZ = left.Y * right.Z - left.Z * right.Y,
+			YW = left.Y * right.W - left.W * right.Y,
+			ZW = left.Z * right.W - left.W * right.Z,
+		};
 	}
 	
 	public Point4<T> FromOrigin () {
