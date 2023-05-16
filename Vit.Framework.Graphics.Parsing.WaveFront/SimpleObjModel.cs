@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.Parsing.WaveFront;
 

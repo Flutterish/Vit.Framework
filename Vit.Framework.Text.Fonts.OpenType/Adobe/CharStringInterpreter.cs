@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
-using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing.Binary;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Adobe;

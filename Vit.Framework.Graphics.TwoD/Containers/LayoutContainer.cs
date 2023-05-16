@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 

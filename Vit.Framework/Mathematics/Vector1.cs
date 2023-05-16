@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Mathematics.LinearAlgebra;
+namespace Vit.Framework.Mathematics;
 
 public struct Vector1<T> : IInterpolatable<Vector1<T>, T>, IEqualityOperators<Vector1<T>, Vector1<T>, bool>, IEquatable<Vector1<T>>, IValueSpan<T> where T : INumber<T> {
 	public T X;

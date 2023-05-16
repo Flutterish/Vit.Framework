@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text;
 using Vit.Framework.Graphics.Software.Shaders;
-using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
 

@@ -9,7 +9,6 @@ using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Rendering;

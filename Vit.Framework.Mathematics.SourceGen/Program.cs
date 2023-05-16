@@ -4,11 +4,11 @@ using Vit.Framework.Mathematics.SourceGen.Layout;
 var path = "./../../../../Vit.Framework/Mathematics";
 var axis = new AxesTemplate { Path = path };
 var point = new PointTemplate { Path = path };
+var vector = new VectorTemplate { Path = path };
 var size = new SizeTemplate { Path = path };
 var box = new AxisAlignedBoxTemplate { Path = path };
 
 path = "./../../../../Vit.Framework/Mathematics/LinearAlgebra";
-var vector = new VectorTemplate { Path = path };
 var matrix = new MatrixTemplate() { Path = path };
 
 for ( int i = 1; i <= 4; i++ ) {

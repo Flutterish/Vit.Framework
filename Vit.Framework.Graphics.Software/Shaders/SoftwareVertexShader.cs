@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
-using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 

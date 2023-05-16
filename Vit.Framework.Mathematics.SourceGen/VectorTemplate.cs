@@ -5,7 +5,7 @@ public class VectorTemplate : SpanLikeTemplate {
 	PointTemplate? _point;
 	PointTemplate point => _point ??= CreatePointTemplate();
 
-	protected override string Namespace => "Vit.Framework.Mathematics.LinearAlgebra";
+	protected override string Namespace => "Vit.Framework.Mathematics";
 
 	public override string GetTypeName ( int size ) {
 		return $"Vector{size}";
@@ -62,7 +62,7 @@ public class VectorTemplate : SpanLikeTemplate {
 
 		if ( size == 3 ) {
 			sb.AppendLine();
-			sb.AppendLine( $"public {type} Cross ( {type} other )" );
+			sb.AppendLine( $"public {type} Cross ( {type} other )" ); // TODO this is applicable to all vector sizes as a bivector
 			sb.AppendLine( $"\t=> Cross( this, other );" );
 			sb.AppendLine( $"public static {type} Cross ( {type} left, {type} right ) {{" );
 			using ( sb.Indent() ) {
