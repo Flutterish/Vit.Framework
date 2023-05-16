@@ -89,10 +89,16 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		}
 
 		float tryCollapse ( float end, float start ) {
+			var max = float.Max( end, start );
+			var min = float.Min( end, start );
+
+			if ( min < 0 )
+				return float.Max( 0, max + min );
+
 			if ( !collapseMargins )
 				return end + start;
 
-			return float.Max( end, start );
+			return max;
 		}
 
 		var coversBothDirections = flowDirection.GetCoveredDirections() == LayoutDirection.Both;
