@@ -1,9 +1,9 @@
 ﻿using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Mathematics;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayoutElement {
+public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T>.ChildArgs> where T : ILayoutElement {
 	bool collapseMargins = true;
 	public bool CollapseMargins {
 		get => collapseMargins;
@@ -16,109 +16,89 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 		}
 	}
 
-	RelativeAxes2<float> flowOrigin;
-	/// <summary>
-	/// What point the flow elements are aligned to.
-	/// </summary>
-	public required RelativeAxes2<float> FlowOrigin {
-		get => flowOrigin;
-		set {
-			if ( flowOrigin == value )
-				return;
-
-			flowOrigin = value;
-			InvalidateLayout();
-		}
+	FlowSize2<float> contentFlowSize;
+	protected override void CalculateLayoutConstants () {
+		contentFlowSize = FlowDirection.ToFlow( ContentSize );
 	}
 
-	FlowDirection flowDirection;
-	public required FlowDirection FlowDirection {
-		get => flowDirection;
-		set {
-			if ( flowDirection == value )
-				return;
+	protected override ChildArgs GetChildArgs ( T child, FlowParams param ) {
+		var (flow, cross) = param.Size.GetFlowLayoutUnits( FlowDirection );
+		var required = FlowDirection.ToFlow( child.RequiredSize );
 
-			flowDirection = value;
-			InvalidateLayout();
-		}
+		return new() {
+			FlowSize = float.Max( flow.GetValue( contentFlowSize.Flow ), required.Flow ),
+			CrossSize = cross,
+			RequiredCrossSize = required.Cross,
+			Margins = FlowDirection.ToFlow( param.Margins )
+		};
 	}
 
-	List<(T element, float flow)> spanElements = new();
-	protected override void PerformLayout () {
-		if ( Children.Count == 0 )
-			return;
+	float getMargin ( float end, float start ) {
+		var max = float.Max( end, start );
+		var min = float.Min( end, start );
 
-		var size = flowDirection.ToFlow( new Size2<float>( ContentSize.Width + Padding.Horizontal, ContentSize.Height + Padding.Vertical ) );
-		var availableSpanFlowSpace = size with { Cross = 0 };
-		var availableSpanSpace = FlowDirection.FromFlow( availableSpanFlowSpace );
-		var flowPadding = flowDirection.ToFlow( Padding );
+		if ( min < 0 )
+			return float.Max( 0, max + min );
+
+		if ( !collapseMargins )
+			return end + start;
+
+		return max;
+	}
+
+	protected override float PerformLayout ( LayoutContext context ) {
+		var flowPadding = context.Padding;
 
 		float crossPosition = 0;
 		FlowSize2<float> spanSize = FlowSize2<float>.Zero;
+		
 		float previousFlowMargin = flowPadding.FlowStart;
 		float previousCrossMargin = flowPadding.CrossStart;
 		float crossStartMargin = 0;
 		float crossEndMargin = 0;
 
-		var contentFlowSize = flowDirection.ToFlow( ContentSize );
-		var flowOrigin = FlowOrigin.ToFlow( flowDirection, ContentSize );
-		flowOrigin.Flow /= contentFlowSize.Flow;
-		flowOrigin.Cross /= contentFlowSize.Cross;
+		SpanSlice<ChildLayout> span = new() { Source = context.Layout };
+		void finalizeSpan ( ref SpanSlice<ChildLayout> layouts ) {
+			crossPosition += getMargin( previousCrossMargin, crossStartMargin );
 
-		var positionOffset = flowDirection.MakePositionOffsetBySizeAxes<float>();
-
-		void finalizeSpan () {
-			crossPosition += tryCollapse( previousCrossMargin, crossStartMargin );
-
-			var remainingFlow = contentFlowSize.Flow - (spanSize.Flow - flowPadding.Flow) - tryCollapse( previousFlowMargin, flowPadding.FlowEnd );
-			foreach ( var (i, flow) in spanElements ) {
-				var childSize = flowDirection.ToFlow( i.Size );
-				i.Position = flowDirection.FromFlow( new FlowPoint2<float> {
-					Flow = flow + remainingFlow * flowOrigin.Flow + childSize.Flow * positionOffset.Flow,
-					Cross = crossPosition
-				}, size );
+			FinalizeSpan( layouts, spanSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ) );
+			foreach ( ref var i in layouts ) {
+				i.Position.Cross = crossPosition;
 			}
 
 			crossPosition += spanSize.Cross;
 			spanSize = FlowSize2<float>.Zero;
+			
 			previousFlowMargin = flowPadding.FlowStart;
 			previousCrossMargin = crossEndMargin;
 			crossEndMargin = 0;
 			crossStartMargin = 0;
-			spanElements.Clear();
+
+			layouts.Start += layouts.Length;
+			layouts.Length = 0;
 		}
 
-		float tryCollapse ( float end, float start ) {
-			var max = float.Max( end, start );
-			var min = float.Min( end, start );
+		var coversBothDirections = FlowDirection.GetCoveredDirections() == LayoutDirection.Both;
+		for ( int i = 0; i < context.Children.Length; i++ ) {
+			ref var layout = ref context.Layout[i];
+			var child = context.Children[i];
 
-			if ( min < 0 )
-				return float.Max( 0, max + min );
+			var childFlowSize = new FlowSize2<float>( child.FlowSize, float.Max( child.CrossSize.GetValue( 0 ), child.RequiredCrossSize ) );
 
-			if ( !collapseMargins )
-				return end + start;
+			layout.Size = childFlowSize;
+			var margin = child.Margins;
 
-			return max;
-		}
+			var flowStartMargin = getMargin( previousFlowMargin, margin.FlowStart );
+			var flowEndMargin = getMargin( margin.FlowEnd, flowPadding.FlowEnd );
 
-		var coversBothDirections = flowDirection.GetCoveredDirections() == LayoutDirection.Both;
-		foreach ( var (i, param) in LayoutChildren ) {
-			var childSize = param.Size.GetSize( flowDirection, availableSpanSpace ).Contain( i.RequiredSize );
-			var childFlowSize = flowDirection.ToFlow( childSize );
-
-			i.Size = childSize;
-			var margin = flowDirection.ToFlow( param.Margins );
-
-			var flowStartMargin = tryCollapse( previousFlowMargin, margin.FlowStart );
-			var flowEndMargin = tryCollapse( margin.FlowEnd, flowPadding.FlowEnd );
-
-			if ( coversBothDirections && spanElements.Any() && spanSize.Flow + flowStartMargin + childFlowSize.Flow + flowEndMargin > availableSpanFlowSpace.Flow ) {
-				finalizeSpan();
-				flowStartMargin = tryCollapse( previousFlowMargin, margin.FlowStart );
+			if ( coversBothDirections && span.Length != 0 && spanSize.Flow + flowStartMargin + childFlowSize.Flow + flowEndMargin > context.Size.Flow ) {
+				finalizeSpan( ref span );
+				flowStartMargin = getMargin( previousFlowMargin, margin.FlowStart );
 			}
 
 			spanSize.Flow += flowStartMargin;
-			spanElements.Add((i, spanSize.Flow));
+			span.Length++;
+			layout.Position.Flow = spanSize.Flow;
 
 			spanSize.Cross = float.Max( spanSize.Cross, childFlowSize.Cross );
 			crossEndMargin = float.Max( crossEndMargin, margin.CrossEnd );
@@ -126,26 +106,21 @@ public class FlowContainer<T> : LayoutContainer<T, FlowParams> where T : ILayout
 			spanSize.Flow += childFlowSize.Flow;
 			previousFlowMargin = margin.FlowEnd;
 
-			if ( coversBothDirections && spanSize.Flow > availableSpanFlowSpace.Flow )
-				finalizeSpan();
+			if ( coversBothDirections && spanSize.Flow > context.Size.Flow )
+				finalizeSpan( ref span );
 		}
 
-		if ( spanElements.Any() )
-			finalizeSpan();
+		if ( span.Length != 0 )
+			finalizeSpan( ref span );
 
-		// finalize spans
-		var remainingCross = contentFlowSize.Cross - (crossPosition - flowPadding.Cross) - tryCollapse( previousCrossMargin, flowPadding.CrossEnd );
-		foreach ( var i in Children ) {
-			var childSize = flowDirection.ToFlow( i.Size );
-			var flowPosition = flowDirection.ToFlow( i.Position, size );
-			i.Position = flowDirection.FromFlow( flowPosition with {
-				Cross = flowPosition.Cross + remainingCross * flowOrigin.Cross + childSize.Cross * positionOffset.Cross
-			}, size );
-		}
+		return crossPosition - flowPadding.Cross + getMargin( previousCrossMargin, flowPadding.CrossEnd );
 	}
 
-	protected override Size2<float> PerformAbsoluteLayout () {
-		return Size2<float>.Zero;
+	public struct ChildArgs {
+		public float FlowSize;
+		public LayoutUnit<float> CrossSize;
+		public float RequiredCrossSize;
+		public FlowSpacing<float> Margins;
 	}
 }
 

@@ -75,6 +75,16 @@ public struct LayoutSize<T> where T : INumber<T> {
 		return new() { Flow = _b.GetValue( availableSpace.Flow ), Cross = _a.GetValue( availableSpace.Cross ) };
 	}
 
+	public (LayoutUnit<T> flow, LayoutUnit<T> cross) GetFlowLayoutUnits ( FlowDirection flowDirection ) {
+		if ( Mode is LayoutMode.Unset )
+			return (T.Zero, T.Zero);
+
+		if ( Mode is LayoutMode.FlowCross || flowDirection.GetFlowDirection() is LayoutDirection.Horizontal )
+			return (_a, _b);
+
+		return (_b, _a);
+	}
+
 	public override string ToString () {
 		return $"{Mode} {_a}x{_b}";
 	}

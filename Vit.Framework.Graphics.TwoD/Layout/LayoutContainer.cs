@@ -56,9 +56,13 @@ public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayout
 		isParentLayoutContainer = to is ILayoutContainer;
 	}
 
-	public void UpdateLayoutParameter ( T child, TParam param ) {
+	public void UpdateLayoutParameters ( T child, TParam param ) {
 		@params[child] = param;
 		InvalidateLayout();
+	}
+
+	public TParam GetLayoutParameters ( T child ) {
+		return @params[child];
 	}
 
 	Dictionary<T, TParam> @params = new();
