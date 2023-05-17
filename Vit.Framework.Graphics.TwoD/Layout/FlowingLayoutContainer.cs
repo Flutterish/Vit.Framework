@@ -222,7 +222,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 public enum Justification {
 	/// <summary>
-	/// Use <see cref="FlowingLayoutContainer{T, TParam, TChildArgs}.ContentAlignment"/>.
+	/// Use ContentAlignment of the container.
 	/// </summary>
 	ContentAlignment,
 	/// <summary>

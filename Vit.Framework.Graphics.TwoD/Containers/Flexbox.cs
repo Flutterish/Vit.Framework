@@ -76,7 +76,7 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 			(remainingSpace = flowSize - (layouts[^1].Position.Flow + layouts[^1].Size.Flow - layouts[0].Position.Flow)) > 0
 			&& (growSum = getGrowSum( layouts, children )) != 0 
 		) {
-			var maxApply = 1f;
+			var maxApply = 1f; // TODO limit grow when < 1
 
 			for ( int i = 0; i < children.Length; i++ ) {
 				var child = children[i];
