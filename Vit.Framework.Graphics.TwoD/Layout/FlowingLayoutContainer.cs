@@ -125,7 +125,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 			offset += gap;
 		}
 
-		foreach ( ref var i in layout.AsSpan() ) {
+		foreach ( ref var i in layout ) {
 			i.Position.Cross += i.Size.Cross * sizeOffset.Cross;
 			i.Position.Flow += i.Size.Flow * sizeOffset.Flow;
 		}

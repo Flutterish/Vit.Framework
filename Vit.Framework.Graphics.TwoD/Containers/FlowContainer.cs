@@ -22,7 +22,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 
 	protected override ChildArgs GetChildArgs ( T child, FlowParams param ) {
-		var (flow, cross) = param.Size.GetFlowLayoutUnits( FlowDirection );
+		var (flow, cross) = param.Size.ToFlow( FlowDirection ).Base; // TODO also use min/max size
 		var required = FlowDirection.ToFlow( child.RequiredSize );
 
 		return new() {
@@ -133,7 +133,6 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 }
 
-// TODO I also want min/max size
 public struct FlowParams {
 	/// <summary>
 	/// Margins outside the element provide spacing between elements.
@@ -146,5 +145,5 @@ public struct FlowParams {
 	/// <summary>
 	/// Size of the element.
 	/// </summary>
-	public LayoutSize<float> Size;
+	public SizeBounds2<float> Size;
 }

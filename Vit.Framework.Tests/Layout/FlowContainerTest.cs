@@ -49,7 +49,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 				}
 			}, new() {
 				Margins = new( margin ),
-				Size = new() { Size = new( (i + 1) * 10 ) }
+				Size = new Size2<float>( (i + 1) * 10 )
 			} );
 		}
 
@@ -72,7 +72,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() 
 			}, new() {
 				Margins = new( margin ),
-				Size = new() { 
+				Size = new RelativeSize2<float> { 
 					Width = (i % 2) == 0 ? (i + 1) * 10 : 0.2f.Relative(),
 					Height = (i % 2) == 0 ? 1f.Relative() : ((i + 1) * 10)
 				}

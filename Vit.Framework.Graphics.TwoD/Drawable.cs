@@ -8,7 +8,7 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD;
 
 public abstract partial class Drawable : DisposableObject, IDrawable {
-	public ICompositeDrawable<IDrawable>? Parent { get; private set; }
+	public ICompositeDrawable<IDrawable>? Parent { get; private set; } // TODO maybe we should store the index within the parent here?
 	void IDrawable.SetParent ( ICompositeDrawable<IDrawable>? parent ) {
 		var old = Parent;
 

@@ -21,6 +21,10 @@ public struct RelativeSize2<T> where T : INumber<T> {
 		Height = Height.GetValue( availableSpace.Height )
 	};
 
+	public RelativeFlowSize2<T> ToFlow ( FlowDirection direction ) => direction.GetFlowDirection() == LayoutDirection.Horizontal
+		? new( Width, Height )
+		: new( Height, Width );
+
 	public void Deconstruct ( out LayoutUnit<T> width, out LayoutUnit<T> height ) {
 		width = Width;
 		height = Height;
