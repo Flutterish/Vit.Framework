@@ -61,7 +61,6 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		void finalizeSpan ( ref SpanSlice<ChildLayout> layouts, ReadOnlySpan<ChildArgs> args ) {
 			crossPosition += getMargin( previousCrossMargin, crossStartMargin );
 
-			FinalizeSpan( layouts, spanSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ) );
 			int index = layouts.Start;
 			foreach ( ref var i in layouts ) {
 				var child = args[index];
@@ -71,6 +70,10 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 
 				index++;
 			}
+			FinalizeSpan( layouts, new() {
+				Flow = spanSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ),
+				Cross = spanSize.Cross
+			} );
 
 			crossPosition += spanSize.Cross;
 			spanSize = FlowSize2<float>.Zero;

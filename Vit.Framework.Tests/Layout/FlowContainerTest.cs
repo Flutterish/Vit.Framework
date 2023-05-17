@@ -59,9 +59,12 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 	FlowContainer<ILayoutElement> createFlowContainerWithRelativeSizes () {
 		FlowContainer<ILayoutElement> container = new() {
 			Padding = new( padding ),
-			ContentAlignment = Anchor.TopLeft,
+			ContentAlignment = Anchor.TopCentre,
 			FlowDirection = FlowDirection.RightThenDown,
-			//CollapseMargins = false
+			//CollapseMargins = false,
+			ItemJustification = Justification.SpaceBetween,
+			ItemAlignment = Alignment.Center,
+			SpanJustification = Justification.SpaceBetween
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
