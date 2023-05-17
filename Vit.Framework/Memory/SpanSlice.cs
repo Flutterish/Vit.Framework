@@ -11,4 +11,6 @@ public ref struct SpanSlice<T> {
 		=> slice.AsSpan();
 
 	public Span<T>.Enumerator GetEnumerator () => AsSpan().GetEnumerator();
+
+	public ref T this[Index i] => ref AsSpan()[i];
 }

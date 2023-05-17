@@ -16,7 +16,7 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new TwoDTestApp( typeof(FlowContainerTest) ); //new Program();
+		var app = new TwoDTestApp( typeof(FlexboxTest) ); //new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 

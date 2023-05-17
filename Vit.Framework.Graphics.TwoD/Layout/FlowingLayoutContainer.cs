@@ -200,7 +200,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 		/// <summary>
 		/// Child arguments.
 		/// </summary>
-		public required ReadOnlySpan<TChildArgs> Children;
+		public required Span<TChildArgs> Children;
 		/// <summary>
 		/// Computed layout for children. You need to fill this span with appropriate values when peforming layuout.
 		/// </summary>

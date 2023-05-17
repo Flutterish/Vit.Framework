@@ -58,17 +58,15 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		float crossEndMargin = 0;
 
 		SpanSlice<ChildLayout> line = new() { Source = context.Layout };
-		void finalizeLine ( ref SpanSlice<ChildLayout> layouts, ReadOnlySpan<ChildArgs> args ) {
+		void finalizeLine ( ref SpanSlice<ChildLayout> layouts, Span<ChildArgs> args ) {
 			crossPosition += getMargin( previousCrossMargin, crossStartMargin );
 
 			int index = layouts.Start;
 			foreach ( ref var i in layouts ) {
-				var child = args[index];
+				var child = args[index++];
 
 				i.Position.Cross = crossPosition;
 				i.Size.Cross = child.CrossSize.GetValue( lineSize.Cross, min: child.RequiredCrossSize );
-
-				index++;
 			}
 			FinalizeLine( layouts, new() {
 				Flow = lineSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ),
@@ -92,7 +90,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 			ref var layout = ref context.Layout[i];
 			var child = context.Children[i];
 
-			var childFlowSize = new FlowSize2<float>( child.FlowSize, float.Max( child.CrossSize.GetValue( 0 ), child.RequiredCrossSize ) );
+			var childFlowSize = new FlowSize2<float>( child.FlowSize, child.CrossSize.GetValue( 0, min: child.RequiredCrossSize ) );
 
 			layout.Size = childFlowSize;
 			var margin = child.Margins;
