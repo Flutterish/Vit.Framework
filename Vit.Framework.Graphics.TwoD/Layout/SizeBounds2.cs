@@ -5,14 +5,13 @@ namespace Vit.Framework.Graphics.TwoD.Layout;
 
 public struct SizeBounds2<T> where T : INumber<T> {
 	public RelativeSize2<T> Base;
-	public RelativeSize2<T>? Min;
-	public RelativeSize2<T>? Max;
-
-	public FlowSizeBounds2<T> ToFlow ( FlowDirection direction ) => new() {
-		Base = Base.ToFlow( direction ),
-		Min = Min?.ToFlow( direction ),
-		Max = Max?.ToFlow( direction )
-	};
+	public LayoutUnit<T>? MinWidth;
+	public LayoutUnit<T>? MinHeight;
+	public LayoutUnit<T>? MaxWidth;
+	public LayoutUnit<T>? MaxHeight;
+	public FlowSizeBounds2<T> ToFlow ( FlowDirection direction ) => direction.GetFlowDirection() == LayoutDirection.Horizontal
+		? new() { Base = Base.ToFlow( direction ), MinFlow = MinWidth, MaxFlow = MaxWidth, MinCross = MinHeight, MaxCross = MaxHeight }
+		: new() { Base = Base.ToFlow( direction ), MinCross = MinWidth, MaxCross = MaxWidth, MinFlow = MinHeight, MaxFlow = MaxHeight };
 
 	public static implicit operator SizeBounds2<T> ( RelativeSize2<T> size ) => new() {
 		Base = size

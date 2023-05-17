@@ -22,11 +22,11 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 
 	protected override ChildArgs GetChildArgs ( T child, FlowParams param ) {
-		var (flow, cross) = param.Size.ToFlow( FlowDirection ).Base; // TODO also use min/max size
+		var (flow, cross) = param.Size.ToFlow( FlowDirection );
 		var required = FlowDirection.ToFlow( child.RequiredSize );
 
 		return new() {
-			FlowSize = float.Max( flow.GetValue( contentFlowSize.Flow ), required.Flow ),
+			FlowSize = flow.GetValue( contentFlowSize.Flow, min: required.Flow ),
 			CrossSize = cross,
 			RequiredCrossSize = required.Cross,
 			Margins = FlowDirection.ToFlow( param.Margins )
@@ -66,7 +66,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 				var child = args[index];
 
 				i.Position.Cross = crossPosition;
-				i.Size.Cross = float.Max( i.Size.Cross, child.CrossSize.GetValue( lineSize.Cross ) );
+				i.Size.Cross = child.CrossSize.GetValue( lineSize.Cross, min: child.RequiredCrossSize );
 
 				index++;
 			}
@@ -127,7 +127,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 
 	public struct ChildArgs {
 		public float FlowSize;
-		public LayoutUnit<float> CrossSize;
+		public BoundedLayoutUnit<float> CrossSize;
 		public float RequiredCrossSize;
 		public FlowSpacing<float> Margins;
 	}
