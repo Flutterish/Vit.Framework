@@ -64,7 +64,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 			//CollapseMargins = false,
 			ItemJustification = Justification.SpaceBetween,
 			ItemAlignment = Alignment.Center,
-			SpanJustification = Justification.SpaceBetween
+			LineJustification = Justification.SpaceBetween
 		};
 
 		for ( int i = 0; i < 30; i++ ) {

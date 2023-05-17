@@ -6,7 +6,7 @@ namespace Vit.Framework.Graphics.TwoD.Layout;
 public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutContainer<T, TParam> where T : ILayoutElement where TParam : struct where TChildArgs : struct {
 	RelativeAxes2<float> flowOrigin;
 	/// <summary>
-	/// What point the flow elements are aligned to when there is unused space in a span.
+	/// What point the flow elements are aligned to when there is unused space in a line.
 	/// </summary>
 	public required RelativeAxes2<float> ContentAlignment {
 		get => flowOrigin;
@@ -52,7 +52,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 	Alignment itemAlignment;
 	/// <summary>
-	/// How elements are aligned along the cross axis of a span.
+	/// How elements are aligned along the cross axis of a line.
 	/// </summary>
 	public Alignment ItemAlignment {
 		get => itemAlignment;
@@ -65,17 +65,17 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 		}
 	}
 
-	Justification spanAlignment;
+	Justification lineJustification;
 	/// <summary>
-	/// How spans are justified along the cross axis.
+	/// How lines are justified along the cross axis.
 	/// </summary>
-	public Justification SpanJustification {
-		get => spanAlignment;
+	public Justification LineJustification {
+		get => lineJustification;
 		set {
-			if ( spanAlignment == value )
+			if ( lineJustification == value )
 				return;
 
-			spanAlignment = value;
+			lineJustification = value;
 			InvalidateLayout();
 		}
 	}
@@ -87,7 +87,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 	FlowSize2<float> contentSize;
 	FlowAxes2<float> flowOriginAxes;
-	List<(int start, int length, FlowSize2<float> size)> spans = new();
+	List<(int start, int length, FlowSize2<float> size)> lines = new();
 	protected sealed override void PerformLayout () {
 		if ( !Children.Any() )
 			return;
@@ -116,10 +116,10 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 		var sizeOffset = flowDirection.MakePositionOffsetBySizeAxes<float>();
 		var remaining = contentSize.Cross - crossSize;
-		var (offset, gap) = SpanJustification.GetOffsets( spans.Count, remaining, contentAlignment: flowOriginAxes.Cross );
+		var (offset, gap) = LineJustification.GetOffsets( lines.Count, remaining, contentAlignment: flowOriginAxes.Cross );
 
-		foreach ( var span in spans ) {
-			foreach ( ref var i in layout.AsSpan( span.start, span.length ) ) {
+		foreach ( var line in lines ) {
+			foreach ( ref var i in layout.AsSpan( line.start, line.length ) ) {
 				i.Position.Cross += offset;
 			}
 			offset += gap;
@@ -139,20 +139,20 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 			child.Position = flowDirection.FromFlow( childLayout.Position, size );
 		}
 
-		spans.Clear();
+		lines.Clear();
 	}
 
 	protected virtual void CalculateLayoutConstants () { }
 
 	/// <summary>
-	/// Finalizes a span by aligning elements on it. 
-	/// This assumes that the child layout is such that the flow position monotonically increases and the cross position equals the start of the span.
+	/// Finalizes a line by aligning elements on it. 
+	/// This assumes that the child layout is such that the flow position monotonically increases and the cross position equals the start of the line.
 	/// </summary>
-	/// <param name="children">The children that consitute the span.</param>
-	/// <param name="spanSize">The size of the span.</param>
-	protected void FinalizeSpan ( SpanSlice<ChildLayout> children, FlowSize2<float> spanSize ) {
-		spans.Add(( children.Start, children.Length, spanSize ));
-		var remaining = contentSize.Flow - spanSize.Flow;
+	/// <param name="children">The children that consitute the line.</param>
+	/// <param name="lineSize">The size of the line.</param>
+	protected void FinalizeLine ( SpanSlice<ChildLayout> children, FlowSize2<float> lineSize ) {
+		lines.Add(( children.Start, children.Length, lineSize ));
+		var remaining = contentSize.Flow - lineSize.Flow;
 		var (offset, gap) = ItemJustification.GetOffsets( children.Length, remaining, contentAlignment: flowOriginAxes.Flow );
 
 		foreach ( ref var i in children ) {
@@ -162,7 +162,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 		if ( ItemAlignment == Alignment.Stretch ) {
 			foreach ( ref var i in children ) {
-				i.Size.Cross = spanSize.Cross;
+				i.Size.Cross = lineSize.Cross;
 			}
 		}
 		else if ( ItemAlignment != Alignment.Start ) {
@@ -172,7 +172,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 			};
 
 			foreach ( ref var i in children ) {
-				i.Position.Cross += (spanSize.Cross - i.Size.Cross) * offset;
+				i.Position.Cross += (lineSize.Cross - i.Size.Cross) * offset;
 			}
 		}
 	}
@@ -185,7 +185,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 	/// Performs layout. You should not do any <strong>flow &lt;-&gt; cardinal</strong> conversions while perforrming layout.
 	/// </summary>
 	/// <remarks>
-	/// You should call <see cref="FinalizeSpan(Span{ChildLayout}, float)"/> for each span you create.
+	/// You should call <see cref="FinalizeLine(SpanSlice{ChildLayout}, FlowSize2{float})"/> for each line you create.
 	/// </remarks>
 	/// <param name="context">The context of the layout.</param>
 	/// <returns>The total cross size of the layout.</returns>
@@ -241,19 +241,19 @@ public enum Justification {
 
 public enum Alignment {
 	/// <summary>
-	/// Align the start of the element with the start of the cross axis of a span.
+	/// Align the start of the element with the start of the cross axis of a line.
 	/// </summary>
 	Start,
 	/// <summary>
-	/// Align the end of the element with the end of the cross axis of a span.
+	/// Align the end of the element with the end of the cross axis of a line.
 	/// </summary>
 	End,
 	/// <summary>
-	/// Align the center of the element with the center of the cross axis of a span.
+	/// Align the center of the element with the center of the cross axis of a line.
 	/// </summary>
 	Center,
 	/// <summary>
-	/// Stretch elements so that they fill the whole cross axis of a span. This ignores min/max size.
+	/// Stretch elements so that they fill the whole cross axis of a line. This ignores max size.
 	/// </summary>
 	Stretch
 }

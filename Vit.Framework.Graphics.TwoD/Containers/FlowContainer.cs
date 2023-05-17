@@ -50,15 +50,15 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		var flowPadding = context.Padding;
 
 		float crossPosition = 0;
-		FlowSize2<float> spanSize = FlowSize2<float>.Zero;
+		FlowSize2<float> lineSize = FlowSize2<float>.Zero;
 		
 		float previousFlowMargin = flowPadding.FlowStart;
 		float previousCrossMargin = flowPadding.CrossStart;
 		float crossStartMargin = 0;
 		float crossEndMargin = 0;
 
-		SpanSlice<ChildLayout> span = new() { Source = context.Layout };
-		void finalizeSpan ( ref SpanSlice<ChildLayout> layouts, ReadOnlySpan<ChildArgs> args ) {
+		SpanSlice<ChildLayout> line = new() { Source = context.Layout };
+		void finalizeLine ( ref SpanSlice<ChildLayout> layouts, ReadOnlySpan<ChildArgs> args ) {
 			crossPosition += getMargin( previousCrossMargin, crossStartMargin );
 
 			int index = layouts.Start;
@@ -66,17 +66,17 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 				var child = args[index];
 
 				i.Position.Cross = crossPosition;
-				i.Size.Cross = float.Max( i.Size.Cross, child.CrossSize.GetValue( spanSize.Cross ) );
+				i.Size.Cross = float.Max( i.Size.Cross, child.CrossSize.GetValue( lineSize.Cross ) );
 
 				index++;
 			}
-			FinalizeSpan( layouts, new() {
-				Flow = spanSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ),
-				Cross = spanSize.Cross
+			FinalizeLine( layouts, new() {
+				Flow = lineSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ),
+				Cross = lineSize.Cross
 			} );
 
-			crossPosition += spanSize.Cross;
-			spanSize = FlowSize2<float>.Zero;
+			crossPosition += lineSize.Cross;
+			lineSize = FlowSize2<float>.Zero;
 			
 			previousFlowMargin = flowPadding.FlowStart;
 			previousCrossMargin = crossEndMargin;
@@ -100,27 +100,27 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 			var flowStartMargin = getMargin( previousFlowMargin, margin.FlowStart );
 			var flowEndMargin = getMargin( margin.FlowEnd, flowPadding.FlowEnd );
 
-			if ( coversBothDirections && span.Length != 0 && spanSize.Flow + flowStartMargin + childFlowSize.Flow + flowEndMargin > context.Size.Flow ) {
-				finalizeSpan( ref span, context.Children );
+			if ( coversBothDirections && line.Length != 0 && lineSize.Flow + flowStartMargin + childFlowSize.Flow + flowEndMargin > context.Size.Flow ) {
+				finalizeLine( ref line, context.Children );
 				flowStartMargin = getMargin( previousFlowMargin, margin.FlowStart );
 			}
 
-			spanSize.Flow += flowStartMargin;
-			span.Length++;
-			layout.Position.Flow = spanSize.Flow;
+			lineSize.Flow += flowStartMargin;
+			line.Length++;
+			layout.Position.Flow = lineSize.Flow;
 
-			spanSize.Cross = float.Max( spanSize.Cross, childFlowSize.Cross );
+			lineSize.Cross = float.Max( lineSize.Cross, childFlowSize.Cross );
 			crossEndMargin = float.Max( crossEndMargin, margin.CrossEnd );
 			crossStartMargin = float.Max( crossStartMargin, margin.CrossStart ); // TODO this depends on cross position/size
-			spanSize.Flow += childFlowSize.Flow;
+			lineSize.Flow += childFlowSize.Flow;
 			previousFlowMargin = margin.FlowEnd;
 
-			if ( coversBothDirections && spanSize.Flow > context.Size.Flow )
-				finalizeSpan( ref span, context.Children );
+			if ( coversBothDirections && lineSize.Flow > context.Size.Flow )
+				finalizeLine( ref line, context.Children );
 		}
 
-		if ( span.Length != 0 )
-			finalizeSpan( ref span, context.Children );
+		if ( line.Length != 0 )
+			finalizeLine( ref line, context.Children );
 
 		return crossPosition - flowPadding.Cross + getMargin( previousCrossMargin, flowPadding.CrossEnd );
 	}
