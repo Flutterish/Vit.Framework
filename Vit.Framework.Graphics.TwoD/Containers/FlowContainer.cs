@@ -58,12 +58,18 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		float crossEndMargin = 0;
 
 		SpanSlice<ChildLayout> span = new() { Source = context.Layout };
-		void finalizeSpan ( ref SpanSlice<ChildLayout> layouts ) {
+		void finalizeSpan ( ref SpanSlice<ChildLayout> layouts, ReadOnlySpan<ChildArgs> args ) {
 			crossPosition += getMargin( previousCrossMargin, crossStartMargin );
 
 			FinalizeSpan( layouts, spanSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ) );
+			int index = layouts.Start;
 			foreach ( ref var i in layouts ) {
+				var child = args[index];
+
 				i.Position.Cross = crossPosition;
+				i.Size.Cross = float.Max( i.Size.Cross, child.CrossSize.GetValue( spanSize.Cross ) );
+
+				index++;
 			}
 
 			crossPosition += spanSize.Cross;
@@ -92,7 +98,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 			var flowEndMargin = getMargin( margin.FlowEnd, flowPadding.FlowEnd );
 
 			if ( coversBothDirections && span.Length != 0 && spanSize.Flow + flowStartMargin + childFlowSize.Flow + flowEndMargin > context.Size.Flow ) {
-				finalizeSpan( ref span );
+				finalizeSpan( ref span, context.Children );
 				flowStartMargin = getMargin( previousFlowMargin, margin.FlowStart );
 			}
 
@@ -102,16 +108,16 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 
 			spanSize.Cross = float.Max( spanSize.Cross, childFlowSize.Cross );
 			crossEndMargin = float.Max( crossEndMargin, margin.CrossEnd );
-			crossStartMargin = float.Max( crossStartMargin, margin.CrossStart );
+			crossStartMargin = float.Max( crossStartMargin, margin.CrossStart ); // TODO this depends on cross position/size
 			spanSize.Flow += childFlowSize.Flow;
 			previousFlowMargin = margin.FlowEnd;
 
 			if ( coversBothDirections && spanSize.Flow > context.Size.Flow )
-				finalizeSpan( ref span );
+				finalizeSpan( ref span, context.Children );
 		}
 
 		if ( span.Length != 0 )
-			finalizeSpan( ref span );
+			finalizeSpan( ref span, context.Children );
 
 		return crossPosition - flowPadding.Cross + getMargin( previousCrossMargin, flowPadding.CrossEnd );
 	}
@@ -124,6 +130,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 }
 
+// TODO I also want min/max size
 public struct FlowParams {
 	/// <summary>
 	/// Margins outside the element provide spacing between elements.

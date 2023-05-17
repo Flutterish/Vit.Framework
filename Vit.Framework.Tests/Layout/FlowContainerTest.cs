@@ -23,7 +23,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 			Size = new( 1f.Relative() )
 		} );
 
-		AddChild( createFlowContainer(), new() {
+		AddChild( createFlowContainerWithRelativeSizes(), new() {
 			Size = new( 1f.Relative() )
 		} );
 	}
@@ -31,7 +31,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 	FlowContainer<ILayoutElement> createFlowContainer () {
 		FlowContainer<ILayoutElement> container = new() {
 			Padding = new( padding ),
-			FlowOrigin = Anchor.TopRight,
+			ContentAlignment = Anchor.TopRight,
 			FlowDirection = FlowDirection.DownThenLeft,
 			//CollapseMargins = false
 		};
@@ -50,6 +50,29 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 			}, new() {
 				Margins = new( margin ),
 				Size = new() { Size = new( (i + 1) * 10 ) }
+			} );
+		}
+
+		return container;
+	}
+
+	FlowContainer<ILayoutElement> createFlowContainerWithRelativeSizes () {
+		FlowContainer<ILayoutElement> container = new() {
+			Padding = new( padding ),
+			ContentAlignment = Anchor.TopLeft,
+			FlowDirection = FlowDirection.RightThenDown,
+			//CollapseMargins = false
+		};
+
+		for ( int i = 0; i < 30; i++ ) {
+			container.AddChild( new Sprite { 
+				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() 
+			}, new() {
+				Margins = new( margin ),
+				Size = new() { 
+					Width = (i % 2) == 0 ? (i + 1) * 10 : 0.2f.Relative(),
+					Height = (i % 2) == 0 ? 1f.Relative() : ((i + 1) * 10)
+				}
 			} );
 		}
 

@@ -21,6 +21,11 @@ public struct RelativeSize2<T> where T : INumber<T> {
 		Height = Height.GetValue( availableSpace.Height )
 	};
 
+	public void Deconstruct ( out LayoutUnit<T> width, out LayoutUnit<T> height ) {
+		width = Width;
+		height = Height;
+	}
+
 	public static implicit operator RelativeSize2<T> ( Size2<T> size ) => new() {
 		Width = size.Width,
 		Height = size.Height

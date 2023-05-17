@@ -8,7 +8,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 	/// <summary>
 	/// What point the flow elements are aligned to.
 	/// </summary>
-	public required RelativeAxes2<float> FlowOrigin {
+	public required RelativeAxes2<float> ContentAlignment {
 		get => flowOrigin;
 		set {
 			if ( flowOrigin == value )
