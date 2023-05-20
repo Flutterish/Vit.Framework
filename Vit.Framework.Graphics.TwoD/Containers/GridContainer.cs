@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.WebSockets;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;

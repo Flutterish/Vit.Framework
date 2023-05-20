@@ -17,5 +17,5 @@ public interface ILayoutElement : IDrawable { // TODO maybe add "IsSizedByParent
 	/// <remarks>
 	/// This usually indicates the space absolutely sized children in <see cref="ILayoutContainer"/>s occupy.
 	/// </remarks>
-	Size2<float> RequiredSize { get; }
+	Size2<float> RequiredSize { get; } // TODO also we want this but with respect to min-width and min-height
 }
