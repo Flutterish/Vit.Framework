@@ -151,7 +151,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		
+		throw new NotImplementedException();
 	}
 }
 

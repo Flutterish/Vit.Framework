@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using Vit.Framework.Exceptions;
 
 namespace Vit.Framework.Text.Fonts;
@@ -27,6 +28,7 @@ public abstract class Font {
 			}
 		}
 
+		Debug.Assert( set.Any() );
 		return set.First();
 	}
 	public Glyph? TryGetGlyph ( GlyphId id ) {
