@@ -84,7 +84,6 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 			texture.Update( renderer );
 
 			if ( indices == null ) {
-				const float width = 50;
 				using var copy = renderer.CreateImmediateCommandBuffer();
 				List<Vertex> verticesList = new();
 				List<uint> indicesList = new();
@@ -93,22 +92,24 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 				foreach ( var rune in text.EnumerateRunes() ) {
 					var glyph = font.GetGlyph( rune );
 					foreach ( var spline in glyph.Outline.Splines ) {
-						Point2<double>? last = null;
-						foreach ( var point in spline.GetPoints() ) {
-							if ( last is Point2<double> previous ) {
-								var offset = (ushort)verticesList.Count;
-
-								var left = (point - previous).Left.Normalized() * width;
-								verticesList.Add( new() { PositionAndUV = (previous + left).Cast<float>() + advance } );
-								verticesList.Add( new() { PositionAndUV = (previous - left).Cast<float>() + advance } );
-								verticesList.Add( new() { PositionAndUV = (point + left).Cast<float>() + advance } );
-								verticesList.Add( new() { PositionAndUV = (point - left).Cast<float>() + advance } );
-
-								indicesList.AddRange( new[] { offset, (uint)(offset + 1), (uint)(offset + 3) } );
-								indicesList.AddRange( new[] { offset, (uint)(offset + 3), (uint)(offset + 2) } );
+						uint? _anchor = null;
+						uint? _last = null;
+						foreach ( var p in spline.GetPoints() ) {
+							var point = p.Cast<float>();
+							var index = (uint)verticesList.Count;
+							verticesList.Add( new() { PositionAndUV = point + advance } );
+							
+							if ( _anchor is not uint anchor ) {
+								_anchor = index;
+								continue;
+							}
+							if ( _last is not uint last ) {
+								_last = index;
+								continue;
 							}
 
-							last = point;
+							indicesList.AddRange( new[] { anchor, last, index } );
+							_last = index;
 						}
 					}
 
@@ -138,7 +139,20 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 				Matrix = new( Matrix3<float>.CreateScale( size, size ) * UnitToGlobalMatrix ),
 				Tint = tint
 			} );
-			commands.DrawIndexed( (uint)Source.indexCount );
+
+			using ( commands.PushDepthTest( new( CompareOperation.Never ) ) ) {
+				using ( commands.PushStencilTest( new( CompareOperation.Always ), new() { 
+					CompareMask = 1u,
+					WriteMask = 1u,
+					DepthFailOperation = StencilOperation.Invert
+				} ) ) {
+					commands.DrawIndexed( (uint)Source.indexCount );
+				}
+			}
+
+			using ( commands.PushStencilTest( new( CompareOperation.Equal ), new( StencilOperation.SetTo0 ) { CompareMask = 1u, ReferenceValue = 1u } ) ) {
+				commands.DrawIndexed( (uint)Source.indexCount );
+			}
 		}
 
 		public override void ReleaseResources ( bool willBeReused ) {

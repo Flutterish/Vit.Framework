@@ -57,7 +57,9 @@ public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer
 			pipeline = Renderer.GetPipeline( new() { 
 				Shaders = ShaderSet,
 				RenderPass = frameBuffer.RenderPass,
-				DepthTest = DepthTest
+				DepthTest = DepthTest.IsEnabled ? DepthTest : new BufferTest() { IsEnabled = false },
+				StencilTest = StencilTest.IsEnabled ? StencilTest : new BufferTest() { IsEnabled = false },
+				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( StencilOperation.Keep )
 			} );
 
 			Buffer.BindPipeline( pipeline );

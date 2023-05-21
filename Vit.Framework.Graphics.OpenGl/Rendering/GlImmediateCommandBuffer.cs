@@ -48,7 +48,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
 			if ( !DepthTest.IsEnabled ) {
 				GL.Disable( EnableCap.DepthTest );
-				return;
+				goto stencil;
 			}
 
 			GL.Enable( EnableCap.DepthTest );
@@ -63,6 +63,40 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 				CompareOperation.Always => DepthFunction.Always,
 				CompareOperation.Never or _ => DepthFunction.Never
 			} );
+		}
+		
+		stencil:
+		if ( invalidations.HasFlag( PipelineInvalidations.StencilTest ) ) {
+			if ( !StencilTest.IsEnabled ) {
+				GL.Disable( EnableCap.StencilTest );
+				return;
+			}
+
+			GL.Enable( EnableCap.StencilTest );
+			GL.StencilMask( StencilState.WriteMask );
+			GL.StencilFunc( StencilTest.CompareOperation switch {
+				CompareOperation.LessThan => StencilFunction.Less,
+				CompareOperation.GreaterThan => StencilFunction.Greater,
+				CompareOperation.Equal => StencilFunction.Equal,
+				CompareOperation.NotEqual => StencilFunction.Notequal,
+				CompareOperation.LessThanOrEqual => StencilFunction.Lequal,
+				CompareOperation.GreaterThanOrEqual => StencilFunction.Gequal,
+				CompareOperation.Always => StencilFunction.Always,
+				CompareOperation.Never or _ => StencilFunction.Never
+			}, (int)StencilState.ReferenceValue, StencilState.CompareMask );
+			static StencilOp stencilOp ( StencilOperation operation ) {
+				return operation switch {
+					StencilOperation.SetTo0 => StencilOp.Zero,
+					StencilOperation.ReplaceWithReference => StencilOp.Replace,
+					StencilOperation.Invert => StencilOp.Invert,
+					StencilOperation.Increment => StencilOp.Incr,
+					StencilOperation.Decrement => StencilOp.Decr,
+					StencilOperation.IncrementWithWrap => StencilOp.IncrWrap,
+					StencilOperation.DecrementWithWrap => StencilOp.DecrWrap,
+					StencilOperation.Keep or _ => StencilOp.Keep
+				};
+			}
+			GL.StencilOp( stencilOp( StencilState.StencilFailOperation ), stencilOp( StencilState.DepthFailOperation ), stencilOp( StencilState.PassOperation ) );
 		}
 	}
 

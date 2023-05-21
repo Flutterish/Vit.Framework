@@ -65,6 +65,13 @@ public interface ICommandBuffer {
 	/// </summary>
 	void SetDepthTest ( BufferTest test );
 
+	BufferTest StencilTest { get; }
+	StencilState StencilState { get; }
+	/// <summary>
+	/// Sets the stencil testing behaviour.
+	/// </summary>
+	void SetStencilTest ( BufferTest test, StencilState state );
+
 	/// <summary>
 	/// Maps a packed vertex buffer to a all locations in the current shader set.
 	/// </summary>
@@ -128,6 +135,15 @@ public static class ICommandBufferExtensions {
 			data.buffer.SetDepthTest( data.depthTest );
 		} );
 	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, (BufferTest test, StencilState state) stencil)> PushStencilTest ( this ICommandBuffer self, BufferTest stencilTest, StencilState state ) {
+		var previous = (self.StencilTest, self.StencilState);
+		self.SetStencilTest( stencilTest, state );
+		return new( (self, previous), static data => {
+			data.buffer.SetStencilTest( data.stencil.test, data.stencil.state );
+		} );
+	}
 }
 
 /// <summary>
@@ -158,7 +174,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	}
 	protected abstract void UploadTextureData<TPixel> ( TTexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
 
-	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest;
+	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;
 
 	IShaderSet ICommandBuffer.ShaderSet => ShaderSet;
 	protected TShaderSet ShaderSet { get; private set; } = null!;
@@ -195,6 +211,14 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	public void SetDepthTest ( BufferTest test ) {
 		DepthTest = test;
 		Invalidations |= PipelineInvalidations.DepthTest;
+	}
+
+	public BufferTest StencilTest { get; private set; }
+	public StencilState StencilState { get; private set; }
+	public void SetStencilTest ( BufferTest test, StencilState state ) {
+		StencilTest = test;
+		StencilState = state;
+		Invalidations |= PipelineInvalidations.StencilTest;
 	}
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
@@ -249,7 +273,8 @@ public enum PipelineInvalidations : byte {
 	Viewport = 0x4,
 	Scissors = 0x8,
 	Framebuffer = 0x10,
-	DepthTest = 0x20
+	DepthTest = 0x20,
+	StencilTest = 0x40
 }
 
 [Flags]

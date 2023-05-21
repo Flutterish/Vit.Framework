@@ -7,7 +7,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 	public readonly VkDevice Device;
 	public readonly VkPipelineLayout Layout;
 	public unsafe Pipeline ( VkDevice device, PipelineArgs args ) {
-		var (shaders, renderPass, depthTest) = (args.Shaders, args.RenderPass, args.DepthTest);
+		var (shaders, renderPass, depthTest, stencilTest, stencilState) = (args.Shaders, args.RenderPass, args.DepthTest, args.StencilTest, args.StencilState);
 		Device = device;
 		var dynamicStates = new[] {
 			VkDynamicState.Viewport,
@@ -70,13 +70,25 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			attachmentCount = 1,
 			pAttachments = &blendInfo
 		};
-		var depthInfo = new VkPipelineDepthStencilStateCreateInfo() {
+
+		VkStencilOpState stencilOpState = new() {
+			compareMask = stencilState.CompareMask,
+			compareOp = stencilTest.CompareOperation.CompareOp(),
+			reference = stencilState.ReferenceValue,
+			writeMask = stencilState.WriteMask,
+			passOp = stencilState.PassOperation.StencilOp(),
+			depthFailOp = stencilState.DepthFailOperation.StencilOp(),
+			failOp = stencilState.StencilFailOperation.StencilOp()
+		};
+		var depthStencilInfo = new VkPipelineDepthStencilStateCreateInfo() {
 			sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
 			depthTestEnable = depthTest.IsEnabled,
 			depthWriteEnable = depthTest.WriteOnPass,
 			depthCompareOp = depthTest.CompareOperation.CompareOp(),
 			depthBoundsTestEnable = false,
-			stencilTestEnable = false
+			stencilTestEnable = stencilTest.IsEnabled,
+			back = stencilOpState,
+			front = stencilOpState
 		};
 
 		var uniforms = shaders.UniformSets.Select( x => x.Layout ).ToArray();
@@ -99,7 +111,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			pRasterizationState = &rasterizerInfo,
 			pMultisampleState = &multisampleInfo,
 			pColorBlendState = &colorInfo,
-			pDepthStencilState = &depthInfo,
+			pDepthStencilState = &depthStencilInfo,
 			pDynamicState = &stateInfo,
 			layout = Layout,
 			renderPass = renderPass,

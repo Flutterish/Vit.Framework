@@ -119,4 +119,6 @@ public struct PipelineArgs {
 	public required ShaderSet Shaders;
 	public required RenderPass RenderPass;
 	public required BufferTest DepthTest;
+	public required BufferTest StencilTest;
+	public required StencilState StencilState;
 }

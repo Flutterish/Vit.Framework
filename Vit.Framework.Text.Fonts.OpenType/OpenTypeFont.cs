@@ -44,6 +44,8 @@ public class OpenTypeFont : Font {
 			var glyf = header.GetTableRecord( "glyf" )!.Value;
 			glyf.Table.Context.CacheDependency( (IndexToLocationTable)loca.Table.Value! );
 		}
+
+		loadGlyphId( 0, header.GetTable<HorizontalMetricsTable>( "hmtx" )! );
 	}
 
 	protected override void TryLoadGlyphFor ( Rune rune ) {
@@ -62,33 +64,36 @@ public class OpenTypeFont : Font {
 			var sub = i.Subtable.Value;
 			var encoding = EncodingTypeExtensions.GetEncodingType( i.PlatformID, i.EncodingID );
 			foreach ( var (rune2, id) in sub.Enumerate( encoding, rangeStart, rangeEnd ) ) {
-				if ( !GlyphsById.ContainsKey( id ) ) {
-					var glyph = GetGlyph( id );
-
-					if ( id.Value < (ulong)hmtx.HorizontalMetrics.Length ) {
-						var metric = hmtx.HorizontalMetrics[(int)id.Value];
-						glyph.HorizontalAdvance = metric.AdvanceWidth;
-						glyph.MinX = metric.LeftSideBearing;
-					}
-					else {
-						glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
-					}
-
-					if ( header.SfntVersion == "OTTO" ) {
-						loadCharstringOutline( glyph );
-					}
-					else {
-						loadGlyphDataOutline( glyph );
-					}
-				}
-
-				AddGlyphMapping( rune2, id );	
+				loadGlyphId( id, hmtx );
+				AddGlyphMapping( rune2, id );
 			}
 		}
 
 		for ( int i = rangeStart; i < rangeEnd; i++ ) {
 			if ( !IsRuneRegistered( new Rune( i ) ) )
 				AddGlyphMapping( new Rune( i ), new GlyphId( 0 ) );
+		}
+	}
+
+	void loadGlyphId ( GlyphId id, HorizontalMetricsTable hmtx ) {
+		if ( GlyphsById.ContainsKey( id ) )
+			return;
+
+		var glyph = GetGlyph( id );
+		if ( id.Value < (ulong)hmtx.HorizontalMetrics.Length ) {
+			var metric = hmtx.HorizontalMetrics[(int)id.Value];
+			glyph.HorizontalAdvance = metric.AdvanceWidth;
+			glyph.MinX = metric.LeftSideBearing;
+		}
+		else {
+			glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
+		}
+
+		if ( header.SfntVersion == "OTTO" ) {
+			loadCharstringOutline( glyph );
+		}
+		else {
+			loadGlyphDataOutline( glyph );
 		}
 	}
 

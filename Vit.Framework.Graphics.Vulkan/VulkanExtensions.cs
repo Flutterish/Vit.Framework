@@ -87,7 +87,18 @@ public static class VulkanExtensions {
 		CompareOperation.NotEqual => VkCompareOp.NotEqual,
 		CompareOperation.LessThanOrEqual => VkCompareOp.Less,
 		CompareOperation.GreaterThanOrEqual => VkCompareOp.GreaterOrEqual,
-		CompareOperation.Never or _ => VkCompareOp.Never,
+		CompareOperation.Never or _ => VkCompareOp.Never
+	};
+
+	public static VkStencilOp StencilOp ( this StencilOperation operation ) => operation switch {
+		StencilOperation.SetTo0 => VkStencilOp.Zero,
+		StencilOperation.ReplaceWithReference => VkStencilOp.Replace,
+		StencilOperation.Invert => VkStencilOp.Invert,
+		StencilOperation.Increment => VkStencilOp.IncrementAndClamp,
+		StencilOperation.Decrement => VkStencilOp.DecrementAndClamp,
+		StencilOperation.IncrementWithWrap => VkStencilOp.IncrementAndWrap,
+		StencilOperation.DecrementWithWrap => VkStencilOp.DecrementAndWrap,
+		StencilOperation.Keep or _ => VkStencilOp.Keep
 	};
 
 	public static unsafe VkAllocationCallbacks* TODO_Allocator => (VkAllocationCallbacks*)0;
