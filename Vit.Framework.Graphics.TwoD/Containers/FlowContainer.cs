@@ -3,6 +3,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
+public class FlowContainer : FlowContainer<ILayoutElement> { }
 public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T>.ChildArgs> where T : ILayoutElement {
 	bool collapseMargins = true;
 	public bool CollapseMargins {
@@ -66,9 +67,8 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 				var child = args[index++];
 
 				i.Position.Cross = crossPosition;
-				i.Size.Cross = child.CrossSize.GetValue( lineSize.Cross, min: child.RequiredCrossSize );
 			}
-			FinalizeLine( layouts, new() {
+			SubmitLine( layouts, new() {
 				Flow = lineSize.Flow - flowPadding.Flow + getMargin( previousFlowMargin, flowPadding.FlowEnd ),
 				Cross = lineSize.Cross
 			} );
@@ -121,6 +121,15 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 			finalizeLine( ref line, context.Children );
 
 		return crossPosition - flowPadding.Cross + getMargin( previousCrossMargin, flowPadding.CrossEnd );
+	}
+
+	protected override void FinalizeLine ( SpanSlice<ChildArgs> children, SpanSlice<ChildLayout> layouts, FlowSize2<float> lineSize ) {
+		for ( int i = 0; i < children.Length; i++ ) {
+			var arg = children[i];
+			ref var layout = ref layouts[i];
+
+			layout.Size.Cross = arg.CrossSize.GetValue( lineSize.Cross, min: arg.RequiredCrossSize );
+		}
 	}
 
 	public struct ChildArgs {

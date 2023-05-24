@@ -1,7 +1,4 @@
-﻿using SixLabors.ImageSharp.Formats.Gif;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Vit.Framework.Interop;
+﻿using System.Diagnostics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Memory;

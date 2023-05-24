@@ -4,6 +4,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
+public class Flexbox : Flexbox<ILayoutElement> { }
 public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.ChildArgs> where T : ILayoutElement {
 	Size2<float> gap;
 	/// <summary>
@@ -184,8 +185,6 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 
 				i.Position.Cross = crossPosition;
 				i.Position.Flow += padding.FlowStart;
-
-				i.Size.Cross = child.CrossSize.GetValue( lineSize.Cross, min: child.RequiredCrossSize );
 			}
 
 			args = args.Slice( line.Start, line.Length );
@@ -199,7 +198,7 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 				lineSize.Flow = line[^1].Position.Flow + line[^1].Size.Flow - line[0].Position.Flow;
 			}
 
-			FinalizeLine( line, lineSize );
+			SubmitLine( line, lineSize );
 
 			crossPosition += lineSize.Cross;
 			lineSize = FlowSize2<float>.Zero;
@@ -237,6 +236,15 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 			finalizeLine( ref line, children );
 
 		return crossPosition - padding.CrossStart;
+	}
+
+	protected override void FinalizeLine ( SpanSlice<ChildArgs> children, SpanSlice<ChildLayout> layouts, FlowSize2<float> lineSize ) {
+		for ( int i = 0; i < children.Length; i++ ) {
+			var arg = children[i];
+			ref var layout = ref layouts[i];
+
+			layout.Size.Cross = arg.CrossSize.GetValue( lineSize.Cross, min: arg.RequiredCrossSize );
+		}
 	}
 
 	public struct ChildArgs {

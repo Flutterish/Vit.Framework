@@ -3,6 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
+public class LayoutContainer : LayoutContainer<ILayoutElement> { }
 public class LayoutContainer<T> : LayoutContainer<T, LayoutParams> where T : ILayoutElement {
 	protected override void PerformLayout () {
 		var size = ContentSize;

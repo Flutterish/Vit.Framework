@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;

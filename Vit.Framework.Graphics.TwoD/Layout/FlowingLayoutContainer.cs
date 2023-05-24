@@ -65,11 +65,11 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 		}
 	}
 
-	Justification lineJustification;
+	LineJustification lineJustification;
 	/// <summary>
 	/// How lines are justified along the cross axis.
 	/// </summary>
-	public Justification LineJustification {
+	public LineJustification LineJustification {
 		get => lineJustification;
 		set {
 			if ( lineJustification == value )
@@ -116,13 +116,22 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 
 		var sizeOffset = flowDirection.MakePositionOffsetBySizeAxes<float>();
 		var remaining = contentSize.Cross - crossSize;
-		var (offset, gap) = LineJustification.GetOffsets( lines.Count, remaining, contentAlignment: flowOriginAxes.Cross );
 
+		var (offset, gap) = LineJustification.GetOffsets( lines.Count, remaining, contentAlignment: flowOriginAxes.Cross );
 		foreach ( var line in lines ) {
+			var lineLayouts = new SpanSlice<ChildLayout> { Source = layout.AsSpan(), Start = line.start, Length = line.length };
+			var lineChildren = new SpanSlice<TChildArgs> { Source = children.AsSpan(), Start = line.start, Length = line.length };
+			var lineSize = line.size;
+			if ( lineJustification == LineJustification.Stretch ) {
+				lineSize.Cross += gap;
+			}
 			foreach ( ref var i in layout.AsSpan( line.start, line.length ) ) {
 				i.Position.Cross += offset;
 			}
 			offset += gap;
+
+			FinalizeLine( lineChildren, lineLayouts, lineSize );
+			alignLineElements( lineLayouts, lineSize );
 		}
 
 		foreach ( ref var i in layout ) {
@@ -145,13 +154,17 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 	protected virtual void CalculateLayoutConstants () { }
 
 	/// <summary>
-	/// Finalizes a line by aligning elements on it. 
+	/// Submits a line for alignment purposes. After all lines have been submitted, 
+	/// <see cref="FinalizeLine(SpanSlice{ChildLayout}, FlowSize2{float})"/> will be called for each line after aligning it.
 	/// This assumes that the child layout is such that the flow position monotonically increases and the cross position equals the start of the line.
 	/// </summary>
 	/// <param name="children">The children that consitute the line.</param>
 	/// <param name="lineSize">The size of the line.</param>
-	protected void FinalizeLine ( SpanSlice<ChildLayout> children, FlowSize2<float> lineSize ) {
-		lines.Add(( children.Start, children.Length, lineSize ));
+	protected void SubmitLine ( SpanSlice<ChildLayout> children, FlowSize2<float> lineSize ) {
+		lines.Add( (children.Start, children.Length, lineSize) );
+	}
+
+	void alignLineElements ( SpanSlice<ChildLayout> children, FlowSize2<float> lineSize ) {
 		var remaining = contentSize.Flow - lineSize.Flow;
 		var (offset, gap) = ItemJustification.GetOffsets( children.Length, remaining, contentAlignment: flowOriginAxes.Flow );
 
@@ -185,11 +198,16 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 	/// Performs layout. You should not do any <strong>flow &lt;-&gt; cardinal</strong> conversions while perforrming layout.
 	/// </summary>
 	/// <remarks>
-	/// You should call <see cref="FinalizeLine(SpanSlice{ChildLayout}, FlowSize2{float})"/> for each line you create.
+	/// You should call <see cref="SubmitLine(SpanSlice{ChildLayout}, FlowSize2{float})"/> for each line you create.
 	/// </remarks>
 	/// <param name="context">The context of the layout.</param>
 	/// <returns>The total cross size of the layout.</returns>
 	protected abstract float PerformLayout ( LayoutContext context );
+	/// <summary>
+	/// Finalizes layout on a line, such as sizing relatively sized elements across the cross axis.
+	/// </summary>
+	protected abstract void FinalizeLine ( SpanSlice<TChildArgs> children, SpanSlice<ChildLayout> layouts, FlowSize2<float> lineSize );
+
 
 	protected struct ChildLayout {
 		public FlowSize2<float> Size;
@@ -239,6 +257,30 @@ public enum Justification {
 	SpaceEvenly
 }
 
+
+public enum LineJustification {
+	/// <summary>
+	/// Use ContentAlignment of the container.
+	/// </summary>
+	ContentAlignment = Justification.ContentAlignment,
+	/// <summary>
+	/// Put space between elements.
+	/// </summary>
+	SpaceBetween = Justification.SpaceBetween,
+	/// <summary>
+	/// Put space around element edges.
+	/// </summary>
+	SpaceAround = Justification.SpaceAround,
+	/// <summary>
+	/// Put space between elements and container edges.
+	/// </summary>
+	SpaceEvenly = Justification.SpaceEvenly,
+	/// <summary>
+	/// Stretch elements so that they fill the whole axis. This ignores max size.
+	/// </summary>
+	Stretch
+}
+
 public enum Alignment {
 	/// <summary>
 	/// Align the start of the element with the start of the cross axis of a line.
@@ -266,5 +308,11 @@ public static class JustificationExtensions {
 			Justification.SpaceAround => (remainingSpace / elementCount / 2, remainingSpace / elementCount),
 			Justification.SpaceEvenly or _ => (remainingSpace / (elementCount + 1), remainingSpace / (elementCount + 1))
 		};
+	}
+
+	public static (float offset, float gap) GetOffsets ( this LineJustification justification, int elementCount, float remainingSpace, float contentAlignment ) {
+		return justification == LineJustification.Stretch
+			? (0, remainingSpace / elementCount)
+			: ((Justification)(int)justification).GetOffsets( elementCount, remainingSpace, contentAlignment );
 	}
 }
