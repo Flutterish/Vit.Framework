@@ -37,7 +37,7 @@ class Direct3D11Window : SdlWindow {
 				Format = Format.B8G8R8A8_UNorm_SRgb
 			},
 			SampleDescription = {
-				Count = (int)args.Multisample.Ideal,
+				Count = int.Max( 1, (int)args.Multisample.Ideal ),
 				Quality = 0
 			},
 			BufferUsage = Usage.RenderTargetOutput,

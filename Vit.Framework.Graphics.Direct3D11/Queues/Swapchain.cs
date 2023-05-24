@@ -29,7 +29,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 			MipLevels = 1,
 			ArraySize = 1,
 			SampleDescription = {
-				Count = (int)args.Multisample.Ideal
+				Count = int.Max( 1, (int)args.Multisample.Ideal )
 			},
 			Format = Format.D24_UNorm_S8_UInt, // TODO use args for depth. idc for now
 			BindFlags = BindFlags.DepthStencil

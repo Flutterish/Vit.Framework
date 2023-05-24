@@ -34,6 +34,7 @@ public class UniformSet : IUniformSet {
 			var binding = mapping.Bindings[(Set, originalBinding)];
 
 			context.VSSetConstantBuffer( (int)binding, handle );
+			context.PSSetConstantBuffer( (int)binding, handle );
 		}
 		
 		foreach ( var (originalBinding, texture) in Samplers ) {

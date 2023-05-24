@@ -32,7 +32,7 @@ public class TwoDTestApp : App {
 	DrawableRenderer drawableRenderer = null!;
 	protected override void Initialize () {
 		host = new SdlHost( primaryApp: this );
-		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
+		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.Direct3D11 );
 		window = host.CreateWindow( api );
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		window.Initialized += _ => {
@@ -160,7 +160,7 @@ public class TwoDTestApp : App {
 				Matrix = new( mat )
 			} );
 			using ( var commands = swapchain.CreateImmediateCommandBufferForPresentation() ) {
-				using var _ = commands.RenderTo( frame );
+				using var _ = commands.RenderTo( frame, ColorRgba.Blue );
 				commands.SetTopology( Topology.Triangles );
 				commands.SetViewport( frame.Size );
 				commands.SetScissors( frame.Size );
