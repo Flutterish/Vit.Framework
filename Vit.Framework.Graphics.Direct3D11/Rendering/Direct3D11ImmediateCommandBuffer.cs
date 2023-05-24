@@ -61,10 +61,10 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 
 		if ( (invalidations & (PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest)) != 0 ) {
 			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( new() {
-				DepthTest = DepthTest,
+				DepthTest = DepthTest.IsEnabled ? DepthTest : new() { IsEnabled = false },
 				DepthState = DepthTest.IsEnabled ? DepthState : new() { WriteOnPass = false },
-				StencilTest = StencilTest,
-				StencilState = StencilTest.IsEnabled ? StencilState : new() { CompareMask = 0, WriteMask = 0 }
+				StencilTest = StencilTest.IsEnabled ? StencilTest : new() { IsEnabled = false },
+				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( StencilOperation.Keep )
 			} ), stencilRef: StencilState.ReferenceValue.BitCast<uint, int>() );
 		}
 	}
