@@ -49,7 +49,8 @@ public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer
 	}
 
 	Pipeline pipeline = null!;
-	const PipelineInvalidations pipelineInvalidations = PipelineInvalidations.Shaders | PipelineInvalidations.Framebuffer | PipelineInvalidations.Topology | PipelineInvalidations.DepthTest;
+	const PipelineInvalidations pipelineInvalidations = PipelineInvalidations.Shaders | PipelineInvalidations.Framebuffer | PipelineInvalidations.Topology 
+		| PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;
 	const PipelineInvalidations dynamicState = PipelineInvalidations.Scissors | PipelineInvalidations.Viewport;
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( (invalidations & pipelineInvalidations) != 0 ) {
