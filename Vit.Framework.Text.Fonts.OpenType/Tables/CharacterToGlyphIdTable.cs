@@ -35,6 +35,7 @@ public class CharacterToGlyphIdTable : Table {
 		}
 
 		public abstract IEnumerable<(Rune rune, GlyphId id)> Enumerate ( EncodingType encoding, int rangeStart, int rangeEnd );
+		public abstract IEnumerable<(Rune rune, GlyphId id)> Enumerate ( EncodingType encoding );
 	}
 
 	public class Subtable0 : Subtable {
@@ -60,6 +61,10 @@ public class CharacterToGlyphIdTable : Table {
 				if ( rune.Value >= rangeStart && rune.Value < rangeEnd )
 					yield return (rune, new GlyphId( GlyphIdArray[i] ));
 			}
+		}
+
+		public override IEnumerable<(Rune rune, GlyphId id)> Enumerate ( EncodingType encoding ) {
+			throw new NotImplementedException();
 		}
 	}
 
@@ -93,7 +98,7 @@ public class CharacterToGlyphIdTable : Table {
 			if ( encoding == EncodingType.Unicode ) {
 				// TODO implement optimized
 
-				yield break;
+				//yield break;
 			}
 
 			for ( var i = 0; i < StartCodes.Length; i++ ) {
@@ -118,6 +123,27 @@ public class CharacterToGlyphIdTable : Table {
 				}
 			}
 		}
+
+		public override IEnumerable<(Rune rune, GlyphId id)> Enumerate ( EncodingType encoding ) {
+			for ( var i = 0; i < StartCodes.Length; i++ ) {
+				var start = StartCodes[i];
+				var end = EndCodes[i];
+				var idDelta = IdDeltas[i];
+				var idRangeOffset = IdRangeOffsets[i];
+
+				for ( ushort c = start; c < end; c++ ) {
+					var rune = encoding.Decode( c );
+					ushort id;
+					if ( idRangeOffset == 0 )
+						id = (ushort)(idDelta + c);
+					else {
+						id = GlyphIdArray[i - StartCodes.Length + idRangeOffset / 2 + c - start];
+					}
+
+					yield return (rune, new GlyphId( id ));
+				}
+			}
+		}
 	}
 
 	public class Subtable6 : Subtable {
@@ -131,7 +157,7 @@ public class CharacterToGlyphIdTable : Table {
 			rangeEnd -= FirstCode;
 
 			if ( encoding == EncodingType.Unicode ) {
-				rangeEnd = int.Min( rangeEnd, 256 );
+				rangeEnd = int.Min( rangeEnd, EntryCount );
 				rangeStart = int.Max( rangeStart, 0 );
 				for ( int i = rangeStart; i < rangeEnd; i++ ) {
 					if ( GlyphIdArray[i] != 0 )
@@ -141,13 +167,23 @@ public class CharacterToGlyphIdTable : Table {
 				yield break;
 			}
 
-			for ( int i = 0; i < 256; i++ ) {
+			for ( int i = 0; i < EntryCount; i++ ) {
 				if ( GlyphIdArray[i] == 0 )
 					continue;
 
 				var rune = encoding.Decode( i + FirstCode );
 				if ( rune.Value >= rangeStart && rune.Value < rangeEnd )
 					yield return (rune, new GlyphId( GlyphIdArray[i] ));
+			}
+		}
+
+		public override IEnumerable<(Rune rune, GlyphId id)> Enumerate ( EncodingType encoding ) {
+			for ( int i = 0; i < EntryCount; i++ ) {
+				if ( GlyphIdArray[i] == 0 )
+					continue;
+
+				var rune = encoding.Decode( i + FirstCode );
+				yield return (rune, new GlyphId( GlyphIdArray[i] ));
 			}
 		}
 	}

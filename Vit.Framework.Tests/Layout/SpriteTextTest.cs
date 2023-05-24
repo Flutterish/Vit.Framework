@@ -18,7 +18,7 @@ public class SpriteTextTest : LayoutContainer<ILayoutElement> {
 			Anchor = new( 0, 100 )
 		} );
 		AddChild( new SpriteText {
-			Text = "Hello, World! śÓśśÓ.",
+			Text = "Hello, World!",
 			FontSize = 64,
 			Font = font,
 			Tint = ColorRgba.Black

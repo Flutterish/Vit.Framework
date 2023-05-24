@@ -45,7 +45,7 @@ public class EndianCorrectingBinaryReader : IDisposable {
 		return buffer.AsSpan( 0, count + padding );
 	}
 
-	public T Read<T> () where T : unmanaged, IConvertible {
+	public T Read<T> () where T : unmanaged {
 		if (typeof(T).IsEnum) {
 			var underlying = typeof( T ).GetEnumUnderlyingType();
 
@@ -53,7 +53,7 @@ public class EndianCorrectingBinaryReader : IDisposable {
 			return (T)value!;
 		}
 		else {
-			var size = Marshal.SizeOf<T>();
+			var size = Marshal.SizeOf( default(T) );
 			var data = Read( size );
 
 			return MemoryMarshal.Read<T>( data );

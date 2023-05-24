@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using SixLabors.ImageSharp.Formats.Gif;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Memory;
@@ -38,7 +41,7 @@ public class GlyphDataTable : Table {
 			};
 		}
 
-		public abstract void CopyOutline ( Outline<double> outline );
+		public abstract void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs );
 	}
 
 	public class SimpleGlyphData : GlyphData {
@@ -102,7 +105,7 @@ public class GlyphDataTable : Table {
 			return points;
 		}
 
-		public override void CopyOutline ( Outline<double> outline ) {
+		public override void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs ) {
 			if ( !Points.Any() )
 				return;
 
@@ -174,8 +177,117 @@ public class GlyphDataTable : Table {
 	}
 
 	public class CompositeGlyphData : GlyphData {
-		public override void CopyOutline ( Outline<double> outline ) {
-			//throw new NotImplementedException();
+		[ParseWith( nameof( parse ) )]
+		public ComponentGlyphData[] Components = null!;
+
+		static ComponentGlyphData[] parse ( EndianCorrectingBinaryReader reader ) {
+			List<ComponentGlyphData> data = new();
+			Flags flags;
+			do {
+				flags = reader.Read<Flags>();
+				var index = reader.Read<ushort>();
+				ushort arg1;
+				ushort arg2;
+				if ( flags.HasFlag( Flags.ArgsAre16Bit ) ) {
+					arg1 = reader.Read<ushort>();
+					arg2 = reader.Read<ushort>();
+				}
+				else {
+					arg1 = reader.Read<byte>();
+					arg2 = reader.Read<byte>();
+				}
+
+				Fixed2_14 scaleX;
+				Fixed2_14 scaleY;
+				Fixed2_14 shearX;
+				Fixed2_14 shearY;
+				if ( flags.HasFlag( Flags.HasScale ) ) {
+					scaleX = scaleY = reader.Read<Fixed2_14>();
+					shearX = shearY = Fixed2_14.Zero;
+				}
+				else if ( flags.HasFlag( Flags.SeparateScales ) ) {
+					scaleX = reader.Read<Fixed2_14>();
+					scaleY = reader.Read<Fixed2_14>();
+					shearX = shearY = Fixed2_14.Zero;
+				}
+				else if ( flags.HasFlag( Flags.HasTransfomrationMatrix ) ) {
+					Debug.Fail( "figure the todo out" );
+					scaleX = reader.Read<Fixed2_14>();
+					shearX = reader.Read<Fixed2_14>(); // TODO idk the format of the matrix they give
+					shearY = reader.Read<Fixed2_14>();
+					scaleY = reader.Read<Fixed2_14>();
+				}
+				else {
+					scaleX = scaleY = Fixed2_14.One;
+					shearX = shearY = Fixed2_14.Zero;
+				}
+
+				data.Add( new() {
+					Flags = flags,
+					GlyphIndex = index,
+					Arg1 = arg1,
+					Arg2 = arg2,
+
+					ScaleX = scaleX,
+					ScaleY = scaleY,
+					ShearX = shearX,
+					ShearY = shearY
+				} );
+			}
+			while ( flags.HasFlag( Flags.MoreComponents ) );
+
+			Debug.Assert( !flags.HasFlag( Flags.HasInstructions ) );
+
+			return data.ToArray();
+		}
+
+		public override void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs ) {
+			foreach ( var i in Components ) {
+				Debug.Assert( i.Flags.HasFlag( Flags.ArgsAreXyValues ) );
+				//Debug.Assert( i.Flags.HasFlag( Flags.ArgsAre16Bit ) || (i.Arg1 == 0 && i.Arg2 == 0) );
+				// TODO round to XY grid
+				Debug.Assert( i.ScaleX == Fixed2_14.One );
+				Debug.Assert( i.ScaleY == Fixed2_14.One );
+				Debug.Assert( i.ShearX == Fixed2_14.Zero );
+				Debug.Assert( i.ShearY == Fixed2_14.Zero );
+
+				//var dx = new Fixed2_14 { Data = i.Arg1.BitCast<ushort, short>() };
+				//var dy = new Fixed2_14 { Data = i.Arg2.BitCast<ushort, short>() };
+
+				var index = i.GlyphIndex;
+				var glyph = glyphs.GetGlyph( index )!;
+				Debug.Assert( glyph is SimpleGlyphData );
+				glyph.CopyOutline( outline, glyphs );
+			}
+		}
+
+		[Flags]
+		public enum Flags : ushort {
+			ArgsAre16Bit = 0x1,
+			ArgsAreXyValues = 0x2,
+			RoundXyToGrid = 0x4,
+			HasScale = 0x8,
+			MoreComponents = 0x20,
+			SeparateScales = 0x40,
+			HasTransfomrationMatrix = 0x80,
+			HasInstructions = 0x100,
+			UseMyMetrics = 0x200,
+			ComponentsOverlap = 0x400,
+			ScaledComponentOffset = 0x800,
+			UnscaledComponentOffset = 0x1000
+		}
+
+		public struct ComponentGlyphData {
+			public Flags Flags;
+			public ushort GlyphIndex;
+
+			public ushort Arg1;
+			public ushort Arg2;
+
+			public Fixed2_14 ScaleX;
+			public Fixed2_14 ScaleY;
+			public Fixed2_14 ShearX;
+			public Fixed2_14 ShearY;
 		}
 	}
 }

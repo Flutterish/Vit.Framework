@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
@@ -12,7 +13,6 @@ public class OpenTypeFont : Font {
 	ReopenableStream source;
 
 	OpenFontFile header;
-
 	public OpenTypeFont ( ReopenableStream source ) {
 		this.source = source;
 		using var _ = open();
@@ -103,7 +103,7 @@ public class OpenTypeFont : Font {
 		if ( glyphData == null )
 			return;
 
-		glyphData.CopyOutline( glyph.Outline );
+		glyphData.CopyOutline( glyph.Outline, glyf );
 		glyph.MinX = glyphData.MinX;
 		glyph.MinY = glyphData.MinY;
 		glyph.MaxX = glyphData.MaxX;
