@@ -13,6 +13,8 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
+using StencilOp = Vortice.Direct3D11.StencilOperation;
+using StencilOperation = Vit.Framework.Graphics.Rendering.StencilOperation;
 
 namespace Vit.Framework.Graphics.Direct3D11;
 
@@ -73,14 +75,25 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return commandBuffer;
 	}
 
-	Dictionary<(BufferTest, DepthState), ID3D11DepthStencilState> depthStencilStates = new();
-	public ID3D11DepthStencilState GetDepthStencilState ( BufferTest depth, DepthState state ) {
-		var key = (depth, state);
+	Dictionary<DepthStencilStateInfo, ID3D11DepthStencilState> depthStencilStates = new();
+	public ID3D11DepthStencilState GetDepthStencilState ( DepthStencilStateInfo depthStencil ) {
+		var key = depthStencil;
 		if ( !depthStencilStates.TryGetValue( key, out var depthStencilState ) ) {
-			depthStencilStates.Add( key, depthStencilState = Device.CreateDepthStencilState( new() {
-				DepthEnable = depth.IsEnabled,
-				DepthWriteMask = state.WriteOnPass ? DepthWriteMask.All : DepthWriteMask.Zero,
-				DepthFunc = depth.CompareOperation switch {
+			static StencilOp stencilOp ( StencilOperation operation ) {
+				return operation switch {
+					StencilOperation.SetTo0 => StencilOp.Zero,
+					StencilOperation.ReplaceWithReference => StencilOp.Replace,
+					StencilOperation.Invert => StencilOp.Invert,
+					StencilOperation.Increment => StencilOp.IncrementSaturate,
+					StencilOperation.Decrement => StencilOp.DecrementSaturate,
+					StencilOperation.IncrementWithWrap => StencilOp.Increment,
+					StencilOperation.DecrementWithWrap => StencilOp.Decrement,
+					StencilOperation.Keep or _ => StencilOp.Keep
+				};
+			}
+
+			static ComparisonFunction comparisonFunction ( CompareOperation operation ) {
+				return operation switch {
 					CompareOperation.LessThan => ComparisonFunction.Less,
 					CompareOperation.GreaterThan => ComparisonFunction.Greater,
 					CompareOperation.Equal => ComparisonFunction.Equal,
@@ -89,11 +102,35 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 					CompareOperation.GreaterThanOrEqual => ComparisonFunction.GreaterEqual,
 					CompareOperation.Always => ComparisonFunction.Always,
 					CompareOperation.Never or _ => ComparisonFunction.Never
-				}
+				};
+			}
+
+			DepthStencilOperationDescription stencil = new() {
+				StencilFunc = comparisonFunction( depthStencil.StencilTest.CompareOperation ),
+				StencilPassOp = stencilOp( depthStencil.StencilState.PassOperation ),
+				StencilFailOp = stencilOp( depthStencil.StencilState.StencilFailOperation ),
+				StencilDepthFailOp = stencilOp( depthStencil.StencilState.DepthFailOperation )
+			};
+
+			depthStencilStates.Add( key, depthStencilState = Device.CreateDepthStencilState( new() {
+				DepthEnable = depthStencil.DepthTest.IsEnabled,
+				DepthWriteMask = depthStencil.DepthState.WriteOnPass ? DepthWriteMask.All : DepthWriteMask.Zero,
+				DepthFunc = comparisonFunction( depthStencil.DepthTest.CompareOperation ),
+				StencilEnable = depthStencil.StencilTest.IsEnabled,
+				StencilReadMask = (byte)depthStencil.StencilState.CompareMask,
+				StencilWriteMask = (byte)depthStencil.StencilState.WriteMask,
+				FrontFace = stencil,
+				BackFace = stencil
 			} ) );
 		}
 
 		return depthStencilState;
+	}
+	public struct DepthStencilStateInfo {
+		public required BufferTest DepthTest;
+		public required DepthState DepthState;
+		public required BufferTest StencilTest;
+		public required StencilState StencilState;
 	}
 
 	protected override void Dispose ( bool disposing ) {

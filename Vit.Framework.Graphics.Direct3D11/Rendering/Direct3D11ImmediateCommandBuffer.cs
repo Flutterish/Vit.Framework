@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Direct3D11.Shaders;
 using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -58,8 +59,13 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 			// TODO scissors
 		}
 
-		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
-			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( DepthTest, DepthState ) );
+		if ( (invalidations & (PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest)) != 0 ) {
+			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( new() {
+				DepthTest = DepthTest,
+				DepthState = DepthTest.IsEnabled ? DepthState : new() { WriteOnPass = false },
+				StencilTest = StencilTest,
+				StencilState = StencilTest.IsEnabled ? StencilState : new() { CompareMask = 0, WriteMask = 0 }
+			} ), stencilRef: StencilState.ReferenceValue.BitCast<uint, int>() );
 		}
 	}
 
