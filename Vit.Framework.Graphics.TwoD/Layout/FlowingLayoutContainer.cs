@@ -4,11 +4,11 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
 public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutContainer<T, TParam> where T : ILayoutElement where TParam : struct where TChildArgs : struct {
-	RelativeAxes2<float> flowOrigin;
+	RelativeAxes2<float> flowOrigin = Anchor.TopLeft;
 	/// <summary>
 	/// What point the flow elements are aligned to when there is unused space in a line.
 	/// </summary>
-	public required RelativeAxes2<float> ContentAlignment {
+	public RelativeAxes2<float> ContentAlignment {
 		get => flowOrigin;
 		set {
 			if ( flowOrigin == value )
@@ -19,12 +19,12 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 		}
 	}
 
-	FlowDirection flowDirection;
+	FlowDirection flowDirection = FlowDirection.Right;
 	/// <summary>
 	/// Defines in which direction the content is laid out.
 	/// Additionaly you can specify the direction in which wrapping occurs, or not wrap at all.
 	/// </summary>
-	public required FlowDirection FlowDirection {
+	public FlowDirection FlowDirection {
 		get => flowDirection;
 		set {
 			if ( flowDirection == value )
@@ -65,7 +65,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutCont
 		}
 	}
 
-	LineJustification lineJustification;
+	LineJustification lineJustification = LineJustification.Stretch;
 	/// <summary>
 	/// How lines are justified along the cross axis.
 	/// </summary>
@@ -276,7 +276,7 @@ public enum LineJustification {
 	/// </summary>
 	SpaceEvenly = Justification.SpaceEvenly,
 	/// <summary>
-	/// Stretch elements so that they fill the whole axis. This ignores max size.
+	/// Stretch elements so that they fill the whole axis.
 	/// </summary>
 	Stretch
 }

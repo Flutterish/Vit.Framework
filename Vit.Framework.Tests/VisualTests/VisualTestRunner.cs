@@ -13,7 +13,6 @@ public class VisualTestRunner : Flexbox {
 	LayoutContainer testArea;
 	FlowContainer sidebar;
 
-	[SetsRequiredMembers]
 	public VisualTestRunner () {
 		ContentAlignment = Anchor.TopLeft;
 		FlowDirection = FlowDirection.Right;

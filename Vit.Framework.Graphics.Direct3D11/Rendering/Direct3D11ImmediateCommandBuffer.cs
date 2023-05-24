@@ -64,7 +64,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 				DepthTest = DepthTest.IsEnabled ? DepthTest : new() { IsEnabled = false },
 				DepthState = DepthTest.IsEnabled ? DepthState : new() { WriteOnPass = false },
 				StencilTest = StencilTest.IsEnabled ? StencilTest : new() { IsEnabled = false },
-				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( StencilOperation.Keep )
+				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( Graphics.Rendering.StencilOperation.Keep )
 			} ), stencilRef: StencilState.ReferenceValue.BitCast<uint, int>() );
 		}
 	}
