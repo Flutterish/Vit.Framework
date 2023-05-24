@@ -4,19 +4,17 @@ namespace Vit.Framework.Graphics.Rendering;
 
 public struct BufferTest {
 	public required bool IsEnabled;
-	public bool WriteOnPass;
 	public CompareOperation CompareOperation;
 
 	[SetsRequiredMembers]
 	public BufferTest ( CompareOperation compareOperation ) {
 		IsEnabled = true;
-		WriteOnPass = true;
 		CompareOperation = compareOperation;
 	}
 }
 
 public struct DepthState {
-	public bool WriteOnPass;
+	public required bool WriteOnPass;
 }
 
 [Flags]

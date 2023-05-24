@@ -153,7 +153,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 			CompareOperation.Never or _ => false
 		};
 
-		if ( DepthTest.WriteOnPass && testValue )
+		if ( DepthState.WriteOnPass && testValue )
 			pixel.Depth = depth;
 
 		return testValue;

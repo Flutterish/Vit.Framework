@@ -140,7 +140,7 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 				Tint = tint
 			} );
 
-			using ( commands.PushDepthTest( new( CompareOperation.Never ) ) ) {
+			using ( commands.PushDepthTest( new( CompareOperation.Never ), new() { WriteOnPass = false } ) ) {
 				using ( commands.PushStencilTest( new( CompareOperation.Always ), new() { 
 					CompareMask = 1u,
 					WriteMask = 1u,

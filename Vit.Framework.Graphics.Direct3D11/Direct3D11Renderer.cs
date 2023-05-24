@@ -73,13 +73,13 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return commandBuffer;
 	}
 
-	Dictionary<BufferTest, ID3D11DepthStencilState> depthStencilStates = new();
-	public ID3D11DepthStencilState GetDepthStencilState ( BufferTest depth ) {
-		var key = depth;
-		if ( !depthStencilStates.TryGetValue( key, out var state ) ) {
-			depthStencilStates.Add( key, state = Device.CreateDepthStencilState( new() {
+	Dictionary<(BufferTest, DepthState), ID3D11DepthStencilState> depthStencilStates = new();
+	public ID3D11DepthStencilState GetDepthStencilState ( BufferTest depth, DepthState state ) {
+		var key = (depth, state);
+		if ( !depthStencilStates.TryGetValue( key, out var depthStencilState ) ) {
+			depthStencilStates.Add( key, depthStencilState = Device.CreateDepthStencilState( new() {
 				DepthEnable = depth.IsEnabled,
-				DepthWriteMask = depth.WriteOnPass ? DepthWriteMask.All : DepthWriteMask.Zero,
+				DepthWriteMask = state.WriteOnPass ? DepthWriteMask.All : DepthWriteMask.Zero,
 				DepthFunc = depth.CompareOperation switch {
 					CompareOperation.LessThan => ComparisonFunction.Less,
 					CompareOperation.GreaterThan => ComparisonFunction.Greater,
@@ -93,7 +93,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 			} ) );
 		}
 
-		return state;
+		return depthStencilState;
 	}
 
 	protected override void Dispose ( bool disposing ) {

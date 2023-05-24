@@ -52,7 +52,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 			}
 
 			GL.Enable( EnableCap.DepthTest );
-			GL.DepthMask( DepthTest.WriteOnPass );
+			GL.DepthMask( DepthState.WriteOnPass );
 			GL.DepthFunc( DepthTest.CompareOperation switch {
 				CompareOperation.LessThan => DepthFunction.Less,
 				CompareOperation.GreaterThan => DepthFunction.Greater,

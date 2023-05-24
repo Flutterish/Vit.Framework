@@ -7,7 +7,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 	public readonly VkDevice Device;
 	public readonly VkPipelineLayout Layout;
 	public unsafe Pipeline ( VkDevice device, PipelineArgs args ) {
-		var (shaders, renderPass, depthTest, stencilTest, stencilState) = (args.Shaders, args.RenderPass, args.DepthTest, args.StencilTest, args.StencilState);
+		var (shaders, renderPass, depthTest, depthState, stencilTest, stencilState) = (args.Shaders, args.RenderPass, args.DepthTest, args.DepthState, args.StencilTest, args.StencilState);
 		Device = device;
 		var dynamicStates = new[] {
 			VkDynamicState.Viewport,
@@ -83,7 +83,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 		var depthStencilInfo = new VkPipelineDepthStencilStateCreateInfo() {
 			sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
 			depthTestEnable = depthTest.IsEnabled,
-			depthWriteEnable = depthTest.WriteOnPass,
+			depthWriteEnable = depthState.WriteOnPass,
 			depthCompareOp = depthTest.CompareOperation.CompareOp(),
 			depthBoundsTestEnable = false,
 			stencilTestEnable = stencilTest.IsEnabled,

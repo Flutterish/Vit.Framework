@@ -118,7 +118,7 @@ public class Test05_Depth : GenericRenderThread {
 		} );
 
 		commands.SetTopology( Topology.Triangles );
-		commands.SetDepthTest( new( CompareOperation.LessThan ) );
+		commands.SetDepthTest( new( CompareOperation.LessThan ), new() { WriteOnPass = true } );
 		commands.DrawIndexed( indexCount );
 	}
 

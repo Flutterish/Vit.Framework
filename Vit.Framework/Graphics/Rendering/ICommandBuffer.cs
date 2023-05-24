@@ -60,10 +60,11 @@ public interface ICommandBuffer {
 	void SetScissors ( AxisAlignedBox2<uint> scissors );
 
 	BufferTest DepthTest { get; }
+	DepthState DepthState { get; }
 	/// <summary>
 	/// Sets the depth testing behaviour.
 	/// </summary>
-	void SetDepthTest ( BufferTest test );
+	void SetDepthTest ( BufferTest test, DepthState state );
 
 	BufferTest StencilTest { get; }
 	StencilState StencilState { get; }
@@ -128,11 +129,11 @@ public static class ICommandBufferExtensions {
 	}
 
 	[MethodImpl( MethodImplOptions.AggressiveInlining )]
-	public static DisposeAction<(ICommandBuffer buffer, BufferTest depthTest)> PushDepthTest ( this ICommandBuffer self, BufferTest depthTest ) {
-		var previous = self.DepthTest;
-		self.SetDepthTest( depthTest );
+	public static DisposeAction<(ICommandBuffer buffer, (BufferTest test, DepthState state) depth)> PushDepthTest ( this ICommandBuffer self, BufferTest depthTest, DepthState state ) {
+		var previous = (self.DepthTest, self.DepthState);
+		self.SetDepthTest( depthTest, state );
 		return new( (self, previous), static data => {
-			data.buffer.SetDepthTest( data.depthTest );
+			data.buffer.SetDepthTest( data.depth.test, data.depth.state );
 		} );
 	}
 
@@ -208,8 +209,10 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	}
 
 	public BufferTest DepthTest { get; private set; }
-	public void SetDepthTest ( BufferTest test ) {
+	public DepthState DepthState { get; private set; }
+	public void SetDepthTest ( BufferTest test, DepthState state ) {
 		DepthTest = test;
+		DepthState = state;
 		Invalidations |= PipelineInvalidations.DepthTest;
 	}
 

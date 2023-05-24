@@ -59,7 +59,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
-			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( DepthTest ) );
+			Context.OMSetDepthStencilState( Renderer.GetDepthStencilState( DepthTest, DepthState ) );
 		}
 	}
 

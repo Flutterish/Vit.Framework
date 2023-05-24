@@ -32,7 +32,7 @@ public class TwoDTestApp : App {
 	DrawableRenderer drawableRenderer = null!;
 	protected override void Initialize () {
 		host = new SdlHost( primaryApp: this );
-		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.Direct3D11 );
+		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
 		window = host.CreateWindow( api );
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		window.Initialized += _ => {
