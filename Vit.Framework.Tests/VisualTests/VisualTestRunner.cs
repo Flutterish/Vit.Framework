@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vit.Framework.Graphics;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Layout;

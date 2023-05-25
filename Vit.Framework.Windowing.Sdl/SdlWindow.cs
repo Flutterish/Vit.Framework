@@ -85,12 +85,14 @@ public abstract class SdlWindow : Window {
 	}
 
 	public void OnEvent ( SDL.SDL_MouseMotionEvent e ) {
-		OnCursorMoved( new( e.x, e.y ) );
+		CursorMoved?.Invoke( new( e.x, e.y ) );
 	}
+	public event Action<Point2<float>>? CursorMoved;
 
 	public void OnEvent ( SDL.SDL_MouseButtonEvent e ) {
-
+		MouseButtonStateChanged?.Invoke( e.button, e.state != 0 );
 	}
+	public event Action<byte, bool>? MouseButtonStateChanged;
 
 	public void OnEvent ( SDL.SDL_MouseWheelEvent e ) {
 
@@ -98,10 +100,10 @@ public abstract class SdlWindow : Window {
 
 	public void OnEvent ( SDL.SDL_KeyboardEvent e ) {
 		if ( KeyExtensions.GetKeyByScanCode( (int)e.keysym.scancode ) is Key key ) {
-			if ( e.state == 0 )
-				OnPhysicalKeyUp( key );
-			else
-				OnPhysicalKeyDown( key );
+			//if ( e.state == 0 )
+			//	OnPhysicalKeyUp( key );
+			//else
+			//	OnPhysicalKeyDown( key );
 		}
 	}
 

@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
-using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing;
@@ -44,23 +43,6 @@ public abstract class Window : IWindow, IDisposable {
 			initialized -= value;
 		}
 	}
-
-	public Point2<double> CursorPosition { get; private set; }
-	protected void OnCursorMoved ( Point2<double> position ) {
-		CursorPosition = position;
-		CursorMoved?.Invoke( position );
-	}
-	public event Action<Point2<double>>? CursorMoved;
-
-	protected void OnPhysicalKeyDown ( Key key ) {
-		PhysicalKeyDown?.Invoke( key );
-	}
-	public event Action<Key>? PhysicalKeyDown;
-
-	protected void OnPhysicalKeyUp ( Key key ) {
-		PhysicalKeyUp?.Invoke( key );
-	}
-	public event Action<Key>? PhysicalKeyUp;
 
 	// TODO try to split this to just create the swapchain?
 	/// <summary>

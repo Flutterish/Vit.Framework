@@ -11,12 +11,14 @@ using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
+using Vit.Framework.Windowing.Sdl.Input;
 
 namespace Vit.Framework.Tests;
 
@@ -187,11 +189,14 @@ public class TwoDTestApp : App {
 	public class UpdateThread : AppThread {
 		Sprite cursor;
 
+		CursorState.Tracker cursorTracker;
 		DrawableRenderer drawableRenderer;
 		Window window;
 		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, string name ) : base( name ) {
 			this.drawableRenderer = drawableRenderer;
 			this.window = window;
+
+			cursorTracker = new CursorTracker( (SdlWindow)window );
 
 			cursor = new Sprite {
 				Size = new( 18 ),
@@ -206,10 +211,12 @@ public class TwoDTestApp : App {
 
 		protected override void Loop () {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
-			var pos = window.CursorPosition.Cast<float>();
+			cursorTracker.Update();
+
+			var pos = cursorTracker.State.Position;
 			pos.Y = window.Height - pos.Y;
 			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
-			cursor.Position = parent - new Vector2<float>( 8f );
+			cursor.Position = parent - new Vector2<float>( 9f );
 			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList[1] is ILayoutElement el )
 				el.Size = ((ViewportContainer<Drawable>)drawableRenderer.Root).ContentSize;
 
