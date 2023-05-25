@@ -5,6 +5,6 @@ public enum MouseButton {
 	Right,
 	Middle,
 
-	SpecialLeft,
-	SpecialRight
+	Extra1,
+	Extra2
 }

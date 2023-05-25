@@ -13,11 +13,7 @@ public class CursorState : IHasTimestamp {
 	// TODO add scroll
 
 	bool[] down = new bool[ButtonCount];
-	bool[] pressed = new bool[ButtonCount];
-	bool[] released = new bool[ButtonCount];
 	public bool IsDown ( MouseButton button ) => down[(int)button];
-	public bool WasPressed ( MouseButton button ) => pressed[(int)button];
-	public bool WasReleased ( MouseButton button ) => released[(int)button];
 
 	public abstract class Tracker : InputTracker<Delta, CursorState> {
 		CursorState state = new();
@@ -31,8 +27,6 @@ public class CursorState : IHasTimestamp {
 					if ( !update.ButtonsChanged[i] )
 						continue;
 
-					state.released[i] = state.down[i] && !update.ButtonsDown[i];
-					state.pressed[i] = !state.down[i] && update.ButtonsDown[i];
 					state.down[i] = update.ButtonsDown[i];
 				}
 			}

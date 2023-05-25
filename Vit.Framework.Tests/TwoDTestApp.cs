@@ -217,6 +217,11 @@ public class TwoDTestApp : App {
 			pos.Y = window.Height - pos.Y;
 			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
 			cursor.Position = parent - new Vector2<float>( 9f );
+			cursor.Tint = cursorTracker.State.IsDown( MouseButton.Left )
+				? ColorRgba.Red
+				: cursorTracker.State.IsDown( MouseButton.Right )
+				? ColorRgba.Blue
+				: ColorRgba.HotPink;
 			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList[1] is ILayoutElement el )
 				el.Size = ((ViewportContainer<Drawable>)drawableRenderer.Root).ContentSize;
 
