@@ -196,6 +196,6 @@ public class Spline3<T> : Spline<Point3<T>, T> where T : INumber<T> {
 	public Spline3 ( Point3<T> startPoint ) : base( startPoint ) { }
 }
 
-public class Spline<T> : Spline<Scalar<T>, T> where T : INumber<T> {
-	public Spline ( Scalar<T> startPoint ) : base( startPoint ) { }
+public class Spline<T> : Spline<Point1<T>, T> where T : INumber<T> {
+	public Spline ( Point1<T> startPoint ) : base( startPoint ) { }
 }

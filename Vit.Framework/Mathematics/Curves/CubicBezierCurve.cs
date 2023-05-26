@@ -62,15 +62,15 @@ public struct CubicBezierCurve3<T> : ICurve<Point3<T>, T> where T : INumber<T> {
 	}
 }
 
-public struct CubicBezierCurve<T> : ICurve<Scalar<T>, T> where T : INumber<T> {
-	public Scalar<T> Start;
-	public Scalar<T> ControlPointA;
-	public Scalar<T> ControlPointB;
-	public Scalar<T> End;
+public struct CubicBezierCurve<T> : ICurve<Point1<T>, T> where T : INumber<T> {
+	public Point1<T> Start;
+	public Point1<T> ControlPointA;
+	public Point1<T> ControlPointB;
+	public Point1<T> End;
 
 	public static CurveType Type { get; } = CurveType.BezierCubic;
 
-	public Scalar<T> Evaluate ( T time ) {
+	public Point1<T> Evaluate ( T time ) {
 		var ab = Start.Lerp( ControlPointA, time );
 		var bc = ControlPointA.Lerp( ControlPointB, time );
 		var cd = ControlPointB.Lerp( End, time );

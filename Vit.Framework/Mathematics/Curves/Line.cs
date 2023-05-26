@@ -35,13 +35,13 @@ public struct Line3<T> : ICurve<Point3<T>, T> where T : INumber<T> {
 	}
 }
 
-public struct Line<T> : ICurve<Scalar<T>, T> where T : INumber<T> {
-	public Scalar<T> Start;
-	public Scalar<T> End;
+public struct Line<T> : ICurve<Point1<T>, T> where T : INumber<T> {
+	public Point1<T> Start;
+	public Point1<T> End;
 
 	public static CurveType Type { get; } = CurveType.Line;
 
-	public Scalar<T> Evaluate ( T time ) {
+	public Point1<T> Evaluate ( T time ) {
 		return Start.Lerp( End, time );
 	}
 }

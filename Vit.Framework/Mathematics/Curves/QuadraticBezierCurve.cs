@@ -45,14 +45,14 @@ public struct QuadraticBezierCurve3<T> : ICurve<Point3<T>, T> where T : INumber<
 }
 
 
-public struct QuadraticBezierCurve<T> : ICurve<Scalar<T>, T> where T : INumber<T> {
-	public Scalar<T> Start;
-	public Scalar<T> ControlPoint;
-	public Scalar<T> End;
+public struct QuadraticBezierCurve<T> : ICurve<Point1<T>, T> where T : INumber<T> {
+	public Point1<T> Start;
+	public Point1<T> ControlPoint;
+	public Point1<T> End;
 
 	public static CurveType Type { get; } = CurveType.BezierQuadratic;
 
-	public Scalar<T> Evaluate ( T time ) {
+	public Point1<T> Evaluate ( T time ) {
 		var ab = Start.Lerp( ControlPoint, time );
 		var bc = ControlPoint.Lerp( End, time );
 		return ab.Lerp( bc, time );
