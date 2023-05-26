@@ -31,7 +31,9 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 			return;
 
 		unitToLocal = null;
+		unitToLocalInverse = null;
 		unitToGlobal = null;
+		unitToGlobalInverse = null;
 		OnMatrixInvalidated();
 	}
 
@@ -112,6 +114,13 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 
 	}
 
+	public virtual bool ReceivesPositionalInputAt ( Point2<float> point ) {
+		point = GlobalToUnitMatrix.Apply( point );
+
+		return point.X >= 0 && point.X <= 1
+			&& point.Y >= 0 && point.Y <= 1;
+	}
+
 	void IDrawable.OnParentMatrixInvalidated ()
 		=> onParentMatrixInvalidated();
 	void onParentMatrixInvalidated () {
@@ -119,6 +128,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 			return;
 
 		unitToGlobal = null;
+		unitToGlobalInverse = null;
 		OnMatrixInvalidated();
 	}
 	protected virtual void OnMatrixInvalidated () {
@@ -129,17 +139,28 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 		=> UnitToGlobalMatrix.Inversed.Apply( point );
 
 	Matrix3<float>? unitToLocal;
+	Matrix3<float>? unitToLocalInverse;
 	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??=
 		Matrix3<float>.CreateTranslation( origin.ToOrigin() ) *
 		Matrix3<float>.CreateScale( scale ) *
 		Matrix3<float>.CreateShear( shear ) *
 		Matrix3<float>.CreateRotation( rotation ) *
 		Matrix3<float>.CreateTranslation( position.FromOrigin() );
+	public Matrix3<float> LocalToUnitMatrix => unitToLocalInverse ??=
+		Matrix3<float>.CreateTranslation( position.ToOrigin() ) *
+		Matrix3<float>.CreateRotation( -rotation ) *
+		Matrix3<float>.CreateShear( -shear ) *
+		Matrix3<float>.CreateScale( 1 / scale.X, 1 / scale.Y ) *
+		Matrix3<float>.CreateTranslation( origin.FromOrigin() );
 
 	Matrix3<float>? unitToGlobal;
+	Matrix3<float>? unitToGlobalInverse;
 	public Matrix3<float> UnitToGlobalMatrix => unitToGlobal ??= Parent is null
 		? UnitToLocalMatrix
 		: (UnitToLocalMatrix * Parent.UnitToGlobalMatrix);
+	public Matrix3<float> GlobalToUnitMatrix => unitToGlobalInverse ??= Parent is null
+		? LocalToUnitMatrix
+		: (Parent.GlobalToUnitMatrix * LocalToUnitMatrix);
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
@@ -183,6 +204,12 @@ public interface IDrawable : IComponent<IDrawable>, IDisposable {
 
 	void TryLoad ();
 
+	/// <summary>
+	/// Checks if a given point lies on this drawable.
+	/// </summary>
+	/// <param name="point">A point in global space.</param>
+	bool ReceivesPositionalInputAt ( Point2<float> point );
+
 	internal void OnParentMatrixInvalidated ();
 
 	/// <summary>
@@ -192,10 +219,22 @@ public interface IDrawable : IComponent<IDrawable>, IDisposable {
 	Matrix3<float> UnitToLocalMatrix { get; }
 
 	/// <summary>
+	/// A matrix such that the bottom left corner in parent space is mapped to (0,0)
+	/// and the top right corner in parent space is mapped to (1,1).
+	/// </summary>
+	Matrix3<float> LocalToUnitMatrix { get; }
+
+	/// <summary>
 	/// A matrix such that (0,0) is mapped to the bottom left corner
 	/// and (1,1) is mapped to the top right corner in global space.
 	/// </summary>
 	Matrix3<float> UnitToGlobalMatrix { get; }
+
+	/// <summary>
+	/// A matrix such that the bottom left corner in global space is mapped to (0,0)
+	/// and the top right corner in global space is mapped to (1,1).
+	/// </summary>
+	Matrix3<float> GlobalToUnitMatrix { get; }
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
 		=> UnitToGlobalMatrix.Inversed.Apply( point );

@@ -52,6 +52,45 @@ public struct FlowAxes2<T> : IInterpolatable<FlowAxes2<T>, T>, IEqualityOperator
 		};
 	}
 	
+	public static FlowAxes2<T> operator + ( FlowAxes2<T> left, FlowAxes2<T> right ) {
+		return new() {
+			Flow = left.Flow + right.Flow,
+			Cross = left.Cross + right.Cross
+		};
+	}
+	
+	public static FlowAxes2<T> operator - ( FlowAxes2<T> left, FlowAxes2<T> right ) {
+		return new() {
+			Flow = left.Flow - right.Flow,
+			Cross = left.Cross - right.Cross
+		};
+	}
+	
+	public static FlowAxes2<T> operator - ( FlowAxes2<T> axes ) {
+		return new( -axes.Flow, -axes.Cross );
+	}
+	
+	public static FlowAxes2<T> operator * ( FlowAxes2<T> axes, T scale ) {
+		return new() {
+			Flow = axes.Flow * scale,
+			Cross = axes.Cross * scale
+		};
+	}
+	
+	public static FlowAxes2<T> operator * ( T scale, FlowAxes2<T> axes ) {
+		return new() {
+			Flow = scale * axes.Flow,
+			Cross = scale * axes.Cross
+		};
+	}
+	
+	public static FlowAxes2<T> operator / ( FlowAxes2<T> axes, T divisor ) {
+		return new() {
+			Flow = axes.Flow / divisor,
+			Cross = axes.Cross / divisor
+		};
+	}
+	
 	public static bool operator == ( FlowAxes2<T> left, FlowAxes2<T> right ) {
 		return left.Flow == right.Flow
 			&& left.Cross == right.Cross;

@@ -97,6 +97,55 @@ public struct Axes4<T> : IInterpolatable<Axes4<T>, T>, IEqualityOperators<Axes4<
 		};
 	}
 	
+	public static Axes4<T> operator + ( Axes4<T> left, Axes4<T> right ) {
+		return new() {
+			X = left.X + right.X,
+			Y = left.Y + right.Y,
+			Z = left.Z + right.Z,
+			W = left.W + right.W
+		};
+	}
+	
+	public static Axes4<T> operator - ( Axes4<T> left, Axes4<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y,
+			Z = left.Z - right.Z,
+			W = left.W - right.W
+		};
+	}
+	
+	public static Axes4<T> operator - ( Axes4<T> axes ) {
+		return new( -axes.X, -axes.Y, -axes.Z, -axes.W );
+	}
+	
+	public static Axes4<T> operator * ( Axes4<T> axes, T scale ) {
+		return new() {
+			X = axes.X * scale,
+			Y = axes.Y * scale,
+			Z = axes.Z * scale,
+			W = axes.W * scale
+		};
+	}
+	
+	public static Axes4<T> operator * ( T scale, Axes4<T> axes ) {
+		return new() {
+			X = scale * axes.X,
+			Y = scale * axes.Y,
+			Z = scale * axes.Z,
+			W = scale * axes.W
+		};
+	}
+	
+	public static Axes4<T> operator / ( Axes4<T> axes, T divisor ) {
+		return new() {
+			X = axes.X / divisor,
+			Y = axes.Y / divisor,
+			Z = axes.Z / divisor,
+			W = axes.W / divisor
+		};
+	}
+	
 	public static bool operator == ( Axes4<T> left, Axes4<T> right ) {
 		return left.X == right.X
 			&& left.Y == right.Y

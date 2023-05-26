@@ -51,6 +51,45 @@ public struct Axes2<T> : IInterpolatable<Axes2<T>, T>, IEqualityOperators<Axes2<
 		};
 	}
 	
+	public static Axes2<T> operator + ( Axes2<T> left, Axes2<T> right ) {
+		return new() {
+			X = left.X + right.X,
+			Y = left.Y + right.Y
+		};
+	}
+	
+	public static Axes2<T> operator - ( Axes2<T> left, Axes2<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y
+		};
+	}
+	
+	public static Axes2<T> operator - ( Axes2<T> axes ) {
+		return new( -axes.X, -axes.Y );
+	}
+	
+	public static Axes2<T> operator * ( Axes2<T> axes, T scale ) {
+		return new() {
+			X = axes.X * scale,
+			Y = axes.Y * scale
+		};
+	}
+	
+	public static Axes2<T> operator * ( T scale, Axes2<T> axes ) {
+		return new() {
+			X = scale * axes.X,
+			Y = scale * axes.Y
+		};
+	}
+	
+	public static Axes2<T> operator / ( Axes2<T> axes, T divisor ) {
+		return new() {
+			X = axes.X / divisor,
+			Y = axes.Y / divisor
+		};
+	}
+	
 	public static bool operator == ( Axes2<T> left, Axes2<T> right ) {
 		return left.X == right.X
 			&& left.Y == right.Y;

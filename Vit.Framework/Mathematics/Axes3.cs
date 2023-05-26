@@ -62,6 +62,50 @@ public struct Axes3<T> : IInterpolatable<Axes3<T>, T>, IEqualityOperators<Axes3<
 		};
 	}
 	
+	public static Axes3<T> operator + ( Axes3<T> left, Axes3<T> right ) {
+		return new() {
+			X = left.X + right.X,
+			Y = left.Y + right.Y,
+			Z = left.Z + right.Z
+		};
+	}
+	
+	public static Axes3<T> operator - ( Axes3<T> left, Axes3<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y,
+			Z = left.Z - right.Z
+		};
+	}
+	
+	public static Axes3<T> operator - ( Axes3<T> axes ) {
+		return new( -axes.X, -axes.Y, -axes.Z );
+	}
+	
+	public static Axes3<T> operator * ( Axes3<T> axes, T scale ) {
+		return new() {
+			X = axes.X * scale,
+			Y = axes.Y * scale,
+			Z = axes.Z * scale
+		};
+	}
+	
+	public static Axes3<T> operator * ( T scale, Axes3<T> axes ) {
+		return new() {
+			X = scale * axes.X,
+			Y = scale * axes.Y,
+			Z = scale * axes.Z
+		};
+	}
+	
+	public static Axes3<T> operator / ( Axes3<T> axes, T divisor ) {
+		return new() {
+			X = axes.X / divisor,
+			Y = axes.Y / divisor,
+			Z = axes.Z / divisor
+		};
+	}
+	
 	public static bool operator == ( Axes3<T> left, Axes3<T> right ) {
 		return left.X == right.X
 			&& left.Y == right.Y
