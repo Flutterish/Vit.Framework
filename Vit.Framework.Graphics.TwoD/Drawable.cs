@@ -178,7 +178,10 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 
 public interface IDrawable : IComponent<IDrawable>, IDisposable {
 	new ICompositeDrawable<IDrawable>? Parent { get; }
-	internal void SetParent ( ICompositeDrawable<IDrawable>? parent );
+	/// <summary>
+	/// Sets the <see cref="Parent"/> property. This should be synchronised with the parents children list.
+	/// </summary>
+	void SetParent ( ICompositeDrawable<IDrawable>? parent );
 	IReadOnlyCompositeComponent<IDrawable, IDrawable>? IComponent<IDrawable>.Parent => Parent;
 
 	public Point2<float> Position { get; set; }
@@ -200,7 +203,6 @@ public interface IDrawable : IComponent<IDrawable>, IDisposable {
 	public float ShearY { get; set; }
 
 	public bool IsLoaded { get; }
-	void Update ();
 
 	void TryLoad ();
 
@@ -238,6 +240,8 @@ public interface IDrawable : IComponent<IDrawable>, IDisposable {
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
 		=> UnitToGlobalMatrix.Inversed.Apply( point );
+
+	void Update ();
 
 	Drawable.DrawNode GetDrawNode ( int subtreeIndex );
 }
