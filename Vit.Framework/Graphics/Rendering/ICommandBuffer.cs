@@ -226,6 +226,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
 
+	// TODO you cna have multiple of these
 	protected IBuffer VertexBuffer { get; private set; } = null!;
 	public void BindVertexBuffer ( IBuffer buffer ) {
 		VertexBuffer = buffer;

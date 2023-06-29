@@ -14,10 +14,13 @@ public struct Millis : IInterpolatable<Millis, double> {
 		return new( Value.Lerp( goal.Value, time ) );
 	}
 	
-	public static readonly TimeSpan UnitSpan = new TimeSpan( (long)10000 );
+	public static readonly TimeSpan UnitSpan = new TimeSpan( 10000L );
 	
 	public static implicit operator TimeSpan ( Millis millis )
 		=> UnitSpan * millis.Value;
+	
+	public static implicit operator Millis ( TimeSpan time )
+		=> new( (double)time.Ticks / 10000L );
 	
 	public override string ToString () {
 		return $"{Value} millis";
@@ -31,6 +34,12 @@ public struct PerMilli<T> where T : IMultiplyOperators<T, double, T> {
 		Value = value;
 	}
 	
+	public static T operator * ( PerMilli<T> per, Millis time )
+		=> per.Value * time.Value;
+	
+	public static T operator * ( Millis time, PerMilli<T> per )
+		=> per.Value * time.Value;
+	
 	public override string ToString () {
 		return $"{Value} per milli";
 	}
@@ -38,5 +47,11 @@ public struct PerMilli<T> where T : IMultiplyOperators<T, double, T> {
 
 public static class MillisExtensions {
 	public static Millis Millis ( this double value )
+		=> new( value );
+	
+	public static Millis Millis ( this int value )
+		=> new( value );
+	
+	public static PerMilli<T> PerMilli<T> ( this T value ) where T : IMultiplyOperators<T, double, T>
 		=> new( value );
 }

@@ -59,11 +59,15 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 		sb.AppendLine( "}" );
 
 		sb.AppendLine();
-		sb.AppendLine( $"public static readonly TimeSpan UnitSpan = new TimeSpan( (long){Span.Ticks} );" );
+		sb.AppendLine( $"public static readonly TimeSpan UnitSpan = new TimeSpan( {Span.Ticks}L );" );
 
 		sb.AppendLine();
 		sb.AppendLine( $"public static implicit operator TimeSpan ( {type} {Name.ToLower()} )" );
 		sb.AppendLine( $"\t=> UnitSpan * {Name.ToLower()}.Value;" );
+
+		sb.AppendLine();
+		sb.AppendLine( $"public static implicit operator {type} ( TimeSpan time )" );
+		sb.AppendLine( $"\t=> new( (double)time.Ticks / {Span.Ticks}L );" );
 
 		sb.AppendLine();
 		sb.AppendLine( "public override string ToString () {" );
@@ -94,6 +98,14 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 			sb.AppendLine( "}" );
 
 			sb.AppendLine();
+			sb.AppendLine( $"public static T operator * ( {type} per, {GetFullTypeName( data )} time )" );
+			sb.AppendLine( "\t=> per.Value * time.Value;" );
+
+			sb.AppendLine();
+			sb.AppendLine( $"public static T operator * ( {GetFullTypeName( data )} time, {type} per )" );
+			sb.AppendLine( "\t=> per.Value * time.Value;" );
+
+			sb.AppendLine();
 			sb.AppendLine( "public override string ToString () {" );
 			using ( sb.Indent() ) {
 				sb.AppendLine( $"return $\"{{Value}} per {Name.ToLower()[..^1]}\";" );
@@ -106,6 +118,14 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 		sb.AppendLine( $"public static class {GetTypeName( data )}Extensions {{" );
 		using ( sb.Indent() ) {
 			sb.AppendLine( $"public static {GetFullTypeName( data )} {GetFullTypeName( data )} ( this double value )" );
+			sb.AppendLine( "\t=> new( value );" );
+
+			sb.AppendLine();
+			sb.AppendLine( $"public static {GetFullTypeName( data )} {GetFullTypeName( data )} ( this int value )" );
+			sb.AppendLine( "\t=> new( value );" );
+
+			sb.AppendLine();
+			sb.AppendLine( $"public static {type} {type} ( this T value ) where T : IMultiplyOperators<T, double, T>" );
 			sb.AppendLine( "\t=> new( value );" );
 		}
 		sb.AppendLine( "}" );

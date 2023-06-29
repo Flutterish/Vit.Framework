@@ -14,10 +14,13 @@ public struct Seconds : IInterpolatable<Seconds, double> {
 		return new( Value.Lerp( goal.Value, time ) );
 	}
 	
-	public static readonly TimeSpan UnitSpan = new TimeSpan( (long)10000000 );
+	public static readonly TimeSpan UnitSpan = new TimeSpan( 10000000L );
 	
 	public static implicit operator TimeSpan ( Seconds seconds )
 		=> UnitSpan * seconds.Value;
+	
+	public static implicit operator Seconds ( TimeSpan time )
+		=> new( (double)time.Ticks / 10000000L );
 	
 	public override string ToString () {
 		return $"{Value} seconds";
@@ -31,6 +34,12 @@ public struct PerSecond<T> where T : IMultiplyOperators<T, double, T> {
 		Value = value;
 	}
 	
+	public static T operator * ( PerSecond<T> per, Seconds time )
+		=> per.Value * time.Value;
+	
+	public static T operator * ( Seconds time, PerSecond<T> per )
+		=> per.Value * time.Value;
+	
 	public override string ToString () {
 		return $"{Value} per second";
 	}
@@ -38,5 +47,11 @@ public struct PerSecond<T> where T : IMultiplyOperators<T, double, T> {
 
 public static class SecondsExtensions {
 	public static Seconds Seconds ( this double value )
+		=> new( value );
+	
+	public static Seconds Seconds ( this int value )
+		=> new( value );
+	
+	public static PerSecond<T> PerSecond<T> ( this T value ) where T : IMultiplyOperators<T, double, T>
 		=> new( value );
 }

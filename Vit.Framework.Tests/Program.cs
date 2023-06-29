@@ -1,8 +1,10 @@
-﻿using Vit.Framework.Graphics.Curses;
+﻿using OpenTK.Graphics.OpenGL;
+using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Direct3D11;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
