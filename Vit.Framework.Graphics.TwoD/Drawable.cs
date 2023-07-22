@@ -100,7 +100,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	public bool IsLoaded { get; private set; }
-	public virtual void Update () {
+	public virtual void Update () { // TODO should "needs an update" be a flag?
 		
 	}
 
@@ -136,7 +136,10 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
-		=> UnitToGlobalMatrix.Inversed.Apply( point );
+		=> GlobalToUnitMatrix.Apply( point );
+
+	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
+		=> UnitToGlobalMatrix.Apply( point );
 
 	Matrix3<float>? unitToLocal;
 	Matrix3<float>? unitToLocalInverse;
@@ -237,9 +240,6 @@ public interface IDrawable : IComponent<IDrawable>, IDisposable {
 	/// and the top right corner in global space is mapped to (1,1).
 	/// </summary>
 	Matrix3<float> GlobalToUnitMatrix { get; }
-
-	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
-		=> UnitToGlobalMatrix.Inversed.Apply( point );
 
 	void Update ();
 

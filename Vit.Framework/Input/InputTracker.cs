@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Input;
+﻿using Vit.Framework.Input.Events;
+
+namespace Vit.Framework.Input;
 
 /// <summary>
 /// Queues inputs from a separate input thread and tracks them on another.
@@ -29,6 +31,9 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 		while ( updates.TryDequeue( out var update ) ) {
 			Update( update );
 			InputChanged?.Invoke( State );
+			foreach ( var e in EmitEvents( update ) ) {
+				InputEventEmitted?.Invoke( e );
+			}
 		}
 	}
 
@@ -37,14 +42,24 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 	/// </summary>
 	protected abstract void Update ( TUpdate update );
 
+	/// <summary>
+	/// Emits events related to the change.
+	/// </summary>
+	protected abstract IEnumerable<Event> EmitEvents ( TUpdate update );
+
 	public event Action<TInput>? InputChanged;
+	public event Action<Event>? InputEventEmitted;
 }
 
-public interface IInputTracker<TInput> where TInput : IHasTimestamp {
+public interface IInputTracker<TInput> : IInputTracker where TInput : IHasTimestamp {
+	event Action<TInput>? InputChanged;
+}
+
+public interface IInputTracker {
 	/// <summary>
 	/// Polls all pending changes and triggers related events.
 	/// </summary>
 	void Update ();
 
-	event Action<TInput>? InputChanged;
+	event Action<Event>? InputEventEmitted;
 }

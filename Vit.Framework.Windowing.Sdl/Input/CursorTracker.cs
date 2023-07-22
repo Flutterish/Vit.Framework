@@ -13,11 +13,11 @@ public class CursorTracker : CursorState.Tracker {
 
 		window.MouseButtonStateChanged += ( button, state ) => {
 			var index = (uint)button switch {
-				SDL.SDL_BUTTON_LEFT => (int)MouseButton.Left,
-				SDL.SDL_BUTTON_RIGHT => (int)MouseButton.Right,
-				SDL.SDL_BUTTON_MIDDLE => (int)MouseButton.Middle,
-				SDL.SDL_BUTTON_X1 => (int)MouseButton.Extra1,
-				SDL.SDL_BUTTON_X2 => (int)MouseButton.Extra2,
+				SDL.SDL_BUTTON_LEFT => (int)CursorButton.Left,
+				SDL.SDL_BUTTON_RIGHT => (int)CursorButton.Right,
+				SDL.SDL_BUTTON_MIDDLE => (int)CursorButton.Middle,
+				SDL.SDL_BUTTON_X1 => (int)CursorButton.Extra1,
+				SDL.SDL_BUTTON_X2 => (int)CursorButton.Extra2,
 				_ => -1
 			};
 

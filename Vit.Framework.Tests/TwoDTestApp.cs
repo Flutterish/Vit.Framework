@@ -9,9 +9,11 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Input;
+using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -189,6 +191,7 @@ public class TwoDTestApp : App {
 	public class UpdateThread : AppThread {
 		Sprite cursor;
 
+		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawableRenderer drawableRenderer;
 		Window window;
@@ -196,13 +199,22 @@ public class TwoDTestApp : App {
 			this.drawableRenderer = drawableRenderer;
 			this.window = window;
 
+			globalInputTrackers = new() { Root = drawableRenderer.Root };
 			cursorTracker = new CursorTracker( (SdlWindow)window );
+			globalInputTrackers.Add( cursorTracker );
 
 			cursor = new Sprite {
 				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
+
+			globalInputTrackers.EventEmitted += e => {
+				if ( e is CursorMovedEvent )
+					return;
+
+				Console.WriteLine( e );
+			};
 		}
 
 		protected override void Initialize () {
@@ -211,15 +223,15 @@ public class TwoDTestApp : App {
 
 		protected override void Loop () {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
-			cursorTracker.Update();
+			globalInputTrackers.Update();
 
-			var pos = cursorTracker.State.Position;
+			var pos = cursorTracker.State.ScreenSpacePosition;
 			pos.Y = window.Height - pos.Y;
 			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
 			cursor.Position = parent - new Vector2<float>( 9f );
-			cursor.Tint = cursorTracker.State.IsDown( MouseButton.Left )
+			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
-				: cursorTracker.State.IsDown( MouseButton.Right )
+				: cursorTracker.State.IsDown( CursorButton.Right )
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList[1] is ILayoutElement el )

@@ -1,6 +1,6 @@
 ﻿namespace Vit.Framework.Input;
 
-public enum MouseButton {
+public enum CursorButton {
 	Left,
 	Right,
 	Middle,

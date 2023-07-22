@@ -1,5 +1,7 @@
-﻿using Vit.Framework.Interop;
+﻿using Vit.Framework.Input.Events;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
+using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Input;
 
@@ -7,13 +9,13 @@ public class CursorState : IHasTimestamp {
 	public const int ButtonCount = 5;
 	public DateTime Timestamp { get; private set; }
 
-	public Point2<float> LastPosition { get; private set; }
-	public Point2<float> Position { get; private set; }
-	public Vector2<float> DeltaPosition => Position - LastPosition;
+	public Point2<float> LastScreenSpacePosition { get; private set; }
+	public Point2<float> ScreenSpacePosition { get; private set; }
+	public Vector2<float> DeltaScreenSpacePosition => ScreenSpacePosition - LastScreenSpacePosition;
 	// TODO add scroll
 
 	bool[] down = new bool[ButtonCount];
-	public bool IsDown ( MouseButton button ) => down[(int)button];
+	public bool IsDown ( CursorButton button ) => down[(int)button];
 
 	public abstract class Tracker : InputTracker<Delta, CursorState> {
 		CursorState state = new();
@@ -32,8 +34,38 @@ public class CursorState : IHasTimestamp {
 			}
 			
 			if ( update.Type.HasFlag( DeltaType.Position ) ) {
-				state.LastPosition = state.Position;
-				state.Position = update.Position;
+				state.LastScreenSpacePosition = state.ScreenSpacePosition;
+				state.ScreenSpacePosition = update.Position;
+			}
+		}
+
+		protected override IEnumerable<Event> EmitEvents ( Delta delta ) {
+			if ( delta.Type.HasFlag( DeltaType.Position ) ) {
+				yield return new CursorMovedEvent {
+					Timestamp = state.Timestamp,
+					CursorState = state
+				};
+			}
+
+			if ( delta.Type.HasFlag( DeltaType.Buttons ) ) {
+				for ( int i = 0; i < ButtonCount; i++ ) {
+					if ( delta.ButtonsChanged[i] ) {
+						if ( delta.ButtonsDown[i] ) {
+							yield return new CursorButtonPressedEvent {
+								Timestamp = state.Timestamp,
+								CursorState = state,
+								Button = (CursorButton)i
+							};
+						}
+						else {
+							yield return new CursorButtonReleasedEvent {
+								Timestamp = state.Timestamp,
+								CursorState = state,
+								Button = (CursorButton)i
+							};
+						}
+					}
+				}
 			}
 		}
 	}
