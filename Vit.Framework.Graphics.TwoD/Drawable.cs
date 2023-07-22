@@ -123,23 +123,23 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	/// <summary>
 	/// Adds an event handler for events of type TEvent. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
 	/// </summary>
-	protected void HandleEvents<TEvent> ( Func<TEvent, bool> handler ) where TEvent : Event {
-		HandleEvents( typeof( TEvent ), e => handler( (TEvent)e ) );
+	protected void AddEventHandler<TEvent> ( Func<TEvent, bool> handler ) where TEvent : Event {
+		AddEventHandler( typeof( TEvent ), e => handler( (TEvent)e ) );
 	}
 	/// <summary>
 	/// Adds an event handler for events of given type. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
 	/// </summary>
-	virtual protected void HandleEvents ( Type type, Func<Event, bool> handler ) {
+	virtual protected void AddEventHandler ( Type type, Func<Event, bool> handler ) {
 		eventHandlers ??= new();
 		eventHandlers.Add( type, handler );
 
 		EventHandlerAdded?.Invoke( this, type, handler );
 	}
 
-	protected void StopHandlingEvents<TEvent> () where TEvent : Event {
-		StopHandlingEvents( typeof( TEvent ) );
+	protected void RemoveEventHandler<TEvent> () where TEvent : Event {
+		RemoveEventHandler( typeof( TEvent ) );
 	}
-	virtual protected void StopHandlingEvents ( Type type ) {
+	virtual protected void RemoveEventHandler ( Type type ) {
 		eventHandlers!.Remove( type );
 
 		EventHandlerRemoved?.Invoke( this, type );
