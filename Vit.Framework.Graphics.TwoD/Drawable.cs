@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using Vit.Framework.Hierarchy;
+using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -114,6 +115,54 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 
 	}
 
+	public IEnumerable<KeyValuePair<Type, Func<Event, bool>>> HandledEventTypes => eventHandlers is null 
+		? Array.Empty<KeyValuePair<Type, Func<Event, bool>>>() 
+		: eventHandlers.AsEnumerable();
+	public bool HandlesEventType ( Type type ) => eventHandlers?.ContainsKey( type ) == true;
+	Dictionary<Type, Func<Event, bool>>? eventHandlers;
+	/// <summary>
+	/// Adds an event handler for events of type TEvent. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
+	/// </summary>
+	protected void HandleEvents<TEvent> ( Func<TEvent, bool> handler ) where TEvent : Event {
+		HandleEvents( typeof( TEvent ), e => handler( (TEvent)e ) );
+	}
+	/// <summary>
+	/// Adds an event handler for events of given type. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
+	/// </summary>
+	virtual protected void HandleEvents ( Type type, Func<Event, bool> handler ) {
+		eventHandlers ??= new();
+		eventHandlers.Add( type, handler );
+
+		EventHandlerAdded?.Invoke( this, type, handler );
+	}
+
+	protected void StopHandlingEvents<TEvent> () where TEvent : Event {
+		StopHandlingEvents( typeof( TEvent ) );
+	}
+	virtual protected void StopHandlingEvents ( Type type ) {
+		eventHandlers!.Remove( type );
+
+		EventHandlerRemoved?.Invoke( this, type );
+	}
+
+	public bool OnEvent ( Event @event ) {
+		if ( eventHandlers is null )
+			return false;
+
+		var type = @event.GetType();
+		while ( type != null ) {
+			if ( eventHandlers.TryGetValue( type, out var handler ) && handler( @event ) )
+				return true;
+
+			type = type.BaseType;
+		}
+
+		return false;
+	}
+
+	public event Action<IEventHandlingComponent, Type, Func<Event, bool>>? EventHandlerAdded;
+	public event Action<IEventHandlingComponent, Type>? EventHandlerRemoved;
+
 	public virtual bool ReceivesPositionalInputAt ( Point2<float> point ) {
 		point = ScreenSpaceToLocalSpace( point );
 
@@ -179,10 +228,10 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 }
 
-public interface IDrawable : IComponent<IDrawable>, IDisposable {
+public interface IDrawable : IComponent<IDrawable>, IEventHandlingComponent, IDisposable {
 	new ICompositeDrawable<IDrawable>? Parent { get; }
 	/// <summary>
-	/// Sets the <see cref="Parent"/> property. This should be synchronised with the parents children list.
+	/// Sets the <see cref="Parent"/> property. This should be synchronised with the parents children list, usually in the parents Add method.
 	/// </summary>
 	void SetParent ( ICompositeDrawable<IDrawable>? parent );
 	IReadOnlyCompositeComponent<IDrawable, IDrawable>? IComponent<IDrawable>.Parent => Parent;

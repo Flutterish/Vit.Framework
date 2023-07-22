@@ -210,10 +210,13 @@ public class TwoDTestApp : App {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
+				bool handled = drawableRenderer.Root.OnEvent( e );
+
 				if ( e is CursorMovedEvent )
 					return;
 
-				Console.WriteLine( e );
+				Console.Write( e );
+				Console.WriteLine( handled ? " was handled" : " was not handled" );
 			};
 		}
 
