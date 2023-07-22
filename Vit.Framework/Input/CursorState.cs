@@ -1,7 +1,6 @@
 ﻿using Vit.Framework.Input.Events;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
-using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Input;
 

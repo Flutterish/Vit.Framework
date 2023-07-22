@@ -225,10 +225,8 @@ public class TwoDTestApp : App {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			var pos = cursorTracker.State.ScreenSpacePosition;
-			pos.Y = window.Height - pos.Y;
-			var parent = drawableRenderer.Root.ScreenSpaceToLocalSpace( pos );
-			cursor.Position = parent - new Vector2<float>( 9f );
+			var pos = drawableRenderer.Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			cursor.Position = pos - new Vector2<float>( 9f );
 			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
 				: cursorTracker.State.IsDown( CursorButton.Right )

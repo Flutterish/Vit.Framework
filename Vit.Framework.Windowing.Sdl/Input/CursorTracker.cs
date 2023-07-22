@@ -8,7 +8,7 @@ public class CursorTracker : CursorState.Tracker {
 		window.CursorMoved += position => ScheduleUpdate( new() {
 			Timestamp = DateTime.Now,
 			Type = CursorState.DeltaType.Position,
-			Position = position
+			Position = (position.X, window.Height - position.Y)
 		} );
 
 		window.MouseButtonStateChanged += ( button, state ) => {

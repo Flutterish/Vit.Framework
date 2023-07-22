@@ -115,7 +115,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	public virtual bool ReceivesPositionalInputAt ( Point2<float> point ) {
-		point = GlobalToUnitMatrix.Apply( point );
+		point = ScreenSpaceToLocalSpace( point );
 
 		return point.X >= 0 && point.X <= 1
 			&& point.Y >= 0 && point.Y <= 1;
