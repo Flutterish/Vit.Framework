@@ -4,8 +4,9 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Input.Events;
 
-public abstract record CursorEvent : Event {
+public abstract record CursorEvent : Event, IPositionalEvent {
 	public required CursorState CursorState { get; init; }
+	public Point2<float> EventPosition => CursorState.ScreenSpacePosition;
 }
 
 public record CursorMovedEvent : CursorEvent {

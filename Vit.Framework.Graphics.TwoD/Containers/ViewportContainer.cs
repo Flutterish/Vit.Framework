@@ -14,6 +14,13 @@ public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawa
 		}
 	}
 
+	public override bool ReceivesPositionalInputAt ( Point2<float> point ) {
+		point = ScreenSpaceToLocalSpace( point );
+
+		return point.X >= 0 && point.X <= ContentSize.Width
+			&& point.Y >= 0 && point.Y <= ContentSize.Height;
+	}
+
 	public Size2<float> Size {
 		get => AvailableSize;
 		set => AvailableSize = value;

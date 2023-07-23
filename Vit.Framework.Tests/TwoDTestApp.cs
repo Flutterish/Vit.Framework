@@ -210,7 +210,9 @@ public class TwoDTestApp : App {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
-				var handler = drawableRenderer.Root.TriggerEvent( e );
+				var handler = e is IPositionalEvent positional
+					? drawableRenderer.Root.TriggerCulledEvent( e, d => d.ReceivesPositionalInputAt( positional.EventPosition ) )
+					: drawableRenderer.Root.TriggerEvent( e );
 
 				if ( e is not ILoggableEvent )
 					return;

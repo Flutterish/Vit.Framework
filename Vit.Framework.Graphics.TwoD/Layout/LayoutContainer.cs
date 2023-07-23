@@ -17,6 +17,13 @@ public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayout
 		}
 	}
 
+	public override bool ReceivesPositionalInputAt ( Point2<float> point ) {
+		point = ScreenSpaceToLocalSpace( point );
+
+		return point.X >= 0 && point.X <= Size.Width
+			&& point.Y >= 0 && point.Y <= Size.Height;
+	}
+
 	Size2<float>? requiredSize;
 	public Size2<float> RequiredSize => requiredSize ??= PerformAbsoluteLayout();
 

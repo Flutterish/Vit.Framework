@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Input.Events;
+﻿using Vit.Framework.Mathematics;
+
+namespace Vit.Framework.Input.Events;
 
 public interface IEventHandler<TSelf> where TSelf : class, IEventHandler<TSelf> {
 	IReadOnlyDictionary<Type, EventTree<TSelf>> HandledEventTypes { get; }
@@ -12,6 +14,18 @@ public static class IEventHandlerExtensions {
 		var type = @event.GetType();
 		while ( type != null ) {
 			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event ) is TSelf handler )
+				return handler;
+
+			type = type.BaseType;
+		}
+
+		return null;
+	}
+
+	public static TSelf? TriggerCulledEvent<TSelf> ( this IEventHandler<TSelf> self, Event @event, Func<TSelf, bool> predicate ) where TSelf : class, IEventHandler<TSelf> {
+		var type = @event.GetType();
+		while ( type != null ) {
+			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, predicate ) is TSelf handler )
 				return handler;
 
 			type = type.BaseType;
@@ -46,8 +60,37 @@ public class EventTree<TSelf> where TSelf : class, IEventHandler<TSelf> {
 		}
 	}
 
+	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers ( Func<TSelf, bool> predicate ) {
+		var stack = enumerationStack ??= new();
+		stack.Push( this );
+
+		while ( stack.TryPop( out var node ) ) {
+			if ( !predicate( node.Source ) )
+				continue;
+
+			if ( node.Handler != null )
+				yield return (node.Source, node.Handler);
+
+			if ( node.Children == null )
+				continue;
+
+			foreach ( var i in node.Children ) {
+				stack.Push( i );
+			}
+		}
+	}
+
 	public TSelf? TriggerEvent ( Event @event ) {
 		foreach ( var (i, handler) in EnumerateHandlers() ) {
+			if ( handler( @event ) )
+				return i;
+		}
+
+		return null;
+	}
+
+	public TSelf? TriggerCulledEvent ( Event @event, Func<TSelf, bool> predicate ) {
+		foreach ( var (i, handler) in EnumerateCulledHandlers( predicate ) ) {
 			if ( handler( @event ) )
 				return i;
 		}
