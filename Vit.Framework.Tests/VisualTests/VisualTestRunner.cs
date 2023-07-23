@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Text;
 using Vit.Framework.Parsing;
@@ -34,10 +34,11 @@ public class VisualTestRunner : Flexbox {
 
 		var font = new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) );
 		foreach ( var i in tests ) {
-			var button = new LayoutContainer();
-			button.AddChild( new Sprite { Tint = ColorRgba.GreenYellow }, new() {
-				Size = new( 1f.Relative() )
-			} );
+			var button = new Button() {
+				Clicked = () => {
+					runTest( i );
+				}
+			};
 			button.AddChild( new SpriteText { 
 				Tint = ColorRgba.Black,
 				Font = font,
