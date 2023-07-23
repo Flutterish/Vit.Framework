@@ -31,98 +31,32 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		InvalidateDrawNodes();
 	}
 
-	Dictionary<Type, Func<Event, bool>>? eventHandlers;
-	/// <summary>
-	/// Adds an event handler for events of type T. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
-	/// </summary>
-	override protected void AddEventHandler ( Type type, Func<Event, bool> handler ) {
-		eventHandlers ??= new();
-		eventHandlers.Add( type, handler );
-
-		addEventTypeHandler( type );
+	void onChildEventHandlerAdded ( Type type, EventTree<IDrawable> tree ) {
+		var ourTree = GetEventTree( type );
+		ourTree.Children ??= new();
+		ourTree.Children.Add( tree );
+		sortEventTree( ourTree );
 	}
 
-	override protected void RemoveEventHandler ( Type type ) {
-		eventHandlers!.Remove( type );
+	void onChildEventHandlerRemoved ( Type type, EventTree<IDrawable> tree ) {
+		var ourTree = GetEventTree( type );
+		ourTree.Children!.Remove( tree );
+		sortEventTree( ourTree );
 
-		if ( eventHandlingChildren.ContainsKey( type ) ) {
-			addEventTypeHandler( type );
-		}
-		else {
-			removeEventTypeHandler( type );
+		if ( ourTree.Handler == null ) {
+			RemoveEventHandler( type );
 		}
 	}
 
-	void addEventTypeHandler ( Type type ) {
-		removeEventTypeHandler( type );
-
-		var selfHandler = eventHandlers?.GetValueOrDefault( type );
-		var childHandlers = eventHandlingChildren.GetValueOrDefault( type );
-
-		if ( selfHandler == null ) {
-			base.AddEventHandler( type, e => {
-				foreach ( var i in childHandlers! ) {
-					if ( i.Value.Invoke( e ) )
-						return true;
-				}
-
-				return false;
-			} );
-		}
-		else if ( childHandlers == null ) {
-			base.AddEventHandler( type, selfHandler );
-		}
-		else {
-			base.AddEventHandler( type, e => {
-				if ( selfHandler( e ) )
-					return true;
-
-				foreach ( var i in childHandlers ) {
-					if ( i.Value.Invoke( e ) )
-						return true;
-				}
-
-				return false;
-			} );
-		}
-	}
-
-	void removeEventTypeHandler ( Type type ) {
-		if ( !HandlesEventType( type ) )
-			return;
-
-		base.RemoveEventHandler( type );
-	}
-
-	Dictionary<Type, SortedList<IEventHandlingComponent, Func<Event, bool>>> eventHandlingChildren = new();
-	void onChildEventHandlerRemoved ( IEventHandlingComponent child, Type type ) {
-		var set = eventHandlingChildren[type];
-		set.Remove( child );
-		if ( set.Count == 0 ) {
-			eventHandlingChildren.Remove( type );
-			if ( eventHandlers?.ContainsKey( type ) != true ) {
-				removeEventTypeHandler( type );
-			}
-			else {
-				addEventTypeHandler( type );
-			}
-		}
-	}
-
-	void onChildEventHandlerAdded ( IEventHandlingComponent child, Type type, Func<Event, bool> handler ) {
-		if ( !eventHandlingChildren.TryGetValue( type, out var set ) ) { // TODO can improve sorting by storing order in children
-			eventHandlingChildren.Add( type, set = new( Comparer<IEventHandlingComponent>.Create( (a,b) => internalChildren.IndexOf((T)b) - internalChildren.IndexOf((T)a) ) ) ); // TODO probably pool these
-			addEventTypeHandler( type );
-		}
-
-		set.Add( child, handler );
+	void sortEventTree ( EventTree<IDrawable> tree ) {
+		tree.Children!.Sort( (a,b) => internalChildren.IndexOf((T)b.Source) - internalChildren.IndexOf((T)a.Source) ); // TODO this can be improved by storing child order in the child
 	}
 
 	void addChildEventHandlers ( T child ) {
 		child.EventHandlerAdded += onChildEventHandlerAdded;
 		child.EventHandlerRemoved += onChildEventHandlerRemoved;
 		foreach ( var i in child.HandledEventTypes ) {
-			onChildEventHandlerAdded( child, i.Key, i.Value );
+			onChildEventHandlerAdded( i.Key, i.Value );
 		}
 	}
 
@@ -130,7 +64,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		child.EventHandlerAdded -= onChildEventHandlerAdded;
 		child.EventHandlerRemoved -= onChildEventHandlerRemoved;
 		foreach ( var i in child.HandledEventTypes ) {
-			onChildEventHandlerRemoved( child, i.Key );
+			onChildEventHandlerRemoved( i.Key, i.Value );
 		}
 	}
 

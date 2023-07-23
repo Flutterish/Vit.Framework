@@ -115,53 +115,59 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 
 	}
 
-	public IEnumerable<KeyValuePair<Type, Func<Event, bool>>> HandledEventTypes => eventHandlers is null 
-		? Array.Empty<KeyValuePair<Type, Func<Event, bool>>>() 
-		: eventHandlers.AsEnumerable();
+	static Dictionary<Type, EventTree<IDrawable>> nullEventHandlers = new();
+	public IReadOnlyDictionary<Type, EventTree<IDrawable>> HandledEventTypes => eventHandlers ?? nullEventHandlers;
+
 	public bool HandlesEventType ( Type type ) => eventHandlers?.ContainsKey( type ) == true;
-	Dictionary<Type, Func<Event, bool>>? eventHandlers;
+	Dictionary<Type, EventTree<IDrawable>>? eventHandlers;
 	/// <summary>
 	/// Adds an event handler for events of type TEvent. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
 	/// </summary>
+	/// <remarks>Only the most specific event type will be handled.</remarks>
 	protected void AddEventHandler<TEvent> ( Func<TEvent, bool> handler ) where TEvent : Event {
 		AddEventHandler( typeof( TEvent ), e => handler( (TEvent)e ) );
 	}
 	/// <summary>
 	/// Adds an event handler for events of given type. The handler should return <see langword="true"/> to stop propagation, <see langword="false"/> otherwise.
 	/// </summary>
-	virtual protected void AddEventHandler ( Type type, Func<Event, bool> handler ) {
-		eventHandlers ??= new();
-		eventHandlers.Add( type, handler );
+	/// <remarks>Only the most specific event type will be handled.</remarks>
+	protected void AddEventHandler ( Type type, Func<Event, bool> handler ) {
+		var tree = GetEventTree( type );
+		if ( tree.Handler != null )
+			throw new InvalidOperationException( "Can not have multiple handlers for an event type" );
+		tree.Handler = handler;
+	}
 
-		EventHandlerAdded?.Invoke( this, type, handler );
+	protected EventTree<IDrawable> GetEventTree ( Type type ) {
+		if ( eventHandlers?.TryGetValue( type, out var tree ) == true )
+			return tree;
+
+		eventHandlers ??= new();
+		tree = new EventTree<IDrawable>() {
+			Source = this,
+		};
+		eventHandlers.Add( type, tree );
+
+		EventHandlerAdded?.Invoke( type, tree );
+		return tree;
 	}
 
 	protected void RemoveEventHandler<TEvent> () where TEvent : Event {
 		RemoveEventHandler( typeof( TEvent ) );
 	}
-	virtual protected void RemoveEventHandler ( Type type ) {
-		eventHandlers!.Remove( type );
+	protected void RemoveEventHandler ( Type type ) {
+		if ( eventHandlers?.TryGetValue( type, out var tree ) != true )
+			return;
 
-		EventHandlerRemoved?.Invoke( this, type );
-	}
-
-	public bool OnEvent ( Event @event ) {
-		if ( eventHandlers is null )
-			return false;
-
-		var type = @event.GetType();
-		while ( type != null ) {
-			if ( eventHandlers.TryGetValue( type, out var handler ) && handler( @event ) )
-				return true;
-
-			type = type.BaseType;
+		tree!.Handler = null;
+		if ( tree.Children?.Any() != true ) {
+			eventHandlers.Remove( type );
+			EventHandlerRemoved?.Invoke( type, tree );
 		}
-
-		return false;
 	}
 
-	public event Action<IEventHandlingComponent, Type, Func<Event, bool>>? EventHandlerAdded;
-	public event Action<IEventHandlingComponent, Type>? EventHandlerRemoved;
+	public event Action<Type, EventTree<IDrawable>>? EventHandlerAdded;
+	public event Action<Type, EventTree<IDrawable>>? EventHandlerRemoved;
 
 	public virtual bool ReceivesPositionalInputAt ( Point2<float> point ) {
 		point = ScreenSpaceToLocalSpace( point );
@@ -228,7 +234,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 }
 
-public interface IDrawable : IComponent<IDrawable>, IEventHandlingComponent, IDisposable {
+public interface IDrawable : IComponent<IDrawable>, IEventHandler<IDrawable>, IDisposable {
 	new ICompositeDrawable<IDrawable>? Parent { get; }
 	/// <summary>
 	/// Sets the <see cref="Parent"/> property. This should be synchronised with the parents children list, usually in the parents Add method.

@@ -14,10 +14,10 @@ public record CursorMovedEvent : CursorEvent {
 	public Vector2<float> DeltaPosition => CursorState.DeltaScreenSpacePosition;
 }
 
-public record CursorButtonPressedEvent : CursorEvent {
+public record CursorButtonPressedEvent : CursorEvent, ILoggableEvent {
 	public required CursorButton Button { get; init; }
 }
 
-public record CursorButtonReleasedEvent : CursorEvent {
+public record CursorButtonReleasedEvent : CursorEvent, ILoggableEvent {
 	public required CursorButton Button { get; init; }
 }
