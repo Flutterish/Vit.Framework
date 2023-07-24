@@ -21,8 +21,8 @@ public class Sprite : Drawable, ILayoutElement, IEventHandler<HoveredEvent> {
 		return true;
 	}
 
-	protected override void Load () {
-		var deps = Parent!.Dependencies;
+	protected override void Load ( IReadOnlyDependencyCache deps ) {
+		base.Load( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
@@ -72,11 +72,6 @@ public class Sprite : Drawable, ILayoutElement, IEventHandler<HoveredEvent> {
 	IHostBuffer<Uniforms>? uniforms;
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
-	}
-
-	protected override void Dispose ( bool disposing ) {
-		base.Dispose( disposing );
-		throw new NotImplementedException();
 	}
 
 	new public class DrawNode : BasicDrawNode<Sprite> {
@@ -138,7 +133,23 @@ public class Sprite : Drawable, ILayoutElement, IEventHandler<HoveredEvent> {
 		}
 
 		public override void ReleaseResources ( bool willBeReused ) {
-			
+			if ( Source.indices == null )
+				return;
+
+			ref var indices = ref Source.indices!;
+			ref var vertices = ref Source.vertices!;
+			ref var uniforms = ref Source.uniforms!;
+			ref var uniformSet = ref Source.uniformSet!;
+
+			indices.Dispose();
+			vertices.Dispose();
+			uniforms.Dispose();
+			uniformSet.Dispose();
+
+			indices = null;
+			vertices = null;
+			uniforms = null;
+			uniformSet = null;
 		}
 	}
 }

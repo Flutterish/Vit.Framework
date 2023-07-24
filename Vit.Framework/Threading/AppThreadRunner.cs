@@ -45,6 +45,7 @@ public class AppThreadRunner : AppThread {
 			}
 		}
 
+		Array.Fill( threads, null );
 		ArrayPool<AppThread>.Shared.Return( threads );
 
 		if ( mode == ThreadingMode.Multithreaded )
@@ -53,8 +54,15 @@ public class AppThreadRunner : AppThread {
 
 	protected override void Dispose ( bool disposing ) {
 		StopAsync().ContinueWith( _ => {
-			foreach ( var i in appThreads.ToArray() )
-				i.StopAsync();
-		} );
+			var threads = appThreads.ToArray();
+			Task[] tasks = new Task[threads.Length];
+			for ( int i = 0; i < threads.Length; i++ ) {
+				tasks[i] = threads[i].DisposeAsync().AsTask();
+			}
+
+			appThreads.Clear();
+			foreach ( var i in tasks )
+				i.Wait();
+		} ).Wait();
 	}
 }

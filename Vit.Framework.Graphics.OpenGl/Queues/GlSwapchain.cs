@@ -40,6 +40,6 @@ public class GlSwapchain : ISwapchain {
 	}
 
 	public void Dispose () {
-		throw new NotImplementedException();
+		// TODO should we "destroy" the context?
 	}
 }

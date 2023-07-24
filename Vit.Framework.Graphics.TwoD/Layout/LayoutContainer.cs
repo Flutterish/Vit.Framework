@@ -100,8 +100,14 @@ public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayout
 	}
 
 	public void ClearChildren () {
-		ClearInternalChildren();
 		@params.Clear();
+		ClearInternalChildren();
+		InvalidateLayout();
+	}
+
+	public void DisposeChildren () {
+		@params.Clear();
+		DisposeInternalChildren();
 		InvalidateLayout();
 	}
 

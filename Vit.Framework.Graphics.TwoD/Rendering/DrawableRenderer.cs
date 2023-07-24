@@ -13,20 +13,23 @@ public class DrawableRenderer {
 		Root = root;
 	}
 
-	public void CollectDrawData () {
+	public void CollectDrawData ( Action<int>? action = null ) {
 		using var _ = drawNodeSwapchain.GetForWrite( out var index );
 		drawNodes[index] = Root.GetDrawNode( index );
+		action?.Invoke( index );
 	}
 
-	public void Draw ( ICommandBuffer commands ) {
+	public void Draw ( ICommandBuffer commands, Action<int>? action = null ) {
 		using var _ = drawNodeSwapchain.GetForRead( out var index, out var _ );
+		action?.Invoke( index );
 		draw( index, commands );
 	}
-	public bool DrawIfNew ( ICommandBuffer commands ) {
+	public bool DrawIfNew ( ICommandBuffer commands, Action<int>? action = null ) {
 		if ( !drawNodeSwapchain.TryGetForRead( out var index, out var dispose ) )
 			return false;
 
 		using var _ = dispose;
+		action?.Invoke( index );
 		draw( index, commands );
 		return true;
 	}

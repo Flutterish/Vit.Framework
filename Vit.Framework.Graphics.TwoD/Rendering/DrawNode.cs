@@ -73,4 +73,30 @@ public partial class Drawable {
 			UnitToGlobalMatrix = Source.UnitToGlobalMatrix;
 		}
 	}
+
+	public class RenderThreadScheduler {
+		Stack<Drawable> swapTree = new();
+		Stack<Drawable>?[] disposeTree = new Stack<Drawable>?[3];
+
+		public void ScheduleDisposal ( Drawable drawable ) {
+			swapTree.Push( drawable );
+		}
+
+		public void Swap ( int index ) {
+			(swapTree, disposeTree[index]) = (disposeTree[index] ?? new(), swapTree);
+		}
+
+		public void Execute ( int index ) {
+			for ( int i = 0; i < disposeTree.Length; i++ ) {
+				if ( i == index || disposeTree[i] is not Stack<Drawable> stack )
+					continue;
+
+				while ( stack.TryPop( out var drawable ) ) {
+					foreach ( var node in drawable.drawNodes ) {
+						node?.Dispose();
+					}
+				}
+			}
+		}
+	}
 }

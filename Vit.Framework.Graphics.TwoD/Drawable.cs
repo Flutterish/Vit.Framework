@@ -1,5 +1,7 @@
-﻿using System.Numerics;
+﻿using System.Formats.Tar;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -105,14 +107,15 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 		
 	}
 
-	public void TryLoad () {
+	protected RenderThreadScheduler DrawThreadScheduler { get; private set; } = null!;
+	public void TryLoad ( IReadOnlyDependencyCache dependencies ) {
 		if ( !IsLoaded ) {
-			Load();
+			Load( dependencies );
 			IsLoaded = true;
 		}
 	}
-	protected virtual void Load () { // TODO should we have an "unload" method?
-
+	protected virtual void Load ( IReadOnlyDependencyCache dependencies ) { // TODO should we have an "unload" method?
+		DrawThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
 	}
 
 	public virtual bool ReceivesPositionalInputAt ( Point2<float> point ) {
@@ -176,7 +179,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	protected override void Dispose ( bool disposing ) { // TODO properly dispose of drawables and dispose of the whole tree when clearing
-		throw new NotImplementedException();
+		DrawThreadScheduler.ScheduleDisposal( this );
 	}
 }
 
@@ -208,7 +211,7 @@ public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, I
 
 	public bool IsLoaded { get; }
 
-	void TryLoad ();
+	void TryLoad ( IReadOnlyDependencyCache dependencies );
 
 	/// <summary>
 	/// Checks if a given point lies on this drawable.

@@ -23,7 +23,7 @@ public class GlRenderer : IRenderer {
 	public GraphicsApi GraphicsApi { get; }
 
 	public void WaitIdle () {
-		throw new NotImplementedException();
+		GL.Finish();
 	}
 
 	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {

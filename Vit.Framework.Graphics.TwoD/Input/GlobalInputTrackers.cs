@@ -1,9 +1,10 @@
 ﻿using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Graphics.TwoD.Input;
 
-public class GlobalInputTrackers {
+public class GlobalInputTrackers : IDisposable {
 	public required IDrawable Root { get; init; }
 
 	List<IInputTracker> trackers = new();
@@ -23,4 +24,11 @@ public class GlobalInputTrackers {
 	}
 
 	public event Action<Event>? EventEmitted;
+
+	public void Dispose () {
+		foreach ( var i in trackers ) {
+			i.InputEventEmitted -= OnInputEventEmitted;
+			i.Dispose();
+		}
+	}
 }

@@ -55,7 +55,7 @@ public class VisualTestRunner : Flexbox {
 	}
 
 	void runTest ( Type type ) {
-		testArea.ClearChildren();
+		testArea.DisposeChildren();
 		testArea.AddChild( (ILayoutElement)Activator.CreateInstance(type)!, new() {
 			Size = new( 1f.Relative(), 1f.Relative() )
 		} );

@@ -23,9 +23,12 @@ public partial class Program : App {
 		var app = new TwoDTestApp( typeof( VisualTestRunner ) );//new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
+		app = null;
 
-		GC.Collect();
-		Thread.Sleep( 1000 );
+		GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
+		Thread.Sleep( 1_000 );
+		GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
+		Thread.Sleep( 1_000 );
 	}
 
 	protected override void Initialize () {

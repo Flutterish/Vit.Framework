@@ -1,4 +1,5 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Collections.Concurrent;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -38,6 +39,10 @@ public class TwoDTestApp : App {
 	Window window = null!;
 	ViewportContainer<Drawable> root = null!;
 	DrawableRenderer drawableRenderer = null!;
+	Drawable.RenderThreadScheduler disposeScheduler = null!;
+
+	UpdateThread updateThread = null!;
+
 	protected override void Initialize () {
 		host = new SdlHost( primaryApp: this );
 		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
@@ -50,8 +55,8 @@ public class TwoDTestApp : App {
 
 			drawableRenderer = new( root );
 
-			root.TryLoad();
-			var deps = (IDependencyCache)root.Dependencies;
+			DependencyCache deps = new();
+
 			var shaderStore = new ShaderStore();
 			deps.Cache( shaderStore );
 
@@ -61,6 +66,9 @@ public class TwoDTestApp : App {
 			var fontStore = new FontStore();
 			fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
 			deps.Cache( fontStore );
+
+			disposeScheduler = new Drawable.RenderThreadScheduler();
+			deps.Cache( disposeScheduler );
 
 			shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPositionAndUv;
@@ -103,23 +111,31 @@ public class TwoDTestApp : App {
 			} );
 			root.AddChild( (Drawable)Activator.CreateInstance( type )! );
 
-			ThreadRunner.RegisterThread( new UpdateThread( drawableRenderer, window, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
-			ThreadRunner.RegisterThread( new RenderThread( drawableRenderer, host, window, api, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
+			root.TryLoad( deps );
+
+			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawableRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
+			ThreadRunner.RegisterThread( new RenderThread( drawableRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
 		};
 
 		window.Closed += _ => {
-			Quit();
+			updateThread.Scheduler.Enqueue( () => {
+				root?.DisposeChildren();
+				root?.Dispose();
+			} );
+			Task.Delay( 1000 ).ContinueWith( _ => Quit() );
 		};
 	}
 
 	public class RenderThread : AppThread {
 		DrawableRenderer drawableRenderer;
+		Drawable.RenderThreadScheduler disposeScheduler;
 		GraphicsApi api;
 		Window window;
-		public RenderThread ( DrawableRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, string name ) : base( name ) {
+		public RenderThread ( DrawableRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, Drawable.RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 			this.window = window;
 			this.drawableRenderer = drawableRenderer;
+			this.disposeScheduler = disposeScheduler;
 
 			window.Resized += onWindowResized;
 		}
@@ -177,7 +193,7 @@ public class TwoDTestApp : App {
 				commands.SetViewport( frame.Size );
 				commands.SetScissors( frame.Size );
 
-				drawableRenderer.Draw( commands );
+				drawableRenderer.Draw( commands, disposeScheduler.Execute );
 			}
 			swapchain.Present( index );
 		}
@@ -203,9 +219,12 @@ public class TwoDTestApp : App {
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawableRenderer drawableRenderer;
+		Drawable.RenderThreadScheduler disposeScheduler;
 		Window window;
-		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, string name ) : base( name ) {
+		public readonly ConcurrentQueue<Action> Scheduler = new();
+		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, Drawable.RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.drawableRenderer = drawableRenderer;
+			this.disposeScheduler = disposeScheduler;
 			this.window = window;
 
 			uiEventSource = new() { Root = drawableRenderer.Root };
@@ -229,11 +248,18 @@ public class TwoDTestApp : App {
 			};
 		}
 
+		protected override void Dispose ( bool disposing ) {
+			globalInputTrackers.Dispose();
+		}
+
 		protected override void Initialize () {
-			drawableRenderer.Root.TryLoad();
+			
 		}
 
 		protected override void Loop () {
+			while ( Scheduler.TryDequeue( out var action ) ) {
+				action();
+			}
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
@@ -244,12 +270,12 @@ public class TwoDTestApp : App {
 				: cursorTracker.State.IsDown( CursorButton.Right )
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
-			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList[1] is ILayoutElement el )
+			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList.Skip(1).FirstOrDefault() is ILayoutElement el )
 				el.Size = ((ViewportContainer<Drawable>)drawableRenderer.Root).ContentSize;
 
 			drawableRenderer.Root.Update();
 
-			drawableRenderer.CollectDrawData();
+			drawableRenderer.CollectDrawData( disposeScheduler.Swap );
 		}
 	}
 }

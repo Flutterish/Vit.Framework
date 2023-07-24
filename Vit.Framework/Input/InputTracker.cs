@@ -49,13 +49,15 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 
 	public event Action<TInput>? InputChanged;
 	public event Action<Event>? InputEventEmitted;
+
+	public abstract void Dispose ();
 }
 
 public interface IInputTracker<TInput> : IInputTracker where TInput : IHasTimestamp {
 	event Action<TInput>? InputChanged;
 }
 
-public interface IInputTracker {
+public interface IInputTracker : IDisposable {
 	/// <summary>
 	/// Polls all pending changes and triggers related events.
 	/// </summary>

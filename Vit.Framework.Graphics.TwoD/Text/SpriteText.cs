@@ -26,8 +26,8 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 
 	Shader shader = null!;
 	Texture texture = null!;
-	protected override void Load () {
-		var deps = Parent!.Dependencies;
+	protected override void Load ( IReadOnlyDependencyCache deps ) {
+		base.Load( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
@@ -40,7 +40,6 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 
 	protected override void Dispose ( bool disposing ) {
 		base.Dispose( disposing );
-		throw new NotImplementedException();
 	}
 
 	struct Vertex {
@@ -159,7 +158,23 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 		}
 
 		public override void ReleaseResources ( bool willBeReused ) {
-			
+			if ( Source.indices == null )
+				return;
+
+			ref var indices = ref Source.indices!;
+			ref var vertices = ref Source.vertices!;
+			ref var uniforms = ref Source.uniforms!;
+			ref var uniformSet = ref Source.uniformSet!;
+
+			indices.Dispose();
+			vertices.Dispose();
+			uniforms.Dispose();
+			uniformSet.Dispose();
+
+			indices = null;
+			vertices = null;
+			uniforms = null;
+			uniformSet = null;
 		}
 	}
 }

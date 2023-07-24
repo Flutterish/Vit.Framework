@@ -47,6 +47,10 @@ public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : IDrawa
 	public void ClearChildren () {
 		ClearInternalChildren();
 	}
+
+	public void DisposeChildren () {
+		DisposeInternalChildren();
+	}
 }
 
 public abstract class Container<T, TInternal> : CompositeDrawable<TInternal>, IContainer<T> where T : Drawable where TInternal : Drawable {

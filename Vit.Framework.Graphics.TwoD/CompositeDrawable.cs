@@ -26,7 +26,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		internalChildren.Add( child );
 		addChildEventHandlers( child );
 		if ( IsLoaded )
-			child.TryLoad();
+			child.TryLoad( dependencies );
 		ChildAdded?.Invoke( this, child );
 		InvalidateDrawNodes();
 	}
@@ -82,7 +82,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		internalChildren.Insert( index, child );
 		addChildEventHandlers( child );
 		if ( IsLoaded )
-			child.TryLoad();
+			child.TryLoad( dependencies );
 		ChildAdded?.Invoke( this, child );
 		InvalidateDrawNodes();
 	}
@@ -136,6 +136,19 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		InvalidateDrawNodes();
 	}
 
+	protected void DisposeInternalChildren () {
+		while ( internalChildren.Count != 0 ) {
+			var child = internalChildren[^1];
+			child.SetParent( null );
+			internalChildren.RemoveAt( internalChildren.Count - 1 );
+			removeChildEventHandlers( child );
+			ChildRemoved?.Invoke( this, child );
+			child.Dispose();
+		}
+
+		InvalidateDrawNodes();
+	}
+
 	public override void Update () {
 		UpdateSubtree();
 	}
@@ -146,16 +159,18 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		}
 	}
 
-	public IReadonlyDependencyCache Dependencies => dependencies;
+	public IReadOnlyDependencyCache Dependencies => dependencies;
 	IDependencyCache dependencies = null!;
-	protected override void Load () {
-		dependencies = CreateDependencies();
+	protected override void Load ( IReadOnlyDependencyCache dependencies ) {
+		base.Load( dependencies );
+
+		this.dependencies = CreateDependencies( dependencies );
 		foreach ( var i in internalChildren ) {
-			i.TryLoad();
+			i.TryLoad( this.dependencies );
 		}
 	}
 
-	protected virtual IDependencyCache CreateDependencies () => new DependencyCache( Parent?.Dependencies );
+	protected virtual IDependencyCache CreateDependencies ( IReadOnlyDependencyCache parentDependencies ) => new DependencyCache( parentDependencies );
 
 	protected override void OnMatrixInvalidated () {
 		base.OnMatrixInvalidated();
@@ -166,6 +181,13 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;
 	public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;
+
+	protected override void Dispose ( bool disposing ) {
+		base.Dispose( disposing );
+		foreach ( var i in Children ) {
+			i.Dispose();
+		}
+	}
 
 	protected override Drawable.DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
@@ -180,6 +202,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		protected RentedArray<Drawable.DrawNode> ChildNodes;
 		protected override void UpdateState () {
 			var count = Source.internalChildren.Count;
+			ChildNodes.Clear();
 			ChildNodes.ReallocateStorage( count );
 			for ( int i = 0; i < count; i++ ) {
 				ChildNodes[i] = Source.internalChildren[i].GetDrawNode( SubtreeIndex );
@@ -196,13 +219,14 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			if ( willBeReused )
 				return;
 
+			ChildNodes.Clear();
 			ChildNodes.Dispose();
 		}
 	}
 }
 
 public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<IDrawable, T> where T : IDrawable {
-	IReadonlyDependencyCache Dependencies { get; }
+	IReadOnlyDependencyCache Dependencies { get; }
 
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildRemoved;

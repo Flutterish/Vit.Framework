@@ -1,8 +1,8 @@
 ﻿namespace Vit.Framework.DependencyInjection;
 
 public class DependencyCache : IDependencyCache {
-	public readonly IReadonlyDependencyCache? Parent;
-	public DependencyCache ( IReadonlyDependencyCache? parent = null ) {
+	public readonly IReadOnlyDependencyCache? Parent;
+	public DependencyCache ( IReadOnlyDependencyCache? parent = null ) {
 		Parent = parent;
 	}
 
@@ -24,20 +24,20 @@ public class DependencyCache : IDependencyCache {
 	}
 }
 
-public interface IDependencyCache : IReadonlyDependencyCache {
+public interface IDependencyCache : IReadOnlyDependencyCache {
 	void Cache ( object? value, DependencyIdentifier identifier );
 }
 
-public interface IReadonlyDependencyCache {
+public interface IReadOnlyDependencyCache {
 	object? Resolve ( DependencyIdentifier identifier );
 }
 
 public static class DependencyCacheExtensions {
-	public static T Resolve<T> ( this IReadonlyDependencyCache cache )
+	public static T Resolve<T> ( this IReadOnlyDependencyCache cache )
 		=> cache.Resolve<T>( new DependencyIdentifier() { Type = typeof( T ) } );
-	public static T Resolve<T> ( this IReadonlyDependencyCache cache, string name )
+	public static T Resolve<T> ( this IReadOnlyDependencyCache cache, string name )
 		=> cache.Resolve<T>( new DependencyIdentifier() { Type = typeof( T ), Name = name } );
-	public static T Resolve<T> ( this IReadonlyDependencyCache cache, DependencyIdentifier identifier )
+	public static T Resolve<T> ( this IReadOnlyDependencyCache cache, DependencyIdentifier identifier )
 		=> (T)cache.Resolve( identifier )!;
 
 	public static void Cache<T> ( this IDependencyCache cache, T value )
