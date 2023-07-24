@@ -43,6 +43,18 @@ public static class IEventHandlerExtensions {
 
 		return null;
 	}
+
+	public static TSelf? TriggerCulledEvent<TSelf, TData> ( this IEventHandler<TSelf> self, Event @event, TData data, Func<TSelf, TData, bool> predicate ) where TSelf : class, IEventHandler<TSelf> {
+		var type = @event.GetType();
+		while ( type != null ) {
+			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, data, predicate ) is TSelf handler )
+				return handler;
+
+			type = type.BaseType;
+		}
+
+		return null;
+	}
 }
 
 public class EventTree<TSelf> where TSelf : class, IEventHandler<TSelf> {
@@ -90,6 +102,26 @@ public class EventTree<TSelf> where TSelf : class, IEventHandler<TSelf> {
 		}
 	}
 
+	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers<TData> ( TData data, Func<TSelf, TData, bool> predicate ) {
+		var stack = enumerationStack ??= new();
+		stack.Push( this );
+
+		while ( stack.TryPop( out var node ) ) {
+			if ( !predicate( node.Source, data ) )
+				continue;
+
+			if ( node.Handler != null )
+				yield return (node.Source, node.Handler);
+
+			if ( node.Children == null )
+				continue;
+
+			foreach ( var i in node.Children ) {
+				stack.Push( i );
+			}
+		}
+	}
+
 	public TSelf? TriggerEvent ( Event @event ) {
 		foreach ( var (i, handler) in EnumerateHandlers() ) {
 			if ( handler( @event ) )
@@ -101,6 +133,15 @@ public class EventTree<TSelf> where TSelf : class, IEventHandler<TSelf> {
 
 	public TSelf? TriggerCulledEvent ( Event @event, Func<TSelf, bool> predicate ) {
 		foreach ( var (i, handler) in EnumerateCulledHandlers( predicate ) ) {
+			if ( handler( @event ) )
+				return i;
+		}
+
+		return null;
+	}
+
+	public TSelf? TriggerCulledEvent<TData> ( Event @event, TData data, Func<TSelf, TData, bool> predicate ) {
+		foreach ( var (i, handler) in EnumerateCulledHandlers( data, predicate ) ) {
 			if ( handler( @event ) )
 				return i;
 		}

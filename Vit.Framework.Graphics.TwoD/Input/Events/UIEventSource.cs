@@ -43,7 +43,7 @@ public class UIEventSource {
 
 	IDrawable? triggerEvent ( Event e ) {
 		var handler = e is IPositionalEvent positional
-					? Root.TriggerCulledEvent( e, d => d.ReceivesPositionalInputAt( positional.EventPosition ) )
+					? Root.TriggerCulledEvent( e, positional.EventPosition, static (d, pos) => d.ReceivesPositionalInputAt( pos ) )
 					: Root.TriggerEvent( e );
 
 		logHandler( e, handler );
