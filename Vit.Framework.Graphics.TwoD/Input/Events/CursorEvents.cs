@@ -39,13 +39,13 @@ public record PressedEvent : PositionalUIEvent, ILoggableEvent {
 /// <summary>
 /// A cursor stopped holding down a button that was previously handled by <see cref="PressedEvent"/>.
 /// </summary>
-public record ReleasedEvent : PositionalUIEvent, ILoggableEvent {
+public record ReleasedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
 	public required CursorButton Button { get; init; }
 }
 
 /// <summary>
 /// A cursor pressed and released a button over this element. Must have handled <see cref="PressedEvent"/> for this to trigger.
 /// </summary>
-public record ClickedEvent : PositionalUIEvent, ILoggableEvent {
+public record ClickedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
 	public required CursorButton Button { get; init; }
 }

@@ -148,7 +148,8 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 		};
 		eventHandlers.Add( type, tree );
 
-		EventHandlerAdded?.Invoke( type, tree );
+		if ( !type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+			EventHandlerAdded?.Invoke( type, tree );
 		return tree;
 	}
 
@@ -162,7 +163,8 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 		tree!.Handler = null;
 		if ( tree.Children?.Any() != true ) {
 			eventHandlers.Remove( type );
-			EventHandlerRemoved?.Invoke( type, tree );
+			if ( !type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+				EventHandlerRemoved?.Invoke( type, tree );
 		}
 	}
 
