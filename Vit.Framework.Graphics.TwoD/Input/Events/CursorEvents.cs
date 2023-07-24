@@ -9,16 +9,16 @@ public abstract record PositionalUIEvent : UIEvent, IPositionalEvent {
 }
 
 /// <summary>
-/// A cursor is now over this element.
+/// A cursor is now over this element. Needs to handle <see cref="HoveredEvent"/> to trigger.
 /// </summary>
-public record CursorEnteredEvent : PositionalUIEvent {
+public record CursorEnteredEvent : PositionalUIEvent, INonPropagableEvent {
 
 }
 
 /// <summary>
-/// A cursor is no longer over this element.
+/// A cursor is no longer over this element. Needs to handle <see cref="HoveredEvent"/> to trigger.
 /// </summary>
-public record CursorExitedEvent : PositionalUIEvent {
+public record CursorExitedEvent : PositionalUIEvent, INonPropagableEvent {
 
 }
 
@@ -30,9 +30,9 @@ public record HoveredEvent : PositionalUIEvent {
 }
 
 /// <summary>
-/// A cursor started holding down a button over this element.
+/// A cursor started holding down a button over this element. Needs to handle <see cref="HoveredEvent"/> to trigger.
 /// </summary>
-public record PressedEvent : PositionalUIEvent, ILoggableEvent {
+public record PressedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
 	public required CursorButton Button { get; init; }
 }
 

@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
+using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics;
@@ -14,6 +15,10 @@ namespace Vit.Framework.Graphics.TwoD;
 public class Sprite : Drawable, ILayoutElement {
 	Shader shader = null!;
 	Texture texture = null!;
+
+	public Sprite () {
+		AddEventHandler<HoveredEvent>( e => true );
+	}
 
 	protected override void Load () {
 		var deps = Parent!.Dependencies;

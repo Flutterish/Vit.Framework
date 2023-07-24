@@ -7,6 +7,7 @@ public class UIEventSource {
 	public required IDrawable Root { get; init; }
 
 	Dictionary<CursorButton, IDrawable> pressedHandlers = new();
+	IDrawable? hovered;
 
 	/// <summary>
 	/// Triggers UI events based on the provided events.
@@ -16,22 +17,31 @@ public class UIEventSource {
 		IDrawable? handler = null;
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:
-				@event = new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp };
-				handler = triggerEvent( @event );
-				if ( handler != null )
-					pressedHandlers.Add( pressed.Button, handler );
+				if ( hovered == null )
+					break;
+
+				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp }, hovered ) )
+					pressedHandlers.Add( pressed.Button, hovered );
 				break;
 
 			case CursorButtonReleasedEvent released:
 				if ( !pressedHandlers.TryGetValue( released.Button, out handler ) )
 					break;
-				@event = new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp };
 				pressedHandlers.Remove( released.Button );
-				triggerEvent( @event, handler );
-				if ( handler.ReceivesPositionalInputAt( released.EventPosition ) ) {
-					@event = new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp };
-					triggerEvent( @event, handler );
+				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
+				if ( handler == hovered ) {
+					triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
 				}
+				break;
+
+			case CursorMovedEvent moved:
+				handler = triggerEvent( new HoveredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp } );
+				if ( handler == hovered )
+					break;
+
+				triggerEvent( new CursorExitedEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp }, hovered );
+				hovered = handler;
+				triggerEvent( new CursorEnteredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp }, handler );
 				break;
 
 			default:
@@ -46,21 +56,22 @@ public class UIEventSource {
 					? Root.TriggerCulledEvent( e, positional.EventPosition, static (d, pos) => d.ReceivesPositionalInputAt( pos ) )
 					: Root.TriggerEvent( e );
 
-		logHandler( e, handler );
+		if ( e is ILoggableEvent ) {
+			Console.WriteLine( $"{e} was {(handler is null ? "not handled" : $"handled by {handler}")}" );
+		}
+
 		return handler;
 	}
 
-	IDrawable? triggerEvent ( Event e, IDrawable handler ) {
+	bool triggerEvent ( Event e, IDrawable? handler ) {
+		if ( handler == null )
+			return false;
+
 		var handled = handler.TriggerEventOnSelf( e );
 
-		logHandler( e, handled ? handler : null );
-		return handler;
-	}
-
-	void logHandler ( Event e, IDrawable? handler ) {
-		if ( e is not ILoggableEvent )
-			return;
-
-		Console.WriteLine( $"{e} was {(handler is null ? "not handled" : $"handled by {handler}")}" );
+		if ( e is ILoggableEvent ) {
+			Console.WriteLine( $"{e} was trigerred on {handler} {(handled ? "and handled" : "but not handled")}" );
+		}
+		return handled;
 	}
 }

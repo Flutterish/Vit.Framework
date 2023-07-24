@@ -12,6 +12,7 @@ public class Button : LayoutContainer {
 			Size = new( 1f.Relative() )
 		} );
 
+		AddEventHandler<HoveredEvent>( e => true );
 		AddEventHandler<PressedEvent>( e => {
 			if ( e.Button != Framework.Input.CursorButton.Left )
 				return false;
