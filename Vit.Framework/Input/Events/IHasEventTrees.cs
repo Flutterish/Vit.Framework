@@ -1,10 +1,45 @@
-﻿namespace Vit.Framework.Input.Events;
+﻿using System.Reflection;
+
+namespace Vit.Framework.Input.Events;
 
 public interface IHasEventTrees<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 	IReadOnlyDictionary<Type, EventTree<TSelf>> HandledEventTypes { get; }
 
 	event Action<Type, EventTree<TSelf>>? EventHandlerAdded;
 	event Action<Type, EventTree<TSelf>>? EventHandlerRemoved;
+
+	[ThreadStatic]
+	private static Dictionary<Type, Action<TSelf>>? typeInitializer;
+	[ThreadStatic]
+	private static object[]? initializerParams;
+	private static void addHandler<TEvent> ( TSelf self, Action<TSelf, Type, Func<Event, bool>> adder ) where TEvent : Event {
+		adder( self, typeof(TEvent), e => ((IEventHandler<TEvent>)self).OnEvent( (TEvent)e ) );
+	}
+	private static MethodInfo _adder = typeof( IHasEventTrees<TSelf> ).GetMethod( nameof( addHandler ), BindingFlags.Static | BindingFlags.NonPublic )!;
+
+	/// <summary>
+	/// Adds event handlers declared by <see cref="IEventHandler{TEvent}"/> interfaces.
+	/// </summary>
+	public static void AddDeclaredEventHandlers ( TSelf self, Action<TSelf, Type, Func<Event, bool>> adder ) {
+		var type = self.GetType();
+		if ( !(typeInitializer ??= new()).TryGetValue( type, out var action ) ) {
+			var interfaces = type.GetInterfaces().Where( x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof( IEventHandler<> ) );
+			var eventTypes = interfaces.Select( x => x.GenericTypeArguments[0] );
+
+			var adders = eventTypes.Select( x => _adder.MakeGenericMethod( x ) ).ToArray();
+
+			typeInitializer.Add( type, action = self => { // TODO this should probably be source generated
+				initializerParams ??= new object[2];
+				initializerParams[0] = self;
+				initializerParams[1] = adder;
+				foreach ( var i in adders ) {
+					i.Invoke( null, initializerParams );
+				}
+			} );
+		}
+
+		action( self );
+	}
 }
 
 public static class IHasEventTreesExtensions {
@@ -62,6 +97,8 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 
 	public Func<Event, bool>? Handler;
 	public List<EventTree<TSelf>>? Children;
+
+	public bool ShouldBeCulled => Handler == null && Children?.Any() != true;
 
 	[ThreadStatic]
 	static Stack<EventTree<TSelf>>? enumerationStack;

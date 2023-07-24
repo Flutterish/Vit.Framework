@@ -1,35 +1,10 @@
-﻿using System.Reflection;
-using Vit.Framework.Input.Events;
+﻿using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public partial class Drawable {
-	[ThreadStatic]
-	static Dictionary<Type, Action<Drawable>>? typeInitializer;
-	static void addHandler<TEvent> ( Drawable drawable ) where TEvent : Event {
-		drawable.AddEventHandler<TEvent>( ((IEventHandler<TEvent>)drawable).OnEvent );
-	}
-
-	[ThreadStatic]
-	static object[]? initializerParams;
+public partial class Drawable { // TODO should drawables even have events? they are more of a UI thing
 	public Drawable () {
-		var type = GetType();
-		if ( !(typeInitializer ??= new()).TryGetValue( type, out var action ) ) {
-			var interfaces = type.GetInterfaces().Where( x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof( IEventHandler<> ) );
-			var eventTypes = interfaces.Select( x => x.GenericTypeArguments[0] );
-			
-			var adder = typeof(Drawable).GetMethod( nameof(addHandler), BindingFlags.Static | BindingFlags.NonPublic )!;
-			var adders = eventTypes.Select( x => adder.MakeGenericMethod( x ) );
-
-			typeInitializer.Add( type, action = drawable => { // TODO this should probably be source generated
-				(initializerParams ??= new object[1])[0] = drawable;
-				foreach ( var i in adders ) {
-					i.Invoke( null, initializerParams );
-				}
-			} );
-		}
-
-		action( this );
+		IHasEventTrees<IDrawable>.AddDeclaredEventHandlers( this, static (d, t, h) => ((Drawable)d).AddEventHandler( t, h ) );
 	}
 
 	static Dictionary<Type, EventTree<IDrawable>> nullEventHandlers = new();
@@ -77,7 +52,7 @@ public partial class Drawable {
 			return;
 
 		tree!.Handler = null;
-		if ( tree.Children?.Any() != true ) {
+		if ( tree.ShouldBeCulled ) {
 			eventHandlers.Remove( type );
 			EventHandlerRemoved?.Invoke( type, tree );
 		}
