@@ -7,17 +7,18 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public class Sprite : Drawable, ILayoutElement {
+public class Sprite : Drawable, ILayoutElement, IEventHandler<HoveredEvent> {
 	Shader shader = null!;
 	Texture texture = null!;
 
-	public Sprite () {
-		AddEventHandler<HoveredEvent>( e => true );
+	public bool OnEvent ( HoveredEvent @event ) {
+		return true;
 	}
 
 	protected override void Load () {
