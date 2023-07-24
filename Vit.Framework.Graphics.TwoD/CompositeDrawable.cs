@@ -32,6 +32,9 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 
 	void onChildEventHandlerAdded ( Type type, EventTree<IDrawable> tree ) {
+		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+			return;
+
 		var ourTree = GetEventTree( type );
 		ourTree.Children ??= new();
 		ourTree.Children.Add( tree );
@@ -39,6 +42,9 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 
 	void onChildEventHandlerRemoved ( Type type, EventTree<IDrawable> tree ) {
+		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+			return;
+
 		var ourTree = GetEventTree( type );
 		ourTree.Children!.Remove( tree );
 		sortEventTree( ourTree );
