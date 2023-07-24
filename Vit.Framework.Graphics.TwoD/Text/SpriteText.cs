@@ -14,7 +14,9 @@ using Vit.Framework.Text.Fonts;
 namespace Vit.Framework.Graphics.TwoD.Text;
 
 public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and is actually just a bunch of vertices
-	public required Font Font { get; init; }
+	Font font = null!;
+	public Font Font { get => font; init => font = value; }
+	public FontIdentifier? FontId { get; init; }
 	public required float FontSize { get; init; }
 	public required string Text { get; init; }
 	public required ColorRgba<float> Tint { get; init; }
@@ -29,6 +31,7 @@ public class SpriteText : Drawable, ILayoutElement { // TODO this is a scam and 
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
+		font ??= deps.Resolve<FontStore>().GetFont( FontId ?? FontStore.DefaultFont );
 	}
 
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {

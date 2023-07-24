@@ -17,7 +17,10 @@ using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
+using Vit.Framework.Text.Fonts;
+using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
@@ -54,6 +57,10 @@ public class TwoDTestApp : App {
 
 			var textureStore = new TextureStore();
 			deps.Cache( textureStore );
+
+			var fontStore = new FontStore();
+			fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
+			deps.Cache( fontStore );
 
 			shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPositionAndUv;

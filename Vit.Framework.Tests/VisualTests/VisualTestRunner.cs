@@ -3,8 +3,6 @@ using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Text;
-using Vit.Framework.Parsing;
-using Vit.Framework.Text.Fonts.OpenType;
 
 namespace Vit.Framework.Tests.VisualTests;
 
@@ -32,7 +30,6 @@ public class VisualTestRunner : Flexbox {
 			Grow = 1
 		} );
 
-		var font = new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) );
 		foreach ( var i in tests ) {
 			var button = new Button() {
 				Clicked = () => {
@@ -41,7 +38,6 @@ public class VisualTestRunner : Flexbox {
 			};
 			button.AddChild( new SpriteText { 
 				Tint = ColorRgba.Black,
-				Font = font,
 				FontSize = 32,
 				Text = $"{i.Name}"
 			}, new() {
