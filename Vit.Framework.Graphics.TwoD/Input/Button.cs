@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.Input;
 
@@ -12,13 +12,18 @@ public class Button : LayoutContainer {
 			Size = new( 1f.Relative() )
 		} );
 
-		// TODO some events are "finalizers" that should activate the same handler again even if they arent the closest one
-		AddEventHandler<CursorButtonPressedEvent>( e => {
+		AddEventHandler<PressedEvent>( e => {
+			if ( e.Button != Framework.Input.CursorButton.Left )
+				return false;
+
 			background.Tint = ColorRgba.YellowGreen;
 			return true;
 		} );
-		AddEventHandler<CursorButtonReleasedEvent>( e => {
+		AddEventHandler<ReleasedEvent>( e => {
 			background.Tint = ColorRgba.GreenYellow;
+			return true;
+		} );
+		AddEventHandler<ClickedEvent>( e => {
 			Clicked?.Invoke();
 			return true;
 		} );

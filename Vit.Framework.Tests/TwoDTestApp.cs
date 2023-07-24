@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Input;
+using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Input;
@@ -191,6 +192,7 @@ public class TwoDTestApp : App {
 	public class UpdateThread : AppThread {
 		Sprite cursor;
 
+		UIEventSource uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawableRenderer drawableRenderer;
@@ -199,6 +201,7 @@ public class TwoDTestApp : App {
 			this.drawableRenderer = drawableRenderer;
 			this.window = window;
 
+			uiEventSource = new() { Root = drawableRenderer.Root };
 			globalInputTrackers = new() { Root = drawableRenderer.Root };
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
@@ -210,14 +213,12 @@ public class TwoDTestApp : App {
 			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
-				var handler = e is IPositionalEvent positional
-					? drawableRenderer.Root.TriggerCulledEvent( e, d => d.ReceivesPositionalInputAt( positional.EventPosition ) )
-					: drawableRenderer.Root.TriggerEvent( e );
+				var translated = uiEventSource.TriggerEvent( e );
 
-				if ( e is not ILoggableEvent )
+				if ( translated || e is not ILoggableEvent )
 					return;
 
-				Console.WriteLine( $"{e} was {(handler is null ? "not handled" : $"handled by {handler}")}" );
+				Console.WriteLine( $"{e} was not translated to a UI event" );
 			};
 		}
 
