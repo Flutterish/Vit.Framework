@@ -245,6 +245,12 @@ public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, I
 	/// </summary>
 	Matrix3<float> GlobalToUnitMatrix { get; }
 
+	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
+		=> GlobalToUnitMatrix.Apply( point );
+
+	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
+		=> UnitToGlobalMatrix.Apply( point );
+
 	void Update ();
 
 	Drawable.DrawNode GetDrawNode ( int subtreeIndex );

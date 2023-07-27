@@ -55,7 +55,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 
 	void sortEventTree ( EventTree<IDrawable> tree ) {
-		tree.Children!.Sort( (a,b) => internalChildren.IndexOf((T)b.Source) - internalChildren.IndexOf((T)a.Source) ); // TODO this can be improved by storing child order in the child
+		tree.Children!.Sort( (a,b) => internalChildren.IndexOf((T)a.Source) - internalChildren.IndexOf((T)b.Source) ); // TODO this can be improved by storing child order in the child
 	}
 
 	void addChildEventHandlers ( T child ) {

@@ -232,7 +232,7 @@ public class TwoDTestApp : App {
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
-			cursor = new Sprite {
+			cursor = new CursorSprite {
 				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
@@ -246,6 +246,12 @@ public class TwoDTestApp : App {
 
 				Console.WriteLine( $"{e} was not translated to a UI event" );
 			};
+		}
+
+		class CursorSprite : Sprite {
+			public CursorSprite () {
+				RemoveEventHandler<HoveredEvent>();
+			}
 		}
 
 		protected override void Dispose ( bool disposing ) {
