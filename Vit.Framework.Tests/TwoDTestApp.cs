@@ -260,7 +260,9 @@ public class TwoDTestApp : App {
 			while ( Scheduler.TryDequeue( out var action ) ) {
 				action();
 			}
-			((ViewportContainer<Drawable>)drawableRenderer.Root).AvailableSize = window.Size.Cast<float>();
+
+			var root = (ViewportContainer<Drawable>)drawableRenderer.Root;
+			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
 			var pos = drawableRenderer.Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
@@ -270,8 +272,10 @@ public class TwoDTestApp : App {
 				: cursorTracker.State.IsDown( CursorButton.Right )
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
-			if ( ((ViewportContainer<Drawable>)drawableRenderer.Root).ChildList.Skip(1).FirstOrDefault() is ILayoutElement el )
-				el.Size = ((ViewportContainer<Drawable>)drawableRenderer.Root).ContentSize;
+
+			foreach ( var i in root.Children.Take(2).OfType<ILayoutElement>() ) {
+				i.Size = root.ContentSize;
+			}
 
 			drawableRenderer.Root.Update();
 

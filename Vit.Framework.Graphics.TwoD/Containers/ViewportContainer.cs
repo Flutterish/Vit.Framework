@@ -21,21 +21,16 @@ public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawa
 			&& point.Y >= 0 && point.Y <= ContentSize.Height;
 	}
 
-	public Size2<float> Size {
-		get => AvailableSize;
-		set => AvailableSize = value;
-	}
-
-	public Size2<float> RequiredSize => Size2<float>.Zero;
-
 	Size2<float> availableSize;
-	public Size2<float> AvailableSize {
+	public Size2<float> Size {
 		get => availableSize;
 		set {
 			availableSize = value;
 			updateScale();
 		}
 	}
+
+	public Size2<float> RequiredSize => Size2<float>.Zero;
 
 	Size2<float> targetSize;
 	public Size2<float> TargetSize {
