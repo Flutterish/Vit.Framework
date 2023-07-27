@@ -188,7 +188,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 }
 
-public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, IDisposable {
+public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasEventTrees<IDrawable>, IDisposable {
 	/// <summary>
 	/// Child depth, indicates the index of the child inside the parent.
 	/// </summary>
@@ -205,24 +205,6 @@ public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, I
 	void SetParent ( ICompositeDrawable<IDrawable>? parent );
 	IReadOnlyCompositeComponent<IDrawable, IDrawable>? IComponent<IDrawable>.Parent => Parent;
 
-	public Point2<float> Position { get; set; }
-	public float X { get; set; }
-	public float Y { get; set; }
-
-	public Radians<float> Rotation { get; set; }
-
-	public Point2<float> Origin { get; set; }
-	public float OriginX { get; set; }
-	public float OriginY { get; set; }
-
-	public Axes2<float> Scale { get; set; }
-	public float ScaleX { get; set; }
-	public float ScaleY { get; set; }
-
-	public Axes2<float> Shear { get; set; }
-	public float ShearX { get; set; }
-	public float ShearY { get; set; }
-
 	public bool IsLoaded { get; }
 
 	void TryLoad ( IReadOnlyDependencyCache dependencies );
@@ -233,7 +215,7 @@ public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, I
 	/// <param name="point">A point in global space.</param>
 	bool ReceivesPositionalInputAt ( Point2<float> point );
 
-	internal void OnParentMatrixInvalidated ();
+	void OnParentMatrixInvalidated ();
 
 	/// <summary>
 	/// A matrix such that (0,0) is mapped to the bottom left corner
@@ -246,24 +228,6 @@ public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, I
 	/// and the top right corner in parent space is mapped to (1,1).
 	/// </summary>
 	Matrix3<float> LocalToUnitMatrix { get; }
-
-	/// <summary>
-	/// A matrix such that (0,0) is mapped to the bottom left corner
-	/// and (1,1) is mapped to the top right corner in global space.
-	/// </summary>
-	Matrix3<float> UnitToGlobalMatrix { get; }
-
-	/// <summary>
-	/// A matrix such that the bottom left corner in global space is mapped to (0,0)
-	/// and the top right corner in global space is mapped to (1,1).
-	/// </summary>
-	Matrix3<float> GlobalToUnitMatrix { get; }
-
-	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
-		=> GlobalToUnitMatrix.Apply( point );
-
-	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
-		=> UnitToGlobalMatrix.Apply( point );
 
 	void Update ();
 

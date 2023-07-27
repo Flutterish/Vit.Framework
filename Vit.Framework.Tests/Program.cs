@@ -25,6 +25,7 @@ public partial class Program : App {
 		app.Run();
 		app = null;
 
+		Console.WriteLine( "Performing GC check before quitting..." );
 		GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
 		Thread.Sleep( 1_000 );
 		GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
