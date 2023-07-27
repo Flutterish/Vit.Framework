@@ -19,14 +19,14 @@ public static class HierarchyObserver {
 
 			subtree.ChildAdded += onChildAdded;
 			subtree.ChildRemoved += onChildRemoved;
-			foreach ( var i in subtree ) {
+			foreach ( var i in subtree.Children ) {
 				onChildAdded( subtree, i );
 			}
 		}
 
 		void onChildRemoved ( IReadOnlyCompositeComponent<T> parent, T child ) {
 			if ( child is IReadOnlyCompositeComponent<T> subtree ) {
-				foreach ( var i in subtree.Reverse() ) {
+				foreach ( var i in subtree.Children.Reverse() ) {
 					onChildRemoved( subtree, i );
 				}
 				subtree.ChildRemoved -= onChildRemoved;
@@ -45,7 +45,7 @@ public static class HierarchyObserver {
 			IsActive = true
 		};
 
-		foreach ( var i in head ) {
+		foreach ( var i in head.Children ) {
 			onChildAdded( head, i );
 		}
 
@@ -64,7 +64,7 @@ public static class HierarchyObserver {
 
 			IsActive = false;
 
-			foreach ( var i in Head ) {
+			foreach ( var i in Head.Children ) {
 				Removed( Head, i );
 			}
 		}
@@ -75,16 +75,8 @@ public interface IHierarchyObserverContract {
 	void Unsubscribe ();
 }
 
-public interface IReadOnlyCompositeComponent<out T> : IComponent, IEnumerable<T> where T : IComponent {
+public interface IReadOnlyCompositeComponent<out T> : IComponent where T : IComponent {
 	IReadOnlyList<T> Children { get; }
-
-	IEnumerator<T> IEnumerable<T>.GetEnumerator () {
-		return Children.GetEnumerator();
-	}
-
-	IEnumerator IEnumerable.GetEnumerator () {
-		return Children.GetEnumerator();
-	}
 
 	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<T>, T>? ChildAdded;
 	event HierarchyObserver.ChildObserver<IReadOnlyCompositeComponent<T>, T>? ChildRemoved;
@@ -92,7 +84,7 @@ public interface IReadOnlyCompositeComponent<out T> : IComponent, IEnumerable<T>
 
 public static class IReadOnlyCompositeComponentExtensions {
 	public static IEnumerable<T> EnumerateSubtree<T> ( this IReadOnlyCompositeComponent<T> self ) where T : IComponent {
-		foreach ( var child in self ) {
+		foreach ( var child in self.Children ) {
 			yield return child;
 			if ( child is not IReadOnlyCompositeComponent<T> subtree )
 				continue;
