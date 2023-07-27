@@ -3,7 +3,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
-public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : LayoutContainer<T, TParam> where T : ILayoutElement where TParam : struct where TChildArgs : struct {
+public abstract class DrawableFlowingLayoutContainer<T, TParam, TChildArgs> : DrawableLayoutContainer<T, TParam> where T : IDrawableLayoutElement where TParam : struct where TChildArgs : struct {
 	RelativeAxes2<float> flowOrigin = Anchor.TopLeft;
 	/// <summary>
 	/// What point the flow elements are aligned to when there is unused space in a line.

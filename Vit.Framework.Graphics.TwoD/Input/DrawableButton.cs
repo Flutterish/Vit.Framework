@@ -5,10 +5,10 @@ using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.Input;
 
-public class Button : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandler<PressedEvent>, IEventHandler<ReleasedEvent>, IEventHandler<ClickedEvent> {
+public class DrawableButton : DrawableLayoutContainer, IEventHandler<HoveredEvent>, IEventHandler<PressedEvent>, IEventHandler<ReleasedEvent>, IEventHandler<ClickedEvent> {
 	Sprite background;
 
-	public Button () {
+	public DrawableButton () {
 		AddChild( background = new Sprite { Tint = ColorRgba.GreenYellow }, new() {
 			Size = new( 1f.Relative() )
 		} );

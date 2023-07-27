@@ -6,9 +6,9 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class GridTest : LayoutContainer<ILayoutElement> {
+public class GridTest : DrawableLayoutContainer<IDrawableLayoutElement> {
 	public GridTest () {
-		var grid = new GridContainer<ILayoutElement> {
+		var grid = new DrawableGridContainer<IDrawableLayoutElement> {
 			Rows = new() {
 				TrackSizes = new TrackSize<float>[] { 400f, 400f, 400f }
 			},

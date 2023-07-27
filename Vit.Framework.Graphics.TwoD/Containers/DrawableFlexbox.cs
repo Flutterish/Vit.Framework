@@ -4,8 +4,8 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class Flexbox : Flexbox<ILayoutElement> { }
-public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.ChildArgs> where T : ILayoutElement {
+public class DrawableFlexbox : DrawableFlexbox<IDrawableLayoutElement> { }
+public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParams, DrawableFlexbox<T>.ChildArgs> where T : IDrawableLayoutElement {
 	Size2<float> gap;
 	/// <summary>
 	/// Gap between elements.

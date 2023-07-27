@@ -6,9 +6,9 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class FlexboxTest : LayoutContainer<ILayoutElement> {
+public class FlexboxTest : DrawableLayoutContainer<IDrawableLayoutElement> {
 	public FlexboxTest () {
-		var flexbox = new Flexbox<ILayoutElement> {
+		var flexbox = new DrawableFlexbox<IDrawableLayoutElement> {
 			ContentAlignment = Anchor.TopLeft,
 			FlowDirection = FlowDirection.RightThenDown,
 			Padding = new( 50 ),

@@ -3,6 +3,6 @@ using Vit.Framework.Graphics.TwoD.Layout;
 
 namespace Vit.Framework.Tests.VisualTests;
 
-public abstract class TestScene : LayoutContainer<ILayoutElement> {
+public abstract class TestScene : DrawableLayoutContainer<IDrawableLayoutElement> {
 
 }

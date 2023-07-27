@@ -3,8 +3,8 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class LayoutContainer : LayoutContainer<ILayoutElement> { }
-public class LayoutContainer<T> : LayoutContainer<T, LayoutParams> where T : ILayoutElement {
+public class DrawableLayoutContainer : DrawableLayoutContainer<IDrawableLayoutElement> { }
+public class DrawableLayoutContainer<T> : DrawableLayoutContainer<T, LayoutParams> where T : IDrawableLayoutElement {
 	protected override void PerformLayout () {
 		var size = ContentSize;
 		var offset = new Vector2<float>( Padding.Left, Padding.Bottom );

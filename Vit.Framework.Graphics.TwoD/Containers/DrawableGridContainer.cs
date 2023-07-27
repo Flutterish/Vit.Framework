@@ -6,7 +6,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class GridContainer<T> : LayoutContainer<T, GridParam> where T : ILayoutElement {
+public class DrawableGridContainer<T> : DrawableLayoutContainer<T, GridParam> where T : IDrawableLayoutElement {
 	GridLines rows = null!;
 	public required GridLines Rows {
 		get => rows;

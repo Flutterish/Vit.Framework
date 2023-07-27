@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawable {
+public class DrawableViewportContainer<T> : DrawableContainer<T>, IDrawableLayoutElement where T : Drawable {
 	Size2<float> size;
 	public Size2<float> ContentSize {
 		get => size;
@@ -50,7 +50,7 @@ public class ViewportContainer<T> : Container<T>, ILayoutElement where T : Drawa
 		}
 	}
 
-	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
+	public DrawableViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
 		this.targetSize = targetSize;
 		this.fillMode = fillMode;
 		this.availableSize = availableSize;

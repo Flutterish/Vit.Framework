@@ -3,9 +3,9 @@
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
 /// <summary>
-/// A container which controls the layout of child <see cref="ILayoutElement"/>s.
+/// A container which controls the layout of child <see cref="IDrawableLayoutElement"/>s.
 /// </summary>
-public interface ILayoutContainer : IDrawable {
+public interface IDrawableLayoutContainer : IDrawable {
 	/// <summary>
 	/// The size available to lay out child elements in, in local space.
 	/// This accounts for <see cref="Padding"/>.
@@ -22,12 +22,12 @@ public interface ILayoutContainer : IDrawable {
 	Spacing<float> Padding { get; set; }
 }
 
-/// <inheritdoc cref="ILayoutContainer"/>
-public interface ILayoutContainer<out T> : ILayoutContainer, ICompositeDrawable<T> where T : ILayoutElement {
+/// <inheritdoc cref="IDrawableLayoutContainer"/>
+public interface IDrawableLayoutContainer<out T> : IDrawableLayoutContainer, ICompositeDrawable<T> where T : IDrawableLayoutElement {
 
 }
 
-public interface ILayoutContainer<in T, in TParam, out TChild> : ILayoutContainer<TChild> where T : TChild where TChild : ILayoutElement {
+public interface IDrawableLayoutContainer<in T, in TParam, out TChild> : IDrawableLayoutContainer<TChild> where T : TChild where TChild : IDrawableLayoutElement {
 	void AddChild ( T child, TParam param );
 	bool RemoveChild ( T child );
 	void ClearChildren ();

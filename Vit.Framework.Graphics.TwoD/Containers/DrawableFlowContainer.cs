@@ -3,8 +3,8 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class FlowContainer : FlowContainer<ILayoutElement> { }
-public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T>.ChildArgs> where T : ILayoutElement {
+public class DrawableFlowContainer : DrawableFlowContainer<IDrawableLayoutElement> { }
+public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowParams, DrawableFlowContainer<T>.ChildArgs> where T : IDrawableLayoutElement {
 	bool collapseMargins = true;
 	public bool CollapseMargins {
 		get => collapseMargins;
@@ -145,8 +145,8 @@ public struct FlowParams {
 	/// Margins outside the element provide spacing between elements.
 	/// </summary>
 	/// <remarks>
-	/// Margins might collapse. For example, if the margins between 2 elements (including <see cref="ILayoutContainer.Padding"/>) are 10 and 20, the effective margin will be 20 or 30, depending on the container settings. <br/>
-	/// Margins may be negative. This indicates that neighboring margins (including <see cref="ILayoutContainer.Padding"/>) should be shrunk.
+	/// Margins might collapse. For example, if the margins between 2 elements (including <see cref="IDrawableLayoutContainer.Padding"/>) are 10 and 20, the effective margin will be 20 or 30, depending on the container settings. <br/>
+	/// Margins may be negative. This indicates that neighboring margins (including <see cref="IDrawableLayoutContainer.Padding"/>) should be shrunk.
 	/// </remarks>
 	public Spacing<float> Margins;
 	/// <summary>

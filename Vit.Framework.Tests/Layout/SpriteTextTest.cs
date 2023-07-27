@@ -6,7 +6,7 @@ using Vit.Framework.Graphics.TwoD.Text;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class SpriteTextTest : LayoutContainer<ILayoutElement> {
+public class SpriteTextTest : DrawableLayoutContainer<IDrawableLayoutElement> {
 	public SpriteTextTest () {
 		AddChild( new Sprite { Tint = ColorRgba.Green }, new() {
 			Size = new( 1f.Relative(), 64 ),

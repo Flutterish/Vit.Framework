@@ -13,7 +13,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public class Sprite : Drawable, ILayoutElement, IEventHandler<HoveredEvent> {
+public class Sprite : Drawable, IDrawableLayoutElement, IEventHandler<HoveredEvent> {
 	Shader shader = null!;
 	Texture texture = null!;
 

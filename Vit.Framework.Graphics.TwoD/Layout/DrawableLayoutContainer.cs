@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.Layout;
 
-public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayoutContainer<T, TParam, T>, ILayoutElement where T : ILayoutElement where TParam : struct {
+public abstract class DrawableLayoutContainer<T, TParam> : CompositeDrawable<T>, IDrawableLayoutContainer<T, TParam, T>, IDrawableLayoutElement where T : IDrawableLayoutElement where TParam : struct {
 	Size2<float> size;
 	public Size2<float> ContentSize => new( size.Width - padding.Horizontal, size.Height - padding.Vertical );
 	public Size2<float> Size {
@@ -60,7 +60,7 @@ public abstract class LayoutContainer<T, TParam> : CompositeDrawable<T>, ILayout
 	bool isParentLayoutContainer;
 	protected override void OnParentChanged ( ICompositeDrawable<IDrawable>? from, ICompositeDrawable<IDrawable>? to ) {
 		base.OnParentChanged( from, to );
-		isParentLayoutContainer = to is ILayoutContainer;
+		isParentLayoutContainer = to is IDrawableLayoutContainer;
 	}
 
 	public void UpdateLayoutParameters ( T child, TParam param ) {

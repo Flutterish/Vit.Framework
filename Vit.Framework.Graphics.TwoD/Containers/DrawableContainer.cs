@@ -3,7 +3,7 @@ using Vit.Framework.Hierarchy;
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class Container<T> : CompositeDrawable<T>, IContainer<T> where T : IDrawable {
+public class DrawableContainer<T> : CompositeDrawable<T>, IContainer<T> where T : IDrawable {
 	public T Child {
 		get => Children.Single();
 		set {

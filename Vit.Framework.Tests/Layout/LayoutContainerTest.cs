@@ -5,7 +5,7 @@ using Vit.Framework.Graphics.TwoD.Layout;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class LayoutContainerTest : LayoutContainer<ILayoutElement> {
+public class LayoutContainerTest : DrawableLayoutContainer<IDrawableLayoutElement> {
 	public LayoutContainerTest () {
 		Padding = new( 100 );
 

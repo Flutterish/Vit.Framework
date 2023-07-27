@@ -2,5 +2,5 @@
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class SubGridContainer<T> where T : ILayoutElement {
+public class DrawableSubGridContainer<T> where T : IDrawableLayoutElement {
 }

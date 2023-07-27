@@ -6,9 +6,9 @@ using Vit.Framework.Graphics.TwoD.Text;
 
 namespace Vit.Framework.Tests.VisualTests;
 
-public class VisualTestRunner : Flexbox {
-	LayoutContainer testArea;
-	FlowContainer sidebar;
+public class VisualTestRunner : DrawableFlexbox {
+	DrawableLayoutContainer testArea;
+	DrawableFlowContainer sidebar;
 
 	public VisualTestRunner () {
 		ContentAlignment = Anchor.TopLeft;
@@ -17,7 +17,7 @@ public class VisualTestRunner : Flexbox {
 
 		var tests = typeof(VisualTestRunner).Assembly.DefinedTypes.Where( x => !x.IsAbstract && x.IsAssignableTo( typeof(TestScene) ) ).ToArray();
 
-		AddChild( sidebar = new FlowContainer {
+		AddChild( sidebar = new DrawableFlowContainer {
 			ContentAlignment = Anchor.TopLeft,
 			FlowDirection = FlowDirection.Down,
 			LineJustification = LineJustification.Stretch
@@ -31,7 +31,7 @@ public class VisualTestRunner : Flexbox {
 		} );
 
 		foreach ( var i in tests ) {
-			var button = new Button() {
+			var button = new DrawableButton() {
 				Clicked = () => {
 					runTest( i );
 				}
@@ -56,7 +56,7 @@ public class VisualTestRunner : Flexbox {
 
 	void runTest ( Type type ) {
 		testArea.DisposeChildren();
-		testArea.AddChild( (ILayoutElement)Activator.CreateInstance(type)!, new() {
+		testArea.AddChild( (IDrawableLayoutElement)Activator.CreateInstance(type)!, new() {
 			Size = new( 1f.Relative(), 1f.Relative() )
 		} );
 	}

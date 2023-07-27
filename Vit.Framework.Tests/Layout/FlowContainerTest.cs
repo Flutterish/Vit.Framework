@@ -6,7 +6,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class FlowContainerTest : LayoutContainer<ILayoutElement> {
+public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement> {
 	const float margin = 20;
 	const float padding = 50;
 
@@ -14,9 +14,9 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 		AddChild( new Sprite { Tint = ColorRgba.Blue }, new() {
 			Size = new( 1f.Relative() )
 		} );
-		AddChild( new LayoutContainer<ILayoutElement> {
+		AddChild( new DrawableLayoutContainer<IDrawableLayoutElement> {
 			Padding = new( padding ),
-			LayoutChildren = new (ILayoutElement, LayoutParams)[] {
+			LayoutChildren = new (IDrawableLayoutElement, LayoutParams)[] {
 				(new Sprite { Tint = ColorRgba.Green }, new() { Size = new( 1f.Relative() ) })
 			}
 		}, new() {
@@ -28,8 +28,8 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 		} );
 	}
 
-	FlowContainer<ILayoutElement> createFlowContainer () {
-		FlowContainer<ILayoutElement> container = new() {
+	DrawableFlowContainer<IDrawableLayoutElement> createFlowContainer () {
+		DrawableFlowContainer<IDrawableLayoutElement> container = new() {
 			Padding = new( padding ),
 			ContentAlignment = Anchor.TopRight,
 			FlowDirection = FlowDirection.DownThenLeft,
@@ -37,7 +37,7 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
-			container.AddChild( new LayoutContainer<Sprite> {
+			container.AddChild( new DrawableLayoutContainer<Sprite> {
 				Padding = new( -margin ),
 				LayoutChildren = new (Sprite, LayoutParams)[] {
 					(new Sprite { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
@@ -56,8 +56,8 @@ public class FlowContainerTest : LayoutContainer<ILayoutElement> {
 		return container;
 	}
 
-	FlowContainer<ILayoutElement> createFlowContainerWithRelativeSizes () {
-		FlowContainer<ILayoutElement> container = new() {
+	DrawableFlowContainer<IDrawableLayoutElement> createFlowContainerWithRelativeSizes () {
+		DrawableFlowContainer<IDrawableLayoutElement> container = new() {
 			Padding = new( padding ),
 			ContentAlignment = Anchor.TopCentre,
 			FlowDirection = FlowDirection.RightThenDown,

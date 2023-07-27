@@ -2,5 +2,5 @@
 
 namespace Vit.Framework.Graphics.TwoD.Containers;
 
-public class MasonryGridContainer<T> where T : ILayoutElement {
+public class DrawableMasonryGridContainer<T> where T : IDrawableLayoutElement {
 }

@@ -37,7 +37,7 @@ public class TwoDTestApp : App {
 
 	Host host = null!;
 	Window window = null!;
-	ViewportContainer<Drawable> root = null!;
+	DrawableViewportContainer<Drawable> root = null!;
 	DrawableRenderer drawableRenderer = null!;
 	Drawable.RenderThreadScheduler disposeScheduler = null!;
 
@@ -236,7 +236,7 @@ public class TwoDTestApp : App {
 				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
-			((ViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
+			((DrawableViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
 				var translated = uiEventSource.TriggerEvent( e );
@@ -267,7 +267,7 @@ public class TwoDTestApp : App {
 				action();
 			}
 
-			var root = (ViewportContainer<Drawable>)drawableRenderer.Root;
+			var root = (DrawableViewportContainer<Drawable>)drawableRenderer.Root;
 			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
@@ -279,7 +279,7 @@ public class TwoDTestApp : App {
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 
-			foreach ( var i in root.Children.Take(2).OfType<ILayoutElement>() ) {
+			foreach ( var i in root.Children.Take(2).OfType<IDrawableLayoutElement>() ) {
 				i.Size = root.ContentSize;
 			}
 
