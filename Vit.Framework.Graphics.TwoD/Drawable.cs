@@ -11,7 +11,12 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.TwoD;
 
 public abstract partial class Drawable : DisposableObject, IDrawable {
-	public ICompositeDrawable<IDrawable>? Parent { get; private set; } // TODO maybe we should store the index within the parent here?
+	public int Depth { get; private set; }
+	public void SetDepth ( int depth ) {
+		Depth = depth;
+	}
+
+	public ICompositeDrawable<IDrawable>? Parent { get; private set; }
 	void IDrawable.SetParent ( ICompositeDrawable<IDrawable>? parent ) {
 		var old = Parent;
 
@@ -184,6 +189,15 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 }
 
 public interface IDrawable : IComponent<IDrawable>, IHasEventTrees<IDrawable>, IDisposable {
+	/// <summary>
+	/// Child depth, indicates the index of the child inside the parent.
+	/// </summary>
+	int Depth { get; }
+	/// <summary>
+	/// Sets <see cref="Depth"/>. This should only be done by the parent.
+	/// </summary>
+	void SetDepth ( int depth );
+
 	new ICompositeDrawable<IDrawable>? Parent { get; }
 	/// <summary>
 	/// Sets the <see cref="Parent"/> property. This should be synchronised with the parents children list, usually in the parents Add method.

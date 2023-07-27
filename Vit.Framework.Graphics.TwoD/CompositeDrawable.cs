@@ -23,6 +23,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			throw new InvalidOperationException( "A drawable might only have 1 parent" );
 
 		child.SetParent( (ICompositeDrawable<IDrawable>)this );
+		child.SetDepth( internalChildren.Count );
 		internalChildren.Add( child );
 		addChildEventHandlers( child );
 		if ( IsLoaded )
@@ -55,7 +56,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 
 	void sortEventTree ( EventTree<IDrawable> tree ) {
-		tree.Children!.Sort( (a,b) => internalChildren.IndexOf((T)a.Source) - internalChildren.IndexOf((T)b.Source) ); // TODO this can be improved by storing child order in the child
+		tree.Children!.Sort( (a,b) => a.Source.Depth - b.Source.Depth );
 	}
 
 	void addChildEventHandlers ( T child ) {
@@ -79,6 +80,10 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			throw new InvalidOperationException( "A drawable might only have 1 parent" );
 
 		child.SetParent( (ICompositeDrawable<IDrawable>)this );
+		child.SetDepth( index );
+		for ( int i = index; i < internalChildren.Count; i++ ) {
+			internalChildren[i].SetDepth( i + 1 );
+		}
 		internalChildren.Insert( index, child );
 		addChildEventHandlers( child );
 		if ( IsLoaded )
