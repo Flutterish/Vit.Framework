@@ -9,7 +9,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class UIComponent : IUIComponent {
+public abstract class UIComponent : IUIComponent {
 	#region Hierarchy
 	/// <summary>
 	/// Represents the index of this component in its parent (if it has a parent).
@@ -24,6 +24,31 @@ public class UIComponent : IUIComponent {
 		}
 	}
 	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
+	#endregion
+	#region Layout
+	public bool IsLayoutComputed { get; private set; }
+	public void InvalidateLayout ( LayoutInvalidations invalidations ) {
+		if ( !IsLayoutComputed )
+			return;
+
+		IsLayoutComputed = false;
+		OnLayoutInvalidated();
+		Parent?.OnChildLayoutInvalidated( invalidations );
+	}
+
+	protected virtual void OnLayoutInvalidated () { }
+
+	public void ComputeLayout () {
+		if ( IsLayoutComputed )
+			return;
+
+		IsLayoutComputed = true;
+		PerformLayout();
+		if ( !IsLayoutComputed )
+			throw new InvalidOperationException( "Layout was invalidated while being computed. Recusive layout computations should be done internally and not over multiple layout calls" );
+	}
+
+	protected abstract void PerformLayout ();
 	#endregion
 	#region Transforms
 	[MethodImpl( MethodImplOptions.AggressiveInlining )]
@@ -58,15 +83,33 @@ public class UIComponent : IUIComponent {
 	Size2<float> size;
 	public Size2<float> Size {
 		get => size;
-		set => trySet( ref size, value );
+		set {
+			if ( size == value )
+				return;
+
+			size = value;
+			InvalidateLayout( LayoutInvalidations.Size );
+		}
 	}
 	public float Width {
 		get => size.Width;
-		set => trySet( ref size.Width, value );
+		set {
+			if ( size.Width == value )
+				return;
+
+			size.Width = value;
+			InvalidateLayout( LayoutInvalidations.Size );
+		}
 	}
 	public float Height {
 		get => size.Height;
-		set => trySet( ref size.Height, value );
+		set {
+			if ( size.Height == value )
+				return;
+
+			size.Width = value;
+			InvalidateLayout( LayoutInvalidations.Size );
+		}
 	}
 
 	Axes2<float> scale = Axes2<float>.One;
@@ -97,11 +140,16 @@ public class UIComponent : IUIComponent {
 		set => trySet( ref shear.Y, value );
 	}
 
-	protected virtual void OnMatrixInvalidated () {
+	protected virtual bool OnMatrixInvalidated () {
+		if ( unitToLocal == null )
+			return false;
+
 		unitToLocal = null;
 		unitToLocalInverse = null;
 		unitToGlobal = null;
 		unitToGlobalInverse = null;
+
+		return true;
 	}
 	internal void OnParentMatrixInvalidated () {
 		unitToGlobal = null;
@@ -116,19 +164,11 @@ public class UIComponent : IUIComponent {
 
 	Matrix3<float>? unitToLocal;
 	Matrix3<float>? unitToLocalInverse;
-	/// <summary>
-	/// A matrix such that (0,0) is mapped to the bottom left corner,
-	/// and (width,height) is mapped to the top right corner in parent space.
-	/// </summary>
 	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??=
 		Matrix3<float>.CreateScale( scale ) *
 		Matrix3<float>.CreateShear( shear ) *
 		Matrix3<float>.CreateRotation( rotation ) *
 		Matrix3<float>.CreateTranslation( position.FromOrigin() );
-	/// <summary>
-	/// A matrix such that the bottom left corner in parent space is mapped to (0,0)
-	/// and the top right corner in parent space is mapped to (width,height).
-	/// </summary>
 	public Matrix3<float> LocalToUnitMatrix => unitToLocalInverse ??=
 		Matrix3<float>.CreateTranslation( position.ToOrigin() ) *
 		Matrix3<float>.CreateRotation( -rotation ) *
@@ -137,17 +177,9 @@ public class UIComponent : IUIComponent {
 
 	Matrix3<float>? unitToGlobal;
 	Matrix3<float>? unitToGlobalInverse;
-	/// <summary>
-	/// A matrix such that (0,0) is mapped to the bottom left corner,
-	/// and (width,height) is mapped to the top right corner in global space.
-	/// </summary>
 	public Matrix3<float> UnitToGlobalMatrix => unitToGlobal ??= Parent is null
 		? UnitToLocalMatrix
 		: (UnitToLocalMatrix * Parent.UnitToGlobalMatrix);
-	/// <summary>
-	/// A matrix such that the bottom left corner in global space is mapped to (0,0)
-	/// and the top right corner in global space is mapped to (width,height).
-	/// </summary>
 	public Matrix3<float> GlobalToUnitMatrix => unitToGlobalInverse ??= Parent is null
 		? LocalToUnitMatrix
 		: (Parent.GlobalToUnitMatrix * LocalToUnitMatrix);
@@ -264,6 +296,8 @@ public class UIComponent : IUIComponent {
 }
 
 public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IDisposable {
+	void InvalidateLayout ( LayoutInvalidations invalidations );
+
 	/// <summary>
 	/// A matrix such that (0,0) is mapped to the bottom left corner,
 	/// and (width,height) is mapped to the top right corner in parent space.

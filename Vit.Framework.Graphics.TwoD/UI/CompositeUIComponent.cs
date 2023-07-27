@@ -1,10 +1,11 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.ComponentModel;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> where T : UIComponent {
+public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> where T : UIComponent {
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children => internalChildren;
 	public IReadOnlyDependencyCache Dependencies { get; private set; } = null!;
@@ -126,10 +127,23 @@ public class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> whe
 		base.OnDispose();
 	}
 
-	protected override void OnMatrixInvalidated () {
-		base.OnMatrixInvalidated();
+	protected override bool OnMatrixInvalidated () {
+		if ( !base.OnMatrixInvalidated() )
+			return false;
+
 		foreach ( var i in internalChildren ) {
 			i.OnParentMatrixInvalidated();
+		}
+		return true;
+	}
+
+	public virtual void OnChildLayoutInvalidated ( LayoutInvalidations invalidations ) {
+		InvalidateLayout( LayoutInvalidations.Child );
+	}
+
+	protected override void PerformLayout () {
+		foreach ( var i in Children ) {
+			i.ComputeLayout();
 		}
 	}
 
@@ -139,6 +153,8 @@ public class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> whe
 
 public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyCompositeComponent<UIComponent, T> where T : UIComponent {
 	IReadOnlyDependencyCache Dependencies { get; }
+
+	void OnChildLayoutInvalidated ( LayoutInvalidations invalidations );
 
 	new public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
 	new public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildRemoved;
@@ -152,4 +168,11 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 		add => ChildRemoved += value;
 		remove => ChildRemoved -= value;
 	}
+}
+
+[Flags]
+public enum LayoutInvalidations {
+	None = 0,
+	Size = 1,
+	Child = 2
 }
