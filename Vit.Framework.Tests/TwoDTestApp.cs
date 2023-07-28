@@ -40,7 +40,7 @@ public class TwoDTestApp : App {
 	Host host = null!;
 	Window window = null!;
 	DrawableViewportContainer<Drawable> root = null!;
-	DrawNodeRenderer drawableRenderer = null!;
+	DrawNodeRenderer drawNodeRenderer = null!;
 	RenderThreadScheduler disposeScheduler = null!;
 
 	UpdateThread updateThread = null!;
@@ -55,7 +55,7 @@ public class TwoDTestApp : App {
 				Position = (-1, -1)
 			};
 
-			drawableRenderer = new( root );
+			drawNodeRenderer = new( root );
 
 			DependencyCache deps = new();
 
@@ -124,8 +124,8 @@ public class TwoDTestApp : App {
 
 			root.TryLoad( deps );
 
-			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawableRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
-			ThreadRunner.RegisterThread( new RenderThread( drawableRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
+			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawNodeRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
+			ThreadRunner.RegisterThread( new RenderThread( drawNodeRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
 		};
 
 		window.Closed += _ => {
@@ -138,14 +138,14 @@ public class TwoDTestApp : App {
 	}
 
 	public class RenderThread : AppThread {
-		DrawNodeRenderer drawableRenderer;
+		DrawNodeRenderer drawNodeRenderer;
 		RenderThreadScheduler disposeScheduler;
 		GraphicsApi api;
 		Window window;
-		public RenderThread ( DrawNodeRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+		public RenderThread ( DrawNodeRenderer drawNodeRenderer, Host host, Window window, GraphicsApiType api, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 			this.window = window;
-			this.drawableRenderer = drawableRenderer;
+			this.drawNodeRenderer = drawNodeRenderer;
 			this.disposeScheduler = disposeScheduler;
 
 			window.Resized += onWindowResized;
@@ -163,8 +163,8 @@ public class TwoDTestApp : App {
 			globalUniformBuffer = renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
-			shaderStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<ShaderStore>();
-			textureStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<TextureStore>();
+			shaderStore = ((ICompositeDrawable<Drawable>)drawNodeRenderer.Root).Dependencies.Resolve<ShaderStore>();
+			textureStore = ((ICompositeDrawable<Drawable>)drawNodeRenderer.Root).Dependencies.Resolve<TextureStore>();
 			var basic = shaderStore.GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 
 			shaderStore.CompileNew( renderer );
@@ -204,7 +204,7 @@ public class TwoDTestApp : App {
 				commands.SetViewport( frame.Size );
 				commands.SetScissors( frame.Size );
 
-				drawableRenderer.Draw( commands, disposeScheduler.Execute );
+				drawNodeRenderer.Draw( commands, disposeScheduler.Execute );
 			}
 			swapchain.Present( index );
 		}
@@ -229,17 +229,17 @@ public class TwoDTestApp : App {
 		UIEventSource uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
-		DrawNodeRenderer drawableRenderer;
+		DrawNodeRenderer drawNodeRenderer;
 		RenderThreadScheduler disposeScheduler;
 		Window window;
 		public readonly ConcurrentQueue<Action> Scheduler = new();
-		public UpdateThread ( DrawNodeRenderer drawableRenderer, Window window, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
-			this.drawableRenderer = drawableRenderer;
+		public UpdateThread ( DrawNodeRenderer drawNodeRenderer, Window window, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+			this.drawNodeRenderer = drawNodeRenderer;
 			this.disposeScheduler = disposeScheduler;
 			this.window = window;
 
-			uiEventSource = new() { Root = drawableRenderer.TemporarayDrawableRoot };
-			globalInputTrackers = new() { Root = drawableRenderer.TemporarayDrawableRoot };
+			uiEventSource = new() { Root = drawNodeRenderer.TemporarayDrawableRoot };
+			globalInputTrackers = new() { Root = drawNodeRenderer.TemporarayDrawableRoot };
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
@@ -247,7 +247,7 @@ public class TwoDTestApp : App {
 				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
-			((DrawableViewportContainer<Drawable>)drawableRenderer.Root).AddChild( cursor );
+			((DrawableViewportContainer<Drawable>)drawNodeRenderer.Root).AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
 				var translated = uiEventSource.TriggerEvent( e );
@@ -278,11 +278,11 @@ public class TwoDTestApp : App {
 				action();
 			}
 
-			var root = (DrawableViewportContainer<Drawable>)drawableRenderer.TemporarayDrawableRoot;
+			var root = (DrawableViewportContainer<Drawable>)drawNodeRenderer.TemporarayDrawableRoot;
 			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			var pos = drawableRenderer.TemporarayDrawableRoot.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			var pos = drawNodeRenderer.TemporarayDrawableRoot.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			cursor.Position = pos - new Vector2<float>( 9f );
 			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
@@ -294,9 +294,9 @@ public class TwoDTestApp : App {
 				i.Size = root.ContentSize;
 			}
 
-			drawableRenderer.TemporarayDrawableRoot.Update();
+			drawNodeRenderer.TemporarayDrawableRoot.Update();
 
-			drawableRenderer.CollectDrawData( disposeScheduler.Swap );
+			drawNodeRenderer.CollectDrawData( disposeScheduler.Swap );
 		}
 	}
 }
