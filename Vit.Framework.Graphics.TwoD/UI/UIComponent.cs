@@ -164,16 +164,21 @@ public abstract class UIComponent : IUIComponent {
 
 	Matrix3<float>? unitToLocal;
 	Matrix3<float>? unitToLocalInverse;
-	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??=
-		Matrix3<float>.CreateScale( scale ) *
-		Matrix3<float>.CreateShear( shear ) *
-		Matrix3<float>.CreateRotation( rotation ) *
-		Matrix3<float>.CreateTranslation( position.FromOrigin() );
-	public Matrix3<float> LocalToUnitMatrix => unitToLocalInverse ??=
-		Matrix3<float>.CreateTranslation( position.ToOrigin() ) *
-		Matrix3<float>.CreateRotation( -rotation ) *
-		Matrix3<float>.CreateShear( -shear ) *
-		Matrix3<float>.CreateScale( 1 / scale.X, 1 / scale.Y );
+	public Matrix3<float> UnitToLocalMatrix => unitToLocal ??= ComputeUnitToLocalMatrix();
+	public Matrix3<float> LocalToUnitMatrix => unitToLocalInverse ??= ComputeLocalToUnitMatrix();
+
+	protected virtual Matrix3<float> ComputeUnitToLocalMatrix () {
+		return Matrix3<float>.CreateScale( scale ) *
+			Matrix3<float>.CreateShear( shear ) *
+			Matrix3<float>.CreateRotation( rotation ) *
+			Matrix3<float>.CreateTranslation( position.FromOrigin() );
+	}
+	protected virtual Matrix3<float> ComputeLocalToUnitMatrix () {
+		return Matrix3<float>.CreateTranslation( position.ToOrigin() ) *
+			Matrix3<float>.CreateRotation( -rotation ) *
+			Matrix3<float>.CreateShear( -shear ) *
+			Matrix3<float>.CreateScale( 1 / scale.X, 1 / scale.Y );
+	}
 
 	Matrix3<float>? unitToGlobal;
 	Matrix3<float>? unitToGlobalInverse;
@@ -206,6 +211,7 @@ public abstract class UIComponent : IUIComponent {
 	}
 	protected virtual void OnUnload () { }
 
+	public abstract Drawable.DrawNode GetDrawNode ( int subtreeIndex );
 	public static implicit operator UIComponent ( Drawable drawable )
 		=> new Visual<Drawable> { Displayed = drawable };
 
