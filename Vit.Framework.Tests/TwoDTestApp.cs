@@ -14,6 +14,7 @@ using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -109,7 +110,16 @@ public class TwoDTestApp : App {
 				Scale = (1920, 1080),
 				Tint = ColorRgba.DarkGray
 			} );
-			root.AddChild( (Drawable)Activator.CreateInstance( type )! );
+			var instance = Activator.CreateInstance( type );
+			if ( instance is Drawable drawable ) {
+				root.AddChild( drawable );
+			}
+			else if ( instance is UIComponent component ) {
+				root.AddChild( component );
+			}
+			else {
+				throw new InvalidOperationException( "the test type is funky" );
+			}
 
 			root.TryLoad( deps );
 

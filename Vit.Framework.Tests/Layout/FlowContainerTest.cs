@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Layout;
+using Vit.Framework.Graphics.TwoD.UI.Layout;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.Layout;

@@ -9,7 +9,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children {
 		get => internalChildren;
-		set {
+		protected set {
 			ClearInternalChildren( dispose: true );
 			foreach ( var i in value )
 				AddInternalChild( i );
@@ -79,6 +79,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerAdded( type, tree );
 		}
 		ChildAdded?.Invoke( this, child );
+		InvalidateLayout( LayoutInvalidations.Child );
 		invalidateDrawNodes();
 	}
 
@@ -89,6 +90,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerRemoved( type, tree );
 		}
 		ChildRemoved?.Invoke( this, child );
+		InvalidateLayout( LayoutInvalidations.Child );
 		invalidateDrawNodes();
 	}
 
@@ -215,5 +217,6 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 public enum LayoutInvalidations {
 	None = 0,
 	Size = 1,
-	Child = 2
+	Child = 2,
+	Parameters = 4
 }

@@ -19,7 +19,7 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 	}
 	protected void AddInternalChild ( T child ) {
 		if ( child.Parent != null )
-			throw new InvalidOperationException( "A drawable might only have 1 parent" );
+			throw new InvalidOperationException( "A drawable may only have 1 parent" );
 
 		child.SetParent( (ICompositeDrawable<IDrawable>)this );
 		child.SetDepth( internalChildren.Count );

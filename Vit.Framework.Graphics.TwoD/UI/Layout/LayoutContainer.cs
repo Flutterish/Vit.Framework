@@ -1,11 +1,10 @@
 ﻿using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.Graphics.TwoD.Containers;
+namespace Vit.Framework.Graphics.TwoD.UI.Layout;
 
-public class DrawableLayoutContainer : DrawableLayoutContainer<IDrawableLayoutElement> { }
-public class DrawableLayoutContainer<T> : DrawableLayoutContainer<T, LayoutParams> where T : IDrawableLayoutElement {
+public class LayoutContainer : LayoutContainer<UIComponent> { }
+public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> where T : UIComponent {
 	protected override void PerformLayout () {
 		var size = ContentSize;
 		var offset = new Vector2<float>( Padding.Left, Padding.Bottom );
@@ -18,9 +17,11 @@ public class DrawableLayoutContainer<T> : DrawableLayoutContainer<T, LayoutParam
 
 			i.Position = (anchor - origin + offset).FromOrigin();
 		}
+
+		base.PerformLayout();
 	}
 
-	protected override Size2<float> PerformAbsoluteLayout () {
+	protected override Size2<float> ComputeRequiredSize () {
 		if ( AutoSizeDirection == LayoutDirection.None )
 			return new Size2<float>( Padding.Horizontal, Padding.Vertical );
 
@@ -48,4 +49,19 @@ public class DrawableLayoutContainer<T> : DrawableLayoutContainer<T, LayoutParam
 			Height = result.Height + Padding.Vertical
 		};
 	}
+}
+
+public struct LayoutParams {
+	/// <summary>
+	/// Size of the element.
+	/// </summary>
+	public RelativeSize2<float> Size;
+	/// <summary>
+	/// Point on the element which will be placed on <see cref="Anchor"/>.
+	/// </summary>
+	public RelativeAxes2<float> Origin;
+	/// <summary>
+	/// Point on the parent on which <see cref="Origin"/> will be placed.
+	/// </summary>
+	public RelativeAxes2<float> Anchor;
 }

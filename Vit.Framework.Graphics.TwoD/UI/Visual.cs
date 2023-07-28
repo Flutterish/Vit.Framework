@@ -26,7 +26,7 @@ public class Visual<T> : UIComponent where T : IDrawable {
 		Displayed.TryLoad( dependencies );
 	}
 	protected override void OnUnload () {
-		throw new NotImplementedException();
+		
 	}
 
 	protected override void OnDispose () {

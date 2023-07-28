@@ -1,20 +1,20 @@
-﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.Containers;
+﻿using Vit.Framework.Graphics.TwoD;
+using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD.Layout;
+using Vit.Framework.Graphics.TwoD.UI.Layout;
 
-namespace Vit.Framework.Tests.Layout;
-
-public class LayoutContainerTest : DrawableLayoutContainer<IDrawableLayoutElement> {
+namespace Vit.Framework.Tests.UI;
+public class LayoutContainerTest : LayoutContainer {
 	public LayoutContainerTest () {
 		Padding = new( 100 );
+		AutoSizeDirection = LayoutDirection.Both;
 
 		AddChild( new Sprite { Tint = ColorRgba.Green }, new() {
-			Size = new(1f.Relative(), 1f.Relative())
+			Size = new( 1f.Relative(), 1f.Relative() )
 		} );
 
 		AddChild( new Sprite { Tint = ColorRgba.HotPink }, new() {
-			Size = new(100, 100),
+			Size = new( 100, 100 ),
 			Origin = Anchor.BottomLeft,
 			Anchor = Anchor.BottomLeft
 		} );

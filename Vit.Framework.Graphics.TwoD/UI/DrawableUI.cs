@@ -1,14 +1,22 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class DrawableUI : Drawable {
+public class DrawableUI : Drawable, IDrawableLayoutElement {
 	RootUIComponent root;
 	public DrawableUI ( UIComponent root ) {
 		this.root = new( this, root );
 	}
+
+	public Size2<float> Size { 
+		get => root.Child.Size; 
+		set => root.Child.Size = value; 
+	}
+	public Size2<float> RequiredSize => root.Child.RequiredSize;
 
 	protected override void OnMatrixInvalidated () {
 		base.OnMatrixInvalidated();

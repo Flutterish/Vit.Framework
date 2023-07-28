@@ -11,6 +11,8 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.TwoD.UI;
 
 public abstract class UIComponent : IUIComponent {
+	public static implicit operator UIComponent ( Drawable drawable )
+		=> new Visual { Displayed = drawable };
 	public static implicit operator Drawable ( UIComponent component )
 		=> new DrawableUI( component );
 
@@ -32,6 +34,12 @@ public abstract class UIComponent : IUIComponent {
 	#region Layout
 	public bool IsLayoutComputed { get; private set; }
 	public void InvalidateLayout ( LayoutInvalidations invalidations ) {
+		if ( IsComputingLayout ) {
+			if ( invalidations == LayoutInvalidations.Child )
+				return;
+			throw new InvalidOperationException( "Layout was invalidated while being computed. Recusive layout computations should be done internally and not over multiple layout calls" );
+		}
+
 		if ( !IsLayoutComputed )
 			return;
 
@@ -40,16 +48,25 @@ public abstract class UIComponent : IUIComponent {
 		Parent?.OnChildLayoutInvalidated( invalidations );
 	}
 
-	protected virtual void OnLayoutInvalidated () { }
+	Size2<float>? requiredSize;
+	/// <summary>
+	/// Size required to contain this component, by an arbitrary metric depending on the type of component.
+	/// </summary>
+	public Size2<float> RequiredSize => requiredSize ??= ComputeRequiredSize();
+	protected virtual Size2<float> ComputeRequiredSize () => Size2<float>.Zero;
+	protected virtual void OnLayoutInvalidated () {
+		requiredSize = null;
+	}
 
+	public bool IsComputingLayout;
 	public void ComputeLayout () {
 		if ( IsLayoutComputed )
 			return;
 
+		IsComputingLayout = true;
 		IsLayoutComputed = true;
 		PerformLayout();
-		if ( !IsLayoutComputed )
-			throw new InvalidOperationException( "Layout was invalidated while being computed. Recusive layout computations should be done internally and not over multiple layout calls" );
+		IsComputingLayout = false;
 	}
 
 	protected abstract void PerformLayout ();
@@ -85,6 +102,9 @@ public abstract class UIComponent : IUIComponent {
 	}
 
 	Size2<float> size;
+	/// <summary>
+	/// Size allocated to the layout of this component.
+	/// </summary>
 	public Size2<float> Size {
 		get => size;
 		set {
@@ -222,8 +242,6 @@ public abstract class UIComponent : IUIComponent {
 
 	public abstract DrawNode GetDrawNode ( int subtreeIndex );
 	public abstract void DisposeDrawNodes ();
-	public static implicit operator UIComponent ( Drawable drawable )
-		=> new Visual<Drawable> { Displayed = drawable };
 
 	public bool IsDisposed { get; private set; }
 	public void Dispose () {
