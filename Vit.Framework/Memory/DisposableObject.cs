@@ -7,7 +7,7 @@ public abstract class DisposableObject : IDisposable {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	protected virtual string IncorrectDisposalMessage => $"{GetType().Name} was not disposed correctly (collected by GC)";
 	protected abstract void Dispose ( bool disposing );
-
+	
 	~DisposableObject () {
 		if ( Debugger.IsAttached )
 			throw new InvalidOperationException( IncorrectDisposalMessage );

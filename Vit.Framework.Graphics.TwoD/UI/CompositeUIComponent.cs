@@ -1,12 +1,20 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> where T : UIComponent {
+public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T>, IHasCompositeDrawNodes<DrawNode> where T : UIComponent {
 	List<T> internalChildren = new();
-	public IReadOnlyList<T> Children => internalChildren;
+	public IReadOnlyList<T> Children {
+		get => internalChildren;
+		set {
+			ClearInternalChildren( dispose: true );
+			foreach ( var i in value )
+				AddInternalChild( i );
+		}
+	}
 	public IReadOnlyDependencyCache Dependencies { get; private set; } = null!;
 
 	protected void AddInternalChild ( T child ) {
@@ -71,6 +79,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerAdded( type, tree );
 		}
 		ChildAdded?.Invoke( this, child );
+		invalidateDrawNodes();
 	}
 
 	void onChildRemoved ( T child ) {
@@ -80,6 +89,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerRemoved( type, tree );
 		}
 		ChildRemoved?.Invoke( this, child );
+		invalidateDrawNodes();
 	}
 
 	void onChildEventHandlerRemoved ( Type type, EventTree<UIComponent> tree ) {
@@ -126,14 +136,10 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		base.OnDispose();
 	}
 
-	protected override bool OnMatrixInvalidated () {
-		if ( !base.OnMatrixInvalidated() )
-			return false;
-
+	protected override void OnMatrixInvalidated () {
 		foreach ( var i in internalChildren ) {
 			i.OnParentMatrixInvalidated();
 		}
-		return true;
 	}
 
 	public virtual void OnChildLayoutInvalidated ( LayoutInvalidations invalidations ) {
@@ -148,12 +154,38 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 
 	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
 	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildRemoved;
+
+	void invalidateDrawNodes () {
+		if ( drawNodeInvalidations.InvalidateDrawNodes() )
+			Parent?.OnChildDrawNodesInvalidated();
+	}
+	public void OnChildDrawNodesInvalidated () {
+		invalidateDrawNodes();
+	}
+	DrawNodeInvalidations drawNodeInvalidations;
+	DrawNode?[] drawNodes = new DrawNode?[3];
+	public override Rendering.DrawNode GetDrawNode ( int subtreeIndex ) {
+		var node = drawNodes[subtreeIndex] ??= new DrawNode( this, subtreeIndex );
+		node.Update();
+		return node;
+	}
+
+	public class DrawNode : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode> {
+		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+
+		protected override bool ValidateChildList () {
+			return Source.drawNodeInvalidations.ValidateDrawNode( SubtreeIndex );
+		}
+	}
+
+	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => internalChildren;
 }
 
 public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyCompositeComponent<UIComponent, T> where T : UIComponent {
 	IReadOnlyDependencyCache Dependencies { get; }
 
 	void OnChildLayoutInvalidated ( LayoutInvalidations invalidations );
+	void OnChildDrawNodesInvalidated ();
 
 	new public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
 	new public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildRemoved;

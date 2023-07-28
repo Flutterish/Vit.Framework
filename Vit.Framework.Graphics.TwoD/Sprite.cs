@@ -74,7 +74,7 @@ public class Sprite : Drawable, IDrawableLayoutElement, IEventHandler<HoveredEve
 		return new DrawNode( this, subtreeIndex );
 	}
 
-	new public class DrawNode : BasicDrawNode<Sprite> {
+	public class DrawNode : BasicDrawNode<Sprite> {
 		public DrawNode ( Sprite source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		ColorRgba<float> tint;

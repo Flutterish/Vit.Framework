@@ -8,7 +8,7 @@ public class DrawableRenderer {
 	TripleBuffer drawNodeSwapchain = new();
 	public readonly Drawable Root;
 
-	Drawable.DrawNode[] drawNodes = new Drawable.DrawNode[3];
+	DrawNode[] drawNodes = new DrawNode[3];
 	public DrawableRenderer ( Drawable root ) {
 		Root = root;
 	}

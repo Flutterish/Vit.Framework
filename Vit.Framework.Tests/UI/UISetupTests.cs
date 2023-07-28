@@ -1,25 +1,32 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.UI;
-using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.UI;
 
-public class UISetupTests : CompositeDrawable<IDrawable> {
-	Visual root;
+public class UISetupTests : CompositeDrawable<Drawable> {
 	public UISetupTests () {
-		AddInternalChild( new DrawableUI( root = new Sprite { Tint = ColorRgba.HotPink } ) );
-
-		root.Size = new( 100 );
-		root.Position = new( 10 );
+		AddInternalChild( new UITest() );
 	}
 
-	DateTime startTime = DateTime.Now;
 	public override void Update () {
-		var t = ((float)(DateTime.Now - startTime).TotalSeconds).Radians();
-		var s = (Radians<float>.Cos( t ) + 1) / 2;
-		root.Size = new( 100 + s * 1 );
-
 		base.Update();
+	}
+
+	class UITest : CompositeUIComponent<UIComponent> {
+		public UITest () {
+			Children = new UIComponent[] {
+				new Visual { 
+					Displayed = new Sprite { Tint = ColorRgba.HotPink },
+					Position = new( 10 ),
+					Size = new( 100 )
+				},
+				new Visual {
+					Displayed = new Sprite { Tint = ColorRgba.Violet },
+					Position = new( 110 ),
+					Size = new( 60 )
+				}
+			};
+		}
 	}
 }

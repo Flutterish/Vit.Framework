@@ -194,17 +194,16 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		}
 	}
 
-	protected override Drawable.DrawNode CreateDrawNode ( int subtreeIndex ) {
+	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 
-	new public class DrawNode : Drawable.DrawNode {
-		new protected CompositeDrawable<T> Source => (CompositeDrawable<T>)base.Source;
+	public class DrawNode : DrawableDrawNode<CompositeDrawable<T>> {
 		public DrawNode ( CompositeDrawable<T> source, int subtreeIndex ) : base( source, subtreeIndex ) {
 			ChildNodes = new( source.internalChildren.Count );
 		}
 
-		protected RentedArray<Drawable.DrawNode> ChildNodes;
+		protected RentedArray<Rendering.DrawNode> ChildNodes;
 		protected override void UpdateState () {
 			var count = Source.internalChildren.Count;
 			ChildNodes.Clear();

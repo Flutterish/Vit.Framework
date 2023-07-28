@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
@@ -44,7 +45,7 @@ public class DrawableUI : Drawable {
 		public UIComponent Child { get; init; }
 
 		public void InvalidateMatrix () {
-			OnMatrixInvalidated();
+			OnLocalMatrixInvalidated();
 		}
 
 		protected override Matrix3<float> ComputeLocalToUnitMatrix () {
@@ -52,10 +53,6 @@ public class DrawableUI : Drawable {
 		}
 		protected override Matrix3<float> ComputeUnitToLocalMatrix () {
 			return Source.UnitToGlobalMatrix;
-		}
-
-		public override DrawNode GetDrawNode ( int subtreeIndex ) {
-			return Child.GetDrawNode( subtreeIndex );
 		}
 	}
 }

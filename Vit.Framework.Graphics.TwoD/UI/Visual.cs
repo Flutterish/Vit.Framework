@@ -1,23 +1,15 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class Visual : Visual<IDrawable> {
-	public static implicit operator Visual ( Drawable drawable )
-		=> new Visual { Displayed = drawable };
-}
+public class Visual : Visual<IDrawable> { }
 public class Visual<T> : UIComponent where T : IDrawable {
-	public static implicit operator Visual<T> ( T drawable )
-		=> new Visual<T> { Displayed = drawable };
 	public required T Displayed { get; init; }
 
-	protected override bool OnMatrixInvalidated () {
-		if ( !base.OnMatrixInvalidated() )
-			return false;
-
+	protected override void OnMatrixInvalidated () {
 		InvalidateLayout( LayoutInvalidations.Child );
-		return true;
 	}
 
 	protected override void PerformLayout () {
@@ -26,6 +18,8 @@ public class Visual<T> : UIComponent where T : IDrawable {
 
 		Displayed.Position = globalPosition;
 		Displayed.Scale = new( globalSize.X, globalSize.Y );
+
+		Parent?.OnChildDrawNodesInvalidated();
 	}
 
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
@@ -36,7 +30,7 @@ public class Visual<T> : UIComponent where T : IDrawable {
 		Displayed.Dispose();
 	}
 
-	public override Drawable.DrawNode GetDrawNode ( int subtreeIndex ) {
+	public override DrawNode GetDrawNode ( int subtreeIndex ) {
 		return Displayed.GetDrawNode( subtreeIndex );
 	}
 }

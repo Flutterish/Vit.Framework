@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -10,6 +11,9 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.TwoD.UI;
 
 public abstract class UIComponent : IUIComponent {
+	public static implicit operator Drawable ( UIComponent component )
+		=> new DrawableUI( component );
+
 	#region Hierarchy
 	/// <summary>
 	/// Represents the index of this component in its parent (if it has a parent).
@@ -57,7 +61,7 @@ public abstract class UIComponent : IUIComponent {
 			return;
 
 		field = value;
-		OnMatrixInvalidated();
+		OnLocalMatrixInvalidated();
 	}
 
 	Point2<float> position;
@@ -140,20 +144,25 @@ public abstract class UIComponent : IUIComponent {
 		set => trySet( ref shear.Y, value );
 	}
 
-	protected virtual bool OnMatrixInvalidated () {
-		if ( unitToLocal == null )
-			return false;
-
+	protected void OnLocalMatrixInvalidated () {
 		unitToLocal = null;
 		unitToLocalInverse = null;
-		unitToGlobal = null;
-		unitToGlobalInverse = null;
 
-		return true;
-	}
-	internal void OnParentMatrixInvalidated () {
+		if ( unitToGlobal == null && unitToGlobalInverse == null )
+			return;
+
 		unitToGlobal = null;
 		unitToGlobalInverse = null;
+		OnMatrixInvalidated();
+	}
+	protected virtual void OnMatrixInvalidated () { }
+	internal void OnParentMatrixInvalidated () {
+		if ( unitToGlobal == null && unitToGlobalInverse == null )
+			return;
+
+		unitToGlobal = null;
+		unitToGlobalInverse = null;
+		OnMatrixInvalidated();
 	}
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
@@ -211,7 +220,7 @@ public abstract class UIComponent : IUIComponent {
 	}
 	protected virtual void OnUnload () { }
 
-	public abstract Drawable.DrawNode GetDrawNode ( int subtreeIndex );
+	public abstract DrawNode GetDrawNode ( int subtreeIndex );
 	public static implicit operator UIComponent ( Drawable drawable )
 		=> new Visual<Drawable> { Displayed = drawable };
 
@@ -301,7 +310,7 @@ public abstract class UIComponent : IUIComponent {
 	#endregion
 }
 
-public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IDisposable {
+public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, IDisposable {
 	void InvalidateLayout ( LayoutInvalidations invalidations );
 
 	/// <summary>

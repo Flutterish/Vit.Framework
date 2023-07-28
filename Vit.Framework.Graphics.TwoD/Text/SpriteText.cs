@@ -56,7 +56,7 @@ public class SpriteText : Drawable, IDrawableLayoutElement { // TODO this is a s
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
-	new public class DrawNode : BasicDrawNode<SpriteText> {
+	public class DrawNode : BasicDrawNode<SpriteText> {
 		public DrawNode ( SpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		Shader shader = null!;

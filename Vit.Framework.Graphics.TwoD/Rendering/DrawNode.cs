@@ -1,102 +1,152 @@
 ﻿using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Graphics.TwoD;
+namespace Vit.Framework.Graphics.TwoD.Rendering;
 
-public partial class Drawable {
-	protected void InvalidateDrawNodes () {
-		if ( drawNodeInvalidations == 0b_111 )
+/// <summary>
+/// Stores bitfield flags for 2 sets of 3 draw node invalidations. When zero-initialized, it represents all draw nodes being invalidated.
+/// </summary>
+public struct DrawNodeInvalidations {
+	byte validationBitField;
+
+	/// <summary>
+	/// Invalidates all draw nodes.
+	/// </summary>
+	/// <returns><see langword="true"/> if any draw node was invalidated, <see langword="false"/> otherwise.</returns>
+	public bool InvalidateDrawNodes () {
+		if ( validationBitField == 0b_000_000 )
+			return false;
+
+		validationBitField = 0b_000_000;
+		return true;
+	}
+
+	/// <summary>
+	/// Performs <see cref="InvalidateDrawNodes"/> on just the first invalidation set.
+	/// </summary>
+	public bool InvalidateFirstSet () {
+		if ( (validationBitField & 0b000_111) == 0b_000_000 )
+			return false;
+
+		validationBitField &= 0b_111_000;
+		return true;
+	}
+
+	/// <summary>
+	/// Performs <see cref="InvalidateDrawNodes"/> on just the second invalidation set.
+	/// </summary>
+	public bool InvalidateSecondSet () {
+		if ( (validationBitField & 0b111_000) == 0b_000_000 )
+			return false;
+
+		validationBitField &= 0b_000_111;
+		return true;
+	}
+
+	/// <summary>
+	/// Validates a draw node at a given subtree index. Add 3 to access the second invalidation set.
+	/// </summary>
+	/// <param name="index">The index of the draw node to validate.</param>
+	/// <returns><see langword="true"/> if the node was validated, <see langword="false"/> if it was already valid.</returns>
+	public bool ValidateDrawNode ( int index ) {
+		var mask = 1 << index;
+		if ( (validationBitField & mask) != 0 )
+			return false;
+
+		validationBitField |= (byte)mask;
+		return true;
+	}
+}
+
+public abstract class DrawNode : DisposableObject {
+	protected readonly int SubtreeIndex;
+	protected DrawNode ( int subtreeIndex ) {
+		SubtreeIndex = subtreeIndex;
+	}
+
+	/// <summary>
+	/// [Update Thread] <br/>
+	/// Sets the parameters required to draw this draw node if it is invalidated, and validates it. The parameters set here <strong>*can not*</strong> be mutated outside this method.
+	/// </summary>
+	/// <remarks>
+	/// It is recommeded to use <see cref="DrawNodeInvalidations"/>.
+	/// </remarks>
+	public abstract void Update ();
+
+	/// <summary>
+	/// [Draw Thread] <br/>
+	/// Creates required resources and draws the element represented by this draw node.
+	/// </summary>
+	public abstract void Draw ( ICommandBuffer commands );
+
+	/// <summary>
+	/// [Draw Thread] <br/>
+	/// Releases any created resources. This might be called because:
+	/// <list type="number">
+	///		<item>The draw node is being disposed.</item>
+	///		<item>The renderer will be changed.</item>
+	///		<item>The draw node is in an incative branch of the draw tree.</item>
+	/// </list>
+	/// </summary>
+	/// <param name="willBeReused">Whether this draw node will be used again. If <see langword="false"/>, the draw node is allowed to enter invalid state.</param>
+	public abstract void ReleaseResources ( bool willBeReused );
+	protected sealed override void Dispose ( bool disposing ) {
+		ReleaseResources( willBeReused: false );
+	}
+}
+
+public interface IHasDrawNodes<out T> where T : DrawNode {
+	/// <summary>
+	/// [Update Thread] <br/>
+	/// Retreives and updates (via <see cref="DrawNode.Update"/>) the draw node at a given subtree index.
+	/// </summary>
+	/// <param name="subtreeIndex">The subtree index. Can be 0, 1 or 2 as draw node trees are stored in a triple buffer.</param>
+	/// <returns>The up-to-date draw node at the given subtree index.</returns>
+	T GetDrawNode ( int subtreeIndex );
+}
+
+public interface IHasCompositeDrawNodes<out T> where T : DrawNode {
+	IReadOnlyList<IHasDrawNodes<T>> CompositeDrawNodeSources { get; }
+}
+
+public abstract class CompositeDrawNode<TSource, TNode> : DrawNode where TSource : IHasCompositeDrawNodes<TNode> where TNode : DrawNode {
+	protected readonly TSource Source;
+	public CompositeDrawNode ( TSource source, int subtreeIndex ) : base( subtreeIndex ) {
+		Source = source;
+		ChildNodes = new( source.CompositeDrawNodeSources.Count );
+	}
+
+	/// <summary>
+	/// Validates the child list invalidation.
+	/// </summary>
+	/// <returns><see langword="true"/> if the child list should be updated, <see langword="false"/> otherwise.</returns>
+	protected abstract bool ValidateChildList ();
+
+	protected RentedArray<TNode> ChildNodes;
+	public override void Update () {
+		if ( !ValidateChildList() )
 			return;
-		
-		drawNodeInvalidations = 0b_111;
-		if ( Parent != null ) {
-			((Drawable)Parent).InvalidateDrawNodes();
-		}
-	}
-	private byte drawNodeInvalidations = 0b_111;
 
-	public abstract class DrawNode : DisposableObject {
-		protected readonly Drawable Source;
-		protected readonly int SubtreeIndex;
-		protected DrawNode ( Drawable source, int subtreeIndex ) {
-			Source = source;
-			SubtreeIndex = subtreeIndex;
-		}
-
-		/// <summary>
-		/// [Update Thread] <br/>
-		/// Sets the parameters required to draw this draw node if it is invalidated.
-		/// </summary>
-		public void Update () {
-			if ( (Source.drawNodeInvalidations & (1 << SubtreeIndex)) == 0 )
-				return;
-
-			Source.drawNodeInvalidations &= (byte)(~(1 << SubtreeIndex));
-			UpdateState();
-		}
-
-		/// <summary>
-		/// [Update Thread] <br/>
-		/// Sets the parameters required to draw this draw node. They <strong>*can not*</strong> be mutated outside this method.
-		/// </summary>
-		protected abstract void UpdateState ();
-
-		/// <summary>
-		/// [Draw Thread] <br/>
-		/// Creates required resources and draws the element represented by this draw node.
-		/// </summary>
-		public abstract void Draw ( ICommandBuffer commands );
-
-		/// <summary>
-		/// [Draw Thread] <br/>
-		/// Releases any created resources. This might be called because:
-		/// <list type="number">
-		///		<item>The draw node is being disposed.</item>
-		///		<item>The renderer will be changed.</item>
-		///		<item>The draw node is in an incative branch of the draw tree.</item>
-		/// </list>
-		/// </summary>
-		/// <param name="willBeReused">Whether this draw node will be used again. If <see langword="false"/>, the draw node is allowed to enter invalid state.</param>
-		public abstract void ReleaseResources ( bool willBeReused );
-		protected sealed override void Dispose ( bool disposing ) {
-			ReleaseResources( willBeReused: false );
+		var count = Source.CompositeDrawNodeSources.Count;
+		ChildNodes.Clear();
+		ChildNodes.ReallocateStorage( count );
+		for ( int i = 0; i < count; i++ ) {
+			ChildNodes[i] = Source.CompositeDrawNodeSources[i].GetDrawNode( SubtreeIndex );
 		}
 	}
 
-	public abstract class BasicDrawNode<T> : DrawNode where T : Drawable {
-		new protected T Source => (T)base.Source;
-		protected Matrix3<float> UnitToGlobalMatrix;
-		protected BasicDrawNode ( T source, int subtreeIndex ) : base( source, subtreeIndex ) { }
-
-		protected override void UpdateState () {
-			UnitToGlobalMatrix = Source.UnitToGlobalMatrix;
+	public override void Draw ( ICommandBuffer commands ) {
+		foreach ( var i in ChildNodes.AsSpan() ) {
+			i.Draw( commands );
 		}
 	}
 
-	public class RenderThreadScheduler {
-		Stack<Drawable> swapTree = new();
-		Stack<Drawable>?[] disposeTree = new Stack<Drawable>?[3];
+	public override void ReleaseResources ( bool willBeReused ) {
+		if ( willBeReused )
+			return;
 
-		public void ScheduleDisposal ( Drawable drawable ) {
-			swapTree.Push( drawable );
-		}
-
-		public void Swap ( int index ) {
-			(swapTree, disposeTree[index]) = (disposeTree[index] ?? new(), swapTree);
-		}
-
-		public void Execute ( int index ) {
-			for ( int i = 0; i < disposeTree.Length; i++ ) {
-				if ( i == index || disposeTree[i] is not Stack<Drawable> stack )
-					continue;
-
-				while ( stack.TryPop( out var drawable ) ) {
-					foreach ( var node in drawable.drawNodes ) {
-						node?.Dispose();
-					}
-				}
-			}
-		}
+		ChildNodes.Clear();
+		ChildNodes.Dispose();
 	}
 }

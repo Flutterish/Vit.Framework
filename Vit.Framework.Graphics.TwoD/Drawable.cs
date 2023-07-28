@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -230,5 +231,5 @@ public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasEventTr
 
 	void Update ();
 
-	Drawable.DrawNode GetDrawNode ( int subtreeIndex );
+	DrawNode GetDrawNode ( int subtreeIndex );
 }
