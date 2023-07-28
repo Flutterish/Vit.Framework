@@ -39,7 +39,7 @@ public class TwoDTestApp : App {
 
 	Host host = null!;
 	Window window = null!;
-	DrawableViewportContainer<Drawable> root = null!;
+	ViewportContainer<UIComponent> root = null!;
 	DrawNodeRenderer drawNodeRenderer = null!;
 	RenderThreadScheduler disposeScheduler = null!;
 
@@ -122,7 +122,7 @@ public class TwoDTestApp : App {
 				throw new InvalidOperationException( "the test type is funky" );
 			}
 
-			root.TryLoad( deps );
+			root.Load( deps );
 
 			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawNodeRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
 			ThreadRunner.RegisterThread( new RenderThread( drawNodeRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
@@ -130,7 +130,7 @@ public class TwoDTestApp : App {
 
 		window.Closed += _ => {
 			updateThread.Scheduler.Enqueue( () => {
-				root?.DisposeChildren();
+				root?.ClearChildren( dispose: true );
 				root?.Dispose();
 			} );
 			Task.Delay( 1000 ).ContinueWith( _ => Quit() );
@@ -163,8 +163,9 @@ public class TwoDTestApp : App {
 			globalUniformBuffer = renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
-			shaderStore = ((ICompositeDrawable<Drawable>)drawNodeRenderer.Root).Dependencies.Resolve<ShaderStore>();
-			textureStore = ((ICompositeDrawable<Drawable>)drawNodeRenderer.Root).Dependencies.Resolve<TextureStore>();
+			var root = (ICompositeUIComponent<UIComponent>)drawNodeRenderer.Root;
+			shaderStore = root.Dependencies.Resolve<ShaderStore>();
+			textureStore = root.Dependencies.Resolve<TextureStore>();
 			var basic = shaderStore.GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 
 			shaderStore.CompileNew( renderer );
@@ -226,7 +227,7 @@ public class TwoDTestApp : App {
 	public class UpdateThread : AppThread {
 		Sprite cursor;
 
-		UIEventSource uiEventSource;
+		UIEventSource<UIComponent> uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawNodeRenderer drawNodeRenderer;
@@ -238,8 +239,9 @@ public class TwoDTestApp : App {
 			this.disposeScheduler = disposeScheduler;
 			this.window = window;
 
-			uiEventSource = new() { Root = drawNodeRenderer.TemporarayDrawableRoot };
-			globalInputTrackers = new() { Root = drawNodeRenderer.TemporarayDrawableRoot };
+			var root = (ViewportContainer<UIComponent>)drawNodeRenderer.Root;
+			uiEventSource = new() { Root = root };
+			globalInputTrackers = new();
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
@@ -247,7 +249,7 @@ public class TwoDTestApp : App {
 				Size = new( 18 ),
 				Tint = ColorRgba.HotPink
 			};
-			((DrawableViewportContainer<Drawable>)drawNodeRenderer.Root).AddChild( cursor );
+			root.AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
 				var translated = uiEventSource.TriggerEvent( e );
@@ -278,11 +280,11 @@ public class TwoDTestApp : App {
 				action();
 			}
 
-			var root = (DrawableViewportContainer<Drawable>)drawNodeRenderer.TemporarayDrawableRoot;
+			var root = (ViewportContainer<UIComponent>)drawNodeRenderer.Root;
 			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			var pos = drawNodeRenderer.TemporarayDrawableRoot.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			var pos = root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			cursor.Position = pos - new Vector2<float>( 9f );
 			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
@@ -290,11 +292,11 @@ public class TwoDTestApp : App {
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 
-			foreach ( var i in root.Children.Take(2).OfType<IDrawableLayoutElement>() ) {
+			foreach ( var i in root.Children.Take(2) ) {
 				i.Size = root.ContentSize;
 			}
 
-			drawNodeRenderer.TemporarayDrawableRoot.Update();
+			root.ComputeLayout();
 
 			drawNodeRenderer.CollectDrawData( disposeScheduler.Swap );
 		}

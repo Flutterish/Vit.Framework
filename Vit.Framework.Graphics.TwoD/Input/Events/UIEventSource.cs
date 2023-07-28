@@ -4,18 +4,18 @@ using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.Input.Events;
 
-public class UIEventSource {
-	public required IDrawable Root { get; init; }
+public class UIEventSource<T> where T : class, IHasEventTrees<T> {
+	public required T Root { get; init; }
 
-	Dictionary<CursorButton, IDrawable> pressedHandlers = new();
-	IDrawable? hovered;
+	Dictionary<CursorButton, T> pressedHandlers = new();
+	T? hovered;
 
 	/// <summary>
 	/// Triggers UI events based on the provided events.
 	/// </summary>
 	/// <returns><see langword="true"/> if the event was translated to one or more UI events, <see langword="false"/> otherwise.</returns>
 	public bool TriggerEvent ( Event @event ) {
-		IDrawable? handler = null;
+		T? handler = null;
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:
 				if ( hovered == null )
@@ -52,10 +52,10 @@ public class UIEventSource {
 		return true;
 	}
 
-	IDrawable? triggerEvent ( Event e ) {
-		var handler = e is IPositionalEvent positional
+	T? triggerEvent ( Event e ) {
+		var handler = /*e is IPositionalEvent positional
 					? Root.TriggerCulledEvent( e, positional.EventPosition, static (d, pos) => d.ReceivesPositionalInputAt( pos ) )
-					: Root.TriggerEvent( e );
+					:*/ Root.TriggerEvent( e );
 
 		if ( e is ILoggableEvent ) {
 			Console.WriteLine( $"{e} was {(handler is null ? "not handled" : $"handled by {handler}")}" );
@@ -64,7 +64,7 @@ public class UIEventSource {
 		return handler;
 	}
 
-	bool triggerEvent ( Event e, IDrawable? handler ) {
+	bool triggerEvent ( Event e, T? handler ) {
 		if ( handler == null )
 			return false;
 

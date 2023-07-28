@@ -57,7 +57,7 @@ public class ViewportContainer<T> : Container<T> where T : UIComponent {
 		if ( fillMode == FillMode.Stretch ) {
 			ContentSize = targetSize;
 		}
-		else if ( fillMode == FillMode.Fit ) {
+		else if ( fillMode == FillMode.Fit ) { // TODO something funky happens when height is equal to target but width is stretched
 			if ( aspect < targetAspect ) {
 				ContentSize = new( targetSize.Width, targetSize.Width / aspect );
 			}

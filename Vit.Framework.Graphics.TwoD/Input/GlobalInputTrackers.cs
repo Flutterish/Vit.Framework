@@ -5,8 +5,6 @@ using static Vit.Framework.Input.CursorState;
 namespace Vit.Framework.Graphics.TwoD.Input;
 
 public class GlobalInputTrackers : IDisposable {
-	public required IDrawable Root { get; init; }
-
 	List<IInputTracker> trackers = new();
 	public void Add ( IInputTracker tracker ) {
 		trackers.Add( tracker );
