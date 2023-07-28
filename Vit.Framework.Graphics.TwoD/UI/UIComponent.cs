@@ -221,6 +221,7 @@ public abstract class UIComponent : IUIComponent {
 	protected virtual void OnUnload () { }
 
 	public abstract DrawNode GetDrawNode ( int subtreeIndex );
+	public abstract void DisposeDrawNodes ();
 	public static implicit operator UIComponent ( Drawable drawable )
 		=> new Visual<Drawable> { Displayed = drawable };
 

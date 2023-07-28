@@ -104,6 +104,12 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// <param name="subtreeIndex">The subtree index. Can be 0, 1 or 2 as draw node trees are stored in a triple buffer.</param>
 	/// <returns>The up-to-date draw node at the given subtree index.</returns>
 	T GetDrawNode ( int subtreeIndex );
+
+	/// <summary>
+	/// [Draw Thread] <br/>
+	/// Disposes of owned draw nodes and any shared data.
+	/// </summary>
+	void DisposeDrawNodes ();
 }
 
 public interface IHasCompositeDrawNodes<out T> where T : DrawNode {

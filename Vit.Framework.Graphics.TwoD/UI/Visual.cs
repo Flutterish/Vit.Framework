@@ -12,7 +12,7 @@ public class Visual<T> : UIComponent where T : IDrawable {
 		InvalidateLayout( LayoutInvalidations.Child );
 	}
 
-	protected override void PerformLayout () {
+	protected override void PerformLayout () { // TODO just copy the matrix (need: simplify drawables)
 		var globalPosition = LocalSpaceToScreenSpace( Point2<float>.Zero );
 		var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
 
@@ -25,6 +25,9 @@ public class Visual<T> : UIComponent where T : IDrawable {
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		Displayed.TryLoad( dependencies );
 	}
+	protected override void OnUnload () {
+		throw new NotImplementedException();
+	}
 
 	protected override void OnDispose () {
 		Displayed.Dispose();
@@ -33,4 +36,6 @@ public class Visual<T> : UIComponent where T : IDrawable {
 	public override DrawNode GetDrawNode ( int subtreeIndex ) {
 		return Displayed.GetDrawNode( subtreeIndex );
 	}
+
+	public override void DisposeDrawNodes () { }
 }

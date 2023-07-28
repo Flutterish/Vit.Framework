@@ -1,8 +1,7 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD;
 
@@ -194,42 +193,21 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		}
 	}
 
+	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => (IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>>)internalChildren;
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 
-	public class DrawNode : DrawableDrawNode<CompositeDrawable<T>> {
-		public DrawNode ( CompositeDrawable<T> source, int subtreeIndex ) : base( source, subtreeIndex ) {
-			ChildNodes = new( source.internalChildren.Count );
-		}
+	public class DrawNode : CompositeDrawNode<CompositeDrawable<T>, Rendering.DrawNode> {
+		public DrawNode ( CompositeDrawable<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		protected RentedArray<Rendering.DrawNode> ChildNodes;
-		protected override void UpdateState () {
-			var count = Source.internalChildren.Count;
-			ChildNodes.Clear();
-			ChildNodes.ReallocateStorage( count );
-			for ( int i = 0; i < count; i++ ) {
-				ChildNodes[i] = Source.internalChildren[i].GetDrawNode( SubtreeIndex );
-			}
-		}
-
-		public override void Draw ( ICommandBuffer commands ) {
-			foreach ( var i in ChildNodes.AsSpan() ) {
-				i.Draw( commands );
-			}
-		}
-
-		public override void ReleaseResources ( bool willBeReused ) {
-			if ( willBeReused )
-				return;
-
-			ChildNodes.Clear();
-			ChildNodes.Dispose();
+		protected override bool ValidateChildList () {
+			return Source.DrawNodeInvalidations.ValidateDrawNode( SubtreeIndex );
 		}
 	}
 }
 
-public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<IDrawable, T> where T : IDrawable {
+public interface ICompositeDrawable<out T> : IDrawable, IReadOnlyCompositeComponent<IDrawable, T>, IHasCompositeDrawNodes<DrawNode> where T : IDrawable {
 	IReadOnlyDependencyCache Dependencies { get; }
 
 	new public event HierarchyObserver.ChildObserver<ICompositeDrawable<T>, T>? ChildAdded;

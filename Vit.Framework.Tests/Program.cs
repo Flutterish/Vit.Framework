@@ -7,6 +7,7 @@ using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
 using Vit.Framework.Tests.UI;
+using Vit.Framework.Tests.VisualTests;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
@@ -18,7 +19,7 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new TwoDTestApp( typeof( UISetupTests ) );//new Program();
+		var app = new TwoDTestApp( typeof( VisualTestRunner ) );//new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 		app = null;

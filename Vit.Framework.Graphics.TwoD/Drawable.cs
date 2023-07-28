@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -186,9 +187,15 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	protected override void Dispose ( bool disposing ) { // TODO properly dispose of drawables and dispose of the whole tree when clearing
 		DrawThreadScheduler.ScheduleDisposal( this );
 	}
+
+	public virtual void DisposeDrawNodes () {
+		foreach ( var node in drawNodes ) {
+			node?.Dispose();
+		}
+	}
 }
 
-public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasEventTrees<IDrawable>, IDisposable {
+public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasDrawNodes<DrawNode>, IHasEventTrees<IDrawable>, IDisposable {
 	/// <summary>
 	/// Child depth, indicates the index of the child inside the parent.
 	/// </summary>
@@ -230,6 +237,4 @@ public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasEventTr
 	Matrix3<float> LocalToUnitMatrix { get; }
 
 	void Update ();
-
-	DrawNode GetDrawNode ( int subtreeIndex );
 }

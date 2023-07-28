@@ -174,6 +174,12 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		return node;
 	}
 
+	public override void DisposeDrawNodes () {
+		foreach ( var i in drawNodes ) {
+			i?.Dispose();
+		}
+	}
+
 	public class DrawNode : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode> {
 		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 

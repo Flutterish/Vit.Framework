@@ -39,7 +39,7 @@ public class TwoDTestApp : App {
 	Window window = null!;
 	DrawableViewportContainer<Drawable> root = null!;
 	DrawableRenderer drawableRenderer = null!;
-	Drawable.RenderThreadScheduler disposeScheduler = null!;
+	RenderThreadScheduler disposeScheduler = null!;
 
 	UpdateThread updateThread = null!;
 
@@ -67,7 +67,7 @@ public class TwoDTestApp : App {
 			fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
 			deps.Cache( fontStore );
 
-			disposeScheduler = new Drawable.RenderThreadScheduler();
+			disposeScheduler = new RenderThreadScheduler();
 			deps.Cache( disposeScheduler );
 
 			shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
@@ -128,10 +128,10 @@ public class TwoDTestApp : App {
 
 	public class RenderThread : AppThread {
 		DrawableRenderer drawableRenderer;
-		Drawable.RenderThreadScheduler disposeScheduler;
+		RenderThreadScheduler disposeScheduler;
 		GraphicsApi api;
 		Window window;
-		public RenderThread ( DrawableRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, Drawable.RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+		public RenderThread ( DrawableRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 			this.window = window;
 			this.drawableRenderer = drawableRenderer;
@@ -219,10 +219,10 @@ public class TwoDTestApp : App {
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawableRenderer drawableRenderer;
-		Drawable.RenderThreadScheduler disposeScheduler;
+		RenderThreadScheduler disposeScheduler;
 		Window window;
 		public readonly ConcurrentQueue<Action> Scheduler = new();
-		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, Drawable.RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.drawableRenderer = drawableRenderer;
 			this.disposeScheduler = disposeScheduler;
 			this.window = window;
