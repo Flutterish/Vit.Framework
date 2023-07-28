@@ -1,11 +1,16 @@
-﻿using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Graphics.TwoD.Containers;
+namespace Vit.Framework.Graphics.TwoD.UI.Layout;
 
-public class DrawableFlowContainer : DrawableFlowContainer<IDrawableLayoutElement> { }
-public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowParams, DrawableFlowContainer<T>.ChildArgs> where T : IDrawableLayoutElement {
+public class FlowContainer : FlowContainer<UIComponent> { }
+public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T>.ChildArgs> where T : UIComponent {
 	bool collapseMargins = true;
 	public bool CollapseMargins {
 		get => collapseMargins;
@@ -14,7 +19,7 @@ public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowPa
 				return;
 
 			collapseMargins = value;
-			InvalidateLayout();
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 
@@ -53,7 +58,7 @@ public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowPa
 
 		float crossPosition = 0;
 		FlowSize2<float> lineSize = FlowSize2<float>.Zero;
-		
+
 		float previousFlowMargin = flowPadding.FlowStart;
 		float previousCrossMargin = flowPadding.CrossStart;
 		float crossStartMargin = 0;
@@ -76,7 +81,7 @@ public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowPa
 
 			crossPosition += lineSize.Cross;
 			lineSize = FlowSize2<float>.Zero;
-			
+
 			previousFlowMargin = flowPadding.FlowStart;
 			previousCrossMargin = crossEndMargin;
 			crossEndMargin = 0;
@@ -139,4 +144,19 @@ public class DrawableFlowContainer<T> : DrawableFlowingLayoutContainer<T, FlowPa
 		public float RequiredCrossSize;
 		public FlowSpacing<float> Margins;
 	}
+}
+
+public struct FlowParams {
+	/// <summary>
+	/// Margins outside the element provide spacing between elements.
+	/// </summary>
+	/// <remarks>
+	/// Margins might collapse. For example, if the margins between 2 elements (including <see cref="IDrawableLayoutContainer.Padding"/>) are 10 and 20, the effective margin will be 20 or 30, depending on the container settings. <br/>
+	/// Margins may be negative. This indicates that neighboring margins (including <see cref="IDrawableLayoutContainer.Padding"/>) should be shrunk.
+	/// </remarks>
+	public Spacing<float> Margins;
+	/// <summary>
+	/// Size of the element.
+	/// </summary>
+	public SizeBounds2<float> Size;
 }

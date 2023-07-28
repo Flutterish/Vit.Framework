@@ -11,6 +11,10 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 namespace Vit.Framework.Graphics.TwoD.UI;
 
 public abstract class UIComponent : IUIComponent {
+	public UIComponent () {
+		IHasEventTrees<UIComponent>.AddDeclaredEventHandlers( this, static ( d, t, h ) => d.AddEventHandler( t, h ) );
+	}
+
 	public static implicit operator UIComponent ( Drawable drawable )
 		=> new Visual { Displayed = drawable };
 	public static implicit operator Drawable ( UIComponent component )

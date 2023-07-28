@@ -118,7 +118,10 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		return parent;
 	}
 
+	protected RenderThreadScheduler RenderThreadScheduler { get; private set; } = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		base.OnLoad( dependencies );
+		RenderThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
 		Dependencies = CreateDependencies( dependencies );
 		foreach ( var i in internalChildren ) {
 			i.Load( Dependencies );
@@ -132,6 +135,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	protected override void OnDispose () {
+		RenderThreadScheduler.ScheduleDisposal( this );
 		foreach ( var i in internalChildren.Reverse<T>() ) {
 			i.Dispose();
 		}

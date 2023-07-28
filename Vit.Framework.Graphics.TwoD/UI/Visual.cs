@@ -6,6 +6,9 @@ namespace Vit.Framework.Graphics.TwoD.UI;
 
 public class Visual : Visual<Drawable> { }
 public class Visual<T> : UIComponent where T : Drawable {
+	public static implicit operator Visual<T> ( T source )
+		=> new() { Displayed = source };
+
 	T displayed = null!;
 	public required T Displayed {
 		get => displayed;

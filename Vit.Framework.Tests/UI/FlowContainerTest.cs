@@ -1,13 +1,19 @@
-﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.UI.Layout;
+using Vit.Framework.Graphics.TwoD;
+using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Graphics.TwoD.UI;
 
-namespace Vit.Framework.Tests.Layout;
+namespace Vit.Framework.Tests.UI;
 
-public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement> {
+public class FlowContainerTest : LayoutContainer<UIComponent> {
 	const float margin = 20;
 	const float padding = 50;
 
@@ -15,9 +21,9 @@ public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement>
 		AddChild( new Sprite { Tint = ColorRgba.Blue }, new() {
 			Size = new( 1f.Relative() )
 		} );
-		AddChild( new DrawableLayoutContainer<IDrawableLayoutElement> {
+		AddChild( new LayoutContainer {
 			Padding = new( padding ),
-			LayoutChildren = new (IDrawableLayoutElement, LayoutParams)[] {
+			LayoutChildren = new (UIComponent, LayoutParams)[] {
 				(new Sprite { Tint = ColorRgba.Green }, new() { Size = new( 1f.Relative() ) })
 			}
 		}, new() {
@@ -29,8 +35,8 @@ public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement>
 		} );
 	}
 
-	DrawableFlowContainer<IDrawableLayoutElement> createFlowContainer () {
-		DrawableFlowContainer<IDrawableLayoutElement> container = new() {
+	FlowContainer<UIComponent> createFlowContainer () {
+		FlowContainer<UIComponent> container = new() {
 			Padding = new( padding ),
 			ContentAlignment = Anchor.TopRight,
 			FlowDirection = FlowDirection.DownThenLeft,
@@ -38,9 +44,9 @@ public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement>
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
-			container.AddChild( new DrawableLayoutContainer<Sprite> {
+			container.AddChild( new LayoutContainer<Visual<Sprite>> {
 				Padding = new( -margin ),
-				LayoutChildren = new (Sprite, LayoutParams)[] {
+				LayoutChildren = new (Visual<Sprite>, LayoutParams)[] {
 					(new Sprite { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
 					(new Sprite { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() }, new() {
 						Origin = Anchor.Centre,
@@ -57,8 +63,8 @@ public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement>
 		return container;
 	}
 
-	DrawableFlowContainer<IDrawableLayoutElement> createFlowContainerWithRelativeSizes () {
-		DrawableFlowContainer<IDrawableLayoutElement> container = new() {
+	FlowContainer<UIComponent> createFlowContainerWithRelativeSizes () {
+		FlowContainer<UIComponent> container = new() {
 			Padding = new( padding ),
 			ContentAlignment = Anchor.TopCentre,
 			FlowDirection = FlowDirection.RightThenDown,
@@ -69,8 +75,8 @@ public class FlowContainerTest : DrawableLayoutContainer<IDrawableLayoutElement>
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
-			container.AddChild( new Sprite { 
-				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() 
+			container.AddChild( new Sprite {
+				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba()
 			}, new() {
 				Margins = new( margin ),
 				Size = new() {
