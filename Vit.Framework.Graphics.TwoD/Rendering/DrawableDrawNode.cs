@@ -6,10 +6,17 @@ namespace Vit.Framework.Graphics.TwoD;
 public partial class Drawable {
 	protected DrawNodeInvalidations DrawNodeInvalidations;
 	protected void InvalidateDrawNodes () {
-		if ( DrawNodeInvalidations.InvalidateDrawNodes() && Parent != null ) {
+		if ( !DrawNodeInvalidations.InvalidateDrawNodes() )
+			return;
+
+		DrawNodesInvalidated?.Invoke();
+
+		if ( Parent != null ) {
 			((Drawable)Parent).InvalidateDrawNodes();
 		}
 	}
+
+	public Action? DrawNodesInvalidated;
 
 	public abstract class DrawableDrawNode<T> : DrawNode where T : Drawable {
 		protected readonly T Source;

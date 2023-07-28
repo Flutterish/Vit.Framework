@@ -4,12 +4,23 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class Visual : Visual<IDrawable> { }
-public class Visual<T> : UIComponent where T : IDrawable {
-	public required T Displayed { get; init; }
+public class Visual : Visual<Drawable> { }
+public class Visual<T> : UIComponent where T : Drawable {
+	T displayed = null!;
+	public required T Displayed {
+		get => displayed;
+		init {
+			displayed = value;
+			displayed.DrawNodesInvalidated = onDrawNodesInvalidated;
+		}
+	}
 
 	protected override void OnMatrixInvalidated () {
 		InvalidateLayout( LayoutInvalidations.Child );
+	}
+
+	void onDrawNodesInvalidated () {
+		Parent?.OnChildDrawNodesInvalidated();
 	}
 
 	protected override void PerformLayout () { // TODO just copy the matrix (need: simplify drawables)
@@ -18,8 +29,6 @@ public class Visual<T> : UIComponent where T : IDrawable {
 
 		Displayed.Position = globalPosition;
 		Displayed.Scale = new( globalSize.X, globalSize.Y );
-
-		Parent?.OnChildDrawNodesInvalidated();
 	}
 
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
