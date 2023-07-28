@@ -4,12 +4,12 @@ using Vit.Framework.Threading.Synchronisation;
 
 namespace Vit.Framework.Graphics.TwoD.Rendering;
 
-public class DrawableRenderer {
+public class DrawNodeRenderer {
 	TripleBuffer drawNodeSwapchain = new();
-	public readonly Drawable Root;
+	public readonly IHasDrawNodes<DrawNode> Root;
 
 	DrawNode[] drawNodes = new DrawNode[3];
-	public DrawableRenderer ( Drawable root ) {
+	public DrawNodeRenderer ( IHasDrawNodes<DrawNode> root ) {
 		Root = root;
 	}
 

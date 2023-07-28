@@ -29,7 +29,7 @@ public class SpriteText : Drawable, IDrawableLayoutElement { // TODO this is a s
 	protected override void Load ( IReadOnlyDependencyCache deps ) {
 		base.Load( deps );
 
-		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
+		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		font ??= deps.Resolve<FontStore>().GetFont( FontId ?? FontStore.DefaultFont );
 	}

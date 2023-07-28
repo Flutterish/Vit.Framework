@@ -39,7 +39,7 @@ public class TwoDTestApp : App {
 	Host host = null!;
 	Window window = null!;
 	DrawableViewportContainer<Drawable> root = null!;
-	DrawableRenderer drawableRenderer = null!;
+	DrawNodeRenderer drawableRenderer = null!;
 	RenderThreadScheduler disposeScheduler = null!;
 
 	UpdateThread updateThread = null!;
@@ -71,7 +71,7 @@ public class TwoDTestApp : App {
 			disposeScheduler = new RenderThreadScheduler();
 			deps.Cache( disposeScheduler );
 
-			shaderStore.AddShaderPart( DrawableRenderer.TestVertex, new SpirvBytecode( @"#version 450
+			shaderStore.AddShaderPart( DrawNodeRenderer.TestVertex, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPositionAndUv;
 
 				layout(location = 0) out vec2 outUv;
@@ -90,7 +90,7 @@ public class TwoDTestApp : App {
 					gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
-			shaderStore.AddShaderPart( DrawableRenderer.TestFragment, new SpirvBytecode( @"#version 450
+			shaderStore.AddShaderPart( DrawNodeRenderer.TestFragment, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inUv;
 
 				layout(location = 0) out vec4 outColor;
@@ -137,11 +137,11 @@ public class TwoDTestApp : App {
 	}
 
 	public class RenderThread : AppThread {
-		DrawableRenderer drawableRenderer;
+		DrawNodeRenderer drawableRenderer;
 		RenderThreadScheduler disposeScheduler;
 		GraphicsApi api;
 		Window window;
-		public RenderThread ( DrawableRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+		public RenderThread ( DrawNodeRenderer drawableRenderer, Host host, Window window, GraphicsApiType api, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 			this.window = window;
 			this.drawableRenderer = drawableRenderer;
@@ -164,7 +164,7 @@ public class TwoDTestApp : App {
 
 			shaderStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<ShaderStore>();
 			textureStore = ((ICompositeDrawable<Drawable>)drawableRenderer.Root).Dependencies.Resolve<TextureStore>();
-			var basic = shaderStore.GetShader( new() { Vertex = DrawableRenderer.TestVertex, Fragment = DrawableRenderer.TestFragment } );
+			var basic = shaderStore.GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 
 			shaderStore.CompileNew( renderer );
 			var globalSet = basic.Value.GetUniformSet( 0 );
@@ -228,11 +228,11 @@ public class TwoDTestApp : App {
 		UIEventSource uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
-		DrawableRenderer drawableRenderer;
+		DrawNodeRenderer drawableRenderer;
 		RenderThreadScheduler disposeScheduler;
 		Window window;
 		public readonly ConcurrentQueue<Action> Scheduler = new();
-		public UpdateThread ( DrawableRenderer drawableRenderer, Window window, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
+		public UpdateThread ( DrawNodeRenderer drawableRenderer, Window window, RenderThreadScheduler disposeScheduler, string name ) : base( name ) {
 			this.drawableRenderer = drawableRenderer;
 			this.disposeScheduler = disposeScheduler;
 			this.window = window;
