@@ -1,37 +1,29 @@
-﻿using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Vit.Framework.Graphics.TwoD.Containers;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.Graphics.TwoD.Containers;
+namespace Vit.Framework.Graphics.TwoD.UI.Layout;
 
-public class DrawableViewportContainer<T> : DrawableContainer<T>, IDrawableLayoutElement where T : Drawable {
+public class ViewportContainer<T> : Container<T> where T : UIComponent {
 	Size2<float> size;
 	public Size2<float> ContentSize {
 		get => size;
 		private set {
 			size = value;
-			ScaleX = availableSize.Width / value.Width;
-			ScaleY = availableSize.Height / value.Height;
+			ScaleX = Size.Width / value.Width;
+			ScaleY = Size.Height / value.Height;
 		}
 	}
 
-	public override bool ReceivesPositionalInputAt ( Point2<float> point ) {
-		point = ScreenSpaceToLocalSpace( point );
-
-		return point.X >= 0 && point.X <= ContentSize.Width
-			&& point.Y >= 0 && point.Y <= ContentSize.Height;
+	protected override void OnLayoutInvalidated () {
+		updateScale();
+		base.OnLayoutInvalidated();
 	}
-
-	Size2<float> availableSize;
-	public Size2<float> Size {
-		get => availableSize;
-		set {
-			availableSize = value;
-			updateScale();
-		}
-	}
-
-	public Size2<float> RequiredSize => Size2<float>.Zero;
 
 	Size2<float> targetSize;
 	public Size2<float> TargetSize {
@@ -51,15 +43,15 @@ public class DrawableViewportContainer<T> : DrawableContainer<T>, IDrawableLayou
 		}
 	}
 
-	public DrawableViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
+	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
 		this.targetSize = targetSize;
 		this.fillMode = fillMode;
-		this.availableSize = availableSize;
+		this.Size = availableSize;
 		updateScale();
 	}
 
 	void updateScale () {
-		var aspect = Math.Abs(availableSize.Width / availableSize.Height);
+		var aspect = Math.Abs( Size.Width / Size.Height );
 		var targetAspect = targetSize.Width / targetSize.Height;
 
 		if ( fillMode == FillMode.Stretch ) {
@@ -91,4 +83,27 @@ public class DrawableViewportContainer<T> : DrawableContainer<T>, IDrawableLayou
 			throw new NotImplementedException();
 		}
 	}
+}
+
+public enum FillMode {
+	/// <summary>
+	/// The target area will be fully contained inside available space.
+	/// </summary>
+	Fit,
+	/// <summary>
+	/// The avaiable space will be fully contained inside target area.
+	/// </summary>
+	Fill,
+	/// <summary>
+	/// The target area will match available space (does not perserve aspect ratio).
+	/// </summary>
+	Stretch,
+	/// <summary>
+	/// The target and avaialble width will match.
+	/// </summary>
+	MatchWidth,
+	/// <summary>
+	/// The target and avaialble height will match.
+	/// </summary>
+	MatchHeight
 }
