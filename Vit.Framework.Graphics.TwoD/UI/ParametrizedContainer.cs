@@ -19,7 +19,7 @@ public class ParametrizedContainer<T, TParam> : CompositeUIComponent<T> where T 
 
 	public void UpdateLayoutParameters ( T child, TParam param ) {
 		parameters[child.Depth] = param;
-		InvalidateLayout( LayoutInvalidations.Child );
+		InvalidateLayout( LayoutInvalidations.Self );
 	}
 
 	public TParam GetLayoutParameters ( T child ) {

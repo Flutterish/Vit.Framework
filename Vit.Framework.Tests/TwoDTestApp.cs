@@ -237,8 +237,8 @@ public class TwoDTestApp : App {
 			this.disposeScheduler = disposeScheduler;
 			this.window = window;
 
-			uiEventSource = new() { Root = drawableRenderer.Root };
-			globalInputTrackers = new() { Root = drawableRenderer.Root };
+			uiEventSource = new() { Root = drawableRenderer.TemporarayDrawableRoot };
+			globalInputTrackers = new() { Root = drawableRenderer.TemporarayDrawableRoot };
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
@@ -277,11 +277,11 @@ public class TwoDTestApp : App {
 				action();
 			}
 
-			var root = (DrawableViewportContainer<Drawable>)drawableRenderer.Root;
+			var root = (DrawableViewportContainer<Drawable>)drawableRenderer.TemporarayDrawableRoot;
 			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			var pos = drawableRenderer.Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			var pos = drawableRenderer.TemporarayDrawableRoot.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			cursor.Position = pos - new Vector2<float>( 9f );
 			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
@@ -293,7 +293,7 @@ public class TwoDTestApp : App {
 				i.Size = root.ContentSize;
 			}
 
-			drawableRenderer.Root.Update();
+			drawableRenderer.TemporarayDrawableRoot.Update();
 
 			drawableRenderer.CollectDrawData( disposeScheduler.Swap );
 		}

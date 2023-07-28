@@ -2,13 +2,15 @@
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Layout;
+using Vit.Framework.Graphics.TwoD.UI;
+using Vit.Framework.Graphics.TwoD.UI.Layout;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.Layout;
 
-public class FlexboxTest : DrawableLayoutContainer<IDrawableLayoutElement> {
+public class FlexboxTest : LayoutContainer<UIComponent> {
 	public FlexboxTest () {
-		var flexbox = new DrawableFlexbox<IDrawableLayoutElement> {
+		var flexbox = new Flexbox<UIComponent> {
 			ContentAlignment = Anchor.TopLeft,
 			FlowDirection = FlowDirection.RightThenDown,
 			Padding = new( 50 ),

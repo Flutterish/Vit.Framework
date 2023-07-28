@@ -1,12 +1,11 @@
 ﻿using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
-namespace Vit.Framework.Graphics.TwoD.Containers;
+namespace Vit.Framework.Graphics.TwoD.UI.Layout;
 
-public class DrawableFlexbox : DrawableFlexbox<IDrawableLayoutElement> { }
-public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParams, DrawableFlexbox<T>.ChildArgs> where T : IDrawableLayoutElement {
+public class Flexbox : Flexbox<UIComponent> { }
+public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.ChildArgs> where T : UIComponent {
 	Size2<float> gap;
 	/// <summary>
 	/// Gap between elements.
@@ -18,7 +17,7 @@ public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParam
 				return;
 
 			gap = value;
-			InvalidateLayout();
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 
@@ -38,7 +37,7 @@ public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParam
 			FlowSize = flow.GetValue( contentFlowSize.Flow, min: required.Flow ),
 			CrossSize = cross,
 			RequiredCrossSize = required.Cross,
-			
+
 			Grow = param.Grow,
 			Shrink = param.Shrink ?? 1,
 
@@ -74,9 +73,9 @@ public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParam
 
 		float growSum;
 		float remainingSpace;
-		while ( 
+		while (
 			(remainingSpace = flowSize - (layouts[^1].Position.Flow + layouts[^1].Size.Flow - layouts[0].Position.Flow)) > 0
-			&& (growSum = getGrowSum( layouts, children )) != 0 
+			&& (growSum = getGrowSum( layouts, children )) != 0
 		) {
 			var maxApply = 1f; // TODO limit grow when < 1
 
@@ -209,7 +208,7 @@ public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParam
 
 		var coversBothDirections = FlowDirection.GetCoveredDirections() == LayoutDirection.Both;
 		var layouts = context.Layout;
-		var children = context.Children; 
+		var children = context.Children;
 		SpanSlice<ChildLayout> line = new() { Source = layouts };
 		for ( int i = 0; i < children.Length; i++ ) {
 			ref var layout = ref layouts[i];
@@ -261,4 +260,26 @@ public class DrawableFlexbox<T> : DrawableFlowingLayoutContainer<T, FlexboxParam
 
 		public bool IsFrozen;
 	}
+}
+
+public struct FlexboxParams {
+	/// <summary>
+	/// Size of the element.
+	/// </summary>
+	public SizeBounds2<float> Size;
+
+	/// <summary>
+	/// Weight which determines how much of the remaining space this element will consume.
+	/// </summary>
+	/// <remarks>
+	/// This is expressed as a percentage (1 = 100%) of free space this element would like to consume. If below 1, this element will not consume all of the free space.
+	/// </remarks>
+	public float Grow;
+	/// <summary>
+	/// Weight which determines how much this element will shrink when there is not enough space.
+	/// </summary>
+	/// <remarks>
+	/// Defaults to 1. This is proportional to the size of the element.
+	/// </remarks>
+	public float? Shrink;
 }

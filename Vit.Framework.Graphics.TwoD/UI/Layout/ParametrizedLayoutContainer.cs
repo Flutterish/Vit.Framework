@@ -22,7 +22,7 @@ public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedConta
 		get => padding;
 		set {
 			padding = value;
-			InvalidateLayout( LayoutInvalidations.Parameters );
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 
@@ -37,7 +37,7 @@ public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedConta
 				return;
 
 			autoSizeDirection = value;
-			InvalidateLayout( LayoutInvalidations.Size );
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 }

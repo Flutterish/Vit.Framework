@@ -216,7 +216,12 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 [Flags]
 public enum LayoutInvalidations {
 	None = 0,
-	Size = 1,
-	Child = 2,
-	Parameters = 4
+	/// <summary>
+	/// Some layout parameter of this component changed.
+	/// </summary>
+	Self = 1,
+	/// <summary>
+	/// Some layout parameter of this components children changed.
+	/// </summary>
+	Child = 2
 }

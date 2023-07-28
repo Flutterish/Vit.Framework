@@ -112,7 +112,7 @@ public abstract class UIComponent : IUIComponent {
 				return;
 
 			size = value;
-			InvalidateLayout( LayoutInvalidations.Size );
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 	public float Width {
@@ -122,7 +122,7 @@ public abstract class UIComponent : IUIComponent {
 				return;
 
 			size.Width = value;
-			InvalidateLayout( LayoutInvalidations.Size );
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 	public float Height {
@@ -132,7 +132,7 @@ public abstract class UIComponent : IUIComponent {
 				return;
 
 			size.Width = value;
-			InvalidateLayout( LayoutInvalidations.Size );
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 

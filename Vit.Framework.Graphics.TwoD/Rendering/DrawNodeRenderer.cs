@@ -7,6 +7,7 @@ namespace Vit.Framework.Graphics.TwoD.Rendering;
 public class DrawNodeRenderer {
 	TripleBuffer drawNodeSwapchain = new();
 	public readonly IHasDrawNodes<DrawNode> Root;
+	public Drawable TemporarayDrawableRoot => (Drawable)Root!;
 
 	DrawNode[] drawNodes = new DrawNode[3];
 	public DrawNodeRenderer ( IHasDrawNodes<DrawNode> root ) {
