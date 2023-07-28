@@ -1,5 +1,7 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
+using Vit.Framework.Graphics.TwoD.Text;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
@@ -28,10 +30,18 @@ public class Visual<T> : UIComponent where T : Drawable {
 
 	protected override void PerformLayout () { // TODO just copy the matrix (need: simplify drawables)
 		var globalPosition = LocalSpaceToScreenSpace( Point2<float>.Zero );
-		var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
 
 		Displayed.Position = globalPosition;
-		Displayed.Scale = new( globalSize.X, globalSize.Y );
+		if ( displayed is SpriteText le ) {
+			var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
+			var globalOne = LocalSpaceToScreenSpace( Point2<float>.One ) - globalPosition;
+			le.Scale = new( globalOne.X, globalOne.Y );
+			le.Size = new( globalSize.X, globalSize.Y );
+		}
+		else {
+			var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
+			Displayed.Scale = new( globalSize.X, globalSize.Y );
+		}
 	}
 
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
