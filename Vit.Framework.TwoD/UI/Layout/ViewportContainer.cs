@@ -2,6 +2,7 @@
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
+public class ViewportContainer : ViewportContainer<UIComponent> { }
 public class ViewportContainer<T> : Container<T> where T : UIComponent {
 	Size2<float> size;
 	public Size2<float> ContentSize {
@@ -22,49 +23,43 @@ public class ViewportContainer<T> : Container<T> where T : UIComponent {
 			&& localSpace.Y <= ContentSize.Height;
 	}
 
-	protected override void OnLayoutInvalidated () {
-		updateScale();
-		base.OnLayoutInvalidated();
-	}
-
 	Size2<float> targetSize;
-	public Size2<float> TargetSize {
+	public required Size2<float> TargetSize {
 		get => targetSize;
 		set {
 			targetSize = value;
-			updateScale();
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 
-	FillMode fillMode;
+	FillMode fillMode = FillMode.Fit;
 	public FillMode FillMode {
 		get => fillMode;
 		set {
 			fillMode = value;
-			updateScale();
+			InvalidateLayout( LayoutInvalidations.Self );
 		}
 	}
 
-	public ViewportContainer ( Size2<float> targetSize, Size2<float> availableSize, FillMode fillMode ) {
-		this.targetSize = targetSize;
-		this.fillMode = fillMode;
-		Size = availableSize;
-		updateScale();
-	}
-
-	void updateScale () {
+	protected override void PerformLayout () {
 		var aspect = Math.Abs( Size.Width / Size.Height );
 		var targetAspect = targetSize.Width / targetSize.Height;
 
-		if ( fillMode == FillMode.Stretch ) ContentSize = targetSize;
-		else if ( fillMode == FillMode.Fit ) { // TODO something funky happens when height is equal to target but width is stretched
-			if ( aspect < targetAspect ) ContentSize = new( targetSize.Width, targetSize.Width / aspect );
+		if ( fillMode == FillMode.Stretch ) {
+			ContentSize = targetSize;
+		}
+		else if ( fillMode == FillMode.Fit ) {
+			if ( aspect < targetAspect ) {
+				ContentSize = new( targetSize.Width, targetSize.Width / aspect );
+			}
 			else {
 				ContentSize = new( targetSize.Height * aspect, targetSize.Height );
 			}
 		}
 		else if ( fillMode == FillMode.Fill ) {
-			if ( aspect >= targetAspect ) ContentSize = new( targetSize.Width, targetSize.Width / aspect );
+			if ( aspect >= targetAspect ) {
+				ContentSize = new( targetSize.Width, targetSize.Width / aspect );
+			}
 			else {
 				ContentSize = new( targetSize.Height * aspect, targetSize.Height );
 			}
@@ -78,6 +73,8 @@ public class ViewportContainer<T> : Container<T> where T : UIComponent {
 		else {
 			throw new NotImplementedException();
 		}
+
+		base.PerformLayout();
 	}
 }
 

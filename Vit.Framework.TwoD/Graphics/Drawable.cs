@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Hierarchy;
-using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;

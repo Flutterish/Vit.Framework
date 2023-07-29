@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Hierarchy;
-using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;

@@ -50,7 +50,8 @@ public class TwoDTestApp : App {
 		window = host.CreateWindow( api );
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		window.Initialized += _ => {
-			root = new( (1920, 1080), window.Size.Cast<float>(), FillMode.Fit ) {
+			root = new() {
+				TargetSize = (1920, 1080),
 				Position = (-1, -1)
 			};
 
