@@ -41,6 +41,7 @@ public class TwoDTestApp : App {
 	ViewportContainer<UIComponent> root = null!;
 	DrawNodeRenderer drawNodeRenderer = null!;
 	RenderThreadScheduler disposeScheduler = null!;
+	DependencyCache dependencies = new();
 
 	UpdateThread updateThread = null!;
 
@@ -56,20 +57,18 @@ public class TwoDTestApp : App {
 
 			drawNodeRenderer = new( root );
 
-			DependencyCache deps = new();
-
 			var shaderStore = new ShaderStore();
-			deps.Cache( shaderStore );
+			dependencies.Cache( shaderStore );
 
 			var textureStore = new TextureStore();
-			deps.Cache( textureStore );
+			dependencies.Cache( textureStore );
 
 			var fontStore = new FontStore();
 			fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
-			deps.Cache( fontStore );
+			dependencies.Cache( fontStore );
 
 			disposeScheduler = new RenderThreadScheduler();
-			deps.Cache( disposeScheduler );
+			dependencies.Cache( disposeScheduler );
 
 			shaderStore.AddShaderPart( DrawNodeRenderer.TestVertex, new SpirvBytecode( @"#version 450
 				layout(location = 0) in vec2 inPositionAndUv;
@@ -121,7 +120,7 @@ public class TwoDTestApp : App {
 				throw new InvalidOperationException( "the test type is funky" );
 			}
 
-			root.Load( deps );
+			root.Load( dependencies );
 
 			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawNodeRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
 			ThreadRunner.RegisterThread( new RenderThread( drawNodeRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
@@ -131,6 +130,12 @@ public class TwoDTestApp : App {
 			updateThread.Scheduler.Enqueue( () => {
 				root?.ClearChildren( dispose: true );
 				root?.Dispose();
+
+				foreach ( var (id, dep) in dependencies.EnumerateCached() ) {
+					if ( dep is IDisposable disposable ) {
+						disposeScheduler.ScheduleDisposal( disposable );
+					}
+				}
 			} );
 			Task.Delay( 1000 ).ContinueWith( _ => Quit() );
 		};

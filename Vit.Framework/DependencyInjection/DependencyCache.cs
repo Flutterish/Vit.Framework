@@ -22,6 +22,10 @@ public class DependencyCache : IDependencyCache {
 
 		return value;
 	}
+
+	public IEnumerable<KeyValuePair<DependencyIdentifier, object?>> EnumerateCached () {
+		return store;
+	}
 }
 
 public interface IDependencyCache : IReadOnlyDependencyCache {

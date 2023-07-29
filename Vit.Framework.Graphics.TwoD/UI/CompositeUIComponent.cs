@@ -135,7 +135,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	protected override void OnDispose () {
-		RenderThreadScheduler.ScheduleDisposal( this );
+		RenderThreadScheduler.ScheduleDrawNodeDisposal( this );
 		foreach ( var i in internalChildren.Reverse<T>() ) {
 			i.Dispose();
 		}

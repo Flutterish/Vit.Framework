@@ -3,24 +3,50 @@
 namespace Vit.Framework.Graphics.TwoD;
 
 public class RenderThreadScheduler {
-	Stack<IHasDrawNodes<DrawNode>> swapTree = new();
-	Stack<IHasDrawNodes<DrawNode>>?[] disposeTree = new Stack<IHasDrawNodes<DrawNode>>?[3];
+	SwapStack<IHasDrawNodes<DrawNode>> drawNodes = new();
+	SwapStack<IDisposable> disposables = new();
 
-	public void ScheduleDisposal ( IHasDrawNodes<DrawNode> drawNodeSource ) {
-		swapTree.Push( drawNodeSource );
+	public void ScheduleDrawNodeDisposal ( IHasDrawNodes<DrawNode> drawNodeSource ) {
+		drawNodes.Push( drawNodeSource );
+	}
+	public void ScheduleDisposal ( IDisposable disposable ) {
+		disposables.Push( disposable );
 	}
 
 	public void Swap ( int index ) {
-		(swapTree, disposeTree[index]) = (disposeTree[index] ?? new(), swapTree);
+		drawNodes.Swap( index );
+		disposables.Swap( index );
 	}
 
 	public void Execute ( int index ) {
-		for ( int i = 0; i < disposeTree.Length; i++ ) {
-			if ( i == index || disposeTree[i] is not Stack<IHasDrawNodes<DrawNode>> stack )
-				continue;
+		foreach ( var i in drawNodes.PopAll( index ) ) {
+			i.DisposeDrawNodes();
+		}
+		foreach ( var i in disposables.PopAll( index ) ) {
+			i.Dispose();
+		}
+	}
 
-			while ( stack.TryPop( out var drawNodeSource ) ) {
-				drawNodeSource.DisposeDrawNodes();
+	class SwapStack<T> {
+		Stack<T> swap = new();
+		Stack<T>?[] backlog = new Stack<T>?[3];
+
+		public void Push ( T value ) {
+			swap.Push( value );
+		}
+
+		public void Swap ( int index ) {
+			(swap, backlog[index]) = (backlog[index] ?? new(), swap);
+		}
+
+		public IEnumerable<T> PopAll ( int index ) {
+			for ( int i = 0; i < backlog.Length; i++ ) {
+				if ( i == index || backlog[i] is not Stack<T> stack )
+					continue;
+
+				while ( stack.TryPop( out var value ) ) {
+					yield return value;
+				}
 			}
 		}
 	}

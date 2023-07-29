@@ -185,7 +185,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	protected override void Dispose ( bool disposing ) { // TODO properly dispose of drawables and dispose of the whole tree when clearing
-		DrawThreadScheduler.ScheduleDisposal( this );
+		DrawThreadScheduler.ScheduleDrawNodeDisposal( this );
 	}
 
 	public virtual void DisposeDrawNodes () {
