@@ -6,7 +6,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class DrawableUI : Drawable, IDrawableLayoutElement {
+public class DrawableUI : Drawable {
 	RootUIComponent root;
 	public DrawableUI ( UIComponent root ) {
 		this.root = new( this, root );

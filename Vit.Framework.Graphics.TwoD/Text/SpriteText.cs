@@ -13,16 +13,13 @@ using Vit.Framework.Text.Fonts;
 
 namespace Vit.Framework.Graphics.TwoD.Text;
 
-public class SpriteText : Drawable, IDrawableLayoutElement { // TODO this is a scam and is actually just a bunch of vertices
+public class SpriteText : Drawable { // TODO this is a scam and is actually just a bunch of vertices
 	Font font = null!;
 	public Font Font { get => font; init => font = value; }
 	public FontIdentifier? FontId { get; init; }
 	public required float FontSize { get; init; }
 	public required string Text { get; init; }
 	public required ColorRgba<float> Tint { get; init; }
-
-	public Size2<float> Size { get; set; }
-	public Size2<float> RequiredSize { get; }
 
 	Shader shader = null!;
 	Texture texture = null!;

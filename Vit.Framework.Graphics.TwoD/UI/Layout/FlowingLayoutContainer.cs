@@ -239,3 +239,20 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : Parametriz
 		public required FlowSize2<float> ContentSize;
 	}
 }
+
+public static class JustificationExtensions {
+	public static (float offset, float gap) GetOffsets ( this Justification justification, int elementCount, float remainingSpace, float contentAlignment ) {
+		return ((elementCount > 1 && remainingSpace > 0) ? justification : Justification.ContentAlignment) switch {
+			Justification.ContentAlignment => (remainingSpace * contentAlignment, 0f),
+			Justification.SpaceBetween => (0, remainingSpace / (elementCount - 1)),
+			Justification.SpaceAround => (remainingSpace / elementCount / 2, remainingSpace / elementCount),
+			Justification.SpaceEvenly or _ => (remainingSpace / (elementCount + 1), remainingSpace / (elementCount + 1))
+		};
+	}
+
+	public static (float offset, float gap) GetOffsets ( this LineJustification justification, int elementCount, float remainingSpace, float contentAlignment ) {
+		return justification == LineJustification.Stretch
+			? (0, remainingSpace / elementCount)
+			: ((Justification)(int)justification).GetOffsets( elementCount, remainingSpace, contentAlignment );
+	}
+}

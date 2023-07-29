@@ -54,9 +54,12 @@ public abstract class UIComponent : IUIComponent {
 
 	Size2<float>? requiredSize;
 	/// <summary>
-	/// Size required to contain this component, by an arbitrary metric depending on the type of component.
+	/// The minimum size this element needs to display correctly, by an arbitrary metric depending on the type of component.
 	/// </summary>
-	public Size2<float> RequiredSize => requiredSize ??= ComputeRequiredSize();
+	/// <remarks>
+	/// This usually indicates the space absolutely sized children in <see cref="IDrawableLayoutContainer"/>s occupy.
+	/// </remarks>
+	public Size2<float> RequiredSize => requiredSize ??= ComputeRequiredSize(); // TODO also we want this but with respect to min-width and min-height
 	protected virtual Size2<float> ComputeRequiredSize () => Size2<float>.Zero;
 	protected virtual void OnLayoutInvalidated () {
 		requiredSize = null;
@@ -107,7 +110,7 @@ public abstract class UIComponent : IUIComponent {
 
 	Size2<float> size;
 	/// <summary>
-	/// Size allocated to the layout of this component.
+	/// The size allocated for this components layout, in parent space.
 	/// </summary>
 	public Size2<float> Size {
 		get => size;

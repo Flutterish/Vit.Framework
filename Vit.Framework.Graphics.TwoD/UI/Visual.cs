@@ -33,10 +33,8 @@ public class Visual<T> : UIComponent where T : Drawable {
 
 		Displayed.Position = globalPosition;
 		if ( displayed is SpriteText le ) {
-			var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
 			var globalOne = LocalSpaceToScreenSpace( Point2<float>.One ) - globalPosition;
 			le.Scale = new( globalOne.X, globalOne.Y );
-			le.Size = new( globalSize.X, globalSize.Y );
 		}
 		else {
 			var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;

@@ -13,7 +13,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Graphics.TwoD;
 
-public class Sprite : Drawable, IDrawableLayoutElement, IEventHandler<HoveredEvent> {
+public class Sprite : Drawable, IEventHandler<HoveredEvent> {
 	Shader shader = null!;
 	Texture texture = null!;
 
@@ -32,7 +32,6 @@ public class Sprite : Drawable, IDrawableLayoutElement, IEventHandler<HoveredEve
 		get => new(Scale);
 		set => Scale = new(value);
 	}
-	public Size2<float> RequiredSize => Size2<float>.Zero;
 
 	public Texture Texture {
 		get => texture;
