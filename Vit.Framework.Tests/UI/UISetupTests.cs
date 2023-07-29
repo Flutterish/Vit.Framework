@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.UI;
+using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.UI;
 
 namespace Vit.Framework.Tests.UI;
 

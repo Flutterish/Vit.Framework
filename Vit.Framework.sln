@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Open
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Tests", "Vit.Framework.Tests\Vit.Framework.Tests.csproj", "{39C04C0B-9E31-4557-BC57-9A7CA62BFB56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.TwoD", "Vit.Framework.Graphics.TwoD\Vit.Framework.Graphics.TwoD.csproj", "{C10741F5-E75B-4CAA-9431-7E1068D99DA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.TwoD", "Vit.Framework.TwoD\Vit.Framework.TwoD.csproj", "{C10741F5-E75B-4CAA-9431-7E1068D99DA8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Windowing.Sdl", "Vit.Framework.Windowing.Sdl\Vit.Framework.Windowing.Sdl.csproj", "{2F9112D8-9F73-4B41-BB65-59D8C7715820}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Pars
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Text.Fonts.OpenType", "Vit.Framework.Text.Fonts.OpenType\Vit.Framework.Text.Fonts.OpenType.csproj", "{40F15BC5-5C08-4396-8F5D-8AB65DCE534A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.ThreeD", "Vit.Framework.Graphics.ThreeD\Vit.Framework.Graphics.ThreeD.csproj", "{8C873615-B774-43BB-A3E2-4F5A099DE5C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.ThreeD", "Vit.Framework.ThreeD\Vit.Framework.ThreeD.csproj", "{8C873615-B774-43BB-A3E2-4F5A099DE5C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Windowing.Console", "Vit.Framework.Windowing.Console\Vit.Framework.Windowing.Console.csproj", "{E6723E82-B594-462F-B120-949B0DC2984F}"
 EndProject
@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Graphics.Soft
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Mathematics.SourceGen", "Vit.Framework.Mathematics.SourceGen\Vit.Framework.Mathematics.SourceGen.csproj", "{D2AB83B6-EA02-47C7-977C-D10870D0B308}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vit.Framework.Audio.Bass", "Vit.Framework.Audio.Bass\Vit.Framework.Audio.Bass.csproj", "{77C09082-7701-4B1C-A97E-A448F6324873}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vit.Framework.Audio.Bass", "Vit.Framework.Audio.Bass\Vit.Framework.Audio.Bass.csproj", "{77C09082-7701-4B1C-A97E-A448F6324873}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

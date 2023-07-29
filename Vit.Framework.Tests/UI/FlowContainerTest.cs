@@ -1,9 +1,9 @@
 ﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
 using Vit.Framework.Mathematics;
+using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.Tests.UI;
 

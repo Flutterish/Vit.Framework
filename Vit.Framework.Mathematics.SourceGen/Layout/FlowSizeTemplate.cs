@@ -3,7 +3,7 @@
 namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
 public class FlowSizeTemplate : SizeTemplate {
-	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";
+	protected override string Namespace => "Vit.Framework.TwoD.Layout";
 
 	public FlowSizeTemplate () {
 		AxisNames = new[] { "Flow", "Cross" };

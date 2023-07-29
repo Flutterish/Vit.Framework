@@ -5,7 +5,7 @@ namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
 public class FlowBiVectorTemplate : BiVectorTemplate {
 	protected override VectorTemplate CreateVectorTemplate () => new FlowVectorTemplate() { Path = string.Empty };
-	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";
+	protected override string Namespace => "Vit.Framework.TwoD.Layout";
 
 	protected override void GenerateUsings ( int size, SourceStringBuilder sb ) {
 		base.GenerateUsings( size, sb );

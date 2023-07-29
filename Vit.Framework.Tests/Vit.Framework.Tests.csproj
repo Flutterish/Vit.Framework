@@ -59,8 +59,8 @@
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Vit.Framework.Graphics.Parsing.WaveFront\Vit.Framework.Graphics.Parsing.WaveFront.csproj" />
-    <ProjectReference Include="..\Vit.Framework.Graphics.TwoD\Vit.Framework.Graphics.TwoD.csproj" />
     <ProjectReference Include="..\Vit.Framework.Text.Fonts.OpenType\Vit.Framework.Text.Fonts.OpenType.csproj" />
+    <ProjectReference Include="..\Vit.Framework.TwoD\Vit.Framework.TwoD.csproj" />
     <ProjectReference Include="..\Vit.Framework.Windowing.Console\Vit.Framework.Windowing.Console.csproj" />
     <ProjectReference Include="..\Vit.Framework.Windowing.Sdl\Vit.Framework.Windowing.Sdl.csproj" />
     <ProjectReference Include="..\Vit.Framework\Vit.Framework.csproj" />

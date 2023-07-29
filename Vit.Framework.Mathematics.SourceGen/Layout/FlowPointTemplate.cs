@@ -4,7 +4,7 @@ namespace Vit.Framework.Mathematics.SourceGen.Layout;
 
 public class FlowPointTemplate : PointTemplate {
 	protected override VectorTemplate CreateVectorTemplate () => new FlowVectorTemplate() { Path = string.Empty };
-	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";
+	protected override string Namespace => "Vit.Framework.TwoD.Layout";
 
 	public FlowPointTemplate () {
 		AxisNames = new[] { "Flow", "Cross" };

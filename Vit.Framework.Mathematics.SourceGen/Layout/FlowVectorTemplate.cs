@@ -7,7 +7,7 @@ public class FlowVectorTemplate : VectorTemplate {
 	protected override PointTemplate CreatePointTemplate () => new FlowPointTemplate() { Path = string.Empty };
 	protected override BiVectorTemplate CreateBiVectorTemplate () => new FlowBiVectorTemplate { Path = string.Empty };
 
-	protected override string Namespace => "Vit.Framework.Graphics.TwoD.Layout";
+	protected override string Namespace => "Vit.Framework.TwoD.Layout";
 
 	public FlowVectorTemplate () {
 		AxisNames = new[] { "Flow", "Cross" };

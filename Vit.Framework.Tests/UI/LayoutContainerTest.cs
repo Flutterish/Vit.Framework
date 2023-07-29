@@ -1,7 +1,7 @@
 ﻿using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
+using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.Tests.UI;
 public class LayoutContainerTest : LayoutContainer {

@@ -1,5 +1,5 @@
-﻿using Vit.Framework.Graphics.TwoD.UI;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
+﻿using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.Tests.VisualTests;
 
