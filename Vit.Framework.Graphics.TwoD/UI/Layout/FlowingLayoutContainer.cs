@@ -8,7 +8,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.UI.Layout;
-
+// TODO grid, subgrid, masonry grid
 public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : ParametrizedLayoutContainer<T, TParam> where T : UIComponent where TParam : struct where TChildArgs : struct {
 	RelativeAxes2<float> flowOrigin = Anchor.TopLeft;
 	/// <summary>

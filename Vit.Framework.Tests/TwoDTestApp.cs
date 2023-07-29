@@ -9,7 +9,6 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Input.Events;
 using Vit.Framework.Graphics.TwoD.Layout;

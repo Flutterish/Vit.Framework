@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics.TwoD.Containers;
 using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Text;
@@ -62,7 +61,7 @@ public class VisualTestRunner : Flexbox {
 		testArea.ClearChildren( dispose: true );
 		var instance = Activator.CreateInstance( type )!;
 
-		testArea.AddChild( instance is Drawable d ? d : (UIComponent)instance, new() {
+		testArea.AddChild( (UIComponent)instance, new() {
 			Size = new( 1f.Relative(), 1f.Relative() )
 		} );
 	}
