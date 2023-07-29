@@ -79,7 +79,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerAdded( type, tree );
 		}
 		ChildAdded?.Invoke( this, child );
-		InvalidateLayout( LayoutInvalidations.Child );
+		InvalidateLayout( LayoutInvalidations.Children );
 		invalidateDrawNodes();
 	}
 
@@ -90,7 +90,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			onChildEventHandlerRemoved( type, tree );
 		}
 		ChildRemoved?.Invoke( this, child );
-		InvalidateLayout( LayoutInvalidations.Child );
+		InvalidateLayout( LayoutInvalidations.Children );
 		invalidateDrawNodes();
 	}
 
@@ -148,15 +148,22 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
-	public virtual void OnChildLayoutInvalidated ( LayoutInvalidations invalidations ) {
-		InvalidateLayout( LayoutInvalidations.Child );
+	public virtual void OnChildLayoutInvalidated ( UIComponent child, LayoutInvalidations invalidations ) {
+		InvalidateLayout( LayoutInvalidations.Children );
 	}
 
-	protected override void PerformLayout () {
-		foreach ( var i in Children ) {
-			i.ComputeLayout();
+	protected sealed override void PerformLayout () {
+		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Self ) ) {
+			PerformSelfLayout();
+		}
+		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Children ) ) {
+			foreach ( var i in Children ) {
+				i.ComputeLayout();
+			}
 		}
 	}
+
+	protected virtual void PerformSelfLayout () { }
 
 	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
 	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildRemoved;
@@ -171,7 +178,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	public override Rendering.DrawNode GetDrawNode ( int subtreeIndex ) {
-		if ( internalChildren.Count == 1 ) return internalChildren[0].GetDrawNode( subtreeIndex );
+		if ( internalChildren.Count == 1 ) 
+			return internalChildren[0].GetDrawNode( subtreeIndex );
 
 		var node = drawNodes[subtreeIndex] ??= new DrawNode( this, subtreeIndex );
 		node.Update();
@@ -198,7 +206,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyCompositeComponent<UIComponent, T> where T : UIComponent {
 	IReadOnlyDependencyCache Dependencies { get; }
 
-	void OnChildLayoutInvalidated ( LayoutInvalidations invalidations );
+	void OnChildLayoutInvalidated ( UIComponent child, LayoutInvalidations invalidations );
 	void OnChildDrawNodesInvalidated ();
 
 	new public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
@@ -216,14 +224,18 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 }
 
 [Flags]
-public enum LayoutInvalidations {
+public enum LayoutInvalidations { // TODO we need flags for when the parent needs to recompute its own layout or just propagate the update
 	None = 0,
 	/// <summary>
-	/// Some layout parameter of this component changed.
+	/// Some layout parameter of this component changed. This will force this component to recalculate its layout.
 	/// </summary>
 	Self = 1,
 	/// <summary>
-	/// Some layout parameter of this components children changed.
+	/// Some layout parameter of this components children changed. This will force this component to update the layout of its children.
 	/// </summary>
-	Child = 2
+	Children = 2,
+	/// <summary>
+	/// The required size for this component has changed.
+	/// </summary>
+	RequiredSize = 4
 }

@@ -5,7 +5,7 @@ namespace Vit.Framework.TwoD.UI.Layout;
 
 public class LayoutContainer : LayoutContainer<UIComponent> { }
 public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> where T : UIComponent {
-	protected override void PerformLayout () {
+	protected override void PerformSelfLayout () {
 		var size = ContentSize;
 		var offset = new Vector2<float>( Padding.Left, Padding.Bottom );
 
@@ -17,8 +17,24 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 
 			i.Position = (anchor - origin + offset).FromOrigin();
 		}
+	}
 
-		base.PerformLayout();
+	protected override void OnChildParameterUpdated ( T child, LayoutParams? previous, LayoutParams? current ) {
+		var invalidation = LayoutInvalidations.Self;
+
+		if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) && (previous?.Size.Width.IsRelative == false || current?.Size.Width.IsRelative == false) )
+			invalidation |= LayoutInvalidations.RequiredSize;
+		else if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) && (previous?.Size.Height.IsRelative == false || current?.Size.Height.IsRelative == false) )
+			invalidation |= LayoutInvalidations.RequiredSize;
+
+		InvalidateLayout( invalidation );
+	}
+
+	public override void OnChildLayoutInvalidated ( UIComponent child, LayoutInvalidations invalidations ) {
+		if ( invalidations.HasFlag( LayoutInvalidations.RequiredSize ) )
+			InvalidateLayout( LayoutInvalidations.Children | LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+		else
+			InvalidateLayout( LayoutInvalidations.Children );
 	}
 
 	protected override Size2<float> ComputeRequiredSize () {

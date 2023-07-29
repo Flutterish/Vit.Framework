@@ -35,6 +35,10 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where
 		}
 	}
 
+	protected override void OnChildParameterUpdated ( T child, LayoutParams? previous, LayoutParams? current ) {
+		InvalidateLayout( LayoutInvalidations.Self );
+	}
+
 	public override bool ReceivesPositionalInputAt ( Point2<float> screenSpacePosition ) {
 		var localSpace = ScreenSpaceToLocalSpace( screenSpacePosition );
 
@@ -62,7 +66,7 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where
 		}
 	}
 
-	protected override void PerformLayout () {
+	protected override void PerformSelfLayout () {
 		updateScale();
 
 		var size = ContentSize;
@@ -76,8 +80,6 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where
 
 			i.Position = (anchor - origin + offset).FromOrigin();
 		}
-
-		base.PerformLayout();
 	}
 
 	void updateScale () {

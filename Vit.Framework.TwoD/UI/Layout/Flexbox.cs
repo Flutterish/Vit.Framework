@@ -21,6 +21,10 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 		}
 	}
 
+	protected override void OnChildParameterUpdated ( T child, FlexboxParams? previous, FlexboxParams? current ) {
+		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize ); // TODO calculate required size?
+	}
+
 	FlowSize2<float> contentFlowSize;
 	FlowSize2<float> gapSize;
 	protected override void CalculateLayoutConstants () {

@@ -37,20 +37,19 @@ public abstract class UIComponent : IUIComponent {
 	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
 	#endregion
 	#region Layout
-	public bool IsLayoutComputed { get; private set; }
+	public LayoutInvalidations LayoutInvalidations { get; private set; } = LayoutInvalidations.Self;
 	public void InvalidateLayout ( LayoutInvalidations invalidations ) {
-		if ( IsComputingLayout ) {
-			if ( invalidations == LayoutInvalidations.Child )
-				return;
+		if ( IsComputingLayout && invalidations.HasFlag( LayoutInvalidations.Self ) ) {
 			throw new InvalidOperationException( "Layout was invalidated while being computed. Recusive layout computations should be done internally and not over multiple layout calls" );
 		}
 
-		if ( !IsLayoutComputed )
+		var combined = LayoutInvalidations | invalidations;
+		if ( combined == LayoutInvalidations )
 			return;
 
-		IsLayoutComputed = false;
-		OnLayoutInvalidated();
-		Parent?.OnChildLayoutInvalidated( invalidations );
+		LayoutInvalidations = combined;
+		OnLayoutInvalidated( combined );
+		Parent?.OnChildLayoutInvalidated( this, invalidations );
 	}
 
 	Size2<float>? requiredSize;
@@ -62,18 +61,19 @@ public abstract class UIComponent : IUIComponent {
 	/// </remarks>
 	public Size2<float> RequiredSize => requiredSize ??= ComputeRequiredSize(); // TODO also we want this but with respect to min-width and min-height
 	protected virtual Size2<float> ComputeRequiredSize () => Size2<float>.Zero;
-	protected virtual void OnLayoutInvalidated () {
-		requiredSize = null;
+	protected virtual void OnLayoutInvalidated ( LayoutInvalidations invalidations ) {
+		if ( invalidations.HasFlag( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize ) )
+			requiredSize = null;
 	}
 
-	public bool IsComputingLayout;
+	public bool IsComputingLayout { get; private set; }
 	public void ComputeLayout () {
-		if ( IsLayoutComputed )
+		if ( LayoutInvalidations == LayoutInvalidations.None )
 			return;
 
 		IsComputingLayout = true;
-		IsLayoutComputed = true;
 		PerformLayout();
+		LayoutInvalidations = LayoutInvalidations.None;
 		IsComputingLayout = false;
 	}
 

@@ -83,7 +83,7 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : Parametriz
 	FlowSize2<float> contentSize;
 	FlowAxes2<float> flowOriginAxes;
 	List<(int start, int length, FlowSize2<float> size)> lines = new();
-	protected sealed override void PerformLayout () {
+	protected sealed override void PerformSelfLayout () {
 		if ( !Children.Any() )
 			return;
 
@@ -143,7 +143,6 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : Parametriz
 		}
 
 		lines.Clear();
-		base.PerformLayout();
 	}
 
 	protected virtual void CalculateLayoutConstants () { }

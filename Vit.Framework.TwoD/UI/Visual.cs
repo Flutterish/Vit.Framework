@@ -24,7 +24,7 @@ public class Visual<T> : UIComponent where T : Drawable {
 	}
 
 	protected override void OnMatrixInvalidated () {
-		InvalidateLayout( LayoutInvalidations.Child );
+		InvalidateLayout( LayoutInvalidations.Self );
 	}
 
 	void onDrawNodesInvalidated () {

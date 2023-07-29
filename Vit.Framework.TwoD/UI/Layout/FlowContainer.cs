@@ -17,6 +17,10 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		}
 	}
 
+	protected override void OnChildParameterUpdated ( T child, FlowParams? previous, FlowParams? current ) {
+		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize ); // TODO calculate required size?
+	}
+
 	FlowSize2<float> contentFlowSize;
 	protected override void CalculateLayoutConstants () {
 		contentFlowSize = FlowDirection.ToFlow( ContentSize );
