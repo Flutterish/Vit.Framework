@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.TwoD.Rendering;

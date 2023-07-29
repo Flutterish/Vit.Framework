@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
+﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class TimeUnits : List<TimeUnitTemplate> {
 

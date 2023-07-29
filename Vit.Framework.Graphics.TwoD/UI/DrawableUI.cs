@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;

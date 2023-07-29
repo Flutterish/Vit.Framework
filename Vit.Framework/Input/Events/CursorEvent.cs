@@ -1,6 +1,4 @@
-﻿using Vit.Framework.Input;
-using Vit.Framework.Input.Events;
-using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Input.Events;
 

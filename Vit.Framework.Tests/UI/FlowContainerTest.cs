@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.TwoD.Layout;
-using Vit.Framework.Graphics.TwoD.UI.Layout;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.TwoD;
-using Vit.Framework.Graphics;
-using Vit.Framework.Mathematics;
+using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.UI;
+using Vit.Framework.Graphics.TwoD.UI.Layout;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Tests.UI;
 

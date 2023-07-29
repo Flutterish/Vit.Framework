@@ -11,7 +11,6 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Graphics.TwoD;
 using Vit.Framework.Graphics.TwoD.Input;
 using Vit.Framework.Graphics.TwoD.Input.Events;
-using Vit.Framework.Graphics.TwoD.Layout;
 using Vit.Framework.Graphics.TwoD.Rendering;
 using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Graphics.TwoD.UI.Layout;

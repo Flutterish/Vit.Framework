@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.TwoD.Rendering;
-using Vit.Framework.Graphics.TwoD.UI;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;

@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
-using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Graphics.TwoD.Input;
 

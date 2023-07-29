@@ -6,8 +6,6 @@ using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
-using Vit.Framework.Tests.Layout;
-using Vit.Framework.Tests.UI;
 using Vit.Framework.Tests.VisualTests;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;

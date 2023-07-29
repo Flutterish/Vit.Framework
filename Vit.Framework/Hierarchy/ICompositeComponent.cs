@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace Vit.Framework.Hierarchy;
+﻿namespace Vit.Framework.Hierarchy;
 
 public static class HierarchyObserver {
 	public delegate void ChildObserver<in TParent, in T> ( TParent parent, T child );
