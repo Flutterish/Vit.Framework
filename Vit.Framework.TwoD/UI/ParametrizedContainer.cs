@@ -18,7 +18,17 @@ public class ParametrizedContainer<T, TParam> : CompositeUIComponent<T> where T 
 	}
 
 	public void UpdateLayoutParameters ( T child, TParam param ) {
+		if ( child.Parent != this )
+			throw new InvalidOperationException( "Child does not belong to this parent" );
+
 		parameters[child.Depth] = param;
+		InvalidateLayout( LayoutInvalidations.Self );
+	}
+	public void UpdateLayoutParameters ( T child, Func<TParam, TParam> transformer ) {
+		if ( child.Parent != this )
+			throw new InvalidOperationException( "Child does not belong to this parent" );
+
+		parameters[child.Depth] = transformer( parameters[child.Depth] );
 		InvalidateLayout( LayoutInvalidations.Self );
 	}
 

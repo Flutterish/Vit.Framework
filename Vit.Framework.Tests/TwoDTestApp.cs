@@ -10,7 +10,6 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
@@ -20,6 +19,7 @@ using Vit.Framework.Threading;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Input;
 using Vit.Framework.TwoD.Input.Events;
+using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Layout;
@@ -105,20 +105,17 @@ public class TwoDTestApp : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			root.AddChild( new Sprite() {
-				Scale = (1920, 1080),
-				Tint = ColorRgba.DarkGray
+			root.AddChild( new Sprite() { Tint = ColorRgba.DarkGray }, new() { 
+				Size = new( 1f.Relative() ) 
 			} );
-			var instance = Activator.CreateInstance( type );
-			if ( instance is Drawable drawable ) {
-				root.AddChild( drawable );
-			}
-			else if ( instance is UIComponent component ) {
-				root.AddChild( component );
-			}
-			else {
-				throw new InvalidOperationException( "the test type is funky" );
-			}
+			var _instance = Activator.CreateInstance( type );
+			UIComponent instance = 
+				_instance is Drawable drawable ? drawable 
+				: _instance is UIComponent component ? component 
+				: throw new InvalidOperationException( "the test type is funky" );
+			root.AddChild( instance, new() {
+				Size = new( 1f.Relative() )
+			} );
 
 			root.Load( dependencies );
 
@@ -249,10 +246,10 @@ public class TwoDTestApp : App {
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
-			cursor = new Sprite { Tint = ColorRgba.HotPink };
-			cursor.Size = new( 18 );
-
-			root.AddChild( cursor );
+			root.AddChild( cursor = new Sprite { Tint = ColorRgba.HotPink }, new() { 
+				Size = new( 18 ),
+				Origin = Anchor.Centre
+			} );
 
 			globalInputTrackers.EventEmitted += e => {
 				var translated = uiEventSource.TriggerEvent( e );
@@ -278,20 +275,19 @@ public class TwoDTestApp : App {
 			}
 
 			var root = (ViewportContainer<UIComponent>)drawNodeRenderer.Root;
+			if ( root.IsDisposed )
+				return;
+
 			root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
 			var pos = root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
-			cursor.Position = pos - new Vector2<float>( 9f );
+			root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos } );
 			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
 				: cursorTracker.State.IsDown( CursorButton.Right )
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
-
-			foreach ( var i in root.Children.Take(2) ) {
-				i.Size = root.ContentSize;
-			}
 
 			root.ComputeLayout();
 

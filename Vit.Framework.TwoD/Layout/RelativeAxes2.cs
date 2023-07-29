@@ -22,9 +22,9 @@ public struct RelativeAxes2<T> : IEquatable<RelativeAxes2<T>> where T : INumber<
 		return new( point );
 	}
 
-	public static implicit operator RelativeAxes2<T> ( Axes2<T> axes ) => new() {
-		X = axes.X,
-		Y = axes.Y
+	public static implicit operator RelativeAxes2<T> ( Point2<T> absolute ) => new() {
+		X = absolute.X,
+		Y = absolute.Y
 	};
 
 	public static implicit operator RelativeAxes2<T> ( Anchor anchor ) => new() {
