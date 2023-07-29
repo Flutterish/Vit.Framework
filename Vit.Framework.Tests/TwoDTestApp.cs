@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
@@ -52,7 +53,9 @@ public class TwoDTestApp : App {
 		window.Initialized += _ => {
 			root = new() {
 				TargetSize = (1920, 1080),
-				Position = (-1, -1)
+				Padding = new( all: 20 ),
+				Position = (-1, -1),
+				FillMode = FillMode.MatchHeight
 			};
 
 			drawNodeRenderer = new( root );
@@ -282,7 +285,7 @@ public class TwoDTestApp : App {
 			globalInputTrackers.Update();
 
 			var pos = root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
-			root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos } );
+			root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>(root.Padding.Left, root.Padding.Bottom) } );
 			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
 				: cursorTracker.State.IsDown( CursorButton.Right )

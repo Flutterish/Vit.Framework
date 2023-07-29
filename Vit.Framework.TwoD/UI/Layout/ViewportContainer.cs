@@ -11,7 +11,7 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where
 	/// This accounts for <see cref="Padding"/>.
 	/// </summary>
 	public Size2<float> ContentSize {
-		get => size;
+		get => new( size.Width - padding.Horizontal, size.Height - padding.Vertical );
 		private set {
 			size = value;
 			ScaleX = Size.Width / value.Width;
