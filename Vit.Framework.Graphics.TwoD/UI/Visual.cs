@@ -5,7 +5,10 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.TwoD.UI;
 
-public class Visual : Visual<Drawable> { }
+public class Visual : Visual<Drawable> {
+	public static implicit operator Visual ( Drawable source )
+		=> new() { Displayed = source };
+}
 public class Visual<T> : UIComponent where T : Drawable {
 	public static implicit operator Visual<T> ( T source )
 		=> new() { Displayed = source };

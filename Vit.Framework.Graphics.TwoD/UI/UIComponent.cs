@@ -79,6 +79,15 @@ public abstract class UIComponent : IUIComponent {
 	protected abstract void PerformLayout ();
 	#endregion
 	#region Transforms
+	public virtual bool ReceivesPositionalInputAt ( Point2<float> screenSpacePosition ) {
+		var localSpace = ScreenSpaceToLocalSpace( screenSpacePosition );
+
+		return localSpace.X >= 0
+			&& localSpace.Y >= 0
+			&& localSpace.X <= Width
+			&& localSpace.Y <= Height;
+	}
+
 	[MethodImpl( MethodImplOptions.AggressiveInlining )]
 	void trySet<T> ( ref T field, T value ) where T : IEqualityOperators<T, T, bool> {
 		if ( field == value )

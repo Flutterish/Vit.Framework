@@ -27,11 +27,6 @@ public class Sprite : Drawable, IEventHandler<HoveredEvent> {
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
 
-	public Size2<float> Size {
-		get => new(Scale);
-		set => Scale = new(value);
-	}
-
 	public Texture Texture {
 		get => texture;
 		set {

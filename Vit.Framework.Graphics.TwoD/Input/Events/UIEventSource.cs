@@ -1,20 +1,21 @@
-﻿using Vit.Framework.Input;
+﻿using Vit.Framework.Graphics.TwoD.UI;
+using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.Graphics.TwoD.Input.Events;
 
-public class UIEventSource<T> where T : class, IHasEventTrees<T> {
-	public required T Root { get; init; }
+public class UIEventSource {
+	public required UIComponent Root { get; init; }
 
-	Dictionary<CursorButton, T> pressedHandlers = new();
-	T? hovered;
+	Dictionary<CursorButton, UIComponent> pressedHandlers = new();
+	UIComponent? hovered;
 
 	/// <summary>
 	/// Triggers UI events based on the provided events.
 	/// </summary>
 	/// <returns><see langword="true"/> if the event was translated to one or more UI events, <see langword="false"/> otherwise.</returns>
 	public bool TriggerEvent ( Event @event ) {
-		T? handler = null;
+		UIComponent? handler = null;
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:
 				if ( hovered == null )
@@ -51,10 +52,10 @@ public class UIEventSource<T> where T : class, IHasEventTrees<T> {
 		return true;
 	}
 
-	T? triggerEvent ( Event e ) {
-		var handler = /*e is IPositionalEvent positional
+	UIComponent? triggerEvent ( Event e ) {
+		var handler = e is IPositionalEvent positional
 					? Root.TriggerCulledEvent( e, positional.EventPosition, static (d, pos) => d.ReceivesPositionalInputAt( pos ) )
-					:*/ Root.TriggerEvent( e );
+					: Root.TriggerEvent( e );
 
 		if ( e is ILoggableEvent ) {
 			Console.WriteLine( $"{e} was {(handler is null ? "not handled" : $"handled by {handler}")}" );
@@ -63,7 +64,7 @@ public class UIEventSource<T> where T : class, IHasEventTrees<T> {
 		return handler;
 	}
 
-	bool triggerEvent ( Event e, T? handler ) {
+	bool triggerEvent ( Event e, UIComponent? handler ) {
 		if ( handler == null )
 			return false;
 

@@ -13,6 +13,15 @@ public class ViewportContainer<T> : Container<T> where T : UIComponent {
 		}
 	}
 
+	public override bool ReceivesPositionalInputAt ( Point2<float> screenSpacePosition ) {
+		var localSpace = ScreenSpaceToLocalSpace( screenSpacePosition );
+
+		return localSpace.X >= 0
+			&& localSpace.Y >= 0
+			&& localSpace.X <= ContentSize.Width
+			&& localSpace.Y <= ContentSize.Height;
+	}
+
 	protected override void OnLayoutInvalidated () {
 		updateScale();
 		base.OnLayoutInvalidated();

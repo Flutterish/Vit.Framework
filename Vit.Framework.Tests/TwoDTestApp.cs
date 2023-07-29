@@ -228,9 +228,9 @@ public class TwoDTestApp : App {
 	}
 
 	public class UpdateThread : AppThread {
-		Sprite cursor;
+		Visual<Sprite> cursor;
 
-		UIEventSource<UIComponent> uiEventSource;
+		UIEventSource uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		DrawNodeRenderer drawNodeRenderer;
@@ -248,10 +248,9 @@ public class TwoDTestApp : App {
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
-			cursor = new CursorSprite {
-				Size = new( 18 ),
-				Tint = ColorRgba.HotPink
-			};
+			cursor = new Sprite { Tint = ColorRgba.HotPink };
+			cursor.Size = new( 18 );
+
 			root.AddChild( cursor );
 
 			globalInputTrackers.EventEmitted += e => {
@@ -262,12 +261,6 @@ public class TwoDTestApp : App {
 
 				Console.WriteLine( $"{e} was not translated to a UI event" );
 			};
-		}
-
-		class CursorSprite : Sprite {
-			public CursorSprite () {
-				RemoveEventHandler<HoveredEvent>();
-			}
 		}
 
 		protected override void Dispose ( bool disposing ) {
@@ -289,7 +282,7 @@ public class TwoDTestApp : App {
 
 			var pos = root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			cursor.Position = pos - new Vector2<float>( 9f );
-			cursor.Tint = cursorTracker.State.IsDown( CursorButton.Left )
+			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
 				? ColorRgba.Red
 				: cursorTracker.State.IsDown( CursorButton.Right )
 				? ColorRgba.Blue
