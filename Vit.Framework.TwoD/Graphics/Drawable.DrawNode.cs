@@ -29,14 +29,8 @@ public partial class Drawable {
 				UpdateState();
 		}
 
-		protected abstract void UpdateState ();
-	}
-
-	public abstract class BasicDrawNode<T> : DrawableDrawNode<T> where T : Drawable {
 		protected Matrix3<float> UnitToGlobalMatrix;
-		protected BasicDrawNode ( T source, int subtreeIndex ) : base( source, subtreeIndex ) { }
-
-		protected override void UpdateState () {
+		protected virtual void UpdateState () {
 			UnitToGlobalMatrix = Source.UnitToGlobalMatrix;
 		}
 	}

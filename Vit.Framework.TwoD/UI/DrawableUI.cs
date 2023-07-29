@@ -23,9 +23,9 @@ public class DrawableUI : Drawable {
 		root.InvalidateMatrix();
 	}
 
-	public override void Update () {
-		root.ComputeLayout();
-	}
+	//public override void Update () {
+	//	root.ComputeLayout();
+	//}
 
 	protected override void Load ( IReadOnlyDependencyCache dependencies ) {
 		base.Load( dependencies );

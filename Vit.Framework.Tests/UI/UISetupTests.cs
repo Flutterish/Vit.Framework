@@ -9,10 +9,6 @@ public class UISetupTests : CompositeDrawable<Drawable> {
 		AddInternalChild( new UITest() );
 	}
 
-	public override void Update () {
-		base.Update();
-	}
-
 	class UITest : CompositeUIComponent<UIComponent> {
 		public UITest () {
 			Children = new UIComponent[] {

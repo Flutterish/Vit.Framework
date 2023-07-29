@@ -24,52 +24,10 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 		child.SetParent( (ICompositeDrawable<IDrawable>)this );
 		child.SetDepth( internalChildren.Count );
 		internalChildren.Add( child );
-		addChildEventHandlers( child );
 		if ( IsLoaded )
 			child.TryLoad( dependencies );
 		ChildAdded?.Invoke( this, child );
 		InvalidateDrawNodes();
-	}
-
-	void onChildEventHandlerAdded ( Type type, EventTree<IDrawable> tree ) {
-		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
-			return;
-
-		var ourTree = GetEventTree( type );
-		ourTree.Children ??= new();
-		ourTree.Children.Add( tree );
-		sortEventTree( ourTree );
-	}
-
-	void onChildEventHandlerRemoved ( Type type, EventTree<IDrawable> tree ) {
-		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
-			return;
-
-		var ourTree = GetEventTree( type );
-		ourTree.Children!.Remove( tree );
-		sortEventTree( ourTree );
-
-		if ( ourTree.Handler == null ) RemoveEventHandler( type );
-	}
-
-	void sortEventTree ( EventTree<IDrawable> tree ) {
-		tree.Children!.Sort( ( a, b ) => a.Source.Depth - b.Source.Depth );
-	}
-
-	void addChildEventHandlers ( T child ) {
-		child.EventHandlerAdded += onChildEventHandlerAdded;
-		child.EventHandlerRemoved += onChildEventHandlerRemoved;
-		foreach ( var i in child.HandledEventTypes ) {
-			onChildEventHandlerAdded( i.Key, i.Value );
-		}
-	}
-
-	void removeChildEventHandlers ( T child ) {
-		child.EventHandlerAdded -= onChildEventHandlerAdded;
-		child.EventHandlerRemoved -= onChildEventHandlerRemoved;
-		foreach ( var i in child.HandledEventTypes ) {
-			onChildEventHandlerRemoved( i.Key, i.Value );
-		}
 	}
 
 	protected void InsertInternalChild ( T child, int index ) {
@@ -82,7 +40,6 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			internalChildren[i].SetDepth( i + 1 );
 		}
 		internalChildren.Insert( index, child );
-		addChildEventHandlers( child );
 		if ( IsLoaded )
 			child.TryLoad( dependencies );
 		ChildAdded?.Invoke( this, child );
@@ -106,7 +63,6 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 
 		child.SetParent( null );
 		internalChildren.Remove( child );
-		removeChildEventHandlers( child );
 		ChildRemoved?.Invoke( this, child );
 		InvalidateDrawNodes();
 		return true;
@@ -121,7 +77,6 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 
 		child.SetParent( null );
 		internalChildren.RemoveAt( index );
-		removeChildEventHandlers( child );
 		ChildRemoved?.Invoke( this, child );
 		InvalidateDrawNodes();
 	}
@@ -131,7 +86,6 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			var child = internalChildren[^1];
 			child.SetParent( null );
 			internalChildren.RemoveAt( internalChildren.Count - 1 );
-			removeChildEventHandlers( child );
 			ChildRemoved?.Invoke( this, child );
 		}
 
@@ -143,22 +97,11 @@ public abstract class CompositeDrawable<T> : Drawable, ICompositeDrawable<T> whe
 			var child = internalChildren[^1];
 			child.SetParent( null );
 			internalChildren.RemoveAt( internalChildren.Count - 1 );
-			removeChildEventHandlers( child );
 			ChildRemoved?.Invoke( this, child );
 			child.Dispose();
 		}
 
 		InvalidateDrawNodes();
-	}
-
-	public override void Update () {
-		UpdateSubtree();
-	}
-
-	protected void UpdateSubtree () {
-		foreach ( var i in internalChildren ) {
-			i.Update();
-		}
 	}
 
 	public IReadOnlyDependencyCache Dependencies => dependencies;

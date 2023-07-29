@@ -53,7 +53,7 @@ public class SpriteText : Drawable { // TODO this is a scam and is actually just
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
-	public class DrawNode : BasicDrawNode<SpriteText> {
+	public class DrawNode : DrawableDrawNode<SpriteText> {
 		public DrawNode ( SpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		Shader shader = null!;

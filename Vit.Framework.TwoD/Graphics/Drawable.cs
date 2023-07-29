@@ -108,9 +108,6 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 
 	public bool IsLoaded { get; private set; }
-	public virtual void Update () { // TODO should "needs an update" be a flag?
-		
-	}
 
 	protected RenderThreadScheduler DrawThreadScheduler { get; private set; } = null!;
 	public void TryLoad ( IReadOnlyDependencyCache dependencies ) {
@@ -194,7 +191,7 @@ public abstract partial class Drawable : DisposableObject, IDrawable {
 	}
 }
 
-public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasDrawNodes<DrawNode>, IHasEventTrees<IDrawable>, IDisposable {
+public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasDrawNodes<DrawNode>, IDisposable {
 	/// <summary>
 	/// Child depth, indicates the index of the child inside the parent.
 	/// </summary>
@@ -234,6 +231,4 @@ public interface IDrawable : IComponent<IDrawable>, IHas2DTransform, IHasDrawNod
 	/// and the top right corner in parent space is mapped to (1,1).
 	/// </summary>
 	Matrix3<float> LocalToUnitMatrix { get; }
-
-	void Update ();
 }
