@@ -13,13 +13,9 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
 
-public class Sprite : Drawable, IEventHandler<HoveredEvent> {
+public class Sprite : Drawable {
 	Shader shader = null!;
 	Texture texture = null!;
-
-	public bool OnEvent ( HoveredEvent @event ) {
-		return true;
-	}
 
 	protected override void Load ( IReadOnlyDependencyCache deps ) {
 		base.Load( deps );
