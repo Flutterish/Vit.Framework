@@ -56,6 +56,21 @@ public struct DrawNodeInvalidations {
 		validationBitField |= (byte)mask;
 		return true;
 	}
+
+
+	public bool IsInvalidated ( int index ) {
+		var mask = 1 << index;
+		if ( (validationBitField & mask) != 0 )
+			return false;
+
+		return true;
+	}
+
+	public override string ToString () {
+		var self = this;
+		char v ( int i ) => self.IsInvalidated( i ) ? '-' : '+';
+		return $"Set 1: [{v( 0 )}{v( 1 )}{v( 2 )}] Set2: [{v( 4 )}{v( 5 )}{v( 6 )}]";
+	}
 }
 
 public abstract class DrawNode : DisposableObject {

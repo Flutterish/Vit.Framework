@@ -178,8 +178,10 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	public override Rendering.DrawNode GetDrawNode ( int subtreeIndex ) {
-		if ( internalChildren.Count == 1 ) 
+		if ( internalChildren.Count == 1 ) {
+			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
 			return internalChildren[0].GetDrawNode( subtreeIndex );
+		}
 
 		var node = drawNodes[subtreeIndex] ??= new DrawNode( this, subtreeIndex );
 		node.Update();
