@@ -52,7 +52,7 @@ public class VectorTemplate : SpanLikeTemplate {
 		}
 
 		sb.AppendLine();
-		sb.AppendLine( $"public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );" );
+		sb.AppendLine( $"public Framework.Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );" );
 	}
 
 	protected override void GenerateMethods ( int size, SourceStringBuilder sb ) {

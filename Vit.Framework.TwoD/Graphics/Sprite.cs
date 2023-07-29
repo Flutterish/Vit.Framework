@@ -5,10 +5,8 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
-using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
-using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
@@ -17,8 +15,8 @@ public class Sprite : Drawable {
 	Shader shader = null!;
 	Texture texture = null!;
 
-	protected override void Load ( IReadOnlyDependencyCache deps ) {
-		base.Load( deps );
+	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
+		base.OnLoad( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );

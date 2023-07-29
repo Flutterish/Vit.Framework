@@ -1,5 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Rendering;
@@ -31,25 +31,20 @@ public class Visual<T> : UIComponent where T : Drawable {
 		Parent?.OnChildDrawNodesInvalidated();
 	}
 
-	protected override void PerformLayout () { // TODO just copy the matrix (need: simplify drawables)
-		var globalPosition = LocalSpaceToScreenSpace( Point2<float>.Zero );
-
-		Displayed.Position = globalPosition;
+	protected override void PerformLayout () { // TODO figure this out
 		if ( displayed is SpriteText le ) {
-			var globalOne = LocalSpaceToScreenSpace( Point2<float>.One ) - globalPosition;
-			le.Scale = new( globalOne.X, globalOne.Y );
+			displayed.UnitToGlobalMatrix = UnitToGlobalMatrix;
 		}
 		else {
-			var globalSize = LocalSpaceToScreenSpace( new Point2<float>( Width, Height ) ) - globalPosition;
-			Displayed.Scale = new( globalSize.X, globalSize.Y );
+			displayed.UnitToGlobalMatrix = Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
 		}
 	}
 
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
-		Displayed.TryLoad( dependencies );
+		Displayed.Load( dependencies );
 	}
 	protected override void OnUnload () {
-
+		Displayed.Unload();
 	}
 
 	protected override void OnDispose () {

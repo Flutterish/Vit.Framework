@@ -43,7 +43,7 @@ public struct Vector2<T> : IInterpolatable<Vector2<T>, T>, IEqualityOperators<Ve
 	public Vector2<T> Left => new( -Y, X );
 	public Vector2<T> Right => new( Y, -X );
 	
-	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
+	public Framework.Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref X, 2 );
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref X, 2 );

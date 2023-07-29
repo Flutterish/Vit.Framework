@@ -23,8 +23,8 @@ public class SpriteText : Drawable { // TODO this is a scam and is actually just
 
 	Shader shader = null!;
 	Texture texture = null!;
-	protected override void Load ( IReadOnlyDependencyCache deps ) {
-		base.Load( deps );
+	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
+		base.OnLoad( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );

@@ -92,7 +92,7 @@ public struct Vector4<T> : IInterpolatable<Vector4<T>, T>, IEqualityOperators<Ve
 	public Vector4<T> RotatedByZW => new( X, Y, -W, Z );
 	public Vector4<T> RotatedByWZ => new( X, Y, W, -Z );
 	
-	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
+	public Framework.Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref X, 4 );
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref X, 4 );

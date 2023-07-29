@@ -29,7 +29,7 @@ public struct Vector1<T> : IInterpolatable<Vector1<T>, T>, IEqualityOperators<Ve
 	
 	public T LengthSquared => X * X;
 	
-	public Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
+	public Framework.Mathematics.LinearAlgebra.Generic.Vector<T> AsUnsized () => new( AsSpan() );
 	
 	public Span<T> AsSpan () => MemoryMarshal.CreateSpan( ref X, 1 );
 	public ReadOnlySpan<T> AsReadOnlySpan () => MemoryMarshal.CreateReadOnlySpan( ref X, 1 );

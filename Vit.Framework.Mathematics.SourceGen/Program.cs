@@ -12,7 +12,6 @@ var units = new TimeUnits {
 
 millis.Apply( units );
 seconds.Apply( units );
-return;
 
 var axis = new AxesTemplate { Path = path };
 var point = new PointTemplate { Path = path };
@@ -43,7 +42,7 @@ for ( int i = 2; i <= 4; i++ ) {
 	bivector.Apply( i );
 }
 
-path = "./../../../../Vit.Framework.Graphics.TwoD/Layout";
+path = "./../../../../Vit.Framework.TwoD/Layout";
 var flowSize = new FlowSizeTemplate { Path = path };
 var flowPoint = new FlowPointTemplate { Path = path };
 var flowVector = new FlowVectorTemplate { Path = path };

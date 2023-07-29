@@ -10,10 +10,6 @@ public partial class Drawable {
 			return;
 
 		DrawNodesInvalidated?.Invoke();
-
-		if ( Parent != null ) {
-			((Drawable)Parent).InvalidateDrawNodes();
-		}
 	}
 
 	public Action? DrawNodesInvalidated;
@@ -31,7 +27,7 @@ public partial class Drawable {
 
 		protected Matrix3<float> UnitToGlobalMatrix;
 		protected virtual void UpdateState () {
-			UnitToGlobalMatrix = Source.UnitToGlobalMatrix;
+			UnitToGlobalMatrix = Source.unitToGlobalMatrix;
 		}
 	}
 }

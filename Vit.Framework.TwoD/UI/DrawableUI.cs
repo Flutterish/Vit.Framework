@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
 
@@ -18,17 +17,17 @@ public class DrawableUI : Drawable {
 	}
 	public Size2<float> RequiredSize => root.Child.RequiredSize;
 
-	protected override void OnMatrixInvalidated () {
-		base.OnMatrixInvalidated();
-		root.InvalidateMatrix();
-	}
+	//protected override void OnMatrixInvalidated () {
+	//	base.OnMatrixInvalidated();
+	//	root.InvalidateMatrix();
+	//}
 
 	//public override void Update () {
 	//	root.ComputeLayout();
 	//}
 
-	protected override void Load ( IReadOnlyDependencyCache dependencies ) {
-		base.Load( dependencies );
+	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		base.OnLoad( dependencies );
 		root.Load( dependencies );
 	}
 
@@ -56,11 +55,11 @@ public class DrawableUI : Drawable {
 			OnLocalMatrixInvalidated();
 		}
 
-		protected override Matrix3<float> ComputeLocalToUnitMatrix () {
-			return Source.GlobalToUnitMatrix;
-		}
-		protected override Matrix3<float> ComputeUnitToLocalMatrix () {
-			return Source.UnitToGlobalMatrix;
-		}
+		//protected override Matrix3<float> ComputeLocalToUnitMatrix () {
+		//	return Source.GlobalToUnitMatrix;
+		//}
+		//protected override Matrix3<float> ComputeUnitToLocalMatrix () {
+		//	return Source.UnitToGlobalMatrix;
+		//}
 	}
 }

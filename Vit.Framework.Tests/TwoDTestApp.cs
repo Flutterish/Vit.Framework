@@ -54,8 +54,7 @@ public class TwoDTestApp : App {
 			root = new() {
 				TargetSize = (1920, 1080),
 				Padding = new( all: 20 ),
-				Position = (-1, -1),
-				FillMode = FillMode.MatchHeight
+				Position = (-1, -1)
 			};
 
 			drawNodeRenderer = new( root );
