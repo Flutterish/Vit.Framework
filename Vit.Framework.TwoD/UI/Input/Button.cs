@@ -1,17 +1,17 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Input.Events;
-using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
 public class Button : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandler<PressedEvent>, IEventHandler<ReleasedEvent>, IEventHandler<ClickedEvent> {
-	Sprite background;
+	Box background;
 
 	public Button () {
-		AddChild( background = new Sprite { Tint = ColorRgba.GreenYellow }, new() {
+		AddChild( background = new Box { Tint = ColorRgba.GreenYellow }, new() {
 			Size = new( 1f.Relative() )
 		} );
 	}

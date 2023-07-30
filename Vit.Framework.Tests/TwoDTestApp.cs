@@ -23,6 +23,7 @@ using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
@@ -107,12 +108,12 @@ public class TwoDTestApp : App {
 				}
 			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 
-			root.AddChild( new Sprite() { Tint = ColorRgba.DarkGray }, new() { 
+			root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() { 
 				Size = new( 1f.Relative() ) 
 			} );
 			var _instance = Activator.CreateInstance( type );
 			UIComponent instance = 
-				_instance is Drawable drawable ? drawable 
+				_instance is Drawable drawable ? new Visual { Displayed = drawable }
 				: _instance is UIComponent component ? component 
 				: throw new InvalidOperationException( "the test type is funky" );
 			root.AddChild( instance, new() {
@@ -248,7 +249,7 @@ public class TwoDTestApp : App {
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 
-			root.AddChild( cursor = new Sprite { Tint = ColorRgba.HotPink }, new() { 
+			root.AddChild( cursor = new Visual<Sprite> { Displayed = new() { Tint = ColorRgba.HotPink } }, new() { 
 				Size = new( 18 ),
 				Origin = Anchor.Centre
 			} );

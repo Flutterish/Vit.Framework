@@ -1,7 +1,6 @@
-﻿using Vit.Framework.Graphics;
-using Vit.Framework.TwoD.Graphics.Text;
-using Vit.Framework.TwoD.Layout;
+﻿using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Input;
 using Vit.Framework.TwoD.UI.Layout;
 
@@ -37,11 +36,7 @@ public class VisualTestRunner : Flexbox {
 					runTest( i );
 				}
 			};
-			button.AddChild( new SpriteText { 
-				Tint = ColorRgba.Black,
-				FontSize = 32,
-				Text = $"{i.Name}"
-			}, new() {
+			button.AddChild( new SpriteText( i.Name ), new() {
 				Size = new( 1f.Relative(), 32 ),
 				Anchor = new( 10, 0.5f.Relative() ),
 				Origin = Anchor.CentreLeft

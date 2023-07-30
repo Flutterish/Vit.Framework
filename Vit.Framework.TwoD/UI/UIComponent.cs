@@ -6,7 +6,6 @@ using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
-using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
@@ -15,11 +14,6 @@ public abstract class UIComponent : IUIComponent {
 	public UIComponent () {
 		IHasEventTrees<UIComponent>.AddDeclaredEventHandlers( this, static ( d, t, h ) => d.AddEventHandler( t, h ) );
 	}
-
-	public static implicit operator UIComponent ( Drawable drawable )
-		=> new Visual { Displayed = drawable };
-	public static implicit operator Drawable ( UIComponent component )
-		=> new DrawableUI( component );
 
 	#region Hierarchy
 	/// <summary>

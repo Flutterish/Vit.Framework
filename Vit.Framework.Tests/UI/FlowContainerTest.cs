@@ -3,6 +3,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.Tests.UI;
@@ -12,13 +13,13 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 	const float padding = 50;
 
 	public FlowContainerTest () {
-		AddChild( new Sprite { Tint = ColorRgba.Blue }, new() {
+		AddChild( new Box { Tint = ColorRgba.Blue }, new() {
 			Size = new( 1f.Relative() )
 		} );
 		AddChild( new LayoutContainer {
 			Padding = new( padding ),
 			LayoutChildren = new (UIComponent, LayoutParams)[] {
-				(new Sprite { Tint = ColorRgba.Green }, new() { Size = new( 1f.Relative() ) })
+				(new Box { Tint = ColorRgba.Green }, new() { Size = new( 1f.Relative() ) })
 			}
 		}, new() {
 			Size = new( 1f.Relative() )
@@ -41,8 +42,8 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 			container.AddChild( new LayoutContainer<Visual<Sprite>> {
 				Padding = new( -margin ),
 				LayoutChildren = new (Visual<Sprite>, LayoutParams)[] {
-					(new Sprite { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
-					(new Sprite { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() }, new() {
+					(new Box { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
+					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() }, new() {
 						Origin = Anchor.Centre,
 						Anchor = Anchor.Centre,
 						Size = new( (i + 1) * 10 )
@@ -69,7 +70,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 		};
 
 		for ( int i = 0; i < 30; i++ ) {
-			container.AddChild( new Sprite {
+			container.AddChild( new Box {
 				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba()
 			}, new() {
 				Margins = new( margin ),

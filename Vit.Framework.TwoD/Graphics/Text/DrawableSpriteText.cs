@@ -13,7 +13,7 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public class SpriteText : Drawable { // TODO this is a scam and is actually just a bunch of vertices
+public class DrawableSpriteText : Drawable { // TODO this is a scam and is actually just a bunch of vertices
 	Font font = null!;
 	public Font Font { get => font; init => font = value; }
 	public FontIdentifier? FontId { get; init; }
@@ -53,8 +53,8 @@ public class SpriteText : Drawable { // TODO this is a scam and is actually just
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
-	public class DrawNode : DrawableDrawNode<SpriteText> {
-		public DrawNode ( SpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+	public class DrawNode : DrawableDrawNode<DrawableSpriteText> {
+		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		Shader shader = null!;
 		Texture texture = null!;
