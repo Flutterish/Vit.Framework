@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Graphics;
 
-public struct ColorRgba<T> where T : INumber<T> {
+public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool> where T : INumber<T> {
 	public T R;
 	public T G;
 	public T B;

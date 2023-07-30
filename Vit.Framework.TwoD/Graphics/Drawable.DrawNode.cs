@@ -3,7 +3,7 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
 
-public partial class Drawable {
+public partial class Drawable : IHasDrawNodes<DrawNode> {
 	protected DrawNodeInvalidations DrawNodeInvalidations;
 	protected void InvalidateDrawNodes () {
 		if ( !DrawNodeInvalidations.InvalidateDrawNodes() )
@@ -13,6 +13,20 @@ public partial class Drawable {
 	}
 
 	public Action? DrawNodesInvalidated;
+
+	DrawNode?[] drawNodes = new DrawNode?[3];
+	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
+	public DrawNode GetDrawNode ( int subtreeIndex ) {
+		var node = drawNodes[subtreeIndex] ??= CreateDrawNode( subtreeIndex );
+		node.Update();
+		return node;
+	}
+
+	public virtual void DisposeDrawNodes () {
+		foreach ( var node in drawNodes ) {
+			node?.Dispose();
+		}
+	}
 
 	public abstract class DrawableDrawNode<T> : DrawNode where T : Drawable {
 		protected readonly T Source;

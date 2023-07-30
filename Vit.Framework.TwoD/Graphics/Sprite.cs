@@ -58,6 +58,16 @@ public class Sprite : Drawable {
 	IDeviceBuffer<ushort>? indices;
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
+
+	public override void DisposeDrawNodes () {
+		base.DisposeDrawNodes();
+
+		uniformSet?.Dispose();
+		indices?.Dispose();
+		vertices?.Dispose();
+		uniforms?.Dispose();
+	}
+
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
@@ -75,38 +85,52 @@ public class Sprite : Drawable {
 			tint = Source.tint;
 		}
 
-		public override void Draw ( ICommandBuffer commands ) {
+		void initializeSharedData ( IRenderer renderer ) { // TODO have a global store with basic meshes like this quad
+			ref var indices = ref Source.indices;
+
+			if ( indices != null )
+				return;
+
+			ref var vertices = ref Source.vertices;
+			ref var uniforms = ref Source.uniforms;
+			ref var uniformSet = ref Source.uniformSet;
 			var shaders = shader.Value;
+
+			using var copy = renderer.CreateImmediateCommandBuffer();
+			indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
+			indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( indices, new ushort[] {
+				0, 1, 2,
+				0, 2, 3
+			} );
+			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( vertices, new Vertex[] {
+				new() { PositionAndUV = new( 0, 1 ) },
+				new() { PositionAndUV = new( 1, 1 ) },
+				new() { PositionAndUV = new( 1, 0 ) },
+				new() { PositionAndUV = new( 0, 0 ) }
+			} );
+			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+
+			uniformSet = shaders.CreateUniformSet( set: 1 );
+			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
+		}
+
+		public override void Draw ( ICommandBuffer commands ) {
 			ref var indices = ref Source.indices;
 			ref var vertices = ref Source.vertices;
 			ref var uniforms = ref Source.uniforms;
 			ref var uniformSet = ref Source.uniformSet;
 
+			var shaders = shader.Value;
+
 			var renderer = commands.Renderer;
-			texture.Update( renderer );
+			texture.Update( renderer ); // TODO update textures in main draw loop instead
 
-			if ( indices == null ) {
-				using var copy = renderer.CreateImmediateCommandBuffer();
-				indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
-				indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.Upload( indices, new ushort[] {
-					0, 1, 2,
-					0, 2, 3
-				} );
-				vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-				vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.Upload( vertices, new Vertex[] {
-					new() { PositionAndUV = new( 0, 1 ) },
-					new() { PositionAndUV = new( 1, 1 ) },
-					new() { PositionAndUV = new( 1, 0 ) },
-					new() { PositionAndUV = new( 0, 0 ) }
-				} );
-				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-				uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+			initializeSharedData( renderer );
 
-				uniformSet = shaders.CreateUniformSet( set: 1 );
-				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
-			}
 			uniformSet!.SetSampler( texture.Value, binding: 1 );
 			shaders.SetUniformSet( uniformSet, set: 1 );
 
@@ -120,24 +144,6 @@ public class Sprite : Drawable {
 			commands.DrawIndexed( 6 );
 		}
 
-		public override void ReleaseResources ( bool willBeReused ) {
-			if ( Source.indices == null )
-				return;
-
-			ref var indices = ref Source.indices!;
-			ref var vertices = ref Source.vertices!;
-			ref var uniforms = ref Source.uniforms!;
-			ref var uniformSet = ref Source.uniformSet!;
-
-			indices.Dispose();
-			vertices.Dispose();
-			uniforms.Dispose();
-			uniformSet.Dispose();
-
-			indices = null;
-			vertices = null;
-			uniforms = null;
-			uniformSet = null;
-		}
+		public override void ReleaseResources ( bool willBeReused ) { }
 	}
 }

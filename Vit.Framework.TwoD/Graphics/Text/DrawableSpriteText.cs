@@ -15,11 +15,37 @@ namespace Vit.Framework.TwoD.Graphics.Text;
 
 public class DrawableSpriteText : Drawable { // TODO this is a scam and is actually just a bunch of vertices
 	Font font = null!;
-	public Font Font { get => font; init => font = value; }
-	public FontIdentifier? FontId { get; init; }
-	public required float FontSize { get; init; }
-	public required string Text { get; init; }
-	public required ColorRgba<float> Tint { get; init; }
+	public Font Font {
+		get => font;
+		set {
+			if ( value.TrySet( ref font ) )
+				invalidateFontMesh();
+		}
+	}
+	float fontSize = 16;
+	public float FontSize {
+		get => fontSize;
+		set {
+			if ( value.TrySet( ref fontSize ) )
+				InvalidateDrawNodes();
+		}
+	}
+	string text = string.Empty;
+	public string Text {
+		get => text;
+		set {
+			if ( value.TrySet( ref text ) )
+				invalidateFontMesh();
+		}
+	}
+	ColorRgba<float> tint = ColorRgba.Black;
+	public ColorRgba<float> Tint {
+		get => tint;
+		set {
+			if ( value.TrySet( ref tint ) )
+				InvalidateDrawNodes();
+		}
+	}
 
 	Shader shader = null!;
 	Texture texture = null!;
@@ -28,7 +54,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
-		font ??= deps.Resolve<FontStore>().GetFont( FontId ?? FontStore.DefaultFont );
+		font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
 	}
 
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
@@ -48,14 +74,31 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		public ColorRgba<float> Tint;
 	}
 
+	void invalidateFontMesh () {
+		textMesh.Invalidate();
+		InvalidateDrawNodes();
+	}
+	SharedResourceInvalidations textMesh;
+
 	IUniformSet? uniformSet;
 	IDeviceBuffer<uint>? indices;
 	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
+
+	public override void DisposeDrawNodes () {
+		base.DisposeDrawNodes();
+
+		uniformSet?.Dispose();
+		indices?.Dispose();
+		vertices?.Dispose();
+		uniforms?.Dispose();
+	}
+
 	public class DrawNode : DrawableDrawNode<DrawableSpriteText> {
 		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
+		SharedResourceUpload textMeshUpload;
 		Shader shader = null!;
 		Texture texture = null!;
 		Font font = null!;
@@ -70,6 +113,67 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			text = Source.Text;
 			size = Source.FontSize / (float)font.UnitsPerEm;
 			tint = Source.Tint;
+			textMeshUpload = Source.textMesh.GetUpload();
+		}
+
+		void updateTextMesh ( IRenderer renderer ) {
+			var shaders = shader.Value;
+			ref var indices = ref Source.indices;
+			ref var vertices = ref Source.vertices;
+			ref var uniforms = ref Source.uniforms;
+			ref var uniformSet = ref Source.uniformSet;
+
+			if ( indices != null ) {
+				indices.Dispose();
+				vertices!.Dispose();
+				uniforms!.Dispose();
+				uniformSet!.Dispose();
+			}
+
+			using var copy = renderer.CreateImmediateCommandBuffer();
+			List<Vertex> verticesList = new();
+			List<uint> indicesList = new();
+
+			var advance = Vector2<float>.Zero;
+			foreach ( var rune in text.EnumerateRunes() ) {
+				var glyph = font.GetGlyph( rune );
+				foreach ( var spline in glyph.Outline.Splines ) {
+					uint? _anchor = null;
+					uint? _last = null;
+					foreach ( var p in spline.GetPoints() ) {
+						var point = p.Cast<float>();
+						var index = (uint)verticesList.Count;
+						verticesList.Add( new() { PositionAndUV = point + advance } );
+
+						if ( _anchor is not uint anchor ) {
+							_anchor = index;
+							continue;
+						}
+						if ( _last is not uint last ) {
+							_last = index;
+							continue;
+						}
+
+						indicesList.AddRange( new[] { anchor, last, index } );
+						_last = index;
+					}
+				}
+
+				advance.X += (float)glyph.HorizontalAdvance;
+			}
+
+			Source.indexCount = indicesList.Count;
+			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+			indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( indices, indicesList.AsSpan() );
+			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( vertices, verticesList.AsSpan() );
+			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+
+			uniformSet = shaders.CreateUniformSet( set: 1 );
+			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
@@ -82,52 +186,9 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			var renderer = commands.Renderer;
 			texture.Update( renderer );
 
-			if ( indices == null ) {
-				using var copy = renderer.CreateImmediateCommandBuffer();
-				List<Vertex> verticesList = new();
-				List<uint> indicesList = new();
+			if ( textMeshUpload.Validate( ref Source.textMesh ) )
+				updateTextMesh( renderer );
 
-				var advance = Vector2<float>.Zero;
-				foreach ( var rune in text.EnumerateRunes() ) {
-					var glyph = font.GetGlyph( rune );
-					foreach ( var spline in glyph.Outline.Splines ) {
-						uint? _anchor = null;
-						uint? _last = null;
-						foreach ( var p in spline.GetPoints() ) {
-							var point = p.Cast<float>();
-							var index = (uint)verticesList.Count;
-							verticesList.Add( new() { PositionAndUV = point + advance } );
-
-							if ( _anchor is not uint anchor ) {
-								_anchor = index;
-								continue;
-							}
-							if ( _last is not uint last ) {
-								_last = index;
-								continue;
-							}
-
-							indicesList.AddRange( new[] { anchor, last, index } );
-							_last = index;
-						}
-					}
-
-					advance.X += (float)glyph.HorizontalAdvance;
-				}
-
-				Source.indexCount = indicesList.Count;
-				indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
-				indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.Upload( indices, indicesList.AsSpan() );
-				vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-				vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.Upload( vertices, verticesList.AsSpan() );
-				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-				uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
-
-				uniformSet = shaders.CreateUniformSet( set: 1 );
-				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
-			}
 			uniformSet!.SetSampler( texture.Value, binding: 1 );
 			shaders.SetUniformSet( uniformSet, set: 1 );
 
@@ -154,24 +215,6 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			}
 		}
 
-		public override void ReleaseResources ( bool willBeReused ) {
-			if ( Source.indices == null )
-				return;
-
-			ref var indices = ref Source.indices!;
-			ref var vertices = ref Source.vertices!;
-			ref var uniforms = ref Source.uniforms!;
-			ref var uniformSet = ref Source.uniformSet!;
-
-			indices.Dispose();
-			vertices.Dispose();
-			uniforms.Dispose();
-			uniformSet.Dispose();
-
-			indices = null;
-			vertices = null;
-			uniforms = null;
-			uniformSet = null;
-		}
+		public override void ReleaseResources ( bool willBeReused ) { }
 	}
 }

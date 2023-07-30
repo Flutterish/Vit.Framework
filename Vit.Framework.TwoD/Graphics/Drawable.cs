@@ -5,7 +5,10 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
 
-public abstract partial class Drawable : DisposableObject, IHasDrawNodes<DrawNode> {
+/// <summary>
+/// An object containing state and computations required for drawing a specific thing. It creates up to 3 subtrees of <see cref="DrawNode"/>s for use in a triple-buffer.
+/// </summary>
+public abstract partial class Drawable : DisposableObject {
 	public bool IsLoaded { get; private set; }
 
 	protected RenderThreadScheduler DrawThreadScheduler { get; private set; } = null!;
@@ -38,21 +41,7 @@ public abstract partial class Drawable : DisposableObject, IHasDrawNodes<DrawNod
 		}
 	}
 
-	DrawNode?[] drawNodes = new DrawNode?[3];
-	protected abstract DrawNode CreateDrawNode ( int subtreeIndex );
-	public DrawNode GetDrawNode ( int subtreeIndex ) {
-		var node = drawNodes[subtreeIndex] ??= CreateDrawNode( subtreeIndex );
-		node.Update();
-		return node;
-	}
-
 	protected override void Dispose ( bool disposing ) {
 		DrawThreadScheduler.ScheduleDrawNodeDisposal( this );
-	}
-
-	public virtual void DisposeDrawNodes () {
-		foreach ( var node in drawNodes ) {
-			node?.Dispose();
-		}
 	}
 }
