@@ -251,6 +251,8 @@ public abstract class UIComponent : IUIComponent {
 	}
 	protected virtual void OnUnload () { }
 
+	public virtual void Update () { }
+
 	public abstract DrawNode GetDrawNode ( int subtreeIndex );
 	public abstract void DisposeDrawNodes ();
 

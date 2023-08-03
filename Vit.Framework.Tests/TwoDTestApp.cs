@@ -292,6 +292,7 @@ public class TwoDTestApp : App {
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 
+			root.Update();
 			root.ComputeLayout();
 
 			drawNodeRenderer.CollectDrawData( disposeScheduler.Swap );

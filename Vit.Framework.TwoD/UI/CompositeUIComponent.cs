@@ -134,6 +134,17 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		Dependencies = null!;
 	}
 
+	public override void Update () {
+		base.Update();
+		updateSubtree();
+	}
+
+	void updateSubtree () {
+		foreach ( var i in internalChildren ) {
+			i.Update();
+		}
+	}
+
 	protected override void OnDispose () {
 		RenderThreadScheduler.ScheduleDrawNodeDisposal( this );
 		foreach ( var i in internalChildren.Reverse<T>() ) {
