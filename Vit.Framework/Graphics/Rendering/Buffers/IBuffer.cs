@@ -19,9 +19,9 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// <summary>
 	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
 	/// </summary>
-	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold.</param>
+	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
 	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	void Allocate ( uint size, BufferUsage usageHint );
+	void Allocate ( uint size, BufferUsage usageHint ); // TODO add reallocate
 }
 
 /// <summary>

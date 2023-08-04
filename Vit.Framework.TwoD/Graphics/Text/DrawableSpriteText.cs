@@ -164,15 +164,19 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 			Source.indexCount = indicesList.Count;
 			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+			uniformSet = shaders.CreateUniformSet( set: 1 );
+
+			if ( Source.indexCount == 0 )
+				return;
+
 			indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 			copy.Upload( indices, indicesList.AsSpan() );
-			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 			copy.Upload( vertices, verticesList.AsSpan() );
-			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
-			uniformSet = shaders.CreateUniformSet( set: 1 );
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 			uniformSet.SetSampler( texture.Value, binding: 1 );
 		}
@@ -189,6 +193,8 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 			if ( textMeshUpload.Validate( ref Source.textMesh ) )
 				updateTextMesh( renderer );
+			if ( Source.indexCount == 0 )
+				return;
 
 			shaders.SetUniformSet( uniformSet!, set: 1 );
 
