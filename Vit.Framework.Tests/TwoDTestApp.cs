@@ -48,7 +48,7 @@ public class TwoDTestApp : App {
 
 	protected override void Initialize () {
 		host = new SdlHost( primaryApp: this );
-		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
+		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
 		window = host.CreateWindow( api );
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		window.Initialized += _ => {
