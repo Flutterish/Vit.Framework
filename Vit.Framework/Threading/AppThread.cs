@@ -112,18 +112,17 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		var deltaTime = DateTime.Now - startTime;
 		var allotedTime = TimeSpan.FromSeconds( 1 ) / RateLimit;
 		if ( allotedTime > deltaTime ) {
-			Sleep( allotedTime - allotedTime );
+			Sleep( allotedTime - deltaTime );
 		}
 	}
 
 	protected void Sleep ( int millisecondsTimeout ) {
 		Sleep( TimeSpan.FromMilliseconds( millisecondsTimeout ) );
 	}
-	protected void Sleep ( TimeSpan timeout ) {
+	protected void Sleep ( TimeSpan timeout ) { // TODO this seems to not be exact (240 -> ~213)
+		sleepsUntil = DateTime.Now + timeout;
 		if ( Thread.CurrentThread == nativeThread )
 			Thread.Sleep( timeout );
-		else
-			sleepsUntil = DateTime.Now + timeout;
 	}
 
 	DateTime sleepsUntil = DateTime.MinValue;

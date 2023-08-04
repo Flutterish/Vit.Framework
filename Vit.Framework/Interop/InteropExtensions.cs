@@ -43,12 +43,11 @@ public static class InteropExtensions {
 	}
 
 	public unsafe static T* Data<T> ( this Span<T> span ) where T : unmanaged {
-		return (T*)Unsafe.AsPointer( ref MemoryMarshal.AsRef<T>( MemoryMarshal.Cast<T, byte>( span ) ) );
+		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetReference( span ) );
 	}
 
 	public unsafe static T* Data<T> ( this ReadOnlySpan<T> span ) where T : unmanaged {
-		ref readonly var data = ref MemoryMarshal.AsRef<T>( MemoryMarshal.Cast<T, byte>( span ) );
-		return (T*)Unsafe.AsPointer( ref Unsafe.AsRef( in data ) );
+		return (T*)Unsafe.AsPointer( ref MemoryMarshal.GetReference( span ) );
 	}
 
 	public unsafe static T** Data<T> ( this T*[] array ) where T : unmanaged {

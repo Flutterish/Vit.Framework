@@ -35,7 +35,7 @@ public class DrawNodeRenderer {
 	}
 
 	void draw ( int index, ICommandBuffer commands ) {
-		drawNodes[index].Draw( commands );
+		drawNodes[index]?.Draw( commands );
 	}
 
 	public static readonly ShaderIdentifier TestVertex = new() { Name = "Vertex" };

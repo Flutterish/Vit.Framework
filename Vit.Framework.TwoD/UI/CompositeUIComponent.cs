@@ -5,6 +5,7 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
 
+public abstract class CompositeUIComponent : CompositeUIComponent<UIComponent> { }
 public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T>, IHasCompositeDrawNodes<DrawNode> where T : UIComponent {
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children {
