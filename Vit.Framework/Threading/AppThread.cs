@@ -119,13 +119,25 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 	protected void Sleep ( int millisecondsTimeout ) {
 		Sleep( TimeSpan.FromMilliseconds( millisecondsTimeout ) );
 	}
-	protected void Sleep ( TimeSpan timeout ) { // TODO this seems to not be exact (240 -> ~213)
+	protected void Sleep ( TimeSpan timeout ) {
+		if ( timeout >= sleepVariance ) {
+			timeout -= sleepVariance;
+			sleepVariance = TimeSpan.Zero;
+		}
+		else {
+			sleepVariance -= timeout;
+			timeout = TimeSpan.Zero;
+		}
+
 		sleepsUntil = DateTime.Now + timeout;
-		if ( Thread.CurrentThread == nativeThread )
+		if ( Thread.CurrentThread == nativeThread ) {
 			Thread.Sleep( timeout );
+			sleepVariance += DateTime.Now - sleepsUntil;
+		}
 	}
 
 	DateTime sleepsUntil = DateTime.MinValue;
+	TimeSpan sleepVariance; // positive = too much sleep
 
 	public bool IsBeingDisposed { get; private set; }
 	public bool IsDisposed { get; private set; }
