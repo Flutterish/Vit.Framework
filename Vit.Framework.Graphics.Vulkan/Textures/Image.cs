@@ -287,6 +287,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	public unsafe void Free () {
 		Vk.vkDestroyImageView( Device, view, VulkanExtensions.TODO_Allocator );
 		Vk.vkDestroyImage( Device, Instance, VulkanExtensions.TODO_Allocator );
+		Vk.vkFreeMemory( Device, memory, VulkanExtensions.TODO_Allocator );
 		FreeStagingBuffer();
 	}
 

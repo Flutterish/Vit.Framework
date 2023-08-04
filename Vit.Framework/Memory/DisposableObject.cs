@@ -28,4 +28,10 @@ public abstract class DisposableObject : IDisposable {
 	void throwIfGarbageCollected () {
 		throw new InvalidOperationException( IncorrectDisposalMessage );
 	}
+
+	[Conditional( "DEBUG" )]
+	protected void ThrowIfDisposed () {
+		if ( IsDisposed )
+			throw new InvalidOperationException( "Object used after being disposed" );
+	}
 }
