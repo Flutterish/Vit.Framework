@@ -13,8 +13,10 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 	public readonly IReadOnlyList<QueueFamily> QueueFamilies;
 
 	public readonly IReadOnlyList<string> Extensions;
+	public readonly VulkanInstance VulkanInstance;
 
-	public unsafe PhysicalDevice ( VkPhysicalDevice handle ) {
+	public unsafe PhysicalDevice ( VulkanInstance vulkan, VkPhysicalDevice handle ) {
+		VulkanInstance = vulkan;
 		Instance = handle;
 
 		Vk.vkGetPhysicalDeviceProperties( this, out var properties );

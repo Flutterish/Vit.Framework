@@ -176,5 +176,6 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		depthAttachment?.Dispose();
 		msaaBuffer?.Dispose();
 		Vk.vkDestroySwapchainKHR( Device, Instance, VulkanExtensions.TODO_Allocator );
+		Vk.vkDestroySurfaceKHR( Device.PhysicalDevice.VulkanInstance, Surface, VulkanExtensions.TODO_Allocator );
 	}
 }

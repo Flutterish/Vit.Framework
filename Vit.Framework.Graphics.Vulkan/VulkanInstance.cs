@@ -36,7 +36,7 @@ public class VulkanInstance : DisposableVulkanObject<VkInstance> {
 		get {
 			if ( physicalDevices == null ) {
 				var handles = VulkanExtensions.Out<VkPhysicalDevice>.Enumerate( Instance, Vk.vkEnumeratePhysicalDevices );
-				physicalDevices = handles.Select( x => new PhysicalDevice( x ) ).ToArray();
+				physicalDevices = handles.Select( x => new PhysicalDevice( this, x ) ).ToArray();
 			}
 
 			return physicalDevices;

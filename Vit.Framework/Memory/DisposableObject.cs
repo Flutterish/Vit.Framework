@@ -16,19 +16,12 @@ public abstract class DisposableObject : IDisposable {
 	}
 
 	public void Dispose () {
-		if ( IsDisposed ) {
-			throwIfDisposed();
+		if ( IsDisposed )
 			return;
-		}
 
 		Dispose( disposing: true );
 		IsDisposed = true;
 		GC.SuppressFinalize( this );
-	}
-
-	[Conditional( "DEBUG" )]
-	void throwIfDisposed () {
-		throw new InvalidOperationException( "Object was disposed more than once" );
 	}
 
 	[Conditional( "DEBUG" )]

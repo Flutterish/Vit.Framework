@@ -25,6 +25,12 @@ public class RenderThreadScheduler {
 		}
 	}
 
+	public void DisposeAll () {
+		Execute( 0 );
+		Swap( 1 );
+		Execute( 2 );
+	}
+
 	class SwapStack<T> {
 		Stack<T> swap = new();
 		Stack<T>?[] backlog = new Stack<T>?[3];

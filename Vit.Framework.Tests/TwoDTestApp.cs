@@ -136,8 +136,9 @@ public class TwoDTestApp : App {
 						disposeScheduler.ScheduleDisposal( disposable );
 					}
 				}
+
+				Task.Delay( 1000 ).ContinueWith( _ => Quit() );
 			} );
-			Task.Delay( 1000 ).ContinueWith( _ => Quit() );
 		};
 	}
 
@@ -221,6 +222,9 @@ public class TwoDTestApp : App {
 				return;
 
 			renderer.WaitIdle();
+
+			disposeScheduler.DisposeAll();
+
 			globalUniformBuffer?.Dispose();
 
 			swapchain.Dispose();
