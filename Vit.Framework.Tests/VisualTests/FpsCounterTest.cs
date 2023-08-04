@@ -10,8 +10,8 @@ namespace Vit.Framework.Tests.VisualTests;
 
 public class FpsCounterTest : TestScene {
 	public FpsCounterTest () {
-		AddChild( new FpsCounter(), new() {
-			Size = new( 1f.Relative() )
-		} );
+		//AddChild( new FpsCounter(), new() {
+		//	Size = new( 1f.Relative() )
+		//} );
 	}
 }

@@ -22,6 +22,7 @@ public class Sprite : Drawable {
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
 
+	SharedResourceInvalidations textureInvalidations;
 	public Texture Texture {
 		get => texture;
 		set {
@@ -29,6 +30,7 @@ public class Sprite : Drawable {
 				return;
 
 			texture = value;
+			textureInvalidations.Invalidate();
 			InvalidateDrawNodes();
 		}
 	}
@@ -78,11 +80,13 @@ public class Sprite : Drawable {
 		ColorRgba<float> tint;
 		Shader shader = null!;
 		Texture texture = null!;
+		SharedResourceUpload textureUpload;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
 			tint = Source.tint;
+			textureUpload = Source.textureInvalidations.GetUpload();
 		}
 
 		void initializeSharedData ( IRenderer renderer ) { // TODO have a global store with basic meshes like this quad
@@ -131,8 +135,9 @@ public class Sprite : Drawable {
 
 			initializeSharedData( renderer );
 
-			uniformSet!.SetSampler( texture.Value, binding: 1 );
-			shaders.SetUniformSet( uniformSet, set: 1 );
+			if ( textureUpload.Validate( ref Source.textureInvalidations ) )
+				uniformSet!.SetSampler( texture.Value, binding: 1 );
+			shaders.SetUniformSet( uniformSet!, set: 1 );
 
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );

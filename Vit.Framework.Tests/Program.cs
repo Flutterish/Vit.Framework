@@ -19,7 +19,7 @@ public partial class Program : App {
 
 	public static void Main () {
 		var app = new TwoDTestApp( typeof( VisualTestRunner ) );//new Program();
-		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
+		app.ThreadRunner.ThreadingMode = ThreadingMode.SingleThreaded;
 		app.Run();
 		app = null;
 

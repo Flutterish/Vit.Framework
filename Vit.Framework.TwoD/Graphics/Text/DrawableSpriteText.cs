@@ -174,6 +174,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 			uniformSet = shaders.CreateUniformSet( set: 1 );
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
+			uniformSet.SetSampler( texture.Value, binding: 1 );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
@@ -189,8 +190,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			if ( textMeshUpload.Validate( ref Source.textMesh ) )
 				updateTextMesh( renderer );
 
-			uniformSet!.SetSampler( texture.Value, binding: 1 );
-			shaders.SetUniformSet( uniformSet, set: 1 );
+			shaders.SetUniformSet( uniformSet!, set: 1 );
 
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
