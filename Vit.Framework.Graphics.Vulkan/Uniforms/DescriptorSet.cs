@@ -69,7 +69,10 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public readonly VkDescriptorSetLayout Layout;
 	public readonly DescriptorPool DescriptorPool;
 	public readonly DescriptorSet DescriptorSet;
+	Ref<uint> layoutReferenceCount;
+
 	public unsafe UniformSet ( Device device, UniformSetInfo info ) {
+		layoutReferenceCount = new( 1 );
 		LayoutBindings = info.GenerateUniformBindingsSet();
 		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
 			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
@@ -82,6 +85,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	public UniformSet ( UniformSet value ) {
+		layoutReferenceCount = value.layoutReferenceCount;
+		layoutReferenceCount.Value++;
 		var device = value.DescriptorPool.Device;
 		LayoutBindings = value.LayoutBindings;
 		Layout = value.Layout;
@@ -100,6 +105,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		DescriptorPool.Dispose();
+
+		layoutReferenceCount.Value--;
+		if ( layoutReferenceCount.Value > 0 )
+			return;
+
 		Vk.vkDestroyDescriptorSetLayout( DescriptorPool.Device, Layout, VulkanExtensions.TODO_Allocator );
 	}
 }
