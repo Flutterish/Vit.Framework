@@ -9,19 +9,30 @@ public abstract class DisposableObject : IDisposable {
 	protected abstract void Dispose ( bool disposing );
 	
 	~DisposableObject () {
-		if ( Debugger.IsAttached )
-			throw new InvalidOperationException( IncorrectDisposalMessage );
+		throwIfGarbageCollected();
 
 		Dispose( disposing: false );
 		IsDisposed = true;
 	}
 
 	public void Dispose () {
-		if ( IsDisposed )
+		if ( IsDisposed ) {
+			throwIfDisposed();
 			return;
+		}
 
 		Dispose( disposing: true );
 		IsDisposed = true;
 		GC.SuppressFinalize( this );
+	}
+
+	[Conditional( "DEBUG" )]
+	void throwIfDisposed () {
+		throw new InvalidOperationException( "Object was disposed more than once" );
+	}
+
+	[Conditional( "DEBUG" )]
+	void throwIfGarbageCollected () {
+		throw new InvalidOperationException( IncorrectDisposalMessage );
 	}
 }
