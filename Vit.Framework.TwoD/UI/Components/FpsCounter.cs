@@ -16,16 +16,23 @@ public class FpsCounter : LayoutContainer {
 		stopwatch.Start();
 	}
 
-	int frames;
+	public TimeSpan MeasuredPeriod = TimeSpan.FromSeconds( 1 );
+
+	TimeSpan totalTime;
+	Queue<TimeSpan> frames = new();
 	Stopwatch stopwatch = new();
 	public override void Update () {
-		frames++;
-		var seconds = stopwatch.Elapsed.TotalSeconds;
-		if ( seconds >= 1 ) {
-			text.Text = $"{frames/seconds:N0} FPS";
-			frames = 0;
-			stopwatch.Restart();
+		var frame = stopwatch.Elapsed;
+		stopwatch.Restart();
+
+		totalTime += frame;
+		frames.Enqueue( frame );
+		while ( totalTime - frames.Peek() >= MeasuredPeriod ) {
+			frame = frames.Dequeue();
+			totalTime -= frame;
 		}
+
+		text.Text = $"{frames.Count/totalTime.TotalSeconds:N1} TPS";
 
 		base.Update();
 	}
