@@ -36,16 +36,13 @@ public abstract class SdlWindow : Window {
 	SdlHost host;
 	public nint Pointer;
 	public uint Id;
-	GraphicsApiType renderingApi;
 	public SdlWindow ( SdlHost host, GraphicsApiType renderingApi ) : base( renderingApi ) {
-		this.renderingApi = renderingApi;
 		this.host = host;
 	}
 
 	protected abstract void InitializeHints ( ref SDL.SDL_WindowFlags flags );
 	public void Init () {
 		create();
-		OnInitialized();
 	}
 
 	void create () {

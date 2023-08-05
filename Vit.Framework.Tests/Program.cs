@@ -35,7 +35,7 @@ public partial class Program : App {
 		initGraphics();
 	}
 
-	void initGraphics () {
+	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
 			CursesApi.GraphicsApiType,
 			Direct3D11Api.GraphicsApiType,
@@ -44,31 +44,32 @@ public partial class Program : App {
 		};
 
 		using Host host = new SdlHost( this );
+		using ConsoleHost consoleHost = new ConsoleHost( this );
+		List<Task<Window>> windowTasks = new();
 		List<Window> windows = new();
 		var Letters = "ABCD";
 		for ( int i = 0; i < apis.Count; i++ ) {
 			var api = apis[i];
+			var windowHost = api == CursesApi.GraphicsApiType ? consoleHost : host;
+			windowTasks.Add( windowHost.CreateWindow( api ) );
+		}
 
-			var windowHost = host;
-			if ( api == CursesApi.GraphicsApiType ) {
-				windowHost = new ConsoleHost( this );
-			}
+		await Task.WhenAll( windowTasks );
+		for ( int i = 0; i < windowTasks.Count; i++ ) {
+			var window = windowTasks[i].Result;
+			var api = apis[i];
+			var windowHost = api == CursesApi.GraphicsApiType ? consoleHost : host;
 
-			var window = windowHost.CreateWindow( api );
 			window.Title = $"Window {Letters[i]} [{api}]";
-			window.Initialized += _ => {
-				var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
-				ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
-			};
+			var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
+			ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
 			windows.Add( window );
 		}
 
-		Task.Run( async () => {
-			while ( windows.Any( x => !x.IsClosed ) )
-				await Task.Delay( 1 );
+		while ( windows.Any( x => !x.IsClosed ) )
+			await Task.Delay( 1 );
 
-			Quit();
-		} );
+		Quit();
 	}
 
 	void initAudio () {

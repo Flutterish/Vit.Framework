@@ -46,85 +46,83 @@ public class TwoDTestApp : App {
 
 	UpdateThread updateThread = null!;
 
-	protected override void Initialize () {
+	protected override async void Initialize () {
 		host = new SdlHost( primaryApp: this );
 		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
-		window = host.CreateWindow( api );
+		var window = await host.CreateWindow( api );
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
-		window.Initialized += _ => {
-			root = new() {
-				TargetSize = (1920, 1080),
-				Padding = new( all: 20 ),
-				Position = (-1, -1)
-			};
-
-			drawNodeRenderer = new( root );
-
-			var shaderStore = new ShaderStore();
-			dependencies.Cache( shaderStore );
-
-			var textureStore = new TextureStore();
-			dependencies.Cache( textureStore );
-
-			var fontStore = new FontStore();
-			fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
-			dependencies.Cache( fontStore );
-
-			disposeScheduler = new RenderThreadScheduler();
-			dependencies.Cache( disposeScheduler );
-
-			shaderStore.AddShaderPart( DrawNodeRenderer.TestVertex, new SpirvBytecode( @"#version 450
-				layout(location = 0) in vec2 inPositionAndUv;
-
-				layout(location = 0) out vec2 outUv;
-
-				layout(binding = 0, set = 0) uniform GlobalUniforms {
-					mat3 proj;
-				} globalUniforms;
-
-				layout(binding = 0, set = 1) uniform Uniforms {
-					mat3 model;
-					vec4 tint;
-				} uniforms;
-
-				void main () {
-					outUv = inPositionAndUv;
-					gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
-				}
-			", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
-			shaderStore.AddShaderPart( DrawNodeRenderer.TestFragment, new SpirvBytecode( @"#version 450
-				layout(location = 0) in vec2 inUv;
-
-				layout(location = 0) out vec4 outColor;
-
-				layout(binding = 1, set = 1) uniform sampler2D texSampler;
-				layout(binding = 0, set = 1) uniform Uniforms {
-					mat3 model;
-					vec4 tint;
-				} uniforms;
-
-				void main () {
-					outColor = texture( texSampler, inUv ) * uniforms.tint;
-				}
-			", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
-
-			root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() { 
-				Size = new( 1f.Relative() ) 
-			} );
-			var _instance = Activator.CreateInstance( type );
-			UIComponent instance = 
-				_instance is Drawable drawable ? new Visual { Displayed = drawable }
-				: _instance is UIComponent component ? component 
-				: throw new InvalidOperationException( "the test type is funky" );
-			root.AddChild( instance, new() {
-				Size = new( 1f.Relative() )
-			} );
-
-			root.Load( dependencies );
-
-			ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawNodeRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
-			ThreadRunner.RegisterThread( new RenderThread( drawNodeRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
+		root = new() {
+			TargetSize = (1920, 1080),
+			Padding = new( all: 20 ),
+			Position = (-1, -1)
 		};
+
+		drawNodeRenderer = new( root );
+
+		var shaderStore = new ShaderStore();
+		dependencies.Cache( shaderStore );
+
+		var textureStore = new TextureStore();
+		dependencies.Cache( textureStore );
+
+		var fontStore = new FontStore();
+		fontStore.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
+		dependencies.Cache( fontStore );
+
+		disposeScheduler = new RenderThreadScheduler();
+		dependencies.Cache( disposeScheduler );
+
+		shaderStore.AddShaderPart( DrawNodeRenderer.TestVertex, new SpirvBytecode( @"#version 450
+			layout(location = 0) in vec2 inPositionAndUv;
+
+			layout(location = 0) out vec2 outUv;
+
+			layout(binding = 0, set = 0) uniform GlobalUniforms {
+				mat3 proj;
+			} globalUniforms;
+
+			layout(binding = 0, set = 1) uniform Uniforms {
+				mat3 model;
+				vec4 tint;
+			} uniforms;
+
+			void main () {
+				outUv = inPositionAndUv;
+				gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
+			}
+		", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
+		shaderStore.AddShaderPart( DrawNodeRenderer.TestFragment, new SpirvBytecode( @"#version 450
+			layout(location = 0) in vec2 inUv;
+
+			layout(location = 0) out vec4 outColor;
+
+			layout(binding = 1, set = 1) uniform sampler2D texSampler;
+			layout(binding = 0, set = 1) uniform Uniforms {
+				mat3 model;
+				vec4 tint;
+			} uniforms;
+
+			void main () {
+				outColor = texture( texSampler, inUv ) * uniforms.tint;
+			}
+		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
+
+		root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
+			Size = new( 1f.Relative() )
+		} );
+		var _instance = Activator.CreateInstance( type );
+		UIComponent instance =
+			_instance is Drawable drawable ? new Visual { Displayed = drawable }
+			: _instance is UIComponent component ? component
+			: throw new InvalidOperationException( "the test type is funky" );
+		root.AddChild( instance, new() {
+			Size = new( 1f.Relative() )
+		} );
+
+		root.Load( dependencies );
+
+		ThreadRunner.RegisterThread( updateThread = new UpdateThread( drawNodeRenderer, window, disposeScheduler, $"Update Thread [{Name}]" ) { RateLimit = 240 } );
+		ThreadRunner.RegisterThread( new RenderThread( drawNodeRenderer, host, window, api, disposeScheduler, $"Render Thread [{Name}]" ) { RateLimit = 60 } );
 
 		window.Closed += _ => {
 			updateThread.Scheduler.Enqueue( () => {

@@ -25,25 +25,6 @@ public abstract class Window : IWindow, IDisposable {
 	}
 	public event Action<Window>? Resized;
 
-	public bool IsInitialized { get; private set; }
-	protected void OnInitialized () {
-		IsInitialized = true;
-		initialized?.Invoke( this );
-		initialized = null;
-	}
-	event Action<Window>? initialized;
-	public event Action<Window>? Initialized {
-		add {
-			if ( IsInitialized )
-				value?.Invoke( this );
-			else
-				initialized += value;
-		}
-		remove {
-			initialized -= value;
-		}
-	}
-
 	// TODO try to split this to just create the swapchain?
 	/// <summary>
 	/// Creates a swapchain and a renderer for it based on the provided options. 

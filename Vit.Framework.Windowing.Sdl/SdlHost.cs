@@ -89,7 +89,7 @@ public class SdlHost : Host {
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
-	public override Window CreateWindow ( GraphicsApiType renderingApi ) {
+	public override Task<Window> CreateWindow ( GraphicsApiType renderingApi ) {
 		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
@@ -102,8 +102,13 @@ public class SdlHost : Host {
 		window.SdlWindowCreated += window => {
 			windowsById[window.Id] = window;
 		};
-		scheduledActions.Enqueue( window.Init );
-		return window;
+
+		TaskCompletionSource<Window> taskSource = new();
+		scheduledActions.Enqueue( () => {
+			window.Init();
+			taskSource.SetResult( window );
+		} );
+		return taskSource.Task;
 	}
 
 	internal void destroyWindow ( SdlWindow window ) {
