@@ -28,9 +28,7 @@ abstract class SdlBackend {
 }
 
 class NullSdlBackend : SdlBackend {
-	public override void InitializeHints ( WindowSurfaceArgs args, ref SDL.SDL_WindowFlags flags ) {
-		flags |= SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN; // HACK so you can create the vulkan api
-	}
+	public override void InitializeHints ( WindowSurfaceArgs args, ref SDL.SDL_WindowFlags flags ) { }
 
 	public override WindowGraphicsSurface CreateSurface ( GraphicsApi api, WindowSurfaceArgs args, SdlWindow window ) {
 		throw new NotImplementedException();

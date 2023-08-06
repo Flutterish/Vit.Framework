@@ -8,7 +8,6 @@ using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Interop;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
-using Vit.Framework.Windowing.Sdl.Backends;
 
 namespace Vit.Framework.Windowing.Sdl;
 
@@ -137,12 +136,15 @@ public class SdlHost : Host {
 					break;
 
 				case RenderingCapabilities.DrawToWindow:
-					if ( windowsById.Values.FirstOrDefault( x => x.backend == SdlBackend.Null ) is not SdlWindow window )
-						throw new Exception( $"In order to enabe {i}, some window must be created (SDL limitation, to be removed in future versions)" );
-					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
+					var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN; // HACK we create a vulkan window to fetch the required extensions
+					var windowPointer = SDL.SDL_CreateWindow( "", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 0, 0, windowFlags );
+
+					SDL.SDL_Vulkan_GetInstanceExtensions( windowPointer, out var count, null );
 					nint[] pointers = new nint[count];
-					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );
+					SDL.SDL_Vulkan_GetInstanceExtensions( windowPointer, out count, pointers );
 					extensions.AddRange( pointers.Select( x => new CString( x ) ) );
+
+					SDL.SDL_DestroyWindow( windowPointer );
 					break;
 
 				default:
