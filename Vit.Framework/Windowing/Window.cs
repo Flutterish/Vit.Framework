@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing;
@@ -25,16 +24,15 @@ public abstract class Window : IWindow, IDisposable {
 	}
 	public event Action<Window>? Resized;
 
-	// TODO try to split this to just create the swapchain?
 	/// <summary>
-	/// Creates a swapchain and a renderer for it based on the provided options. 
-	/// If this is called for a second time, the previous swapchain is no longer valid 
-	/// and the renderer might - but doesn't have to - be the same object as returned last time.
+	/// Creates a graphics surface representing the window based on the provided options. 
+	/// If this is called for a second time, the previous surface is no longer valid.
+	/// The swapchain is invalid but the renderer might - but doesn't have to - be the same object as returned last time.
 	/// </summary>
 	/// <remarks>
-	/// Depending on the graphics backend or the host, this might visually close and reopen the window.
+	/// Depending on the graphics backend and/or the host, this might visually close and reopen the window.
 	/// </remarks>
-	public abstract (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args );
+	public abstract WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args );
 
 	public bool IsClosed { get; private set; }
 	public event Action<Window>? Closed;

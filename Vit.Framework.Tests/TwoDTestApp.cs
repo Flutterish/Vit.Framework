@@ -157,11 +157,12 @@ public class TwoDTestApp : App {
 		ISwapchain swapchain = null!;
 		IRenderer renderer = null!;
 		protected override void Initialize () {
-			(swapchain, renderer) = window.CreateSwapchain( api, new() { 
+			var surface = window.CreateGraphicsSurface( api, new() { 
 				Depth = DepthFormat.Bits24, 
 				Stencil = StencilFormat.Bits8,
 				Multisample = MultisampleFormat.Samples4
 			} );
+			(swapchain, renderer) = (surface.Swapchain, surface.Renderer);
 
 			globalUniformBuffer = renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );

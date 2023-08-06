@@ -36,9 +36,3 @@ public interface ISwapchain : IDisposable {
 	/// </remarks>
 	IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation (); // TODO figure out synchronisation objects instead
 }
-
-public struct SwapChainArgs {
-	public AcceptableRange<MultisampleFormat> Multisample;
-	public AcceptableRange<DepthFormat> Depth;
-	public AcceptableRange<StencilFormat> Stencil;
-}

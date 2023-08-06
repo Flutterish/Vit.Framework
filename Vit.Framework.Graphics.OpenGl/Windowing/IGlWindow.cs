@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Windowing;
 
-namespace Vit.Framework.Graphics.OpenGl;
+namespace Vit.Framework.Graphics.OpenGl.Windowing;
 
 public interface IGlWindow : IWindow {
 	nint CreateContext ();

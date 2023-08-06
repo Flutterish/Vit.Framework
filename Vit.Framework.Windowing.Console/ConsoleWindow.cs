@@ -1,7 +1,6 @@
 ﻿using Vit.Framework.Graphics.Curses;
-using Vit.Framework.Graphics.Curses.Queues;
+using Vit.Framework.Graphics.Curses.Windowing;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing.Console;
@@ -20,12 +19,11 @@ public class ConsoleWindow : Window {
 
 	public override Size2<uint> PixelSize => new( (uint)System.Console.WindowWidth, (uint)System.Console.WindowHeight );
 
-	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( api is not CursesApi curses )
 			throw new ArgumentException( "Graphics API must be a Curses API created from the same host as this window", nameof( api ) );
 
-		var renderer = new CursesRenderer( curses );
-		return (new Swapchain( renderer, this ), renderer);
+		return new CursesWindowSurface( curses, args, this );
 	}
 
 	protected override void Dispose ( bool disposing ) {

@@ -13,10 +13,10 @@ namespace Vit.Framework.Graphics.Direct3D11.Queues;
 public class Swapchain : DisposableObject, ISwapchain {
 	public readonly IDXGISwapChain Handle;
 	public readonly Direct3D11Renderer Renderer;
-	public readonly Window Window;
+	public readonly IWindow Window;
 
 	TargetView backBuffer;
-	public Swapchain ( IDXGISwapChain handle, Direct3D11Renderer renderer, Window window, SwapChainArgs args ) {
+	public Swapchain ( IDXGISwapChain handle, Direct3D11Renderer renderer, IWindow window, WindowSurfaceArgs args ) {
 		Handle = handle;
 		Renderer = renderer;
 		Window = window;

@@ -29,11 +29,12 @@ public abstract class GenericRenderThread : AppThread {
 	protected IRenderer Renderer = null!;
 	protected ISwapchain Swapchain = null!;
 	protected override void Initialize () {
-		(Swapchain, Renderer) = Window.CreateSwapchain( GraphicsApi, new() {
+		var surface = Window.CreateGraphicsSurface( GraphicsApi, new() {
 			Multisample = new() { Ideal = MultisampleFormat.Samples8, Minimum = MultisampleFormat.None, Maximum = MultisampleFormat.Samples16 },
 			Depth = new() { Ideal = DepthFormat.Bits32, Minimum = DepthFormat.Bits16 },
 			Stencil = StencilFormat.Bits8
 		} );
+		(Swapchain, Renderer) = (surface.Swapchain, surface.Renderer);
 	}
 
 	protected sealed override void Loop () {

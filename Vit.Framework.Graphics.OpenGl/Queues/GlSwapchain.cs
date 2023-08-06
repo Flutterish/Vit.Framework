@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.OpenGl.Textures;
+using Vit.Framework.Graphics.OpenGl.Windowing;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;

@@ -1,8 +1,7 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.OpenGl;
-using Vit.Framework.Graphics.OpenGl.Queues;
+using Vit.Framework.Graphics.OpenGl.Windowing;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 
 namespace Vit.Framework.Windowing.Sdl;
 
@@ -26,7 +25,7 @@ class GlWindow : SdlWindow, IGlWindow {
 	}
 
 	bool swapchainCreated;
-	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( swapchainCreated )
 			throw new NotImplementedException( "Surface recreation not implemented" );
 		swapchainCreated = true;
@@ -39,10 +38,7 @@ class GlWindow : SdlWindow, IGlWindow {
 		minStencil = (int)args.Stencil.Minimum;
 		Recreate().Wait(); // TODO this stalls on singlethreaded, probably make the swapchain (and window) creation a task
 
-		var renderer = new GlRenderer( gl );
-		var swapchain = new GlSwapchain( renderer, this );
-
-		return (swapchain, renderer);
+		return new GlWindowSurface( gl, args, this );
 	}
 
 	public nint CreateContext () {

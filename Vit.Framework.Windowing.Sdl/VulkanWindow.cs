@@ -1,10 +1,7 @@
 ﻿using SDL2;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Vulkan;
-using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Windowing;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vulkan;
 
@@ -25,7 +22,7 @@ class VulkanWindow : SdlWindow, IVulkanWindow {
 	}
 
 	bool swapchainCreated;
-	public override (ISwapchain swapchain, IRenderer renderer) CreateSwapchain ( GraphicsApi api, SwapChainArgs args ) {
+	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( swapchainCreated )
 			throw new NotImplementedException( "Surface recreation not implemented" );
 		swapchainCreated = true;
@@ -33,19 +30,7 @@ class VulkanWindow : SdlWindow, IVulkanWindow {
 		if ( api is not VulkanApi vulkan )
 			throw new ArgumentException( "Graphics API must be a Vulkan API created from the same host as this window", nameof(api) );
 
-		var surface = GetSurface( vulkan.Instance );
-		var (physicalDevice, swapchainInfo) = vulkan.Instance.GetBestDeviceInfo( surface );
-
-		var device = physicalDevice.CreateDevice( SwapchainInfo.RequiredExtensionsCstr, new CString[] { }, new[] {
-			swapchainInfo.GraphicsFamily,
-			swapchainInfo.PresentFamily
-		} );
-		
-		var swapchain = device.CreateSwapchain( surface, swapchainInfo.SelectBest(), PixelSize );
-		var graphicsQueue = device.GetQueue( swapchainInfo.GraphicsFamily );
-		var presentQueue = device.GetQueue( swapchainInfo.PresentFamily );
-		var renderer = new VulkanRenderer( vulkan, device, graphicsQueue );
-		return (new WindowSwapchain(this, swapchain, presentQueue, renderer, args), renderer);
+		return new VulkanWindowSurface( vulkan, args, this );
 	}
 
 	public VkSurfaceKHR GetSurface ( VulkanInstance vulkan ) {

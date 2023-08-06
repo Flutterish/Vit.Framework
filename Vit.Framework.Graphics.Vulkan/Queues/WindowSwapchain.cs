@@ -14,10 +14,10 @@ public class WindowSwapchain : DisposableObject, ISwapchain {
 	Swapchain swapchain;
 	public readonly RenderPass ToScreenRenderPass;
 	public readonly Queue PresentQueue;
-	public readonly Window Window;
+	public readonly IWindow Window;
 	public readonly VulkanRenderer Renderer;
 
-	public WindowSwapchain ( Window window, Swapchain swapchain, Queue presentQueue, VulkanRenderer renderer, SwapChainArgs args ) {
+	public WindowSwapchain ( IWindow window, Swapchain swapchain, Queue presentQueue, VulkanRenderer renderer, WindowSurfaceArgs args ) {
 		PresentQueue = presentQueue;
 		var device = swapchain.Device;
 		this.swapchain = swapchain;

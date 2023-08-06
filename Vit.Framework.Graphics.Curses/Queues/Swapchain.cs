@@ -11,8 +11,8 @@ using Vit.Framework.Windowing;
 namespace Vit.Framework.Graphics.Curses.Queues;
 
 public class Swapchain : DisposableObject, ISwapchain {
-	Window window;
-	public Swapchain ( SoftwareRenderer renderer, Window window ) {
+	IWindow window;
+	public Swapchain ( SoftwareRenderer renderer, IWindow window ) {
 		this.window = window;
 		backbuffer = new( window.PixelSize );
 		commandBuffer = new( renderer );
@@ -25,7 +25,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 
 	TargetImage backbuffer;
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
-		if ( backbuffer.Size != window.Size )
+		if ( backbuffer.Size != window.PixelSize )
 			Recreate();
 
 		frameIndex = 0;
