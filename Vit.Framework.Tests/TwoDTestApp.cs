@@ -48,8 +48,8 @@ public class TwoDTestApp : App {
 
 	protected override async void Initialize () {
 		host = new SdlHost( primaryApp: this );
-		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
-		var window = await host.CreateWindow( api );
+		var api = host.SupportedRenderingApis.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
+		var window = await host.CreateWindow();
 		window.Title = $"New Window [{Name}] [{api}] (Testing {type})";
 		root = new() {
 			TargetSize = (1920, 1080),

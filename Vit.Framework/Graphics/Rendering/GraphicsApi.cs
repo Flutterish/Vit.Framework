@@ -10,11 +10,11 @@ namespace Vit.Framework.Graphics.Rendering;
 /// This is equivalent to <c>VkInstance</c> or header files for OpenGL/D3D.
 /// </remarks>
 public abstract class GraphicsApi : DisposableObject {
-	public readonly GraphicsApiType API;
+	public readonly GraphicsApiType Type;
 	public readonly ImmutableArray<RenderingCapabilities> Capabilities;
 
-	public GraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) {
-		API = api;
+	public GraphicsApi ( GraphicsApiType type, IEnumerable<RenderingCapabilities> capabilities ) {
+		Type = type;
 		Capabilities = capabilities.ToImmutableArray();
 	}
 }

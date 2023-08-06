@@ -1,11 +1,17 @@
 ﻿using SDL2;
+using Vit.Framework.Graphics.Direct3D11.Windowing;
+using Vit.Framework.Graphics.OpenGl.Windowing;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Windowing.Sdl.Backends;
+using Vulkan;
 
 namespace Vit.Framework.Windowing.Sdl;
 
-public abstract class SdlWindow : Window {
+public class SdlWindow : Window, IGlWindow, IDirect3D11Window, IVulkanWindow {
 	string title = "New Window";
 	public override string Title {
 		get => title;
@@ -33,21 +39,25 @@ public abstract class SdlWindow : Window {
 		}
 	}
 
+	public override Size2<uint> PixelSize => backend.GetPixelSize( this );
+
 	SdlHost host;
 	public nint Pointer;
 	public uint Id;
-	public SdlWindow ( SdlHost host, GraphicsApiType renderingApi ) : base( renderingApi ) {
+	public SdlWindow ( SdlHost host ) {
 		this.host = host;
 	}
 
-	protected abstract void InitializeHints ( ref SDL.SDL_WindowFlags flags );
 	public void Init () {
 		create();
 	}
 
+	internal SdlBackend backend = SdlBackend.Null;
+	WindowSurfaceArgs surfaceArgs;
+	GraphicsApi? api;
 	void create () {
 		var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
-		InitializeHints( ref windowFlags );
+		backend.InitializeHints( surfaceArgs, ref windowFlags );
 
 		Pointer = SDL.SDL_CreateWindow( title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, (int)Width, (int)Height, windowFlags );
 		if ( Pointer == 0 ) {
@@ -56,6 +66,20 @@ public abstract class SdlWindow : Window {
 
 		Id = SDL.SDL_GetWindowID( Pointer );
 		SdlWindowCreated?.Invoke( this );
+	}
+
+	bool surfaceCreated;
+	public override async Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
+		if ( surfaceCreated )
+			throw new NotImplementedException( "Surface recreation not implemented" );
+		surfaceCreated = true;
+
+		backend = SdlBackend.GetBackend( api.Type );
+		this.surfaceArgs = args;
+		this.api = api;
+		await Recreate();
+
+		return backend.CreateSurface( api, args, this );
 	}
 
 	protected Task Recreate () {
@@ -118,4 +142,35 @@ public abstract class SdlWindow : Window {
 			host.destroyWindow( this );
 		} );
 	}
+
+	#region opengl
+	public nint CreateContext () {
+		var context = SDL.SDL_GL_CreateContext( Pointer );
+		if ( context == 0 )
+			SdlHost.ThrowSdl( "gl context creation" );
+
+		return context;
+	}
+	public void MakeCurrent ( nint context ) {
+		SDL.SDL_GL_MakeCurrent( Pointer, context );
+	}
+	public void SwapBackbuffer () {
+		SDL.SDL_GL_SwapWindow( Pointer );
+	}
+	#endregion
+	#region direct3d
+	public nint GetWindowPointer () {
+		SDL.SDL_SysWMinfo info = default;
+		SDL.SDL_VERSION( out info.version );
+		SDL.SDL_GetWindowWMInfo( Pointer, ref info );
+
+		return info.info.win.window;
+	}
+	#endregion
+	#region vulkan
+	public VkSurfaceKHR GetSurface ( VulkanInstance vulkan ) {
+		SDL.SDL_Vulkan_CreateSurface( Pointer, vulkan.Handle.Handle, out var surface );
+		return new VkSurfaceKHR( (ulong)surface );
+	}
+	#endregion
 }

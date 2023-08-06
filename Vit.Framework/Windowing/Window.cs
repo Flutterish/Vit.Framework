@@ -4,11 +4,6 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Windowing;
 
 public abstract class Window : IWindow, IDisposable {
-	public readonly GraphicsApiType RenderingApi;
-	public Window ( GraphicsApiType renderingApi ) {
-		RenderingApi = renderingApi;
-	}
-
 	public abstract string Title { get; set; }
 	public uint Width { get => Size.Width; set => Size = Size with { Width = value }; }
 	public uint Height { get => Size.Height; set => Size = Size with { Height = value }; }

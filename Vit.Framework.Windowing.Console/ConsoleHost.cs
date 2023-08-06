@@ -9,11 +9,8 @@ public class ConsoleHost : Host {
 		
 	}
 
-	public override Task<Window> CreateWindow ( GraphicsApiType renderingApi ) {
-		return Task.FromResult<Window>( renderingApi switch {
-			var x when x == CursesApi.GraphicsApiType => new ConsoleWindow(),
-			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof( renderingApi ) )
-		} );
+	public override Task<Window> CreateWindow () {
+		return Task.FromResult<Window>( new ConsoleWindow() );
 	}
 
 	public override GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities ) {

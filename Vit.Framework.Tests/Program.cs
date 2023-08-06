@@ -51,7 +51,7 @@ public partial class Program : App {
 		for ( int i = 0; i < apis.Count; i++ ) {
 			var api = apis[i];
 			var windowHost = api == CursesApi.GraphicsApiType ? consoleHost : host;
-			windowTasks.Add( windowHost.CreateWindow( api ) );
+			windowTasks.Add( windowHost.CreateWindow() );
 		}
 
 		await Task.WhenAll( windowTasks );

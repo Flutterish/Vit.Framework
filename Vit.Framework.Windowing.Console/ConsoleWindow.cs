@@ -6,7 +6,7 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Windowing.Console;
 
 public class ConsoleWindow : Window {
-	public ConsoleWindow () : base( CursesApi.GraphicsApiType ) { }
+	public ConsoleWindow () { }
 
 	public override string Title {
 		get => System.Console.Title ?? string.Empty;

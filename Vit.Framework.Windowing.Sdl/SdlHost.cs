@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Interop;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
+using Vit.Framework.Windowing.Sdl.Backends;
 
 namespace Vit.Framework.Windowing.Sdl;
 
@@ -90,16 +91,12 @@ public class SdlHost : Host {
 	}
 
 	Dictionary<uint, SdlWindow> windowsById = new();
-	public override Task<Window> CreateWindow ( GraphicsApiType renderingApi ) {
+	public override Task<Window> CreateWindow () {
 		if ( IsDisposed )
 			throw new InvalidOperationException( "Cannot create new windows with a disposed host" );
 
-		SdlWindow window = renderingApi switch {
-			var x when x == VulkanApi.GraphicsApiType => new VulkanWindow( this ),
-			var x when x == Direct3D11Api.GraphicsApiType => new Direct3D11Window( this ),
-			var x when x == OpenGlApi.GraphicsApiType => new GlWindow( this ),
-			_ => throw new ArgumentException( $"Unsupported rendering api: {renderingApi}", nameof(renderingApi) )
-		};
+		SdlWindow window = new( this );
+
 		window.SdlWindowCreated += window => {
 			windowsById[window.Id] = window;
 		};
@@ -140,8 +137,8 @@ public class SdlHost : Host {
 					break;
 
 				case RenderingCapabilities.DrawToWindow:
-					if ( windowsById.Values.OfType<VulkanWindow>().FirstOrDefault() is not SdlWindow window )
-						throw new Exception( $"In order to enabe {i}, some vulkan window must be created (SLD 3.0 limitation, to be removed in SDL 4.0)" );
+					if ( windowsById.Values.FirstOrDefault( x => x.backend == SdlBackend.Null ) is not SdlWindow window )
+						throw new Exception( $"In order to enabe {i}, some window must be created (SDL limitation, to be removed in future versions)" );
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out var count, null );
 					nint[] pointers = new nint[count];
 					SDL.SDL_Vulkan_GetInstanceExtensions( window.Pointer, out count, pointers );
