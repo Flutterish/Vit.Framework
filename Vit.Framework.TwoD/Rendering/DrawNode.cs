@@ -54,6 +54,8 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// Disposes of owned draw nodes and any shared data.
 	/// </summary>
 	void DisposeDrawNodes ();
+
+	bool IsDisposed { get; }
 }
 
 public interface IHasCompositeDrawNodes<out T> where T : DrawNode {

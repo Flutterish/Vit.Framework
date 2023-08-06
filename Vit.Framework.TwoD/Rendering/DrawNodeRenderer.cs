@@ -8,14 +8,17 @@ public class DrawNodeRenderer {
 	TripleBuffer drawNodeSwapchain = new();
 	public readonly IHasDrawNodes<DrawNode> Root;
 
-	DrawNode[] drawNodes = new DrawNode[3];
+	DrawNode?[] drawNodes = new DrawNode?[3];
 	public DrawNodeRenderer ( IHasDrawNodes<DrawNode> root ) {
 		Root = root;
 	}
 
 	public void CollectDrawData ( Action<int>? action = null ) {
 		using var _ = drawNodeSwapchain.GetForWrite( out var index );
-		drawNodes[index] = Root.GetDrawNode( index );
+		if ( Root.IsDisposed )
+			drawNodes[index] = null;
+		else
+			drawNodes[index] = Root.GetDrawNode( index );
 		action?.Invoke( index );
 	}
 
