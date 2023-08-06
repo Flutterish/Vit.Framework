@@ -13,7 +13,7 @@ class Direct3D11Window : SdlWindow, IDirect3D11Window {
 	}
 
 	bool swapchainCreated;
-	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
+	public override Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( swapchainCreated )
 			throw new NotImplementedException( "Surface recreation not implemented" );
 		swapchainCreated = true;
@@ -21,7 +21,7 @@ class Direct3D11Window : SdlWindow, IDirect3D11Window {
 		if ( api is not Direct3D11Api dx )
 			throw new ArgumentException( "Graphics API must be an Direct3D11 API created from the same host as this window", nameof( api ) );
 
-		return new Direct3D11WindowSurface( dx, args, this );
+		return Task.FromResult<WindowGraphicsSurface>( new Direct3D11WindowSurface( dx, args, this ) );
 	}
 
 	public nint GetWindowPointer () {

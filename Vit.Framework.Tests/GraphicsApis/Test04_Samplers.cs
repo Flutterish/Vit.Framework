@@ -34,8 +34,9 @@ public class Test04_Samplers : GenericRenderThread {
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture texture = null!;
-	protected override void Initialize () {
-		base.Initialize();
+	protected override bool Initialize () {
+		if ( !base.Initialize() )
+			return false;
 
 		vertex = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
 			layout(location = 0) in vec2 inPosition;
@@ -94,6 +95,8 @@ public class Test04_Samplers : GenericRenderThread {
 				throw new Exception( "Oops, cant load image" );
 			commands.UploadTextureData<Rgba32>( texture, memory.Span );
 		}
+
+		return true;
 	}
 
 	DateTime start = DateTime.Now;

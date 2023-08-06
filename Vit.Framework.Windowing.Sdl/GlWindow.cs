@@ -25,7 +25,7 @@ class GlWindow : SdlWindow, IGlWindow {
 	}
 
 	bool swapchainCreated;
-	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
+	public override async Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( swapchainCreated )
 			throw new NotImplementedException( "Surface recreation not implemented" );
 		swapchainCreated = true;
@@ -36,7 +36,7 @@ class GlWindow : SdlWindow, IGlWindow {
 		multisamples = (int)args.Multisample.Ideal;
 		minDepth = (int)args.Depth.Minimum;
 		minStencil = (int)args.Stencil.Minimum;
-		Recreate().Wait(); // TODO this stalls on singlethreaded, probably make the swapchain (and window) creation a task
+		await Recreate();
 
 		return new GlWindowSurface( gl, args, this );
 	}

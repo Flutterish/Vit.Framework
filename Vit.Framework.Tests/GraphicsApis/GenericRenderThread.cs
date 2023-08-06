@@ -25,16 +25,24 @@ public abstract class GenericRenderThread : AppThread {
 		windowResized = true;
 	}
 
+	Task<WindowGraphicsSurface>? initializationTask;
+	protected WindowGraphicsSurface GraphicsSurface = null!;
 	protected GraphicsApi GraphicsApi;
 	protected IRenderer Renderer = null!;
 	protected ISwapchain Swapchain = null!;
-	protected override void Initialize () {
-		var surface = Window.CreateGraphicsSurface( GraphicsApi, new() {
+	protected override bool Initialize () {
+		initializationTask ??= Window.CreateGraphicsSurface( GraphicsApi, new() {
 			Multisample = new() { Ideal = MultisampleFormat.Samples8, Minimum = MultisampleFormat.None, Maximum = MultisampleFormat.Samples16 },
 			Depth = new() { Ideal = DepthFormat.Bits32, Minimum = DepthFormat.Bits16 },
 			Stencil = StencilFormat.Bits8
 		} );
-		(Swapchain, Renderer) = (surface.Swapchain, surface.Renderer);
+
+		if ( !initializationTask.IsCompleted )
+			return false;
+
+		GraphicsSurface = initializationTask.Result;
+		(Swapchain, Renderer) = (GraphicsSurface.Swapchain, GraphicsSurface.Renderer);
+		return true;
 	}
 
 	protected sealed override void Loop () {

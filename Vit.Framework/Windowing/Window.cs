@@ -32,7 +32,7 @@ public abstract class Window : IWindow, IDisposable {
 	/// <remarks>
 	/// Depending on the graphics backend and/or the host, this might visually close and reopen the window.
 	/// </remarks>
-	public abstract WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args );
+	public abstract Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args );
 
 	public bool IsClosed { get; private set; }
 	public event Action<Window>? Closed;

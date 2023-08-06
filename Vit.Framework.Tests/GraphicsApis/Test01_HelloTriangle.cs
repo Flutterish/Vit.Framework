@@ -19,8 +19,9 @@ public class Test01_HelloTriangle : GenericRenderThread {
 
 	IDeviceBuffer<Point2<float>> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
-	protected override void Initialize () {
-		base.Initialize();
+	protected override bool Initialize () {
+		if ( !base.Initialize() )
+			return false;
 
 		vertex = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
 			layout(location = 0) in vec2 inPosition;
@@ -54,6 +55,8 @@ public class Test01_HelloTriangle : GenericRenderThread {
 				2, 1, 0
 			} );
 		}
+
+		return true;
 	}
 
 	DateTime start = DateTime.Now;

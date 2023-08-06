@@ -30,8 +30,9 @@ public class Test03_Uniforms : GenericRenderThread {
 	IDeviceBuffer<Vertex> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
-	protected override void Initialize () {
-		base.Initialize();
+	protected override bool Initialize () {
+		if ( !base.Initialize() )
+			return false;
 
 		vertex = Renderer.CompileShaderPart( new SpirvBytecode( @"#version 450
 			layout(location = 0) in vec2 inPosition;
@@ -78,6 +79,8 @@ public class Test03_Uniforms : GenericRenderThread {
 				2, 1, 0
 			} );
 		}
+
+		return true;
 	}
 
 	DateTime start = DateTime.Now;

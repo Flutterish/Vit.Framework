@@ -25,7 +25,7 @@ public class AppThreadRunner : AppThread {
 		appThreads.Add( thread );
 	}
 
-	protected override void Initialize () { }
+	protected override bool Initialize () { return true; }
 
 	protected override void Loop () {
 		var threadCount = appThreads.Count;

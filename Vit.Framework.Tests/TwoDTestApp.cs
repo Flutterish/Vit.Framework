@@ -154,15 +154,22 @@ public class TwoDTestApp : App {
 			window.Resized += onWindowResized;
 		}
 
+		Task<WindowGraphicsSurface>? initializationTask;
+		protected WindowGraphicsSurface GraphicsSurface = null!;
 		ISwapchain swapchain = null!;
 		IRenderer renderer = null!;
-		protected override void Initialize () {
-			var surface = window.CreateGraphicsSurface( api, new() { 
+		protected override bool Initialize () {
+			initializationTask ??= window.CreateGraphicsSurface( api, new() { 
 				Depth = DepthFormat.Bits24, 
 				Stencil = StencilFormat.Bits8,
 				Multisample = MultisampleFormat.Samples4
 			} );
-			(swapchain, renderer) = (surface.Swapchain, surface.Renderer);
+
+			if ( !initializationTask.IsCompleted )
+				return false;
+
+			GraphicsSurface = initializationTask.Result;
+			(swapchain, renderer) = (GraphicsSurface.Swapchain, GraphicsSurface.Renderer);
 
 			globalUniformBuffer = renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
@@ -175,6 +182,8 @@ public class TwoDTestApp : App {
 			shaderStore.CompileNew( renderer );
 			var globalSet = basic.Value.GetUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
+
+			return true;
 		}
 
 		ShaderStore shaderStore = null!;
@@ -272,8 +281,8 @@ public class TwoDTestApp : App {
 			globalInputTrackers.Dispose();
 		}
 
-		protected override void Initialize () {
-			
+		protected override bool Initialize () {
+			return true;
 		}
 
 		protected override void Loop () {

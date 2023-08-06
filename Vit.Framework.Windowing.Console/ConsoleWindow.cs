@@ -19,11 +19,11 @@ public class ConsoleWindow : Window {
 
 	public override Size2<uint> PixelSize => new( (uint)System.Console.WindowWidth, (uint)System.Console.WindowHeight );
 
-	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
+	public override Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( api is not CursesApi curses )
 			throw new ArgumentException( "Graphics API must be a Curses API created from the same host as this window", nameof( api ) );
 
-		return new CursesWindowSurface( curses, args, this );
+		return Task.FromResult<WindowGraphicsSurface>( new CursesWindowSurface( curses, args, this ) );
 	}
 
 	protected override void Dispose ( bool disposing ) {

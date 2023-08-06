@@ -38,14 +38,16 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 			Sleep( sleepsUntil - DateTime.Now );
 
 		if ( !isInitialized ) {
-			Initialize();
-			isInitialized = true;
+			isInitialized = Initialize();
+			if ( !isInitialized )
+				goto end;
 		}
 
 		while ( State != ThreadState.Halting ) {
 			runLoopWithRateLimit();
 		}
 
+		end:
 		if ( IsBeingDisposed ) {
 			Dispose( disposing: true );
 			IsDisposed = true;
@@ -74,12 +76,14 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		}
 
 		if ( !isInitialized ) {
-			Initialize();
-			isInitialized = true;
+			isInitialized = Initialize();
+			if ( !isInitialized )
+				goto end;
 		}
 
 		runLoopWithRateLimit();
 
+		end:
 		if ( IsBeingDisposed ) {
 			Dispose( disposing: true );
 			IsDisposed = true;
@@ -104,7 +108,12 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		StopAsync().Wait();
 	}
 
-	protected abstract void Initialize ();
+	/// <summary>
+	/// Initializes the app thread.
+	/// </summary>
+	/// <returns><see langword="true"/> if the initialization succeeded, <see langword="false"/> if the initialization is still in progress.</returns>
+	/// <remarks>The thread might still get disposed mid-initialization.</remarks>
+	protected abstract bool Initialize ();
 	protected abstract void Loop ();
 	void runLoopWithRateLimit () {
 		var startTime = DateTime.Now;

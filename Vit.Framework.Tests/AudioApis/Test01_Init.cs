@@ -12,9 +12,11 @@ public class Test01_Samples : AppThread {
 	}
 
 	IPlayableAudio audio = null!;
-	protected override void Initialize () {
+	protected override bool Initialize () {
 		api = new BassApi();
 		audio = api.DefaultDevice!.LoadSample( "./combobreak.wav", maxSimultanious: 8 );
+
+		return true;
 	}
 
 	protected override void Loop () {

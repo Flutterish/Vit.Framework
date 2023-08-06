@@ -31,12 +31,13 @@ public class SdlHost : Host {
 			this.host = host;
 		}
 
-		protected override void Initialize () {
+		protected override bool Initialize () {
 			if ( SDL.SDL_Init( SDL.SDL_INIT_VIDEO ) < 0 ) {
 				ThrowSdl( "sdl initialisation failed" );
 			}
 
 			SDL.SDL_AddEventWatch( eventFilter = new SDL.SDL_EventFilter( eventWatch ), 0 );
+			return true;
 		}
 
 		protected override void Loop () {

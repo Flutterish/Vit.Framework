@@ -22,7 +22,7 @@ class VulkanWindow : SdlWindow, IVulkanWindow {
 	}
 
 	bool swapchainCreated;
-	public override WindowGraphicsSurface CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
+	public override Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
 		if ( swapchainCreated )
 			throw new NotImplementedException( "Surface recreation not implemented" );
 		swapchainCreated = true;
@@ -30,7 +30,7 @@ class VulkanWindow : SdlWindow, IVulkanWindow {
 		if ( api is not VulkanApi vulkan )
 			throw new ArgumentException( "Graphics API must be a Vulkan API created from the same host as this window", nameof(api) );
 
-		return new VulkanWindowSurface( vulkan, args, this );
+		return Task.FromResult<WindowGraphicsSurface>( new VulkanWindowSurface( vulkan, args, this ) );
 	}
 
 	public VkSurfaceKHR GetSurface ( VulkanInstance vulkan ) {
