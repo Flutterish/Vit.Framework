@@ -244,7 +244,7 @@ public class Timeline<TEvent> {
 		isSeeking = false;
 	}
 
-	public Action<Event>? EventStarted;
+	public Action<Event>? EventStarted; // NOTE perhaps if these were virtual methods rather than events, it would improve speed?
 	public Action<Event>? EventEnded;
 	public Action<Event>? EventStartRewound;
 	public Action<Event>? EventEndRewound;
@@ -253,6 +253,9 @@ public class Timeline<TEvent> {
 		public required TEvent Value { get; init; }
 		public required double StartTime { get; init; }
 		public required double EndTime { get; init; }
+		/// <summary>
+		/// Events with higher Ids were added later than ones with lower Ids.
+		/// </summary>
 		public required int Id { get; init; }
 
 		public double Duration => EndTime - StartTime;
