@@ -1,12 +1,14 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
 
 public class Visual : Visual<Drawable> { }
-public class Visual<T> : UIComponent where T : Drawable {
+public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
 	T displayed = null!;
 	public required T Displayed {
 		get => displayed;
@@ -28,7 +30,15 @@ public class Visual<T> : UIComponent where T : Drawable {
 		Displayed.UnitToGlobalMatrix = Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
 	}
 
+	public override void Update () {
+		AnimationTimeline.Update( Clock.CurrentTime );
+		base.Update();
+	}
+
+	public IClock Clock { get; private set; } = null!;
+	public AnimationTimeline AnimationTimeline { get; } = new();
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		Clock = dependencies.Resolve<IClock>();
 		base.OnLoad( dependencies );
 		Displayed.Load( dependencies );
 	}

@@ -233,11 +233,7 @@ public abstract class UIComponent : IUIComponent {
 	#endregion
 	#region Lifetime
 	public bool IsLoaded { get; private set; }
-	public IClock Clock { get; private set; } = null!;
-	public AnimationTimeline AnimationTimeline { get; } = new();
-	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) {
-		Clock = dependencies.Resolve<IClock>();
-	}
+	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) { }
 	public void Load ( IReadOnlyDependencyCache dependencies ) {
 		if ( IsLoaded )
 			throw new InvalidOperationException( "Component is already loaded" );
@@ -257,9 +253,7 @@ public abstract class UIComponent : IUIComponent {
 	}
 	protected virtual void OnUnload () { }
 
-	public virtual void Update () {
-		AnimationTimeline.Update( Clock.CurrentTime );
-	}
+	public virtual void Update () { }
 
 	public abstract DrawNode GetDrawNode ( int subtreeIndex );
 	public abstract void DisposeDrawNodes ();
@@ -350,7 +344,7 @@ public abstract class UIComponent : IUIComponent {
 	#endregion
 }
 
-public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, IHasAnimationTimeline, IDisposable {
+public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, IDisposable {
 	void InvalidateLayout ( LayoutInvalidations invalidations );
 
 	/// <summary>
