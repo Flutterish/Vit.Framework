@@ -56,6 +56,11 @@ public class TimelineTest : TestScene {
 	}
 
 	void AddButton ( double time ) {
+		AddChild( new Box { Tint = ColorRgba.Yellow }, new() {
+			Size = new( 2, 1f.Relative() ),
+			Origin = Anchor.BottomCentre,
+			Anchor = Anchor<float>.BottomLeft + new RelativeAxes2<float>( ((float)time).Relative(), 0 )
+		} );
 		AddChild( new Button { Clicked = () => timeline.SeekTo( time ) }, new() {
 			Size = (50, 50),
 			Origin = Anchor.BottomCentre,

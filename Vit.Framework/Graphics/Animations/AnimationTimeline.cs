@@ -96,7 +96,7 @@ public class AnimationTimeline {
 	}
 
 	public void Add ( Animation animation ) {
-		if ( !Rewindable && animation.StartTime < animations.CurrentTime )
+		if ( !Rewindable && animation.StartTime < CurrentTime )
 			throw new InvalidOperationException( "Cannot insert an in-progress or finished animation to a non-rewindable timeline" );
 
 		animations.Add( animation, animation.StartTime, animation.EndTime );

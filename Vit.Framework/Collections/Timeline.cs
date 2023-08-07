@@ -9,19 +9,16 @@ namespace Vit.Framework.Collections;
 /// Events begin on <c>time = startTime</c>, and end on <c>time > endTime</c>. This means 0-duration events last for an infenitesimal amount of time, rather than not at all.
 /// </remarks>
 public class Timeline<TEvent> {
-	static readonly IComparer<(double time, int id)> ascendingComparer = Comparer<(double time, int id)>.Create( static (a,b) => {
-		var byTime = a.time.CompareTo( b.time );
-		return byTime != 0 ? byTime : a.id.CompareTo( b.id );
+	static readonly IComparer<double> ascendingComparer = Comparer<double>.Create( static (a,b) => {
+		return a.CompareTo( b );
 	} );
 
 	public int Count => eventsByStartTime.Count;
 	public IEnumerable<Event> EventsByStartTime => eventsByStartTime.Values;
 	public IEnumerable<Event> EventsByEndTime => eventsByEndTime.Values;
 
-	int nextEventId; // id guarnatees stable sort
-	SortedList<(double time, int id), Event> eventsByStartTime = new( ascendingComparer );
-	SortedList<(double time, int id), Event> eventsByEndTime = new( ascendingComparer );
-	// TODO perhaps this should be a linked list?
+	SortedLinkedList<double, Event> eventsByStartTime = new( ascendingComparer );
+	SortedLinkedList<double, Event> eventsByEndTime = new( ascendingComparer );
 
 	public IEnumerable<Event> EventsAt ( double time ) {
 		return eventsByStartTime.Values // TODO this needs some heavy optimisation
@@ -38,43 +35,48 @@ public class Timeline<TEvent> {
 	public Event Add ( TEvent value, double startTime, double endTime ) {
 		Debug.Assert( endTime >= startTime );
 
-		var id = nextEventId++;
 		var @event = new Event {
 			Value = value,
 			StartTime = startTime,
-			EndTime = endTime,
-			Id = id
+			EndTime = endTime
 		};
+
+		void relink () {
+			if ( startTime < currentTime )
+				starts.TryReplacePrevious( @event.startNode );
+			else
+				starts.TryReplaceNext( @event.startNode );
+
+			if ( endTime < currentTime )
+				ends.TryReplacePrevious( @event.endNode );
+			else
+				ends.TryReplaceNext( @event.endNode );
+		}
 
 		if ( SeekBehaviour == SeekBehaviour.Rewind && currentTime >= startTime ) {
 			var startingCurrentTime = currentTime;
 			seekBefore( startTime );
 
-			eventsByStartTime.Add( (startTime, id), @event );
-			eventsByEndTime.Add( (endTime, id), @event );
+			@event.startNode = eventsByStartTime.AddLast( startTime, @event );
+			@event.endNode = eventsByEndTime.AddLast( endTime, @event );
+			relink();
 
 			SeekTo( startingCurrentTime );
 			return @event;
 		}
 
-		eventsByStartTime.Add( (startTime, id), @event );
-		eventsByEndTime.Add( (endTime, id), @event );
+		@event.startNode = eventsByStartTime.AddLast( startTime, @event );
+		@event.endNode = eventsByEndTime.AddLast( endTime, @event );
+		relink();
 
-		if ( startTime < currentTime ) {
-			nextStartIndex++;
-		}
-		if ( endTime < currentTime ) {
-			nextEndIndex++;
-		}
-
-		if ( SeekBehaviour == SeekBehaviour.Acknowledge ) {
-			if ( startTime <= currentTime ) {
-				EventStarted?.Invoke( @event );
-			}
-			if ( endTime < currentTime ) {
-				EventEnded?.Invoke( @event );
-			}
-		}
+		//if ( SeekBehaviour == SeekBehaviour.Acknowledge ) {
+		//	if ( startTime <= currentTime ) {
+		//		EventStarted?.Invoke( @event );
+		//	}
+		//	if ( endTime < currentTime ) {
+		//		EventEnded?.Invoke( @event );
+		//	}
+		//}
 
 		return @event;
 	}
@@ -84,38 +86,63 @@ public class Timeline<TEvent> {
 			var startingCurrentTime = currentTime;
 			seekBefore( @event.StartTime );
 
-			eventsByStartTime.Remove( (@event.StartTime, @event.Id) );
-			eventsByEndTime.Remove( (@event.EndTime, @event.Id) );
+			@event.startNode.Remove();
+			@event.endNode.Remove();
 
 			SeekTo( startingCurrentTime );
 			return;
 		}
 
-		eventsByStartTime.Remove( (@event.StartTime, @event.Id) );
-		eventsByEndTime.Remove( (@event.EndTime, @event.Id) );
+		@event.startNode.Remove();
+		@event.endNode.Remove();
 
-		if ( @event.StartTime <= currentTime ) {
-			nextStartIndex--;
-		}
-		if ( @event.EndTime < currentTime ) {
-			nextEndIndex--;
+		if ( starts.Next == @event.startNode )
+			starts.Next = starts.Previous?.Next;
+		if ( ends.Next == @event.endNode )
+			ends.Next = ends.Previous?.Next;
+
+		if ( starts.Previous == @event.startNode )
+			starts.Previous = starts.Next?.Previous;
+		if ( ends.Previous == @event.endNode )
+			ends.Previous = ends.Next?.Previous;
+
+		//if ( SeekBehaviour == SeekBehaviour.Acknowledge ) {
+		//	if ( @event.EndTime < currentTime ) {
+		//		EventEndRewound?.Invoke( @event );
+		//	}
+		//	if ( @event.StartTime <= currentTime ) {
+		//		EventStartRewound?.Invoke( @event );
+		//	}
+		//}
+	}
+
+	record struct Link { // links sit between 2 nodes
+		public SortedLinkedList<double, Event>.Node? Next;
+		public SortedLinkedList<double, Event>.Node? Previous;
+
+		public void TryReplaceNext ( SortedLinkedList<double, Event>.Node node ) {
+			if ( Next == null || Next.Previous == node )
+				Next = node;
 		}
 
-		if ( SeekBehaviour == SeekBehaviour.Acknowledge ) {
-			if ( @event.EndTime < currentTime ) {
-				EventEndRewound?.Invoke( @event );
-			}
-			if ( @event.StartTime <= currentTime ) {
-				EventStartRewound?.Invoke( @event );
-			}
+		public void TryReplacePrevious ( SortedLinkedList<double, Event>.Node node ) {
+			if ( Previous == null || Previous.Next == node )
+				Previous = node;
+		}
+
+		public void MoveForward () { // to move forward Next needs to be not null
+			Previous = Next;
+			Next = Next!.Next;
+		}
+
+		public void MoveBackward () { // to move backward Previous needs to be not null
+			Next = Previous;
+			Previous = Previous!.Previous;
 		}
 	}
 
-	int nextStartIndex;
-	int nextEndIndex;
-
-	int nextRewindStartIndex => nextStartIndex - 1;
-	int nextRewindEndIndex => nextEndIndex - 1;
+	Link starts;
+	Link ends;
 
 	double currentTime;
 	public double CurrentTime {
@@ -123,18 +150,11 @@ public class Timeline<TEvent> {
 		set => SeekTo( value );
 	}
 
-	bool isSeeking;
 	public void SeekTo ( double goal ) {
-		if ( isSeeking )
-			throw new InvalidOperationException( "Nested seeking not supported" );
-		isSeeking = true;
-
 		if ( goal >= currentTime )
 			seekForwardTo( goal );
 		else if ( goal < currentTime )
 			seekBackwardTo( goal );
-
-		isSeeking = false;
 	}
 
 	void seekForwardTo ( double goal ) {
@@ -142,7 +162,7 @@ public class Timeline<TEvent> {
 			if ( @event.EndTime >= goal )
 				return false;
 
-			nextEndIndex++;
+			ends.MoveForward();
 			currentTime = @event.EndTime;
 			EventEnded?.Invoke( @event );
 			return true;
@@ -152,17 +172,17 @@ public class Timeline<TEvent> {
 			if ( @event.StartTime > goal )
 				return false;
 
-			nextStartIndex++;
+			starts.MoveForward();
 			currentTime = @event.StartTime;
 			EventStarted?.Invoke( @event );
 			return true;
 		}
 
-		while ( nextEndIndex < Count ) {
-			var nextEnd = eventsByEndTime.Values[nextEndIndex];
+		while ( ends.Next != null ) {
+			var nextEnd = ends.Next.Value;
 
-			if ( nextStartIndex < Count ) {
-				var nextStart = eventsByStartTime.Values[nextStartIndex];
+			if ( starts.Next != null ) {
+				var nextStart = starts.Next.Value;
 
 				if ( nextStart.StartTime <= nextEnd.EndTime ) {
 					if ( tryStart( nextStart ) )
@@ -184,7 +204,7 @@ public class Timeline<TEvent> {
 			if ( @event.EndTime < goal )
 				return false;
 
-			nextEndIndex--;
+			ends.MoveBackward();
 			currentTime = @event.EndTime;
 			EventEndRewound?.Invoke( @event );
 			return true;
@@ -194,17 +214,17 @@ public class Timeline<TEvent> {
 			if ( @event.StartTime <= goal )
 				return false;
 
-			nextStartIndex--;
+			starts.MoveBackward();
 			currentTime = @event.StartTime;
 			EventStartRewound?.Invoke( @event );
 			return true;
 		}
 
-		while ( nextRewindStartIndex >= 0 ) {
-			var previousStart = eventsByStartTime.Values[nextRewindStartIndex];
+		while ( starts.Previous != null ) {
+			var previousStart = starts.Previous.Value;
 
-			if ( nextRewindEndIndex >= 0 ) {
-				var previousEnd = eventsByEndTime.Values[nextRewindEndIndex];
+			if ( ends.Previous != null ) {
+				var previousEnd = ends.Previous.Value;
 
 				if ( previousStart.StartTime <= previousEnd.EndTime ) {
 					if ( tryRewindEnd( previousEnd ) )
@@ -226,22 +246,18 @@ public class Timeline<TEvent> {
 			if ( @event.StartTime <= goal )
 				return false;
 
-			nextStartIndex--;
+			starts.MoveBackward();
 			currentTime = @event.StartTime;
 			EventStartRewound?.Invoke( @event );
 			return true;
 		}
 
 		SeekTo( goal );
-
-		isSeeking = true;
-		while ( nextRewindStartIndex >= 0 ) {
-			var previousStart = eventsByStartTime.Values[nextRewindStartIndex];
+		while ( starts.Previous != null ) {
+			var previousStart = starts.Previous.Value;
 			if ( !tryRewindStart( previousStart ) )
 				break;
 		}
-
-		isSeeking = false;
 	}
 
 	public Action<Event>? EventStarted; // NOTE perhaps if these were virtual methods rather than events, it would improve speed?
@@ -253,10 +269,9 @@ public class Timeline<TEvent> {
 		public required TEvent Value { get; init; }
 		public required double StartTime { get; init; }
 		public required double EndTime { get; init; }
-		/// <summary>
-		/// Events with higher Ids were added later than ones with lower Ids.
-		/// </summary>
-		public required int Id { get; init; }
+
+		internal SortedLinkedList<double, Event>.Node startNode = null!;
+		internal SortedLinkedList<double, Event>.Node endNode = null!;
 
 		public double Duration => EndTime - StartTime;
 	}
@@ -273,7 +288,7 @@ public enum SeekBehaviour {
 	/// <summary>
 	/// Fires the start/end events for the event as if using <see cref="Rewind"/>, but only for the inserted/removed event.
 	/// </summary>
-	Acknowledge,
+	//Acknowledge,
 	/// <summary>
 	/// Rewinds before the inserted/removed event, inserts/removes the event and then seeks back to the previous time again.
 	/// </summary>

@@ -27,14 +27,19 @@ public abstract class Animation {
 
 public class AnimationDomain {
 	public required string Name { get; init; }
+
+	public override string ToString () {
+		return Name;
+	}
 }
 
 public abstract class Animation<TTarget, TValue> : Animation where TTarget : class {
 	public readonly TTarget Target;
 	public readonly TValue EndValue;
+	bool hasStarted;
 	protected TValue StartValue { get; private set; } = default!;
 
-	protected Animation ( TTarget target, TValue endValue, double startTime, double endTime ) : base( startTime, endTime ) {
+	public Animation ( TTarget target, TValue endValue, double startTime, double endTime ) : base( startTime, endTime ) {
 		Target = target;
 		EndValue = endValue;
 	}
@@ -47,10 +52,11 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 	}
 
 	public sealed override void OnStarted () {
+		hasStarted = true;
 		StartValue = GetValue();
 	}
 	public sealed override void OnStartRewound () {
-		SetValue( StartValue );
+		SetValue( StartValue! );
 	}
 
 	public sealed override void OnEnded () {
@@ -58,5 +64,12 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 	}
 	public sealed override void OnEndRewound () {
 		
+	}
+
+	public override string ToString () {
+		if ( !hasStarted )
+			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {EndValue} in {Duration:N1}ms";
+		else
+			return $"{GetType().Name} ({string.Join( ", ", Domains)}) {StartValue} -> {EndValue} in {Duration:N1}ms";
 	}
 }

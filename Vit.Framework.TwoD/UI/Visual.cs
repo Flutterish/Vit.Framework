@@ -29,6 +29,7 @@ public class Visual<T> : UIComponent where T : Drawable {
 	}
 
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		base.OnLoad( dependencies );
 		Displayed.Load( dependencies );
 	}
 	protected override void OnUnload () {

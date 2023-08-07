@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
@@ -26,16 +27,17 @@ public class Button : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandle
 		if ( @event.Button != Framework.Input.CursorButton.Left )
 			return false;
 
-		background.Tint = ColorRgba.YellowGreen;
+		background.Animate().FadeColour( ColorRgba.YellowGreen, 200 );
 		return true;
 	}
 
 	public bool OnEvent ( ReleasedEvent @event ) {
-		background.Tint = ColorRgba.GreenYellow;
+		background.Animate().FadeColour( ColorRgba.GreenYellow, 200 );
 		return true;
 	}
 
 	public bool OnEvent ( ClickedEvent @event ) {
+		background.Animate().FlashColour( ColorRgba.White, ColorRgba.GreenYellow, 200 );
 		Clicked?.Invoke();
 		return true;
 	}

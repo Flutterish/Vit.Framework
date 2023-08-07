@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
+using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.Windowing;
 
@@ -60,6 +61,10 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		DisposeScheduler = new RenderThreadScheduler();
 		Dependencies.Cache( DisposeScheduler );
+
+		StopwatchClock clock = new();
+		Dependencies.Cache( clock );
+		Dependencies.Cache<IClock>( clock );
 
 		OnInitialized();
 

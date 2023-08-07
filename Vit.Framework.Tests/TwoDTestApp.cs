@@ -112,7 +112,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override UpdateThread CreateUpdateThread () {
-		return new TestUpdateThread( DrawNodeRenderer, DisposeScheduler, Window, $"Update Thread [{Name}]" ) { RateLimit = 240 };
+		return new TestUpdateThread( DrawNodeRenderer, DisposeScheduler, Window, Dependencies, $"Update Thread [{Name}]" ) { RateLimit = 240 };
 	}
 
 	protected override RenderThread CreateRenderThread () {
@@ -125,7 +125,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
 		Window window;
-		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, string name ) : base( drawNodeRenderer, disposeScheduler, name ) {
+		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			uiEventSource = new() { Root = Root };
 			globalInputTrackers = new();
 			cursorTracker = new CursorTracker( (SdlWindow)window );
