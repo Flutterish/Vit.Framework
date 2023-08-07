@@ -22,9 +22,9 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 	protected override void OnChildParameterUpdated ( T child, LayoutParams? previous, LayoutParams? current ) {
 		var invalidation = LayoutInvalidations.Self;
 
-		if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) && (previous?.Size.Width.IsRelative == false || current?.Size.Width.IsRelative == false) )
+		if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) && previous?.Size.Width.Absolute != current?.Size.Width.Absolute )
 			invalidation |= LayoutInvalidations.RequiredSize;
-		else if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) && (previous?.Size.Height.IsRelative == false || current?.Size.Height.IsRelative == false) )
+		else if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) && previous?.Size.Height.Absolute != current?.Size.Height.Absolute )
 			invalidation |= LayoutInvalidations.RequiredSize;
 
 		InvalidateLayout( invalidation );

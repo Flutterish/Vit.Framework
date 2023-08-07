@@ -32,6 +32,20 @@ public struct RelativeAxes2<T> : IEquatable<RelativeAxes2<T>> where T : INumber<
 		Y = anchor.HasFlag( Anchor.VerticalCentre ) ? (T.One / (T.One + T.One)).Relative() : anchor.HasFlag( Anchor.Top ) ? T.One.Relative() : T.Zero
 	};
 
+	public static RelativeAxes2<T> operator + ( RelativeAxes2<T> left, RelativeAxes2<T> right ) {
+		return new() {
+			X = left.X + right.X,
+			Y = left.Y + right.Y
+		};
+	}
+
+	public static RelativeAxes2<T> operator - ( RelativeAxes2<T> left, RelativeAxes2<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y
+		};
+	}
+
 	public static bool operator == ( RelativeAxes2<T> left, RelativeAxes2<T> right ) {
 		return left.X == right.X
 			&& left.Y == right.Y;
@@ -82,4 +96,18 @@ public enum Anchor {
 	CentreLeft = VerticalCentre | Left,
 	Centre = VerticalCentre | HorizontalCentre,
 	CentreRight = VerticalCentre | Right
+}
+
+public static class Anchor<T> where T : INumber<T> {
+	public static RelativeAxes2<T> BottomLeft => Anchor.BottomLeft;
+	public static RelativeAxes2<T> BottomCentre => Anchor.BottomCentre;
+	public static RelativeAxes2<T> BottomRight => Anchor.BottomRight;
+
+	public static RelativeAxes2<T> TopLeft => Anchor.TopLeft;
+	public static RelativeAxes2<T> TopCentre => Anchor.TopCentre;
+	public static RelativeAxes2<T> TopRight => Anchor.TopRight;
+
+	public static RelativeAxes2<T> CentreLeft => Anchor.CentreLeft;
+	public static RelativeAxes2<T> Centre => Anchor.Centre;
+	public static RelativeAxes2<T> CentreRight => Anchor.CentreRight;
 }

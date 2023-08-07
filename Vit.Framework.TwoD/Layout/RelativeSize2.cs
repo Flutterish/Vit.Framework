@@ -25,6 +25,9 @@ public struct RelativeSize2<T> where T : INumber<T> {
 		? new( Width, Height )
 		: new( Height, Width );
 
+	public static implicit operator RelativeSize2<T> ( ValueTuple<T, T> tuple ) {
+		return new( tuple.Item1, tuple.Item2 );
+	}
 	public void Deconstruct ( out LayoutUnit<T> width, out LayoutUnit<T> height ) {
 		width = Width;
 		height = Height;

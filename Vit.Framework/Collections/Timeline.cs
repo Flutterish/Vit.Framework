@@ -23,6 +23,16 @@ public class Timeline<TEvent> {
 	SortedList<(double time, int id), Event> eventsByEndTime = new( ascendingComparer );
 	// TODO perhaps this should be a linked list?
 
+	public IEnumerable<Event> EventsAt ( double time ) {
+		return eventsByStartTime.Values // TODO this needs some heavy optimisation
+			.Where( x => x.StartTime <= time && x.EndTime >= time );
+	}
+
+	public IEnumerable<Event> EventsBetween ( double startTime, double endTime ) {
+		return eventsByStartTime.Values // TODO this needs some heavy optimisation
+			.Where( x => x.EndTime >= startTime && x.StartTime <= endTime );
+	}
+
 	public SeekBehaviour SeekBehaviour = SeekBehaviour.Ignore;
 
 	public Event Add ( TEvent value, double startTime, double endTime ) {
@@ -262,7 +272,7 @@ public enum SeekBehaviour {
 	/// </summary>
 	Acknowledge,
 	/// <summary>
-	/// Rewinds before the inserted/removed event, insterts/removes the event and then seeks back to the previous time again.
+	/// Rewinds before the inserted/removed event, inserts/removes the event and then seeks back to the previous time again.
 	/// </summary>
 	Rewind
 }
