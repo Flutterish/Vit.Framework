@@ -42,13 +42,7 @@ public static class BoxAnimations {
 		}
 
 		protected override ColorRgba<float> Interpolate ( double t ) {
-			float time = (float)t;
-			return new() {
-				R = float.Sqrt( StartValue.R * StartValue.R * (1 - time) + EndValue.R * EndValue.R * time ),
-				G = float.Sqrt( StartValue.G * StartValue.G * (1 - time) + EndValue.G * EndValue.G * time ),
-				B = float.Sqrt( StartValue.B * StartValue.B * (1 - time) + EndValue.B * EndValue.B * time ),
-				A = StartValue.A * (1 - time) + EndValue.A * time
-			};
+			return StartValue.Interpolate( EndValue, (float)t );
 		}
 
 		public static AnimationDomain TintDomain = new() { Name = "Tint" };
