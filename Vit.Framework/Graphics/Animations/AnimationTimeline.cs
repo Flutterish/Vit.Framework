@@ -11,7 +11,7 @@ public class AnimationTimeline {
 		set => animations.SeekBehaviour = value ? SeekBehaviour.Rewind : SeekBehaviour.Ignore;
 	}
 
-	public double CurrentTime => animations.CurrentTime;
+	public double CurrentTime { get => animations.CurrentTime; init => animations.CurrentTime = value; }
 	Timeline<Animation> animations = new() { SeekBehaviour = SeekBehaviour.Ignore };
 	public AnimationTimeline () {
 		animations.EventStarted = onStarted;
@@ -110,5 +110,14 @@ public interface IHasAnimationTimeline {
 public static class IHasAnimationTimelineExtensions {
 	public static AnimationSequence<TSource> Animate<TSource> ( this TSource source ) where TSource : IHasAnimationTimeline {
 		return new() { Source = source, StartTime = source.AnimationTimeline.CurrentTime, EndTime = source.AnimationTimeline.CurrentTime };
+	}
+
+	/// <summary>
+	/// Instantly finishes all animations, if <see cref="AnimationTimeline.Rewindable"/> is <see langword="false"/>.
+	/// </summary>
+	public static void FinishAnimations ( this IHasAnimationTimeline source ) {
+		var time = source.AnimationTimeline.CurrentTime;
+		source.AnimationTimeline.Update( double.PositiveInfinity );
+		source.AnimationTimeline.Update( time );
 	}
 }

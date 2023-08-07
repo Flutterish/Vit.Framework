@@ -61,7 +61,7 @@ public class TimelineTest : TestScene {
 			Origin = Anchor.BottomCentre,
 			Anchor = Anchor<float>.BottomLeft + new RelativeAxes2<float>( ((float)time).Relative(), 0 )
 		} );
-		AddChild( new Button { Clicked = () => timeline.SeekTo( time ) }, new() {
+		AddChild( new BasicButton { Clicked = () => timeline.SeekTo( time ) }, new() {
 			Size = (50, 50),
 			Origin = Anchor.BottomCentre,
 			Anchor = Anchor<float>.BottomLeft + new RelativeAxes2<float>( ((float)time).Relative(), 0 )

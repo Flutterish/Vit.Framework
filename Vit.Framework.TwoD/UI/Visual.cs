@@ -36,7 +36,7 @@ public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
 	}
 
 	public IClock Clock { get; private set; } = null!;
-	public AnimationTimeline AnimationTimeline { get; } = new();
+	public AnimationTimeline AnimationTimeline { get; } = new() { CurrentTime = double.NegativeInfinity }; // negative infinity start time basically makes load-time animations finish instantly
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		Clock = dependencies.Resolve<IClock>();
 		base.OnLoad( dependencies );

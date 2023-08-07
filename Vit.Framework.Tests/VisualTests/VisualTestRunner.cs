@@ -32,7 +32,7 @@ public class VisualTestRunner : Flexbox {
 		} );
 
 		foreach ( var i in tests ) {
-			var button = new Button() {
+			var button = new BasicButton() {
 				Clicked = () => {
 					runTest( i );
 				}

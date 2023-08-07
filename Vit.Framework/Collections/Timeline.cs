@@ -18,7 +18,7 @@ public class Timeline<TEvent> {
 	public IEnumerable<Event> EventsByEndTime => eventsByEndTime.Values;
 
 	SortedLinkedList<double, Event> eventsByStartTime = new( ascendingComparer );
-	SortedLinkedList<double, Event> eventsByEndTime = new( ascendingComparer );
+	SortedLinkedList<double, Event> eventsByEndTime = new( ascendingComparer ); // NOTE perhaps we could merge these 2 into one with an start/end flag
 
 	public IEnumerable<Event> EventsAt ( double time ) {
 		return eventsByStartTime.Values // TODO this needs some heavy optimisation
