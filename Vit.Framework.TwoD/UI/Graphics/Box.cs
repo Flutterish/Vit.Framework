@@ -31,7 +31,7 @@ public class Box : Visual<Sprite>, IEventHandler<HoveredEvent> {
 
 public static class BoxAnimations {
 	class BoxTintAnimation : Animation<Box, ColorRgba<float>> {
-		public BoxTintAnimation ( Box target, ColorRgba<float> endValue, double startTime, double endTime ) : base( target, endValue, startTime, endTime ) { }
+		public BoxTintAnimation ( Box target, ColorRgba<float> endValue, double startTime, double endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) { }
 
 		protected override ColorRgba<float> GetValue () {
 			return Target.Tint;
@@ -55,8 +55,8 @@ public static class BoxAnimations {
 		static IReadOnlyList<AnimationDomain> domains = new[] { TintDomain };
 		public override IReadOnlyList<AnimationDomain> Domains => domains;
 	}
-	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> tint, double duration = 0 ) where T : Box
-		=> sequence.Add( new BoxTintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration ) );
-	public static AnimationSequence<T> FlashColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> flashTint, ColorRgba<float> tint, double duration = 0 ) where T : Box
-		=> sequence.FadeColour( flashTint ).Then().FadeColour( tint, duration );
+	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> tint, double duration, EasingFunction? easing = null ) where T : Box
+		=> sequence.Add( new BoxTintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
+	public static AnimationSequence<T> FlashColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> flashTint, ColorRgba<float> tint, double duration, EasingFunction? easing = null ) where T : Box
+		=> sequence.FadeColour( flashTint, 0 ).Then().FadeColour( tint, duration, easing );
 }

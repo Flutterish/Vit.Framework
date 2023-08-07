@@ -27,12 +27,12 @@ public class Button : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandle
 		if ( @event.Button != Framework.Input.CursorButton.Left )
 			return false;
 
-		background.Animate().FadeColour( ColorRgba.YellowGreen, 200 );
+		background.Animate().FadeColour( ColorRgba.YellowGreen, 300, Easing.Out );
 		return true;
 	}
 
 	public bool OnEvent ( ReleasedEvent @event ) {
-		background.Animate().FadeColour( ColorRgba.GreenYellow, 200 );
+		background.Animate().FadeColour( ColorRgba.GreenYellow, 200, Easing.Out );
 		return true;
 	}
 

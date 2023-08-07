@@ -38,17 +38,19 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 	public readonly TValue EndValue;
 	bool hasStarted;
 	protected TValue StartValue { get; private set; } = default!;
+	public readonly EasingFunction Easing;
 
-	public Animation ( TTarget target, TValue endValue, double startTime, double endTime ) : base( startTime, endTime ) {
+	public Animation ( TTarget target, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( startTime, endTime ) {
 		Target = target;
 		EndValue = endValue;
+		Easing = easing;
 	}
 
 	protected abstract TValue GetValue ();
 	protected abstract void SetValue ( TValue value );
 	protected abstract TValue Interpolate ( double t );
 	public sealed override void Update ( double time ) {
-		SetValue( Interpolate( Duration == 0 ? 1 : ((time - StartTime) / Duration) ) );
+		SetValue( Interpolate( Duration == 0 ? 1 : Easing((time - StartTime) / Duration) ) );
 	}
 
 	public sealed override void OnStarted () {
@@ -60,7 +62,7 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 	}
 
 	public sealed override void OnEnded () {
-		SetValue( EndValue );
+		SetValue( Interpolate( 1 ) );
 	}
 	public sealed override void OnEndRewound () {
 		
