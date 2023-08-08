@@ -108,8 +108,25 @@ public interface IHasAnimationTimeline {
 }
 
 public static class IHasAnimationTimelineExtensions {
+	/// <summary>
+	/// Begins a new animation sequence starting at current time.
+	/// </summary>
 	public static AnimationSequence<TSource> Animate<TSource> ( this TSource source ) where TSource : IHasAnimationTimeline {
 		return new() { Source = source, StartTime = source.AnimationTimeline.CurrentTime, EndTime = source.AnimationTimeline.CurrentTime };
+	}
+
+	/// <summary>
+	/// Begins a new animation sequence starting after a delay.
+	/// </summary>
+	public static AnimationSequence<TSource> AnimateDelayed<TSource> ( this TSource source, double delay ) where TSource : IHasAnimationTimeline {
+		return source.Animate().Delay( delay );
+	}
+
+	/// <summary>
+	/// Begins a new animation sequence starting at the given time.
+	/// </summary>
+	public static AnimationSequence<TSource> AnimateAt<TSource> ( this TSource source, double absoluteTime ) where TSource : IHasAnimationTimeline {
+		return new() { Source = source, StartTime = absoluteTime, EndTime = absoluteTime };
 	}
 
 	/// <summary>
