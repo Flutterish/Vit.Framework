@@ -21,20 +21,24 @@ public class UIEventSource {
 				if ( hovered == null )
 					break;
 
+				if ( pressedHandlers.Remove( pressed.Button, out var previousHandler ) )
+					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp }, previousHandler );
+
 				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp }, hovered ) )
 					pressedHandlers.Add( pressed.Button, hovered );
 				break;
 
 			case CursorButtonReleasedEvent released:
-				if ( !pressedHandlers.TryGetValue( released.Button, out handler ) )
+				if ( !pressedHandlers.Remove( released.Button, out handler ) )
 					break;
-				pressedHandlers.Remove( released.Button );
+
 				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
-				if ( handler == hovered ) triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
+				if ( handler == hovered ) 
+					triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
 				break;
 
 			case CursorMovedEvent moved:
-				handler = triggerEvent( new HoveredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp } );
+				handler = triggerEvent( new HoveredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp } ); // TODO could we reuse/pool events? making one essentially every frame sounds bad
 				if ( handler == hovered )
 					break;
 
