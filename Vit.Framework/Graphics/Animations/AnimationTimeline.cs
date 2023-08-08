@@ -103,29 +103,37 @@ public class AnimationTimeline {
 	}
 }
 
-public interface IHasAnimationTimeline {
+public interface IHasAnimationTimeline : ICanBeAnimated {
 	AnimationTimeline AnimationTimeline { get; }
+
+	double ICanBeAnimated.CurrentTime => AnimationTimeline.CurrentTime;
+	void ICanBeAnimated.AddAnimation ( Animation animation ) => AnimationTimeline.Add( animation );
+}
+
+public interface ICanBeAnimated {
+	double CurrentTime { get; }
+	void AddAnimation ( Animation animation );
 }
 
 public static class IHasAnimationTimelineExtensions {
 	/// <summary>
 	/// Begins a new animation sequence starting at current time.
 	/// </summary>
-	public static AnimationSequence<TSource> Animate<TSource> ( this TSource source ) where TSource : IHasAnimationTimeline {
-		return new() { Source = source, StartTime = source.AnimationTimeline.CurrentTime, EndTime = source.AnimationTimeline.CurrentTime };
+	public static AnimationSequence<TSource> Animate<TSource> ( this TSource source ) where TSource : ICanBeAnimated {
+		return new() { Source = source, StartTime = source.CurrentTime, EndTime = source.CurrentTime };
 	}
 
 	/// <summary>
 	/// Begins a new animation sequence starting after a delay.
 	/// </summary>
-	public static AnimationSequence<TSource> AnimateDelayed<TSource> ( this TSource source, double delay ) where TSource : IHasAnimationTimeline {
+	public static AnimationSequence<TSource> AnimateDelayed<TSource> ( this TSource source, double delay ) where TSource : ICanBeAnimated {
 		return source.Animate().Delay( delay );
 	}
 
 	/// <summary>
 	/// Begins a new animation sequence starting at the given time.
 	/// </summary>
-	public static AnimationSequence<TSource> AnimateAt<TSource> ( this TSource source, double absoluteTime ) where TSource : IHasAnimationTimeline {
+	public static AnimationSequence<TSource> AnimateAt<TSource> ( this TSource source, double absoluteTime ) where TSource : ICanBeAnimated {
 		return new() { Source = source, StartTime = absoluteTime, EndTime = absoluteTime };
 	}
 

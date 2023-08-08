@@ -1,6 +1,6 @@
 ﻿namespace Vit.Framework.Graphics.Animations;
 
-public struct AnimationSequence<TSource> where TSource : IHasAnimationTimeline {
+public struct AnimationSequence<TSource> where TSource : ICanBeAnimated {
 	public required double StartTime { get; init; }
 	public required double EndTime { get; init; }
 	public required TSource Source { get; init; }
@@ -9,7 +9,7 @@ public struct AnimationSequence<TSource> where TSource : IHasAnimationTimeline {
 	/// Adds an animation to the sequence.
 	/// </summary>
 	public AnimationSequence<TSource> Add ( Animation animation ) {
-		Source.AnimationTimeline.Add( animation );
+		Source.AddAnimation( animation );
 		return this with { EndTime = animation.EndTime };
 	}
 
@@ -30,7 +30,7 @@ public struct AnimationSequence<TSource> where TSource : IHasAnimationTimeline {
 	/// <summary>
 	/// Creates an animation sequence for a different animatable object, with the same timing properties as this one.
 	/// </summary>
-	public AnimationSequence<TOtherSource> AnimateOther<TOtherSource> ( TOtherSource source ) where TOtherSource : IHasAnimationTimeline {
+	public AnimationSequence<TOtherSource> AnimateOther<TOtherSource> ( TOtherSource source ) where TOtherSource : ICanBeAnimated {
 		return new() { Source = source, StartTime = StartTime, EndTime = StartTime };
 	}
 }
