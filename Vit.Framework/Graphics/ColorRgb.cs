@@ -199,4 +199,12 @@ public static class ColorRgb {
 			B = byte.CreateTruncating(color.B * _255)
 		};
 	}
+
+	public static ColorRgb<T> Interpolate<T, TTime> ( this ColorRgb<T> from, ColorRgb<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+		return new() {
+			R = T.Sqrt( (TTime.One - time) * (from.R * from.R) + time * (to.R * to.R) ),
+			G = T.Sqrt( (TTime.One - time) * (from.G * from.G) + time * (to.G * to.G) ),
+			B = T.Sqrt( (TTime.One - time) * (from.B * from.B) + time * (to.B * to.B) )
+		};
+	}
 }

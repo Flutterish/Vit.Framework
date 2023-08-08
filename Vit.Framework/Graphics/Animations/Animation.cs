@@ -70,8 +70,10 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 
 	public override string ToString () {
 		if ( !hasStarted )
-			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {EndValue} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {StringifyValue(EndValue)} in {Duration:N1}ms";
 		else
-			return $"{GetType().Name} ({string.Join( ", ", Domains)}) {StartValue} -> {EndValue} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains)}) {StringifyValue(StartValue)} -> {StringifyValue(EndValue)} in {Duration:N1}ms";
 	}
+
+	protected virtual string StringifyValue ( TValue value ) => $"{value}";
 }

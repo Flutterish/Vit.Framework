@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Input.Events;
+using Vit.Framework.TwoD.UI.Animations;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
-public class Box : Visual<Sprite>, IEventHandler<HoveredEvent> {
+public class Box : Visual<Sprite>, IEventHandler<HoveredEvent>, IHasAlphaTint {
 	[SetsRequiredMembers]
 	public Box () {
 		Displayed = new();
@@ -27,30 +27,4 @@ public class Box : Visual<Sprite>, IEventHandler<HoveredEvent> {
 	public bool OnEvent ( HoveredEvent @event ) {
 		return true;
 	}
-}
-
-public static class BoxAnimations {
-	class BoxTintAnimation : Animation<Box, ColorRgba<float>> {
-		public BoxTintAnimation ( Box target, ColorRgba<float> endValue, double startTime, double endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) { }
-
-		protected override ColorRgba<float> GetValue () {
-			return Target.Tint;
-		}
-
-		protected override void SetValue ( ColorRgba<float> value ) {
-			Target.Tint = value;
-		}
-
-		protected override ColorRgba<float> Interpolate ( double t ) {
-			return StartValue.Interpolate( EndValue, (float)t );
-		}
-
-		public static AnimationDomain TintDomain = new() { Name = "Tint" };
-		static IReadOnlyList<AnimationDomain> domains = new[] { TintDomain };
-		public override IReadOnlyList<AnimationDomain> Domains => domains;
-	}
-	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> tint, double duration, EasingFunction? easing = null ) where T : Box
-		=> sequence.Add( new BoxTintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
-	public static AnimationSequence<T> FlashColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> flashTint, ColorRgba<float> tint, double duration, EasingFunction? easing = null ) where T : Box
-		=> sequence.FadeColour( flashTint, 0 ).Then().FadeColour( tint, duration, easing );
 }

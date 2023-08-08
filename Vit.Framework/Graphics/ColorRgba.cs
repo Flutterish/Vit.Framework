@@ -15,6 +15,15 @@ public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool
 		A = a;
 	}
 
+	public ColorRgb<T> Rgb {
+		get => new( R, G, B );
+		set {
+			R = value.R;
+			G = value.G;
+			B = value.B;
+		}
+	}
+
 	public static ColorRgba<T> operator / ( ColorRgba<T> color, T scalar ) {
 		return new() {
 			R = color.R / scalar,
