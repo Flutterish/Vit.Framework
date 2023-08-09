@@ -18,7 +18,7 @@ public class Timeline<TEvent> {
 	public IEnumerable<Event> EventsByEndTime => eventsByEndTime.Values;
 
 	SortedLinkedList<double, Event> eventsByStartTime = new( ascendingComparer );
-	SortedLinkedList<double, Event> eventsByEndTime = new( ascendingComparer ); // NOTE perhaps we could merge these 2 into one with an start/end flag
+	SortedLinkedList<double, Event> eventsByEndTime = new( ascendingComparer ); // NOTE perhaps we could merge these 2 into one with a start/end flag
 
 	public IEnumerable<Event> EventsAt ( double time ) {
 		return eventsByStartTime.Values // TODO this needs some heavy optimisation
@@ -82,29 +82,32 @@ public class Timeline<TEvent> {
 	}
 
 	public void Remove ( Event @event ) {
+		void relink () {
+			if ( starts.Next == @event.startNode )
+				starts.Next = @event.startNode.Next;
+			if ( ends.Next == @event.endNode )
+				ends.Next = @event.endNode.Next;
+
+			if ( starts.Previous == @event.startNode )
+				starts.Previous = @event.startNode.Previous;
+			if ( ends.Previous == @event.endNode )
+				ends.Previous = @event.endNode.Previous;
+
+			@event.startNode.Remove();
+			@event.endNode.Remove();
+		}
+
 		if ( SeekBehaviour == SeekBehaviour.Rewind && currentTime >= @event.StartTime ) {
 			var startingCurrentTime = currentTime;
 			seekBefore( @event.StartTime );
 
-			@event.startNode.Remove();
-			@event.endNode.Remove();
+			relink();
 
 			SeekTo( startingCurrentTime );
 			return;
 		}
 
-		@event.startNode.Remove();
-		@event.endNode.Remove();
-
-		if ( starts.Next == @event.startNode )
-			starts.Next = starts.Previous?.Next;
-		if ( ends.Next == @event.endNode )
-			ends.Next = ends.Previous?.Next;
-
-		if ( starts.Previous == @event.startNode )
-			starts.Previous = starts.Next?.Previous;
-		if ( ends.Previous == @event.endNode )
-			ends.Previous = ends.Next?.Previous;
+		relink();
 
 		//if ( SeekBehaviour == SeekBehaviour.Acknowledge ) {
 		//	if ( @event.EndTime < currentTime ) {
