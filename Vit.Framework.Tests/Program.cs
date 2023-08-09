@@ -1,6 +1,4 @@
 ﻿using Vit.Framework.Graphics.Curses;
-using Vit.Framework.Graphics.Direct3D11;
-using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Platform;
@@ -37,10 +35,10 @@ public partial class Program : App {
 
 	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
-			CursesApi.GraphicsApiType,
-			Direct3D11Api.GraphicsApiType,
+			//CursesApi.GraphicsApiType,
+			//Direct3D11Api.GraphicsApiType,
 			VulkanApi.GraphicsApiType,
-			OpenGlApi.GraphicsApiType
+			//OpenGlApi.GraphicsApiType
 		};
 
 		using Host host = new SdlHost( this );

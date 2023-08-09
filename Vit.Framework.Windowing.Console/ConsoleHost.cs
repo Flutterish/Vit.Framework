@@ -25,6 +25,6 @@ public class ConsoleHost : Host {
 	};
 
 	public override void Dispose ( bool isDisposing ) {
-		throw new NotImplementedException();
+		
 	}
 }

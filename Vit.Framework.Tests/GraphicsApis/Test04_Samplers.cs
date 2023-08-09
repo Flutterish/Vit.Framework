@@ -6,6 +6,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -34,6 +35,7 @@ public class Test04_Samplers : GenericRenderThread {
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture texture = null!;
+	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -77,8 +79,10 @@ public class Test04_Samplers : GenericRenderThread {
 		indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
-		shaderSet.SetUniformBuffer( uniformBuffer );
-		shaderSet.SetSampler( texture, 1 );
+		uniformSet = shaderSet.CreateUniformSet();
+		shaderSet.SetUniformSet( uniformSet );
+		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
+		uniformSet.SetSampler( texture, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Vertex[] {
 				new() { Position = new( -0.5f, 0.5f ), UV = new( 0, 1 ) },
@@ -128,6 +132,7 @@ public class Test04_Samplers : GenericRenderThread {
 		positions.Dispose();
 		uniformBuffer.Dispose();
 		texture.Dispose();
+		uniformSet.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

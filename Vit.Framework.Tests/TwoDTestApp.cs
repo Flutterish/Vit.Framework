@@ -3,6 +3,7 @@ using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
@@ -183,6 +184,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		struct GlobalUniforms { // TODO we need a debug check for memory alignment in these
 			public Matrix4x3<float> Matrix;
 		}
+		IUniformSet globalSet = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
 		protected override bool Initialize () {
 			if ( !base.Initialize() )
@@ -194,8 +196,9 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			var basic = ShaderStore.GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
 
 			ShaderStore.CompileNew( Renderer );
-			var globalSet = basic.Value.GetUniformSet( 0 );
+			globalSet = basic.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
+			basic.Value.SetUniformSet( globalSet );
 
 			return true;
 		}
@@ -208,6 +211,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override void DisposeGraphics ( bool disposing ) {
+			globalSet.Dispose();
 			globalUniformBuffer.Dispose();
 			base.DisposeGraphics( disposing );
 		}

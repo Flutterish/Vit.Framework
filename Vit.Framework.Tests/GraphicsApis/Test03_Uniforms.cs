@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Platform;
@@ -30,6 +31,7 @@ public class Test03_Uniforms : GenericRenderThread {
 	IDeviceBuffer<Vertex> positions = null!;
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
+	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -68,7 +70,9 @@ public class Test03_Uniforms : GenericRenderThread {
 		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
-		shaderSet.SetUniformBuffer( uniformBuffer );
+		uniformSet = shaderSet.CreateUniformSet();
+		shaderSet.SetUniformSet( uniformSet );
+		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, new Vertex[] {
 				new() { Position = new( 0, -0.5f ), Color = ColorRgb.Red },
@@ -111,6 +115,7 @@ public class Test03_Uniforms : GenericRenderThread {
 		indices.Dispose();
 		positions.Dispose();
 		uniformBuffer.Dispose();
+		uniformSet.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

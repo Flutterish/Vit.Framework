@@ -91,7 +91,7 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			front = stencilOpState
 		};
 
-		var uniforms = shaders.UniformSets.Select( x => x.Layout ).ToArray();
+		var uniforms = shaders.UniformSets.Select( x => x!.Layout ).ToArray();
 		var layoutInfo = new VkPipelineLayoutCreateInfo() {
 			sType = VkStructureType.PipelineLayoutCreateInfo,
 			setLayoutCount = (uint)uniforms.Length,

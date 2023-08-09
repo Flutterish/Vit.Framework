@@ -95,7 +95,8 @@ public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer
 	}
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
+		if ( ShaderSet.DescriptorSets.Length != 0 )
+			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) )
 			Buffer.BindVertexBuffer( (IVulkanHandle<VkBuffer>)VertexBuffer );

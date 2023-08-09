@@ -19,7 +19,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	public Dictionary<uint, ID3D11Buffer> ConstantBuffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof( T ) );
+		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		Debug.Assert( offset == 0 );
 		ConstantBuffers[binding] = ((Buffer<T>)buffer).Handle!;
 	}

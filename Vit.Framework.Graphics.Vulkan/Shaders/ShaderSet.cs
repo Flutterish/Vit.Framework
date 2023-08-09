@@ -24,50 +24,38 @@ public class ShaderSet : DisposableObject, IShaderSet {
 			AttributeSets = Array.Empty<VkVertexInputBindingDescription>();
 		}
 
-		foreach ( var set in this.GetUniformSetIndices() ) {
-			UniformSets.Add( new( Modules[0].Device, this.CreateUniformSetInfo( set ) ) );
-			DebugMemoryAlignment.SetDebugData( UniformSets[(int)set], set, this );
-		}
-		DescriptorSets = new VkDescriptorSet[UniformSets.Count];
-		defaultsCreated = new bool[UniformSets.Count];
-		for ( int i = 0; i < DescriptorSets.Length; i++ ) {
-			DescriptorSets[i] = UniformSets[i].DescriptorSet;
-		}
+		var setCount = this.GetUniformSetIndices().Count();
+		UniformSets = new UniformSet?[setCount];
+		DescriptorSets = new VkDescriptorSet[setCount];
 	}
 
 	// TODO binding and offset values of these should be generated based on some logical linking between mesh vertex buffers and material attributes
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	public List<UniformSet> UniformSets = new();
+	public UniformSet?[] UniformSets;
 	public VkDescriptorSet[] DescriptorSets;
-	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		defaultsCreated[set] = true;
-		return UniformSets[(int)set];
+	public IUniformSet? GetUniformSet ( uint set = 0 ) {
+		return UniformSets[set];
 	}
 
-	bool[] defaultsCreated;
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		if ( defaultsCreated[set] ) {
-			var value = new UniformSet( UniformSets[(int)set] );
+		if ( UniformSets[set] is UniformSet existing ) {
+			var value = new UniformSet( existing );
 			DebugMemoryAlignment.SetDebugData( value, set, this );
 			return value;
 		}
 		else {
-			defaultsCreated[set] = true;
-			return UniformSets[(int)set];
+			var value = new UniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
+			DebugMemoryAlignment.SetDebugData( value, set, this );
+			return value;
 		}
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
-		UniformSets[(int)set] = (UniformSet)uniforms;
-		defaultsCreated[set] = true;
+		UniformSets[set] = (UniformSet)uniforms;
 		DescriptorSets[set] = ((UniformSet)uniforms).DescriptorSet;
 	}
 
-	protected override unsafe void Dispose ( bool disposing ) {
-		foreach ( var set in UniformSets ) { // TODO only dispose the ones it actually owns
-			set.Dispose();
-		}
-	}
+	protected override unsafe void Dispose ( bool disposing ) { }
 }

@@ -1,6 +1,4 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Graphics.Rendering.Textures;
+﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 
 namespace Vit.Framework.Graphics.Rendering.Shaders;
@@ -14,32 +12,20 @@ public interface IShaderSet : IDisposable {
 	/// <summary>
 	/// Gets the currently bound uniform set.
 	/// </summary>
-	/// <remarks>
-	/// If no uniform set is bound, it will automatically be created.
-	/// </remarks>
-	IUniformSet GetUniformSet ( uint set = 0 );
+	IUniformSet? GetUniformSet ( uint set = 0 );
 
 	/// <summary>
 	/// Creates a new uniform set appropriate for binding to this shader set.
 	/// </summary>
+	/// <remarks>
+	/// Creating a uniform set gives you the ownership of it.
+	/// </remarks>
 	IUniformSet CreateUniformSet ( uint set = 0 );
 
 	/// <summary>
 	/// Binds a uniform set to the shader set.
 	/// </summary>
 	void SetUniformSet ( IUniformSet uniforms, uint set = 0 );
-
-	/// <inheritdoc cref="IUniformSet.SetUniformBuffer{T}(IBuffer{T}, uint, uint)"/>
-	/// <param name="set">The uniform set to configure.</param>
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0, uint set = 0 ) where T : unmanaged {
-		GetUniformSet( set ).SetUniformBuffer( buffer, binding, offset );
-	}
-
-	/// <inheritdoc cref="IUniformSet.SetSampler(ITexture, uint)"/>
-	/// <param name="set">The uniform set to configure.</param>
-	public void SetSampler ( ITexture texture, uint binding = 0, uint set = 0 ) {
-		GetUniformSet( set ).SetSampler( texture, binding );
-	}
 }
 
 public static class IShaderSetExtensions {

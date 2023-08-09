@@ -33,13 +33,13 @@ public static class DebugMemoryAlignment {
 	}
 
 	[Conditional( "DEBUG" )]
-	public static void AssertCorrectAlignment ( IUniformSet set, uint binding, Type type ) {
-		AssertCorrectAlignment( type, debugInfo[set][binding] );
+	public static void AssertStructAlignment ( IUniformSet set, uint binding, Type type ) {
+		AssertStructAlignment( type, debugInfo[set][binding] );
 	}
 
 	static HashSet<(Type, DataTypeInfo)> @checked = new();
 	[Conditional( "DEBUG" )]
-	public static void AssertCorrectAlignment ( Type type, DataTypeInfo dataType ) {
+	public static void AssertStructAlignment ( Type type, DataTypeInfo dataType ) {
 		lock ( @checked ) {
 			if ( !@checked.Add( (type, dataType) ) )
 				return;
@@ -49,31 +49,11 @@ public static class DebugMemoryAlignment {
 			return Marshal.SizeOf( Activator.CreateInstance( type )! );
 		}
 
-		var size = SizeOf( type );
-		if ( dataType.IsArray ) {
-			throw new NotImplementedException();
-		}
-		else if ( dataType.FlattendedDimensions != 1 ) {
-			if ( dataType.PrimitiveType == PrimitiveType.Struct ) {
-				throw new NotImplementedException();
-			}
-			else if ( dataType.Dimensions.Length == 1 ) { // ex. Buffer<vec2>
-				var expectedSize = dataType.PrimitiveType.SizeOf() * dataType.FlattendedDimensions;
-				if ( size != expectedSize ) {
-					failSizeCheck( type, dataType, type.Name, $"Marshalled data type must match size (expected {expectedSize}, was {size}) at {type.Name} ~ {dataType}" );
-				}
-			}
-			else {
-				throw new NotImplementedException();
-			}
-		}
-		else if ( dataType.PrimitiveType == PrimitiveType.Struct ) { // ex. Buffer<UniformBlock>
+		if ( dataType.PrimitiveType == PrimitiveType.Struct ) { // ex. Buffer<UniformBlock>
+			var size = SizeOf( type );
 			var layout = (StructTypeInfo)dataType.Layout!;
 			Debug.Assert( size == layout.Size, $"Marshalled data type must match size (expected {layout.Size}, was {size}) at {type.Name} ~ {dataType}" );
 			validateStruct( type, layout, type.Name );
-		}
-		else { 
-			throw new NotImplementedException();
 		}
 
 		void validateStruct ( Type type, StructTypeInfo layout, string name ) {

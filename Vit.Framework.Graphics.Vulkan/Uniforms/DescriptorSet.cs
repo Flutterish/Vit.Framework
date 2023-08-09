@@ -96,7 +96,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof( T ) );
+		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		DescriptorSet.ConfigureUniforms( (Buffer<T>)buffer, binding, offset );
 	}
 

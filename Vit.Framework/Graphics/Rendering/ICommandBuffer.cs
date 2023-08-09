@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
@@ -270,9 +269,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	[Conditional("DEBUG")]
 	void validateAlignment () {
-		if ( ShaderSet.Parts.FirstOrDefault( x => x.Type == ShaderPartType.Vertex ) is IShaderPart vertex ) {
-			DebugMemoryAlignment.AssertCorrectAlignment( VertexBuffer.StoredType, vertex.ShaderInfo.Input.Resources.First().Type );
-		}
+		// TODO check attribute linking
 	}
 
 	/// <inheritdoc cref="ICommandBuffer.DrawIndexed(uint, uint)"/>

@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -37,6 +38,7 @@ public class Test05_Depth : GenericRenderThread {
 	IDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture texture = null!;
+	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -81,8 +83,10 @@ public class Test05_Depth : GenericRenderThread {
 		indices.Allocate( indexCount = (uint)model.Indices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
-		shaderSet.SetUniformBuffer( uniformBuffer );
-		shaderSet.SetSampler( texture, 1 );
+		uniformSet = shaderSet.CreateUniformSet();
+		shaderSet.SetUniformSet( uniformSet );
+		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
+		uniformSet.SetSampler( texture, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			commands.Upload( positions, model.Vertices.Select( x => new Vertex {
 				Position = x.Position.XYZ,
@@ -130,6 +134,7 @@ public class Test05_Depth : GenericRenderThread {
 		positions.Dispose();
 		uniformBuffer.Dispose();
 		texture.Dispose();
+		uniformSet.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

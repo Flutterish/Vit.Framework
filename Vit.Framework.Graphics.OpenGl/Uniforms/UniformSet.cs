@@ -17,7 +17,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof(T) );
+		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
 		var buf = (Buffer<T>)buffer;
 		Buffers[binding] = (buf, Buffer<T>.Stride, offset * (uint)Buffer<T>.Stride);
 	}
