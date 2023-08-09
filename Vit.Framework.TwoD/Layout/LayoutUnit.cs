@@ -26,6 +26,13 @@ public struct LayoutUnit<T> : IEquatable<LayoutUnit<T>> where T : INumber<T> {
 		};
 	}
 
+	public static LayoutUnit<T> operator - ( LayoutUnit<T> value ) {
+		return new() {
+			Relative = -value.Relative,
+			Absolute = -value.Absolute
+		};
+	}
+
 	public static bool operator == ( LayoutUnit<T> left, LayoutUnit<T> right ) {
 		return left.Relative == right.Relative
 			&& left.Absolute == right.Absolute;

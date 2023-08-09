@@ -217,9 +217,9 @@ public static class ColorRgba {
 
 	public static ColorRgba<T> Interpolate<T, TTime> ( this ColorRgba<T> from, ColorRgba<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
 		return new() {
-			R = T.Sqrt( (TTime.One - time) * (from.R * from.R) + time * (to.R * to.R) ),
-			G = T.Sqrt( (TTime.One - time) * (from.G * from.G) + time * (to.G * to.G) ),
-			B = T.Sqrt( (TTime.One - time) * (from.B * from.B) + time * (to.B * to.B) ),
+			R = (TTime.One - time) * from.R + time * to.R,
+			G = (TTime.One - time) * from.G + time * to.G,
+			B = (TTime.One - time) * from.B + time * to.B,
 			A = (TTime.One - time) * from.A + time * to.A
 		};
 	}
