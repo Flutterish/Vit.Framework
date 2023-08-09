@@ -95,19 +95,25 @@ public abstract partial class Basic2DApp<TRoot> {
 
 		protected abstract void BeforeRender ();
 
-		protected override void Dispose ( bool disposing ) {
+		protected sealed override void Dispose ( bool disposing ) {
 			Window.Resized -= onWindowResized;
+			DisposeManaged( disposing );
 
 			if ( !IsInitialized )
 				return;
 
 			Renderer.WaitIdle();
 
+			DisposeGraphics( disposing );
 			disposeScheduler.DisposeAll();
 
 			Swapchain.Dispose();
 			Renderer.Dispose();
 			Api.Dispose();
 		}
+
+		protected virtual void DisposeManaged ( bool disposing ) { }
+
+		protected virtual void DisposeGraphics ( bool disposing ) { }
 	}
 }

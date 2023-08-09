@@ -207,14 +207,9 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			} );
 		}
 
-		protected override void Dispose ( bool disposing ) {
-			base.Dispose( disposing );
-
-			if ( !IsInitialized )
-				return;
-
-			Renderer.WaitIdle();
+		protected override void DisposeGraphics ( bool disposing ) {
 			globalUniformBuffer.Dispose();
+			base.DisposeGraphics( disposing );
 		}
 	}
 }
