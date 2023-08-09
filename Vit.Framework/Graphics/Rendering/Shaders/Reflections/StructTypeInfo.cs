@@ -35,7 +35,9 @@ public class StructTypeInfo : TypeInfo {
 			var memberName = (CString)SPIRV.spvc_compiler_get_member_name( compiler, baseTypeId, i );
 			var memeberTypeId = SPIRV.spvc_type_get_member_type( baseType, i );
 			var memberType = SPIRV.spvc_compiler_get_type_handle( compiler, memeberTypeId );
-			layout.Members.Add( new( memberName, DataTypeInfo.FromSpirv( compiler, memberType ), memberOffset ) );
+			nuint memberSize = 0;
+			SPIRV.spvc_compiler_get_declared_struct_member_size( compiler, baseType, i, &memberSize );
+			layout.Members.Add( new( memberName, DataTypeInfo.FromSpirv( compiler, memberType ), memberOffset, (uint)memberSize ) );
 		}
 
 		return layout;
@@ -48,16 +50,18 @@ public class StructTypeInfo : TypeInfo {
 
 public class StructMemberInfo {
 	public readonly uint Offset;
+	public readonly uint Size;
 	public readonly string Name;
 	public readonly DataTypeInfo Type;
 
-	public StructMemberInfo ( string name, DataTypeInfo type, uint offset ) {
+	public StructMemberInfo ( string name, DataTypeInfo type, uint offset, uint size ) {
 		Name = name;
 		Type = type;
 		Offset = offset;
+		Size = size;
 	}
 
 	public override string ToString () {
-		return $"[Offset: {Offset}\t] {Type} {Name}";
+		return $"[Offset: {Offset}+{Size}\t] {Type} {Name}";
 	}
 }

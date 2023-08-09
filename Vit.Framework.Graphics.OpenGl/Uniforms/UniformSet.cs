@@ -4,10 +4,12 @@ using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
-public class UniformSet : IUniformSet {
+public class UniformSet : DisposableObject, IUniformSet {
 	public readonly uint Set;
 	public UniformSet ( uint set ) {
 		Set = set;
@@ -15,6 +17,7 @@ public class UniformSet : IUniformSet {
 
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
+		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof(T) );
 		var buf = (Buffer<T>)buffer;
 		Buffers[binding] = (buf, Buffer<T>.Stride, offset * (uint)Buffer<T>.Stride);
 	}
@@ -42,5 +45,7 @@ public class UniformSet : IUniformSet {
 		}
 	}
 
-	public void Dispose () { }
+	protected override void Dispose ( bool disposing ) {
+		DebugMemoryAlignment.ClearDebugData( this );
+	}
 }

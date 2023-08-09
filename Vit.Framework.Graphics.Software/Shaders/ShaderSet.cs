@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Uniforms;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;
@@ -213,14 +214,18 @@ public class ShaderSet : IShaderSet {
 
 	public Dictionary<uint, UniformSet> UniformSets = new();
 	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		if ( !UniformSets.TryGetValue( set, out var value ) )
+		if ( !UniformSets.TryGetValue( set, out var value ) ) {
 			UniformSets.Add( set, value = new() );
+			DebugMemoryAlignment.SetDebugData( value, set, this );
+		}
 
 		return value;
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		return new UniformSet();
+		var value = new UniformSet();
+		DebugMemoryAlignment.SetDebugData( value, set, this );
+		return value;
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {

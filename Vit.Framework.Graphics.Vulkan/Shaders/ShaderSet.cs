@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Memory;
 using Vulkan;
@@ -25,6 +26,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 		foreach ( var set in this.GetUniformSetIndices() ) {
 			UniformSets.Add( new( Modules[0].Device, this.CreateUniformSetInfo( set ) ) );
+			DebugMemoryAlignment.SetDebugData( UniformSets[(int)set], set, this );
 		}
 		DescriptorSets = new VkDescriptorSet[UniformSets.Count];
 		defaultsCreated = new bool[UniformSets.Count];
@@ -47,7 +49,9 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	bool[] defaultsCreated;
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
 		if ( defaultsCreated[set] ) {
-			return new UniformSet( UniformSets[(int)set] );
+			var value = new UniformSet( UniformSets[(int)set] );
+			DebugMemoryAlignment.SetDebugData( value, set, this );
+			return value;
 		}
 		else {
 			defaultsCreated[set] = true;
@@ -62,7 +66,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		foreach ( var set in UniformSets ) {
+		foreach ( var set in UniformSets ) { // TODO only dispose the ones it actually owns
 			set.Dispose();
 		}
 	}

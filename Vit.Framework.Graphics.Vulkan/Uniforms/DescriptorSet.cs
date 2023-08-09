@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
@@ -95,6 +96,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
+		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof( T ) );
 		DescriptorSet.ConfigureUniforms( (Buffer<T>)buffer, binding, offset );
 	}
 
@@ -104,6 +106,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
+		DebugMemoryAlignment.ClearDebugData( this );
 		DescriptorPool.Dispose();
 
 		layoutReferenceCount.Value--;

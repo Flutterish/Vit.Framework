@@ -5,11 +5,13 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
+using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Uniforms;
 
-public class UniformSet : IUniformSet {
+public class UniformSet : DisposableObject, IUniformSet {
 	public readonly uint Set;
 	public UniformSet ( uint set ) {
 		Set = set;
@@ -17,6 +19,7 @@ public class UniformSet : IUniformSet {
 
 	public Dictionary<uint, ID3D11Buffer> ConstantBuffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
+		DebugMemoryAlignment.AssertCorrectAlignment( this, binding, typeof( T ) );
 		Debug.Assert( offset == 0 );
 		ConstantBuffers[binding] = ((Buffer<T>)buffer).Handle!;
 	}
@@ -45,5 +48,7 @@ public class UniformSet : IUniformSet {
 		}
 	}
 
-	public void Dispose () { }
+	protected override void Dispose ( bool disposing ) {
+		DebugMemoryAlignment.ClearDebugData( this );
+	}
 }

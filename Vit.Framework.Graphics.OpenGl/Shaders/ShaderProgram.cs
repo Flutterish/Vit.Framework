@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.OpenGl.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
@@ -50,14 +51,18 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 
 	public Dictionary<uint, UniformSet> UniformSets = new();
 	public IUniformSet GetUniformSet ( uint set = 0 ) {
-		if ( !UniformSets.TryGetValue( set, out var value ) )
+		if ( !UniformSets.TryGetValue( set, out var value ) ) {
 			UniformSets.Add( set, value = new( set ) );
+			DebugMemoryAlignment.SetDebugData( value, set, this );
+		}
 
 		return value;
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		return new UniformSet( set );
+		var value = new UniformSet( set );
+		DebugMemoryAlignment.SetDebugData( value, set, this );
+		return value;
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
