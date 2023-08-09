@@ -2,7 +2,6 @@
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
@@ -52,40 +51,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override void PopulateShaderStore ( ShaderStore shaders ) {
-		shaders.AddShaderPart( DrawNodeRenderer.TestVertex, new SpirvBytecode( @"#version 450
-			layout(location = 0) in vec2 inPositionAndUv;
-
-			layout(location = 0) out vec2 outUv;
-
-			layout(binding = 0, set = 0) uniform GlobalUniforms {
-				mat3 proj;
-			} globalUniforms;
-
-			layout(binding = 0, set = 1) uniform Uniforms {
-				mat3 model;
-				vec4 tint;
-			} uniforms;
-
-			void main () {
-				outUv = inPositionAndUv;
-				gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
-			}
-		", ShaderLanguage.GLSL, ShaderPartType.Vertex ) );
-		shaders.AddShaderPart( DrawNodeRenderer.TestFragment, new SpirvBytecode( @"#version 450
-			layout(location = 0) in vec2 inUv;
-
-			layout(location = 0) out vec4 outColor;
-
-			layout(binding = 1, set = 1) uniform sampler2D texSampler;
-			layout(binding = 0, set = 1) uniform Uniforms {
-				mat3 model;
-				vec4 tint;
-			} uniforms;
-
-			void main () {
-				outColor = texture( texSampler, inUv ) * uniforms.tint;
-			}
-		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
+		shaders.AddShaderPart( BasicVertexShader.Identifier, BasicVertexShader.Spirv );
+		shaders.AddShaderPart( BasicFragmentShader.Identifier, BasicFragmentShader.Spirv );
 	}
 
 	protected override void PopulateTextureStore ( TextureStore textures ) { }
@@ -193,7 +160,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			globalUniformBuffer = Renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
-			var basic = ShaderStore.GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
+			var basic = ShaderStore.GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
 
 			ShaderStore.CompileNew( Renderer );
 			globalSet = basic.Value.CreateUniformSet( 0 );

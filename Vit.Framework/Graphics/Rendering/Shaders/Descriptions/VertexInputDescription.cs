@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text.Json;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 namespace Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
@@ -9,9 +10,13 @@ public record VertexAttributeDescription {
 	/// </summary>
 	public required uint Offset { get; init; }
 	public required DataTypeInfo DataType { get; init; }
+	public string? DebugName { get; init; }
 
 	public override string ToString () {
-		return $"{{ Offset = {Offset}, DataType = {DataType} }}";
+		if ( string.IsNullOrWhiteSpace( DebugName ) )
+			return $"{{ Offset = {Offset}, DataType = {DataType} }}";
+		else
+			return $"{{ Name = {JsonSerializer.Serialize( DebugName )}, Offset = {Offset}, DataType = {DataType} }}";
 	}
 }
 
@@ -68,7 +73,8 @@ public record VertexInputDescription {
 
 			attributes.Add( i++, new() {
 				DataType = attrib.Type,
-				Offset = offset
+				Offset = offset,
+				DebugName = attrib.Name
 			} );
 
 			offset += size;
@@ -97,7 +103,8 @@ public record VertexInputDescription {
 			Dictionary<uint, VertexAttributeDescription> attributes = new( 1 );
 			attributes.Add( attrib.Location, new() {
 				Offset = 0,
-				DataType = attrib.Type
+				DataType = attrib.Type,
+				DebugName = attrib.Name
 			} );
 
 			var size = attrib.Type.PrimitiveType.SizeOf() * attrib.Type.FlattendedDimensions;
@@ -128,7 +135,8 @@ public record VertexInputDescription {
 				var size = attrib.Type.PrimitiveType.SizeOf() * attrib.Type.FlattendedDimensions;
 				attributesResult.Add( location, new() {
 					DataType = attrib.Type,
-					Offset = offset
+					Offset = offset,
+					DebugName = attrib.Name
 				} );
 
 				offset += size;

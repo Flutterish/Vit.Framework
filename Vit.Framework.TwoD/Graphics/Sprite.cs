@@ -18,7 +18,7 @@ public class Sprite : Drawable {
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
-		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = DrawNodeRenderer.TestVertex, Fragment = DrawNodeRenderer.TestFragment } );
+		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
 
