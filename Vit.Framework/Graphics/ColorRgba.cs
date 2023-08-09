@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics;
 
@@ -215,12 +216,15 @@ public static class ColorRgba {
 		};
 	}
 
-	public static ColorRgba<T> Interpolate<T, TTime> ( this ColorRgba<T> from, ColorRgba<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+	/// <summary>
+	/// Lineraly interpolates RGBA values.
+	/// </summary>
+	public static ColorRgba<T> InterpolateLinear<T, TTime> ( this ColorRgba<T> from, ColorRgba<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
 		return new() {
-			R = (TTime.One - time) * from.R + time * to.R,
-			G = (TTime.One - time) * from.G + time * to.G,
-			B = (TTime.One - time) * from.B + time * to.B,
-			A = (TTime.One - time) * from.A + time * to.A
+			R = from.R.Lerp( to.R, time ),
+			G = from.G.Lerp( to.G, time ),
+			B = from.B.Lerp( to.B, time ),
+			A = from.A.Lerp( to.A, time )
 		};
 	}
 }

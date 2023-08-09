@@ -15,7 +15,7 @@ public class AlphaTintAnimation : Animation<IHasAlphaTint, ColorRgba<float>> {
 	}
 
 	protected override ColorRgba<float> Interpolate ( double t ) {
-		return StartValue.Interpolate( EndValue, (float)t );
+		return StartValue.InterpolateLinear( EndValue, (float)t );
 	}
 
 	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasTint.AnimationDomain, IHasAlpha.AnimationDomain };
@@ -34,7 +34,7 @@ public class TintAnimation : Animation<IHasTint, ColorRgb<float>> {
 	}
 
 	protected override ColorRgb<float> Interpolate ( double t ) {
-		return StartValue.Interpolate( EndValue, (float)t );
+		return StartValue.InterpolateLinear( EndValue, (float)t );
 	}
 
 	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasTint.AnimationDomain };
