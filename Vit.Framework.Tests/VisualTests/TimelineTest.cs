@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vit.Framework.Collections;
 using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Animations;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Animations;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Input;
 
@@ -12,12 +14,18 @@ public class TimelineTest : TestScene {
 
 	public TimelineTest () {
 		Padding = new( all: 10 );
+		void entered ( Timeline<EventBox>.Event v ) {
+			v.Value.Animate().FlashColour( ColorRgb.HotPink, ColorRgb.Red, 200, Easing.Out );
+		}
+		void exited ( Timeline<EventBox>.Event v ) {
+			v.Value.Animate().FadeColour( ColorRgb.Blue, 400 );
+		}
 
-		timeline.EventStarted = v => v.Value.Tint = ColorRgba.Red;
-		timeline.EventEndRewound = v => v.Value.Tint = ColorRgba.Red;
+		timeline.EventStarted = entered;
+		timeline.EventEndRewound = entered;
 
-		timeline.EventEnded = v => v.Value.Tint = ColorRgba.Blue;
-		timeline.EventStartRewound = v => v.Value.Tint = ColorRgba.Blue;
+		timeline.EventEnded = exited;
+		timeline.EventStartRewound = exited;
 
 		Add( 0.1, 0.25 );
 		Add( 0.75, 0.9 );
