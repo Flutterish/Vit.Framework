@@ -20,7 +20,7 @@ public static unsafe class ShaderBindingExtensions {
 				(PrimitiveType.Float32, [3]) => (VkFormat.R32g32b32Sfloat, sizeof( float )),
 				_ => throw new Exception( "Unrecognized format" )
 			};
-			size = attrib.Type.Dimensions.Aggregate( size, ( a, b ) => a * (int)b );
+			size *= (int)attrib.Type.FlattendedDimensions;
 
 			vertexAttributes[i++] = new() {
 				binding = 0,
