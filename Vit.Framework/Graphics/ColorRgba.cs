@@ -3,6 +3,13 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics;
 
+/// <summary>
+/// A color represented in the standard RGB model (sRGB) with an alpha component.
+/// </summary>
+/// <remarks>
+/// The RBG values are linear in perceived brightness. <br/>
+/// See: <see href="https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients"/>
+/// </remarks>
 public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool> where T : INumber<T> {
 	public T R;
 	public T G;
@@ -64,6 +71,7 @@ public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool
 	}
 }
 
+/// <inheritdoc cref="ColorRgba{T}"/>
 public static class ColorRgba {
 	public static readonly ColorRgba<float> MediumVioletRed = new ColorRgba<float>( 199, 21, 133, 255 ) / 255;
 	public static readonly ColorRgba<float> DeepPink = new ColorRgba<float>( 255, 20, 147, 255 ) / 255;
@@ -216,10 +224,31 @@ public static class ColorRgba {
 		};
 	}
 
-	/// <summary>
-	/// Lineraly interpolates RGBA values.
-	/// </summary>
-	public static ColorRgba<T> InterpolateLinear<T, TTime> ( this ColorRgba<T> from, ColorRgba<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+	public static LinearColorRgba<T> ToLinear<T> ( this ColorRgba<T> color ) where T : IFloatingPointIeee754<T> {
+		T gamma = T.CreateSaturating( 1 / 2.2 );
+		return new() {
+			R = T.Pow( color.R, gamma ),
+			G = T.Pow( color.G, gamma ),
+			B = T.Pow( color.B, gamma ),
+			A = color.A
+		};
+	}
+
+	public static ColorRgba<T> ToSRGB<T> ( this LinearColorRgba<T> color ) where T : IFloatingPointIeee754<T> {
+		T gamma = T.CreateSaturating( 2.2 );
+		return new() {
+			R = T.Pow( color.R, gamma ),
+			G = T.Pow( color.G, gamma ),
+			B = T.Pow( color.B, gamma ),
+			A = color.A
+		};
+	}
+
+	public static ColorRgba<T> Interpolate<T, TTime> ( this ColorRgba<T> from, ColorRgba<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+		return from.ToLinear().Interpolate( to.ToLinear(), time ).ToSRGB();
+	}
+
+	public static LinearColorRgba<T> Interpolate<T, TTime> ( this LinearColorRgba<T> from, LinearColorRgba<T> to, TTime time ) where T : INumber<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
 		return new() {
 			R = from.R.Lerp( to.R, time ),
 			G = from.G.Lerp( to.G, time ),

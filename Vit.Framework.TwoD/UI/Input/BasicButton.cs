@@ -10,9 +10,9 @@ using Vit.Framework.TwoD.UI.Layout;
 namespace Vit.Framework.TwoD.UI.Input;
 
 public class BasicButton : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandler<CursorEnteredEvent>, IEventHandler<CursorExitedEvent>, IEventHandler<PressedEvent>, IEventHandler<ReleasedEvent>, IEventHandler<ClickedEvent> {
-	ColorRgba<float> hoverColour = ColorRgba.YellowGreen.InterpolateLinear( ColorRgba.GreenYellow, 0.5f );
+	ColorRgba<float> hoverColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.GreenYellow, 0.5f );
 	ColorRgba<float> backgroundColour = ColorRgba.GreenYellow;
-	ColorRgba<float> pressedColour = ColorRgba.YellowGreen.InterpolateLinear( ColorRgba.Black, 0.1f );
+	ColorRgba<float> pressedColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.Black, 0.1f );
 	ColorRgba<float> flashColour = ColorRgba.White;
 	public ColorRgba<float> HoverColour {
 		get => hoverColour;

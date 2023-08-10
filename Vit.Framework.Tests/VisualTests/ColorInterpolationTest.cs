@@ -29,7 +29,7 @@ public class ColorInterpolationTest : TestScene {
 				var (start, end) = tests[j];
 				var y = 1f / tests.Length * j;
 
-				AddChild( new Box { Tint = start.InterpolateSubtractive( end, t ) }, new() {
+				AddChild( new Box { Tint = start.Interpolate( end, t ) }, new() {
 					Size = new( (1f / steps).Relative(), (1f / tests.Length).Relative() ),
 					Origin = Anchor.TopLeft,
 					Anchor = Anchor.TopLeft + new RelativeAxes2<float>( x.Relative(), -y.Relative() )

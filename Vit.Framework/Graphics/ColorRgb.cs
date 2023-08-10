@@ -3,6 +3,13 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics;
 
+/// <summary>
+/// A color represented in the standard RGB model (sRGB).
+/// </summary>
+/// <remarks>
+/// The RBG values are linear in perceived brightness. <br/>
+/// See: <see href="https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients"/>
+/// </remarks>
 public struct ColorRgb<T> where T : INumber<T> {
 	public T R;
 	public T G;
@@ -50,6 +57,7 @@ public struct ColorRgb<T> where T : INumber<T> {
 	}
 }
 
+/// <inheritdoc cref="ColorRgb{T}"/>
 public static class ColorRgb {
 	public static readonly ColorRgb<float> MediumVioletRed = new ColorRgb<float>( 199, 21, 133 ) / 255;
 	public static readonly ColorRgb<float> DeepPink = new ColorRgb<float>( 255, 20, 147 ) / 255;
@@ -201,7 +209,29 @@ public static class ColorRgb {
 		};
 	}
 
-	public static ColorRgb<T> InterpolateLinear<T, TTime> ( this ColorRgb<T> from, ColorRgb<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+	public static LinearColorRgb<T> ToLinear<T> ( this ColorRgb<T> color ) where T : IFloatingPointIeee754<T> {
+		T gamma = T.CreateSaturating( 1 / 2.2 );
+		return new() {
+			R = T.Pow( color.R, gamma ),
+			G = T.Pow( color.G, gamma ),
+			B = T.Pow( color.B, gamma )
+		};
+	}
+
+	public static ColorRgb<T> ToSRGB<T> ( this LinearColorRgb<T> color ) where T : IFloatingPointIeee754<T> {
+		T gamma = T.CreateSaturating( 2.2 );
+		return new() {
+			R = T.Pow( color.R, gamma ),
+			G = T.Pow( color.G, gamma ),
+			B = T.Pow( color.B, gamma )
+		};
+	}
+
+	public static ColorRgb<T> Interpolate<T, TTime> ( this ColorRgb<T> from, ColorRgb<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
+		return from.ToLinear().Interpolate( to.ToLinear(), time ).ToSRGB();
+	}
+
+	public static LinearColorRgb<T> Interpolate<T, TTime> ( this LinearColorRgb<T> from, LinearColorRgb<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
 		return new() {
 			R = from.R.Lerp( to.R, time ),
 			G = from.G.Lerp( to.G, time ),
