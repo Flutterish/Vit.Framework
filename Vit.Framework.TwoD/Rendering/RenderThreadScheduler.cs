@@ -11,17 +11,21 @@ public class RenderThreadScheduler {
 		disposables.Push( disposable );
 	}
 
-	public void Swap ( int index ) {
-		drawNodes.Swap( index );
-		disposables.Swap( index );
+	public void Swap ( int index ) { // TODO please get rid of these locks
+		lock (drawNodes) {
+			drawNodes.Swap( index );
+			disposables.Swap( index );
+		}
 	}
 
 	public void Execute ( int index ) {
-		foreach ( var i in drawNodes.PopAll( index ) ) {
-			i.DisposeDrawNodes();
-		}
-		foreach ( var i in disposables.PopAll( index ) ) {
-			i.Dispose();
+		lock (drawNodes) {
+			foreach ( var i in drawNodes.PopAll( index ) ) {
+				i.DisposeDrawNodes();
+			}
+			foreach ( var i in disposables.PopAll( index ) ) {
+				i.Dispose();
+			}
 		}
 	}
 
