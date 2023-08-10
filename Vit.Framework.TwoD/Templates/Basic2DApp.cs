@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Timing;
+using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.Windowing;
 
@@ -29,7 +30,10 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 	protected abstract GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available );
 	protected abstract TRoot CreateRoot ();
 
-	protected abstract void PopulateShaderStore ( ShaderStore shaders );
+	protected virtual void PopulateShaderStore ( ShaderStore shaders ) {
+		shaders.AddShaderPart( BasicVertexShader.Identifier, BasicVertexShader.Spirv );
+		shaders.AddShaderPart( BasicFragmentShader.Identifier, BasicFragmentShader.Spirv );
+	}
 	protected abstract void PopulateTextureStore ( TextureStore textures );
 	protected abstract void PopulateFontStore ( FontStore fonts );
 
@@ -61,6 +65,8 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		DisposeScheduler = new RenderThreadScheduler();
 		Dependencies.Cache( DisposeScheduler );
+
+		Dependencies.Cache( new Sprite.SpriteDependencies() );
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );

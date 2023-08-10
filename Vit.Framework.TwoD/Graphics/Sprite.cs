@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
@@ -18,6 +19,7 @@ public class Sprite : Drawable {
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
+		spriteDependencies = deps.Resolve<SpriteDependencies>();
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
@@ -47,7 +49,7 @@ public class Sprite : Drawable {
 		}
 	}
 
-	struct Vertex {
+	public struct Vertex {
 		public Point2<float> PositionAndUV;
 	}
 
@@ -56,17 +58,46 @@ public class Sprite : Drawable {
 		public ColorRgba<float> Tint;
 	}
 
+	public class SpriteDependencies : DisposableObject {
+		public IDeviceBuffer<ushort>? Indices;
+		public IDeviceBuffer<Vertex>? Vertices;
+
+		public void Initialize ( IRenderer renderer ) {
+			if ( Indices != null )
+				return;
+
+			using var copy = renderer.CreateImmediateCommandBuffer();
+			Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
+			Indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( Indices, new ushort[] {
+				0, 1, 2,
+				0, 2, 3
+			} );
+
+			Vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			Vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+			copy.Upload( Vertices, new Vertex[] {
+				new() { PositionAndUV = new( 0, 1 ) },
+				new() { PositionAndUV = new( 1, 1 ) },
+				new() { PositionAndUV = new( 1, 0 ) },
+				new() { PositionAndUV = new( 0, 0 ) }
+			} );
+		}
+
+		protected override void Dispose ( bool disposing ) {
+			Indices?.Dispose();
+			Vertices?.Dispose();
+		}
+	}
+
+	SpriteDependencies spriteDependencies = null!;
 	IUniformSet? uniformSet;
-	IDeviceBuffer<ushort>? indices;
-	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();
 
 		uniformSet?.Dispose();
-		indices?.Dispose();
-		vertices?.Dispose();
 		uniforms?.Dispose();
 	}
 
@@ -89,32 +120,16 @@ public class Sprite : Drawable {
 			textureUpload = Source.textureInvalidations.GetUpload();
 		}
 
-		void initializeSharedData ( IRenderer renderer ) { // TODO have a global store with basic meshes like this quad
-			ref var indices = ref Source.indices;
-
-			if ( indices != null )
-				return;
-
-			ref var vertices = ref Source.vertices;
+		void initializeSharedData ( IRenderer renderer ) {
 			ref var uniforms = ref Source.uniforms;
 			ref var uniformSet = ref Source.uniformSet;
+
+			if ( uniformSet != null )
+				return;
+			
 			var shaders = shader.Value;
 
-			using var copy = renderer.CreateImmediateCommandBuffer();
-			indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
-			indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( indices, new ushort[] {
-				0, 1, 2,
-				0, 2, 3
-			} );
-			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-			vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( vertices, new Vertex[] {
-				new() { PositionAndUV = new( 0, 1 ) },
-				new() { PositionAndUV = new( 1, 1 ) },
-				new() { PositionAndUV = new( 1, 0 ) },
-				new() { PositionAndUV = new( 0, 0 ) }
-			} );
+			Source.spriteDependencies.Initialize( renderer );
 			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
@@ -123,8 +138,6 @@ public class Sprite : Drawable {
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
-			ref var indices = ref Source.indices;
-			ref var vertices = ref Source.vertices;
 			ref var uniforms = ref Source.uniforms;
 			ref var uniformSet = ref Source.uniformSet;
 
@@ -134,6 +147,8 @@ public class Sprite : Drawable {
 			texture.Update( renderer ); // TODO update textures in main draw loop instead
 
 			initializeSharedData( renderer );
+			var indices = Source.spriteDependencies.Indices;
+			var vertices = Source.spriteDependencies.Vertices;
 
 			if ( textureUpload.Validate( ref Source.textureInvalidations ) )
 				uniformSet!.SetSampler( texture.Value, binding: 1 );
