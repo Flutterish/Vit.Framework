@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Threading;
+﻿using Vit.Framework.Performance;
+
+namespace Vit.Framework.Threading;
 
 public abstract class AppThread : IDisposable, IAsyncDisposable {
 	public readonly string Name;
@@ -8,6 +10,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 		Name = name;
 	}
 
+	public readonly UpdateCounter UpdateCounter = new();
 	object runLock = new();
 	public ThreadState State { get; private set; }
 	double rateLimit = 1000;
@@ -118,6 +121,7 @@ public abstract class AppThread : IDisposable, IAsyncDisposable {
 	void runLoopWithRateLimit () {
 		var startTime = DateTime.Now;
 		Loop();
+		UpdateCounter.Update();
 		var deltaTime = DateTime.Now - startTime;
 		var allotedTime = TimeSpan.FromSeconds( 1 ) / RateLimit;
 		if ( allotedTime > deltaTime ) {

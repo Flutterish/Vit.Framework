@@ -20,6 +20,7 @@ using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Templates;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
@@ -71,6 +72,10 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			: throw new InvalidOperationException( "the test type is funky" );
 		Root.AddChild( instance, new() {
 			Size = new( 1f.Relative() )
+		} );
+		Root.AddChild( new FpsCounter(), new() {
+			Origin = Anchor.BottomLeft,
+			Anchor = Anchor.BottomLeft
 		} );
 
 		Root.Load( Dependencies );

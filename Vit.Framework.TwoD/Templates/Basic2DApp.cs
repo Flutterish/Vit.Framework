@@ -4,9 +4,11 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
+using Vit.Framework.Threading;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.Windowing;
 
 namespace Vit.Framework.TwoD.Templates;
@@ -72,10 +74,19 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		Dependencies.Cache( clock );
 		Dependencies.Cache<IClock>( clock );
 
-		OnInitialized();
+		MainUpdateThread = CreateUpdateThread();
+		MainRenderThread = CreateRenderThread();
 
-		ThreadRunner.RegisterThread( MainUpdateThread = CreateUpdateThread() );
-		ThreadRunner.RegisterThread( MainRenderThread = CreateRenderThread() );
+		Dependencies.Cache( new FpsCounter.FpsCounterData { 
+			Threads = new (string, AppThread)[] {
+				("TPS", MainUpdateThread),
+				("FPS", MainRenderThread)
+			}
+		} );
+
+		OnInitialized();
+		ThreadRunner.RegisterThread( MainUpdateThread );
+		ThreadRunner.RegisterThread( MainRenderThread );
 
 		Window.Closed += _ => {
 			MainUpdateThread.Scheduler.Enqueue( () => {
