@@ -40,7 +40,7 @@ public unsafe class HeapAllocator : IAllocator {
 		return nuint.Log2( size );
 	}
 
-	public void* Allocate ( nuint size ) {
+	public Allocation Allocate ( nuint size ) {
 		Header* node = null;
 		nuint bucketIndex = getBucketIndex( size );
 		for ( ; bucketIndex < freeBucketCount; bucketIndex++ ) {
@@ -55,7 +55,7 @@ public unsafe class HeapAllocator : IAllocator {
 		}
 
 		if ( node == null )
-			return null;
+			return new( null, 0 );
 
 		// marking the node as not free
 		node->IsFree = false;
@@ -81,7 +81,7 @@ public unsafe class HeapAllocator : IAllocator {
 #endif
 		}
 
-		return Header.Data( node );
+		return new( Header.Data( node ), size );
 	}
 
 	void split ( Header* node, nuint size ) {
@@ -165,15 +165,11 @@ public unsafe class HeapAllocator : IAllocator {
 		throw new InvalidOperationException( "Tried to reallocate unallocated memory" );
 	}
 	[DoesNotReturn]
-	void throwSize2 () {
-		throw new InvalidOperationException( "Tried to reallocate a different amount of memory than was allocated" );
-	}
-	[DoesNotReturn]
 	void throwImLazy () { // TODO implement this
 		throw new NotImplementedException( "Out of memory, cant be bothered to restore state and return null" );
 	}
 
-	public void* Reallocate ( void* ptr, nuint oldSize, nuint newSize, out bool moved ) {
+	public Allocation Reallocate ( void* ptr, nuint newSize, out bool moved ) {
 		var node = (Header*)((nuint)ptr - SizeOfHelper<Header>.Size);
 
 #if DEBUG
@@ -181,8 +177,7 @@ public unsafe class HeapAllocator : IAllocator {
 			throwMagic2();
 #endif
 
-		if ( node->Size != oldSize )
-			throwSize2();
+		var oldSize = node->Size;
 
 		removeNode( node, getBucketIndex( oldSize ) );
 
@@ -212,7 +207,7 @@ public unsafe class HeapAllocator : IAllocator {
 
 		if ( tryFit() ) {
 			moved = false;
-			return ptr;
+			return new( ptr, newSize );
 		}
 
 		// otherwise, try to merge with previous and do the same check
@@ -234,7 +229,7 @@ public unsafe class HeapAllocator : IAllocator {
 			node->IsFree = false;
 			new Span<byte>( ptr, length ).CopyTo( new Span<byte>( newPtr, length ) );
 
-			return newPtr;
+			return new( newPtr, newSize );
 		}
 
 		// if that fails too, we basically already freed this block, so we can just allocate a new one and move the data there
@@ -248,27 +243,20 @@ public unsafe class HeapAllocator : IAllocator {
 		node->IsFree = true;
 		insertNode( node );
 
-		return newPtr;
+		return new( newPtr, newSize );
 	}
 
 	[DoesNotReturn]
 	void throwMagic () {
 		throw new InvalidOperationException( "Tried to free unallocated memory" );
 	}
-	[DoesNotReturn]
-	void throwSize () {
-		throw new InvalidOperationException( "Tried to free a different amount of memory than was allocated" );
-	}
 
-	public void Free ( void* ptr, nuint size ) {
+	public void Free ( void* ptr ) {
 		var node = (Header*)((nuint)ptr - SizeOfHelper<Header>.Size);
 #if DEBUG
 		if ( node->Magic != Header.MagicValue )
 			throwMagic();
 #endif
-
-		if ( node->Size != size )
-			throwSize();
 
 		node->IsFree = true;
 		var previous = node->Previous;
