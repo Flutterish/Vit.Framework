@@ -144,7 +144,6 @@ public class Sprite : Drawable {
 			var shaders = shader.Value;
 
 			var renderer = commands.Renderer;
-			texture.Update( renderer ); // TODO update textures in main draw loop instead
 
 			initializeSharedData( renderer );
 			var indices = Source.spriteDependencies.Indices;

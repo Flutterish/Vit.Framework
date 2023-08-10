@@ -189,7 +189,6 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			ref var uniformSet = ref Source.uniformSet;
 
 			var renderer = commands.Renderer;
-			texture.Update( renderer );
 
 			if ( textMeshUpload.Validate( ref Source.textMesh ) )
 				updateTextMesh( renderer );
