@@ -2,9 +2,7 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
@@ -108,10 +106,6 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		GraphicsCommandPool.Dispose();
 		CopyCommandPool.Dispose();
 		Device.Dispose();
-	}
-
-	public IUniformSet CreateUniformSet ( UniformSetInfo info ) {
-		throw new NotImplementedException();
 	}
 }
 
