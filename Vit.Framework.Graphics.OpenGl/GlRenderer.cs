@@ -37,7 +37,7 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new Buffer<T>( type switch {
+		return new HostBuffer<T>( type switch {
 			BufferType.Vertex => BufferTarget.ArrayBuffer,
 			BufferType.Index => BufferTarget.ArrayBuffer,
 			BufferType.Uniform => BufferTarget.UniformBuffer,
@@ -46,7 +46,12 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		return (Buffer<T>)CreateHostBuffer<T>( type );
+		return new DeviceBuffer<T>( type switch {
+			BufferType.Vertex => BufferTarget.ArrayBuffer,
+			BufferType.Index => BufferTarget.ArrayBuffer,
+			BufferType.Uniform => BufferTarget.UniformBuffer,
+			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
+		} );
 	}
 
 	public ITexture CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {

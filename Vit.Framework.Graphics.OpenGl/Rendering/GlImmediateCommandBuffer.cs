@@ -27,7 +27,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	}
 
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
-		((Buffer<T>)buffer).Upload( data, offset );
+		((DeviceBuffer<T>)buffer).Upload( data, offset );
 	}
 
 	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {

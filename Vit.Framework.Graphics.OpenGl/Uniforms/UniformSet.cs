@@ -18,8 +18,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
-		var buf = (Buffer<T>)buffer;
-		Buffers[binding] = (buf, Buffer<T>.Stride, offset * (uint)Buffer<T>.Stride);
+		Buffers[binding] = ((IGlBuffer)buffer, (int)IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
 	}
 
 	public Dictionary<uint, Texture2D> Samplers = new();
