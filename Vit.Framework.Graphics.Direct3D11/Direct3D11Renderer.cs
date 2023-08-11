@@ -52,7 +52,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new Buffer<T>( Device, Context, type switch {
+		return new HostBuffer<T>( Device, Context, type switch {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
 			BufferType.Uniform => BindFlags.ConstantBuffer,
@@ -61,7 +61,12 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		return (Buffer<T>)CreateHostBuffer<T>( type );
+		return new DeviceBuffer<T>( Device, Context, type switch {
+			BufferType.Vertex => BindFlags.VertexBuffer,
+			BufferType.Index => BindFlags.IndexBuffer,
+			BufferType.Uniform => BindFlags.ConstantBuffer,
+			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
+		} );
 	}
 
 	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {

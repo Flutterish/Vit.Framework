@@ -28,7 +28,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 	}
 
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
-		((Buffer<T>)buffer).Upload( data, offset );
+		((DeviceBuffer<T>)buffer).Upload( data, offset, Context );
 	}
 
 	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {

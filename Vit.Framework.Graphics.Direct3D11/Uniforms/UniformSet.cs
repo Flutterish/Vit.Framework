@@ -17,11 +17,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 		Set = set;
 	}
 
-	public Dictionary<uint, ID3D11Buffer> ConstantBuffers = new();
+	public Dictionary<uint, ID3D11BufferHandle> ConstantBuffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		Debug.Assert( offset == 0 );
-		ConstantBuffers[binding] = ((Buffer<T>)buffer).Handle!;
+		ConstantBuffers[binding] = (ID3D11BufferHandle)buffer;
 	}
 
 	public Dictionary<uint, Texture2D> Samplers = new();
@@ -33,11 +33,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public void Apply ( ShaderSet shaders, ID3D11DeviceContext context ) {
 		var mapping = shaders.UniformMapping;
 		
-		foreach ( var (originalBinding, handle) in ConstantBuffers ) {
+		foreach ( var (originalBinding, buffer) in ConstantBuffers ) {
 			var binding = mapping.Bindings[(Set, originalBinding)];
 
-			context.VSSetConstantBuffer( (int)binding, handle );
-			context.PSSetConstantBuffer( (int)binding, handle );
+			context.VSSetConstantBuffer( (int)binding, buffer.Handle );
+			context.PSSetConstantBuffer( (int)binding, buffer.Handle );
 		}
 		
 		foreach ( var (originalBinding, texture) in Samplers ) {
