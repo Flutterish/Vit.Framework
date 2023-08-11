@@ -10,16 +10,16 @@ using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
-public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer, ImageTexture, ShaderSet>, ICommandCache {
+public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, FrameBuffer, ImageTexture, ShaderSet>, IDeferredCommandBuffer {
 	public readonly CommandBuffer Buffer;
-	public VulkanCommandCache ( CommandBuffer buffer, VulkanRenderer renderer ) : base( renderer ) {
+	public VulkanDeferredCommandBuffer ( CommandBuffer buffer, VulkanRenderer renderer ) : base( renderer ) {
 		Buffer = buffer;
 	}
 
-	public DisposeAction<ICommandCache> Begin () {
+	public DisposeAction<IDeferredCommandBuffer> Begin () {
 		Buffer.Begin();
-		return new DisposeAction<ICommandCache>( this, static self => {
-			((VulkanCommandCache)self).Buffer.Finish();
+		return new DisposeAction<IDeferredCommandBuffer>( this, static self => {
+			((VulkanDeferredCommandBuffer)self).Buffer.Finish();
 		} );
 	}
 
@@ -35,8 +35,8 @@ public class VulkanCommandCache : BasicCommandBuffer<VulkanRenderer, FrameBuffer
 		// TODO instead have separate clear commands
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
-			((VulkanCommandCache)self).Buffer.FinishRenderPass();
-			((VulkanCommandCache)self).frameBuffer = null!;
+			((VulkanDeferredCommandBuffer)self).Buffer.FinishRenderPass();
+			((VulkanDeferredCommandBuffer)self).frameBuffer = null!;
 		} );
 	}
 
