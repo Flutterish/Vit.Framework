@@ -1,16 +1,16 @@
 ﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Memory.Allocation;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 
-namespace Vit.Framework.Graphics.Rendering.Uniforms;
+namespace Vit.Framework.Graphics.Rendering.Pooling;
 
 /// <summary>
 /// A simple allocator for <see cref="IUniformSet"/>s, which creates <see cref="IUniformSetPool"/>s of a predefined size and lends individual uniform sets.
 /// </summary>
-public class UniformSetAllocator : ManagedRegionAllocator<UniformSetAllocator.Allocation, UniformSetAllocator.Region>, IDisposable {
+public class UniformSetPool : RegionAllocator<UniformSetPool.Allocation, UniformSetPool.Region>, IDisposable {
 	public readonly uint PoolSize;
 	public readonly UniformSetInfo Type;
 	public readonly IRenderer Renderer;
-	public UniformSetAllocator ( UniformSetInfo type, IRenderer renderer, uint poolSize ) {
+	public UniformSetPool ( UniformSetInfo type, IRenderer renderer, uint poolSize ) {
 		PoolSize = poolSize;
 		Type = type;
 		Renderer = renderer;

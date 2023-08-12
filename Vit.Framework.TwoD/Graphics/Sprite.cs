@@ -2,8 +2,8 @@
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Mathematics;
@@ -60,8 +60,8 @@ public class Sprite : Drawable {
 	}
 
 	public class SpriteDependencies : DisposableObject {
-		public BufferSlabRegionAllocator<IHostBuffer<Uniforms>> UniformAllocator = null!;
-		public UniformSetAllocator UniformSetAllocator = null!;
+		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
+		public UniformSetPool UniformSetAllocator = null!;
 		public IDeviceBuffer<ushort>? Indices;
 		public IDeviceBuffer<Vertex>? Vertices;
 
@@ -108,8 +108,8 @@ public class Sprite : Drawable {
 
 	SpriteDependencies spriteDependencies = null!;
 	bool areUniformsInitialized = false;
-	UniformSetAllocator.Allocation uniformSet;
-	BufferSlabRegionAllocator<IHostBuffer<Uniforms>>.Allocation uniforms;
+	UniformSetPool.Allocation uniformSet;
+	BufferSectionPool<IHostBuffer<Uniforms>>.Allocation uniforms;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();

@@ -1,11 +1,11 @@
-﻿using Vit.Framework.Memory.Allocation;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
 
-namespace Vit.Framework.Graphics.Rendering.Buffers;
+namespace Vit.Framework.Graphics.Rendering.Pooling;
 
 /// <summary>
 /// A simple allocator for buffers, which creates buffers of a predefined size and lends fixed-size portions of them.
 /// </summary>
-public class BufferSlabRegionAllocator<TBuffer> : ManagedRegionAllocator<BufferSlabRegionAllocator<TBuffer>.Allocation, BufferSlabRegionAllocator<TBuffer>.Region>, IDisposable where TBuffer : IBuffer {
+public class BufferSectionPool<TBuffer> : RegionAllocator<BufferSectionPool<TBuffer>.Allocation, BufferSectionPool<TBuffer>.Region>, IDisposable where TBuffer : IBuffer {
 	public delegate TBuffer BufferCreator ( IRenderer renderer, uint size );
 	public readonly IRenderer Renderer;
 	BufferCreator creator;
@@ -15,7 +15,7 @@ public class BufferSlabRegionAllocator<TBuffer> : ManagedRegionAllocator<BufferS
 	/// <param name="regionSize">Amount of slabs per buffer.</param>
 	/// <param name="slabSize">Amount of elements per slab.</param>
 	/// <param name="creator">A function that creates a buffer with space for <c>size</c> elements.</param>
-	public BufferSlabRegionAllocator ( uint regionSize, uint slabSize, IRenderer renderer, BufferCreator creator ) {
+	public BufferSectionPool ( uint regionSize, uint slabSize, IRenderer renderer, BufferCreator creator ) {
 		this.creator = creator;
 		RegionSize = regionSize;
 		SlabSize = slabSize;
@@ -45,7 +45,7 @@ public class BufferSlabRegionAllocator<TBuffer> : ManagedRegionAllocator<BufferS
 
 		Stack<uint> freeSlots;
 
-		internal Region ( Region? previous, TBuffer buffer, BufferSlabRegionAllocator<TBuffer> owner ) : base( previous ) {
+		internal Region ( Region? previous, TBuffer buffer, BufferSectionPool<TBuffer> owner ) : base( previous ) {
 			Buffer = buffer;
 
 			freeSlots = new( (int)owner.RegionSize );

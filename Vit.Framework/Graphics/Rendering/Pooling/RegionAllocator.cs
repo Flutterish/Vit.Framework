@@ -1,6 +1,6 @@
-﻿namespace Vit.Framework.Memory.Allocation;
+﻿namespace Vit.Framework.Graphics.Rendering.Pooling;
 
-public abstract class ManagedRegionAllocator<TAllocation, TRegion> where TRegion : Region<TRegion> where TAllocation : IRegionAllocation<TRegion> {
+public abstract class RegionAllocator<TAllocation, TRegion> where TRegion : Region<TRegion> where TAllocation : IRegionAllocation<TRegion> {
 	public TAllocation Allocate () {
 		if ( !freeRegions.TryPeek( out var region ) ) {
 			region = CreateRegion( lastRegion );
@@ -9,17 +9,13 @@ public abstract class ManagedRegionAllocator<TAllocation, TRegion> where TRegion
 		}
 
 		var allocation = Allocate( region );
-		if ( !region.HasFreeSpace ) {
-			freeRegions.Pop();
-		}
+		if ( !region.HasFreeSpace ) freeRegions.Pop();
 		return allocation;
 	}
 
 	public void Free ( TAllocation allocation ) {
 		var region = allocation.Region;
-		if ( !allocation.Region.HasFreeSpace ) {
-			freeRegions.Push( region );
-		}
+		if ( !allocation.Region.HasFreeSpace ) freeRegions.Push( region );
 
 		Free( region, allocation );
 	}
