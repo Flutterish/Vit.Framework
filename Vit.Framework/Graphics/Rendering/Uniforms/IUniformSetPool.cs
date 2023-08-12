@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vit.Framework.Graphics.Rendering.Uniforms;
+﻿namespace Vit.Framework.Graphics.Rendering.Uniforms;
 
 /// <summary>
 /// A pool of <see cref="IUniformSet"/>s.

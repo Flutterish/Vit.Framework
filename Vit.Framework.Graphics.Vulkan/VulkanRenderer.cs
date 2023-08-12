@@ -10,7 +10,6 @@ using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;

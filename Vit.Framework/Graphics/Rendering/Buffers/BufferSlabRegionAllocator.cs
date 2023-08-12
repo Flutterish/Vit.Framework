@@ -1,12 +1,13 @@
-﻿using Vit.Framework.Memory;
+﻿using Vit.Framework.Memory.Allocation;
 
 namespace Vit.Framework.Graphics.Rendering.Buffers;
 
 /// <summary>
 /// A simple allocator for buffers, which creates buffers of a predefined size and lends fixed-size portions of them.
 /// </summary>
-public class BufferSlabRegionAllocator<TBuffer> : DisposableObject where TBuffer : IBuffer {
+public class BufferSlabRegionAllocator<TBuffer> : ManagedRegionAllocator<BufferSlabRegionAllocator<TBuffer>.Allocation, BufferSlabRegionAllocator<TBuffer>.Region>, IDisposable where TBuffer : IBuffer {
 	public delegate TBuffer BufferCreator ( IRenderer renderer, uint size );
+	public readonly IRenderer Renderer;
 	BufferCreator creator;
 
 	public readonly uint RegionSize;
@@ -14,47 +15,38 @@ public class BufferSlabRegionAllocator<TBuffer> : DisposableObject where TBuffer
 	/// <param name="regionSize">Amount of slabs per buffer.</param>
 	/// <param name="slabSize">Amount of elements per slab.</param>
 	/// <param name="creator">A function that creates a buffer with space for <c>size</c> elements.</param>
-	public BufferSlabRegionAllocator ( uint regionSize, uint slabSize, BufferCreator creator ) {
+	public BufferSlabRegionAllocator ( uint regionSize, uint slabSize, IRenderer renderer, BufferCreator creator ) {
 		this.creator = creator;
 		RegionSize = regionSize;
 		SlabSize = slabSize;
+		Renderer = renderer;
 	}
 
-	Region? lastRegion; // TODO instead of individual uploads to the buffer, we could batch them
-	Stack<Region> freeRegions = new();
-	public Allocation Allocate ( IRenderer renderer ) {
-		if ( !freeRegions.TryPeek( out var region ) ) {
-			region = new( creator( renderer, RegionSize * SlabSize ), this, lastRegion );
-			lastRegion = region;
-			freeRegions.Push( region );
-		}
-
-		var allocation = region.Allocate();
-		if ( !region.HasFreeSlabs ) {
-			freeRegions.Pop();
-		}
-		return allocation;
+	// TODO instead of individual uploads to the buffer, we could batch them
+	protected override Region CreateRegion ( Region? last ) {
+		return new Region( last, creator( Renderer, RegionSize * SlabSize ), this );
 	}
 
-	public void Free ( Allocation allocation ) {
-		if ( !allocation.Region.HasFreeSlabs ) {
-			freeRegions.Push( allocation.Region );
-		}
-
-		allocation.Region.Free( allocation.Offset );
+	protected override Allocation Allocate ( Region region ) {
+		return new() {
+			Region = region,
+			Buffer = region.Buffer,
+			Size = SlabSize,
+			Offset = region.Allocate()
+		};
 	}
 
-	public class Region {
-		public readonly Region? Previous;
-		public readonly BufferSlabRegionAllocator<TBuffer> Owner;
+	protected override void Free ( Region region, Allocation allocation ) {
+		region.Free( allocation.Offset );
+	}
+
+	public class Region : Region<Region> {
 		public readonly TBuffer Buffer;
 
 		Stack<uint> freeSlots;
 
-		internal Region ( TBuffer buffer, BufferSlabRegionAllocator<TBuffer> owner, Region? previous ) {
+		internal Region ( Region? previous, TBuffer buffer, BufferSlabRegionAllocator<TBuffer> owner ) : base( previous ) {
 			Buffer = buffer;
-			Owner = owner;
-			Previous = previous;
 
 			freeSlots = new( (int)owner.RegionSize );
 			for ( uint i = owner.RegionSize - 1; i != uint.MaxValue; i-- ) {
@@ -62,15 +54,10 @@ public class BufferSlabRegionAllocator<TBuffer> : DisposableObject where TBuffer
 			}
 		}
 
-		public bool HasFreeSlabs => freeSlots.Any();
+		public override bool HasFreeSpace => freeSlots.Any();
 
-		internal Allocation Allocate () {
-			return new() {
-				Buffer = Buffer,
-				Offset = freeSlots.Pop(),
-				Size = Owner.SlabSize,
-				Region = this
-			};
+		internal uint Allocate () {
+			return freeSlots.Pop();
 		}
 
 		internal void Free ( uint slot ) {
@@ -78,19 +65,17 @@ public class BufferSlabRegionAllocator<TBuffer> : DisposableObject where TBuffer
 		}
 	}
 
-	public struct Allocation {
+	public struct Allocation : IRegionAllocation<Region> {
 		public TBuffer Buffer;
 		public uint Offset;
 		public uint Size;
 
-		public Region Region;
+		public Region Region { get; init; }
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		var region = lastRegion;
-		while ( region != null ) {
-			region.Buffer.Dispose();
-			region = region.Previous;
+	public void Dispose () {
+		foreach ( var i in Regions ) {
+			i.Buffer.Dispose();
 		}
 	}
 }

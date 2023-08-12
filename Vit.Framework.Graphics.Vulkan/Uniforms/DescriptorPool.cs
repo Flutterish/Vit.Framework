@@ -1,6 +1,4 @@
-﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Vulkan.Shaders;
+﻿using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Interop;
 using Vulkan;
 

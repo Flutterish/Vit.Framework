@@ -60,21 +60,25 @@ public class Sprite : Drawable {
 	}
 
 	public class SpriteDependencies : DisposableObject {
-		public readonly BufferSlabRegionAllocator<IHostBuffer<Uniforms>> UniformAllocator = new( 256, 1, static (r, s) => {
-			var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-			buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
-			return buffer;
-		} );
-		public readonly UniformSetAllocator UniformSetAllocator = new( new[] { 
-			BasicVertexShader.Spirv.Reflections, 
-			BasicFragmentShader.Spirv.Reflections 
-		}.CreateUniformSetInfo( set: 1 ), 256 );
+		public BufferSlabRegionAllocator<IHostBuffer<Uniforms>> UniformAllocator = null!;
+		public UniformSetAllocator UniformSetAllocator = null!;
 		public IDeviceBuffer<ushort>? Indices;
 		public IDeviceBuffer<Vertex>? Vertices;
 
 		public void Initialize ( IRenderer renderer ) {
 			if ( Indices != null )
 				return;
+
+			UniformAllocator = new( 256, 1, renderer, static ( r, s ) => {
+				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+				buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+				return buffer;
+			} );
+
+			UniformSetAllocator = new( new[] {
+				BasicVertexShader.Spirv.Reflections,
+				BasicFragmentShader.Spirv.Reflections
+			}.CreateUniformSetInfo( set: 1 ), renderer, 256 );
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 			Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
@@ -141,8 +145,8 @@ public class Sprite : Drawable {
 			ref var uniformSet = ref Source.uniformSet;
 
 			Source.spriteDependencies.Initialize( renderer );
-			uniforms = Source.spriteDependencies.UniformAllocator.Allocate( renderer );
-			uniformSet = Source.spriteDependencies.UniformSetAllocator.Allocate( renderer );
+			uniforms = Source.spriteDependencies.UniformAllocator.Allocate();
+			uniformSet = Source.spriteDependencies.UniformSetAllocator.Allocate();
 
 			uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
 		}
