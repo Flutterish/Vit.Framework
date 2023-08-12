@@ -71,7 +71,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		foreach ( var (index, set) in ShaderSet.UniformSets ) {
-			set.Apply( ShaderSet, Context );
+			set.Apply( index, ShaderSet, Context );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {

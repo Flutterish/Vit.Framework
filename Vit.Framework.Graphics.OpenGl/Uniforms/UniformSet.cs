@@ -10,7 +10,6 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
 public class UniformSet : DisposableObject, IUniformSet {
-	public UniformSet () { }
 
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {

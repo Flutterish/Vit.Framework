@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Direct3D11.Rendering;
 using Vit.Framework.Graphics.Direct3D11.Shaders;
 using Vit.Framework.Graphics.Direct3D11.Textures;
+using Vit.Framework.Graphics.Direct3D11.Uniforms;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -51,6 +52,10 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
 		return new ShaderSet( parts, Context );
+	}
+
+	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
+		return new UniformSetPool( type );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
@@ -146,9 +151,5 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		RasterizerState.Dispose();
 		Device.Dispose();
 		Context.Dispose();
-	}
-
-	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
-		throw new NotImplementedException();
 	}
 }
