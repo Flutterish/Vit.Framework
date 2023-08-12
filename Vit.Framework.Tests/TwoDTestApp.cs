@@ -90,7 +90,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	class TestUpdateThread : UpdateThread {
-		Visual<Sprite> cursor;
+		Visual<Sprite> cursor = null!;
 		UIEventSource uiEventSource;
 		GlobalInputTrackers globalInputTrackers;
 		CursorState.Tracker cursorTracker;
@@ -101,11 +101,6 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			cursorTracker = new CursorTracker( (SdlWindow)window );
 			globalInputTrackers.Add( cursorTracker );
 			this.window = window;
-
-			Root.AddChild( cursor = new Visual<Sprite> { Displayed = new() { Tint = ColorRgba.HotPink } }, new() {
-				Size = new( 18 ),
-				Origin = Anchor.Centre
-			} );
 
 			globalInputTrackers.EventEmitted += e => {
 				var translated = uiEventSource.TriggerEvent( e );
@@ -118,6 +113,11 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override bool Initialize () {
+			Root.AddChild( cursor = new Visual<Sprite> { Displayed = new() { Tint = ColorRgba.HotPink } }, new() {
+				Size = new( 18 ),
+				Origin = Anchor.Centre
+			} );
+
 			return true;
 		}
 
