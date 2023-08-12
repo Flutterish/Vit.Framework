@@ -11,14 +11,18 @@ public static class DebugMemoryAlignment {
 	static Dictionary<IUniformSet, Dictionary<uint, DataTypeInfo>> debugInfo = new();
 	[Conditional( "DEBUG" )]
 	public static void SetDebugData ( IUniformSet set, uint id, IShaderSet shaders ) {
+		var parts = shaders.Parts.Select( x => x.ShaderInfo );
+		var uniforms = parts.SelectMany<ShaderInfo, UniformResourceInfo>( x => x.Uniforms.Sets.TryGetValue( id, out var info ) ? info.Resources : Array.Empty<UniformResourceInfo>() );
+
+		SetDebugData( set, uniforms );
+	}
+	[Conditional( "DEBUG" )]
+	public static void SetDebugData ( IUniformSet set, IEnumerable<UniformResourceInfo> uniforms ) {
 		Dictionary<uint, DataTypeInfo> dict = new();
 		lock ( debugInfo ) {
 			debugInfo.Add( set, dict );
 		}
 
-		// this is modified shaders.CreateUniformSetInfo( id );
-		var parts = shaders.Parts.Select( x => x.ShaderInfo );
-		var uniforms = parts.SelectMany<ShaderInfo, UniformResourceInfo>( x => x.Uniforms.Sets.TryGetValue( id, out var info ) ? info.Resources : Array.Empty<UniformResourceInfo>() );
 		foreach ( var i in uniforms.GroupBy( x => x.Binding ) ) {
 			var rep = i.First();
 			dict.Add( rep.Binding, rep.Type );

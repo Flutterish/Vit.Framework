@@ -30,6 +30,7 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 	}
 
 	public unsafe void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
+		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		var uniformBuffer = (Buffer<T>)buffer;
 
 		var bufferInfo = new VkDescriptorBufferInfo() {
@@ -75,31 +76,23 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 		Vk.vkUpdateDescriptorSets( image.Device, 1, &write, 0, 0 );
 	}
 
-	public void Dispose () { }
+	public void Dispose () {
+		DebugMemoryAlignment.ClearDebugData( this );
+	}
 }
 
 public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
-	public readonly VkDescriptorSetLayoutBinding[] LayoutBindings;
 	public readonly DescriptorPool DescriptorPool;
 	public readonly DescriptorSet DescriptorSet;
 	public VkDescriptorSetLayout Layout => DescriptorSet.Layout;
 	public VkDescriptorSet Handle => DescriptorSet.Handle;
 
 	public unsafe StandaloneUniformSet ( Device device, UniformSetInfo info ) {
-		LayoutBindings = info.GenerateUniformBindingsSet();
-		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
-		DescriptorSet = DescriptorPool.CreateSet();
-	}
-
-	public StandaloneUniformSet ( StandaloneUniformSet value ) {
-		var device = value.DescriptorPool.Device;
-		LayoutBindings = value.LayoutBindings;
-		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
+		DescriptorPool = new DescriptorPool( device, 1, info );
 		DescriptorSet = DescriptorPool.CreateSet();
 	}
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
 	}
 
@@ -108,7 +101,7 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		DebugMemoryAlignment.ClearDebugData( this );
+		DescriptorSet.Dispose();
 		DescriptorPool.Dispose();
 	}
 }

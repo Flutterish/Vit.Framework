@@ -55,7 +55,7 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		var value = new UniformSet( set );
+		var value = new UniformSet();
 		DebugMemoryAlignment.SetDebugData( value, set, this );
 		return value;
 	}

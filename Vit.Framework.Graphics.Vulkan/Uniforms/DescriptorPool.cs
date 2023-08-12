@@ -1,4 +1,7 @@
-﻿using Vit.Framework.Graphics.Rendering.Uniforms;
+﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
+using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Rendering.Validation;
+using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Interop;
 using Vulkan;
 
@@ -6,9 +9,21 @@ namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
 public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniformSetPool {
 	public readonly Device Device;
+	public readonly UniformSetInfo Type;
 	public readonly VkDescriptorSetLayout Layout;
-	public unsafe DescriptorPool ( Device device, uint size, VkDescriptorSetLayoutBinding[] layoutBindings, params VkDescriptorPoolSize[] values ) {
+	public unsafe DescriptorPool ( Device device, uint size, UniformSetInfo type ) {
 		Device = device;
+		Type = type;
+
+		var layoutBindings = type.GenerateUniformBindingsSet();
+
+		var values = new VkDescriptorPoolSize[layoutBindings.Length];
+		for ( int i = 0; i < values.Length; i++ ) {
+			values[i] = new() {
+				type = layoutBindings[i].descriptorType,
+				descriptorCount = 1
+			};
+		}
 
 		var info = new VkDescriptorPoolCreateInfo() {
 			sType = VkStructureType.DescriptorPoolCreateInfo,
@@ -29,7 +44,9 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 	}
 
 	public DescriptorSet CreateSet () {
-		return new( this, Layout );
+		var value = new DescriptorSet( this, Layout );
+		DebugMemoryAlignment.SetDebugData( value, Type.Resources );
+		return value;
 	}
 
 	Stack<IUniformSet> created;

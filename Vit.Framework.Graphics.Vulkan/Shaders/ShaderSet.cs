@@ -40,16 +40,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		if ( UniformSets[set] is StandaloneUniformSet existing ) {
-			var value = new StandaloneUniformSet( existing );
-			DebugMemoryAlignment.SetDebugData( value, set, this );
-			return value;
-		}
-		else {
-			var value = new StandaloneUniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
-			DebugMemoryAlignment.SetDebugData( value, set, this );
-			return value;
-		}
+		return new StandaloneUniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
