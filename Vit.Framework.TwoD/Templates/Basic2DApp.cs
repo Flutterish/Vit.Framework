@@ -67,7 +67,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		DisposeScheduler = new RenderThreadScheduler();
 		Dependencies.Cache( DisposeScheduler );
 
-		Dependencies.Cache( new Sprite.SpriteDependencies() );
+		Dependencies.Cache( new Sprite.DrawDependencies() );
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );

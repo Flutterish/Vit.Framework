@@ -20,7 +20,7 @@ public class Sprite : Drawable {
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
-		spriteDependencies = deps.Resolve<SpriteDependencies>();
+		spriteDependencies = deps.Resolve<DrawDependencies>();
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
@@ -59,7 +59,7 @@ public class Sprite : Drawable {
 		public ColorRgba<float> Tint;
 	}
 
-	public class SpriteDependencies : DisposableObject {
+	public class DrawDependencies : DisposableObject {
 		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
 		public UniformSetPool UniformSetAllocator = null!;
 		public IDeviceBuffer<ushort>? Indices;
@@ -106,7 +106,7 @@ public class Sprite : Drawable {
 		}
 	}
 
-	SpriteDependencies spriteDependencies = null!;
+	DrawDependencies spriteDependencies = null!;
 	bool areUniformsInitialized = false;
 	UniformSetPool.Allocation uniformSet;
 	BufferSectionPool<IHostBuffer<Uniforms>>.Allocation uniforms;
