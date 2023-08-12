@@ -5,8 +5,7 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
 public class DeviceBuffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T> where T : unmanaged {
-	public static readonly int Stride = Marshal.SizeOf( default( T ) );
-	int IGlBuffer.Stride => Stride;
+	public uint Stride => Type == BufferTarget.UniformBuffer ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 
 	public int Handle { get; }
 	public readonly BufferTarget Type;
@@ -18,16 +17,16 @@ public class DeviceBuffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T> whe
 	}
 
 	public void Allocate ( uint size, BufferUsage usageHint ) {
-		var length = (int)size * Stride;
+		var length = size * Stride;
 		GL.BindBuffer( Type, Handle );
-		GL.BufferStorage( Type, length, (nint)null, BufferStorageFlags.None );
+		GL.BufferStorage( Type, (int)length, (nint)null, BufferStorageFlags.None );
 
 		stagingBuffer.Allocate( size, usageHint );
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
 		stagingBuffer.Upload( data, offset );
-		GL.CopyNamedBufferSubData( stagingBuffer.Handle, Handle, (int)offset, (int)offset, data.Length * Stride );
+		GL.CopyNamedBufferSubData( stagingBuffer.Handle, Handle, (int)(offset * Stride), (int)(offset * Stride), data.Length * (int)Stride );
 	}
 
 	protected override void Dispose ( bool disposing ) {

@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.OpenGl.Buffers;
+﻿using System.Net.WebSockets;
+using Vit.Framework.Graphics.OpenGl.Buffers;
 using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -18,7 +19,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
-		Buffers[binding] = ((IGlBuffer)buffer, (int)IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
+		var buf = (IGlBuffer)buffer;
+		Buffers[binding] = (buf, (int)buf.Stride, offset * buf.Stride);
 	}
 
 	public Dictionary<uint, Texture2D> Samplers = new();

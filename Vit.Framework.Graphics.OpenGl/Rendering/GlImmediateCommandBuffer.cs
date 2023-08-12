@@ -124,7 +124,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 			GL.BindBuffer( BufferTarget.ArrayBuffer, buffer.Handle );
 			int offset = 0;
 
-			var stride = buffer.Stride;
+			var stride = (int)buffer.Stride;
 			foreach ( var i in ShaderSet.Parts.First( x => x.Type == ShaderPartType.Vertex ).ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
 				var length = (int)i.Type.FlattendedDimensions;
 				var (size, type) = i.Type.PrimitiveType switch {

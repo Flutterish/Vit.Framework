@@ -1,4 +1,5 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Text;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -53,12 +54,17 @@ public class Sprite : Drawable {
 		public Point2<float> PositionAndUV;
 	}
 
-	struct Uniforms {
+	public struct Uniforms {
 		public Matrix4x3<float> Matrix;
 		public ColorRgba<float> Tint;
 	}
 
 	public class SpriteDependencies : DisposableObject {
+		public readonly BufferSlabRegionAllocator<IHostBuffer<Uniforms>> UniformAllocator = new( 256, 1, static (r, s) => {
+			var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+			buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+			return buffer;
+		} );
 		public IDeviceBuffer<ushort>? Indices;
 		public IDeviceBuffer<Vertex>? Vertices;
 
@@ -92,13 +98,13 @@ public class Sprite : Drawable {
 
 	SpriteDependencies spriteDependencies = null!;
 	IUniformSet? uniformSet;
-	IHostBuffer<Uniforms>? uniforms;
+	BufferSlabRegionAllocator<IHostBuffer<Uniforms>>.Allocation uniforms;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();
 
 		uniformSet?.Dispose();
-		uniforms?.Dispose();
+		spriteDependencies?.UniformAllocator.Free( uniforms );
 	}
 
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
@@ -130,11 +136,10 @@ public class Sprite : Drawable {
 			var shaders = shader.Value;
 
 			Source.spriteDependencies.Initialize( renderer );
-			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+			uniforms = Source.spriteDependencies.UniformAllocator.Allocate( renderer );
 
 			uniformSet = shaders.CreateUniformSet( set: 1 );
-			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
+			uniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
@@ -156,10 +161,10 @@ public class Sprite : Drawable {
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
-			uniforms!.Upload( new Uniforms {
+			uniforms.Buffer.Upload( new Uniforms {
 				Matrix = new( UnitToGlobalMatrix ),
 				Tint = tint
-			} );
+			}, uniforms.Offset );
 			commands.DrawIndexed( 6 );
 		}
 

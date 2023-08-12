@@ -1,8 +1,10 @@
-﻿using Vit.Framework.Graphics.OpenGl.Textures;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.OpenGl.Windowing;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.OpenGl.Queues;
 
@@ -15,7 +17,19 @@ public class GlSwapchain : ISwapchain {
 		context = window.CreateContext();
 		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
 		GL.Enable( EnableCap.FramebufferSrgb ); // TODO this should only be done for the default framebuffer, but the enable cap does it for all framebuffers
+		enableDebug();
 		immediateCommandBuffer = renderer.CreateImmediateCommandBuffer();
+	}
+
+	[Conditional("DEBUG")]
+	static void enableDebug () {
+		GL.Enable( EnableCap.DebugOutput );
+		GL.DebugMessageCallback( static ( source, type, id, severity, length, message, userParam ) => {
+			if ( type == DebugType.DebugTypeError ) {
+				var msg = new CString( message );
+				Debug.Fail( msg );
+			}
+		}, 0 );
 	}
 
 	public void Recreate () {

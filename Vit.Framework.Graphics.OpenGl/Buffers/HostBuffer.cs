@@ -5,8 +5,7 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
 public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> where T : unmanaged {
-	public static readonly int Stride = Marshal.SizeOf( default(T) );
-	int IGlBuffer.Stride => Stride;
+	public uint Stride => Type == BufferTarget.UniformBuffer ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 
 	public int Handle { get; }
 	public readonly BufferTarget Type;
@@ -19,13 +18,23 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 	public void Allocate ( uint size, BufferUsage usageHint ) {
 		GL.BindBuffer( Type, Handle );
 
-		var length = (int)size * Stride;
-		GL.BufferStorage( Type, length, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
-		Data = (T*)GL.MapBufferRange( Type, 0, length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+		var length = size * Stride;
+		GL.BufferStorage( Type, (int)length, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
+		Data = (T*)GL.MapBufferRange( Type, 0, (int)length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
-		data.CopyTo( new Span<T>( (void*)this.Data, data.Length + (int)offset ).Slice( (int)offset ) );
+		if ( Type == BufferTarget.UniformBuffer ) { // TODO vtable this out
+			var stride = IBuffer<T>.UniformBufferStride;
+			byte* ptr = ((byte*)this.Data) + offset * stride;
+			for ( int i = 0; i < data.Length; i++ ) {
+				*((T*)ptr) = data[i];
+				ptr += stride;
+			}
+		}
+		else {
+			data.CopyTo( new Span<T>( (void*)this.Data, data.Length + (int)offset ).Slice( (int)offset ) );
+		}
 	}
 
 	protected override void Dispose ( bool disposing ) {

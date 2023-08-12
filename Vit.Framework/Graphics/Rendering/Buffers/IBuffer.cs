@@ -15,6 +15,11 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// Stride of one element.
 	/// </summary>
 	public static readonly uint Stride = (uint)Marshal.SizeOf( default(T) );
+	/// <summary>
+	/// Stride of one element when in a uniform buffer - aligned to 256 bytes boundaries.
+	/// </summary>
+	public static readonly uint UniformBufferStride = (Stride + 255) / 256 * 256;
+
 	Type IBuffer.StoredType => typeof(T);
 
 	/// <summary>
