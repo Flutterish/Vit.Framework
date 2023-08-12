@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
@@ -91,6 +92,7 @@ public class Sprite : Drawable {
 		}
 
 		protected override void Dispose ( bool disposing ) {
+			UniformAllocator.Dispose();
 			Indices?.Dispose();
 			Vertices?.Dispose();
 		}

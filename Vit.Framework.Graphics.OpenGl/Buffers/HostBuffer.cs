@@ -33,7 +33,7 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 			}
 		}
 		else {
-			data.CopyTo( new Span<T>( (void*)this.Data, data.Length + (int)offset ).Slice( (int)offset ) );
+			data.CopyTo( new Span<T>( this.Data + offset, data.Length ) );
 		}
 	}
 

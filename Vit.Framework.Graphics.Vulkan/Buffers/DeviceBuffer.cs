@@ -6,15 +6,13 @@ namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public class DeviceBuffer<T> : Buffer<T>, IDeviceBuffer<T> where T : unmanaged {
 	HostBuffer<T> stagingBuffer;
-	VkBufferUsageFlags flags;
-	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
+	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device, flags | VkBufferUsageFlags.TransferDst ) {
 		stagingBuffer = new( device, VkBufferUsageFlags.TransferSrc );
-		this.flags = flags;
 	}
 
 	public unsafe CommandBuffer Allocate ( ReadOnlySpan<T> data, CommandPool pool ) {
 		stagingBuffer.Allocate( data );
-		Allocate( (ulong)data.Length, flags | VkBufferUsageFlags.TransferDst );
+		base.Allocate( (ulong)data.Length );
 
 		var commands = pool.CreateCommandBuffer();
 		commands.Begin( VkCommandBufferUsageFlags.OneTimeSubmit );
@@ -26,14 +24,14 @@ public class DeviceBuffer<T> : Buffer<T>, IDeviceBuffer<T> where T : unmanaged {
 
 	public unsafe void Allocate ( ReadOnlySpan<T> data, CommandBuffer commands ) {
 		stagingBuffer.Allocate( data );
-		Allocate( (ulong)data.Length, flags | VkBufferUsageFlags.TransferDst );
+		base.Allocate( (ulong)data.Length );
 
 		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length );
 	}
 
 	void IBuffer<T>.Allocate ( uint size, BufferUsage usageHint ) {
 		stagingBuffer.Allocate( (ulong)size );
-		Allocate( (ulong)size, flags | VkBufferUsageFlags.TransferDst );
+		base.Allocate( (ulong)size );
 	}
 
 	public void AllocateAndTransfer ( ReadOnlySpan<T> data, CommandPool pool, VkQueue queue ) {
@@ -44,8 +42,8 @@ public class DeviceBuffer<T> : Buffer<T>, IDeviceBuffer<T> where T : unmanaged {
 	}
 
 	public void Transfer ( ReadOnlySpan<T> data, ulong offset, CommandBuffer commands ) {
-		stagingBuffer.Transfer( data );
-		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length, dstOffset: offset );
+		stagingBuffer.Transfer( data, offset );
+		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length, srcOffset: offset * Stride, dstOffset: offset * Stride );
 	}
 
 	protected override uint FindMemoryType ( VkMemoryRequirements requirements ) {

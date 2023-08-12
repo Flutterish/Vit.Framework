@@ -1,25 +1,29 @@
 ﻿using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public abstract class Buffer<T> : DisposableVulkanObject<VkBuffer> where T : unmanaged {
-	public static readonly uint Stride = (uint)Marshal.SizeOf( default( T ) );
+	public uint Stride => UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
+
 	public readonly Device Device;
 	protected VkDeviceMemory Memory;
+	public readonly VkBufferUsageFlags UsageFlags;
 
-	public Buffer ( Device device ) {
+	public Buffer ( Device device, VkBufferUsageFlags flags ) {
 		Device = device;
+		UsageFlags = flags;
 	}
 
-	protected unsafe void Allocate ( ulong length, VkBufferUsageFlags usage, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
+	protected unsafe void Allocate ( ulong length, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
 		if ( Instance != VkBuffer.Null )
 			Free();
 
 		VkBufferCreateInfo info = new() {
 			sType = VkStructureType.BufferCreateInfo,
 			size = Stride * length,
-			usage = usage,
+			usage = UsageFlags,
 			sharingMode = sharingMode
 		};
 		Vk.vkCreateBuffer( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();

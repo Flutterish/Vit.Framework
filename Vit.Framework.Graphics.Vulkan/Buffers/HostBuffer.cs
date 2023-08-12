@@ -5,13 +5,10 @@ namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public unsafe class HostBuffer<T> : Buffer<T>, IHostBuffer<T> where T : unmanaged {
 	T* data;
-	VkBufferUsageFlags flags;
-	public HostBuffer ( Device device, VkBufferUsageFlags flags ) : base( device ) {
-		this.flags = flags;
-	}
+	public HostBuffer ( Device device, VkBufferUsageFlags flags ) : base( device, flags ) { }
 
 	public unsafe void Allocate ( ulong count ) {
-		Allocate( count, flags );
+		base.Allocate( count );
 		void* dataPointer;
 		Vk.vkMapMemory( Device, Memory, 0, Stride * count, 0, &dataPointer ).Validate();
 		data = (T*)dataPointer;
@@ -30,7 +27,17 @@ public unsafe class HostBuffer<T> : Buffer<T>, IHostBuffer<T> where T : unmanage
 		=> new Span<T>( data + offset, length );
 
 	public unsafe void Transfer ( ReadOnlySpan<T> data, ulong offset = 0 ) {
-		data.CopyTo( new Span<T>( this.data + offset, data.Length ) );
+		if ( UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ) { // TODO vtable this out
+			var stride = IBuffer<T>.UniformBufferStride;
+			byte* ptr = ((byte*)this.data) + offset * stride;
+			for ( int i = 0; i < data.Length; i++ ) {
+				*((T*)ptr) = data[i];
+				ptr += stride;
+			}
+		}
+		else {
+			data.CopyTo( new Span<T>( this.data + offset, data.Length ) );
+		}
 	}
 
 	public unsafe void Transfer ( in T data, ulong offset = 0 ) {

@@ -40,7 +40,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
+		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
