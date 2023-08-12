@@ -25,7 +25,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		}
 
 		var setCount = this.GetUniformSetIndices().Count();
-		UniformSets = new StandaloneUniformSet?[setCount];
+		UniformSets = new IDescriptorSet?[setCount];
 		DescriptorSets = new VkDescriptorSet[setCount];
 	}
 

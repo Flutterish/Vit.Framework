@@ -44,9 +44,12 @@ public static class IShaderSetExtensions {
 	}
 
 	public static UniformSetInfo CreateUniformSetInfo ( this IShaderSet shaders, uint set ) {
+		return shaders.Parts.Select( x => x.ShaderInfo ).CreateUniformSetInfo( set );
+	}
+
+	public static UniformSetInfo CreateUniformSetInfo ( this IEnumerable<ShaderInfo> parts, uint set ) {
 		UniformSetInfo info = new();
 
-		var parts = shaders.Parts.Select( x => x.ShaderInfo );
 		var uniforms = parts.SelectMany<ShaderInfo, UniformResourceInfo>( x => x.Uniforms.Sets.TryGetValue( set, out var info ) ? info.Resources : Array.Empty<UniformResourceInfo>() );
 		foreach ( var i in uniforms.GroupBy( x => x.Binding ) ) {
 			var rep = i.First(); // TODO check if they all agree on type

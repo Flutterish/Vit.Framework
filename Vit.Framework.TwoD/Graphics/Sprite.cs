@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
@@ -64,6 +65,10 @@ public class Sprite : Drawable {
 			buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 			return buffer;
 		} );
+		public readonly UniformSetAllocator UniformSetAllocator = new( new[] { 
+			BasicVertexShader.Spirv.Reflections, 
+			BasicFragmentShader.Spirv.Reflections 
+		}.CreateUniformSetInfo( set: 1 ), 256 );
 		public IDeviceBuffer<ushort>? Indices;
 		public IDeviceBuffer<Vertex>? Vertices;
 
@@ -90,6 +95,7 @@ public class Sprite : Drawable {
 		}
 
 		protected override void Dispose ( bool disposing ) {
+			UniformSetAllocator.Dispose();
 			UniformAllocator.Dispose();
 			Indices?.Dispose();
 			Vertices?.Dispose();
@@ -97,14 +103,18 @@ public class Sprite : Drawable {
 	}
 
 	SpriteDependencies spriteDependencies = null!;
-	IUniformSet? uniformSet;
+	bool areUniformsInitialized = false;
+	UniformSetAllocator.Allocation uniformSet;
 	BufferSlabRegionAllocator<IHostBuffer<Uniforms>>.Allocation uniforms;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();
 
-		uniformSet?.Dispose();
-		spriteDependencies?.UniformAllocator.Free( uniforms );
+		if ( !areUniformsInitialized )
+			return;
+
+		spriteDependencies.UniformSetAllocator.Free( uniformSet );
+		spriteDependencies.UniformAllocator.Free( uniforms );
 	}
 
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
@@ -130,33 +140,31 @@ public class Sprite : Drawable {
 			ref var uniforms = ref Source.uniforms;
 			ref var uniformSet = ref Source.uniformSet;
 
-			if ( uniformSet != null )
-				return;
-			
-			var shaders = shader.Value;
-
 			Source.spriteDependencies.Initialize( renderer );
 			uniforms = Source.spriteDependencies.UniformAllocator.Allocate( renderer );
+			uniformSet = Source.spriteDependencies.UniformSetAllocator.Allocate( renderer );
 
-			uniformSet = shaders.CreateUniformSet( set: 1 );
-			uniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
+			uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
 			ref var uniforms = ref Source.uniforms;
-			ref var uniformSet = ref Source.uniformSet;
+			ref var uniformSet = ref Source.uniformSet.UniformSet;
 
 			var shaders = shader.Value;
-
 			var renderer = commands.Renderer;
 
-			initializeSharedData( renderer );
+			if ( !Source.areUniformsInitialized ) {
+				initializeSharedData( renderer );
+				Source.areUniformsInitialized = true;
+			}
+
 			var indices = Source.spriteDependencies.Indices;
 			var vertices = Source.spriteDependencies.Vertices;
 
 			if ( textureUpload.Validate( ref Source.textureInvalidations ) )
-				uniformSet!.SetSampler( texture.Value, binding: 1 );
-			shaders.SetUniformSet( uniformSet!, set: 1 );
+				uniformSet.SetSampler( texture.Value, binding: 1 );
+			shaders.SetUniformSet( uniformSet, set: 1 );
 
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
