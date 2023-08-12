@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 

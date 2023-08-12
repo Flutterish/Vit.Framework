@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Vit.Framework.Graphics.Direct3D11.Buffers;
+﻿using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Direct3D11.Shaders;
 using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;

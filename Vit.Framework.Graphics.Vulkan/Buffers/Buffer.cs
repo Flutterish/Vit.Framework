@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;

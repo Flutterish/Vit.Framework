@@ -1,5 +1,4 @@
-﻿using System.Net.WebSockets;
-using Vit.Framework.Graphics.OpenGl.Buffers;
+﻿using Vit.Framework.Graphics.OpenGl.Buffers;
 using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
