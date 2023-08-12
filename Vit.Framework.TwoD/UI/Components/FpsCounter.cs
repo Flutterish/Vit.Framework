@@ -1,5 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Threading;
+using Vit.Framework.Performance;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
@@ -22,12 +22,16 @@ public class FpsCounter : LayoutContainer {
 	}
 
 	public override void Update () {
-		text.Text = string.Join( " / ", data.Threads.Select( x => $"{x.thread.UpdateCounter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
+		text.Text = string.Join( " / ", data.Counters.Select( x => $"{x.counter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
 
 		base.Update();
 	}
 
 	public class FpsCounterData {
-		public required IEnumerable<(string tickName, AppThread thread)> Threads;
+		public FpsCounterData ( params (string tickName, UpdateCounter counter)[] counters ) {
+			Counters = counters;
+		}
+
+		public readonly (string tickName, UpdateCounter counter)[] Counters;
 	}
 }

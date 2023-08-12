@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
-using Vit.Framework.Threading;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
@@ -77,12 +76,10 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		MainUpdateThread = CreateUpdateThread();
 		MainRenderThread = CreateRenderThread();
 
-		Dependencies.Cache( new FpsCounter.FpsCounterData { 
-			Threads = new (string, AppThread)[] {
-				("TPS", MainUpdateThread),
-				("FPS", MainRenderThread)
-			}
-		} );
+		Dependencies.Cache( new FpsCounter.FpsCounterData(
+			("TPS", MainUpdateThread.UpdateCounter),
+			("FPS", MainRenderThread.UpdateCounter)
+		) );
 
 		OnInitialized();
 		ThreadRunner.RegisterThread( MainUpdateThread );
