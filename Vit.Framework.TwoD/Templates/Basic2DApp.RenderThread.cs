@@ -48,6 +48,11 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			GraphicsSurface = initializationTask.Result;
 			(Swapchain, Renderer) = (GraphicsSurface.Swapchain, GraphicsSurface.Renderer);
+			
+			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
+				if ( dep is IDrawDependency drawDependency )
+					drawDependency.Initialize( Renderer );
+			}
 
 			ShaderStore = Dependencies.Resolve<ShaderStore>();
 			TextureStore = Dependencies.Resolve<TextureStore>();
@@ -116,4 +121,8 @@ public abstract partial class Basic2DApp<TRoot> {
 
 		protected virtual void DisposeGraphics ( bool disposing ) { }
 	}
+}
+
+public interface IDrawDependency {
+	void Initialize ( IRenderer renderer );
 }

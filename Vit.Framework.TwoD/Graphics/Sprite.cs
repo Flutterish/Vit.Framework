@@ -10,6 +10,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Templates;
 
 namespace Vit.Framework.TwoD.Graphics;
 
@@ -20,7 +21,7 @@ public class Sprite : Drawable {
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
-		spriteDependencies = deps.Resolve<DrawDependencies>();
+		drawDependencies = deps.Resolve<DrawDependencies>();
 		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
@@ -59,16 +60,13 @@ public class Sprite : Drawable {
 		public ColorRgba<float> Tint;
 	}
 
-	public class DrawDependencies : DisposableObject {
+	public class DrawDependencies : DisposableObject, IDrawDependency {
 		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
 		public UniformSetPool UniformSetAllocator = null!;
-		public IDeviceBuffer<ushort>? Indices;
-		public IDeviceBuffer<Vertex>? Vertices;
+		public IDeviceBuffer<ushort> Indices = null!;
+		public IDeviceBuffer<Vertex> Vertices = null!;
 
 		public void Initialize ( IRenderer renderer ) {
-			if ( Indices != null )
-				return;
-
 			UniformAllocator = new( 256, 1, renderer, static ( r, s ) => {
 				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 				buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
@@ -99,14 +97,14 @@ public class Sprite : Drawable {
 		}
 
 		protected override void Dispose ( bool disposing ) {
-			UniformSetAllocator.Dispose();
-			UniformAllocator.Dispose();
+			UniformSetAllocator?.Dispose();
+			UniformAllocator?.Dispose();
 			Indices?.Dispose();
 			Vertices?.Dispose();
 		}
 	}
 
-	DrawDependencies spriteDependencies = null!;
+	DrawDependencies drawDependencies = null!;
 	bool areUniformsInitialized = false;
 	UniformSetPool.Allocation uniformSet;
 	BufferSectionPool<IHostBuffer<Uniforms>>.Allocation uniforms;
@@ -117,8 +115,8 @@ public class Sprite : Drawable {
 		if ( !areUniformsInitialized )
 			return;
 
-		spriteDependencies.UniformSetAllocator.Free( uniformSet );
-		spriteDependencies.UniformAllocator.Free( uniforms );
+		drawDependencies.UniformSetAllocator.Free( uniformSet );
+		drawDependencies.UniformAllocator.Free( uniforms );
 	}
 
 	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
@@ -140,13 +138,12 @@ public class Sprite : Drawable {
 			textureUpload = Source.textureInvalidations.GetUpload();
 		}
 
-		void initializeSharedData ( IRenderer renderer ) {
+		void initializeSharedData () {
 			ref var uniforms = ref Source.uniforms;
 			ref var uniformSet = ref Source.uniformSet;
 
-			Source.spriteDependencies.Initialize( renderer );
-			uniforms = Source.spriteDependencies.UniformAllocator.Allocate();
-			uniformSet = Source.spriteDependencies.UniformSetAllocator.Allocate();
+			uniforms = Source.drawDependencies.UniformAllocator.Allocate();
+			uniformSet = Source.drawDependencies.UniformSetAllocator.Allocate();
 
 			uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
 		}
@@ -156,24 +153,23 @@ public class Sprite : Drawable {
 			ref var uniformSet = ref Source.uniformSet.UniformSet;
 
 			var shaders = shader.Value;
-			var renderer = commands.Renderer;
 
 			if ( !Source.areUniformsInitialized ) {
-				initializeSharedData( renderer );
+				initializeSharedData();
 				Source.areUniformsInitialized = true;
 			}
 
-			var indices = Source.spriteDependencies.Indices;
-			var vertices = Source.spriteDependencies.Vertices;
+			var indices = Source.drawDependencies.Indices;
+			var vertices = Source.drawDependencies.Vertices;
 
 			if ( textureUpload.Validate( ref Source.textureInvalidations ) )
 				uniformSet.SetSampler( texture.Value, binding: 1 );
 			shaders.SetUniformSet( uniformSet, set: 1 );
 
 			commands.SetShaders( shaders );
-			commands.BindVertexBuffer( vertices! );
-			commands.BindIndexBuffer( indices! );
-			uniforms.Buffer.Upload( new Uniforms {
+			commands.BindVertexBuffer( vertices );
+			commands.BindIndexBuffer( indices );
+			uniforms.Buffer.Upload( new Uniforms { // in theory we could make the matrix and tint per-instance to both save space on uniform buffers and batch sprites
 				Matrix = new( UnitToGlobalMatrix ),
 				Tint = tint
 			}, uniforms.Offset );
