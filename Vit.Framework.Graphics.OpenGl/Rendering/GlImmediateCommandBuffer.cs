@@ -26,6 +26,10 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		} );
 	}
 
+	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
+		((IGlDeviceBuffer)buffer).UploadRaw( data, offset );
+	}
+
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
 		((DeviceBuffer<T>)buffer).Upload( data, offset );
 	}

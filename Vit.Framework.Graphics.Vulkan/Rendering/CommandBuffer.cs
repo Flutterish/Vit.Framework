@@ -1,7 +1,7 @@
-﻿using Vit.Framework.Graphics.Vulkan.Buffers;
-using Vit.Framework.Graphics.Vulkan.Textures;
+﻿using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
 using Vulkan;
+using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
@@ -62,10 +62,10 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 	void bindIndexBuffer ( IVulkanHandle<VkBuffer> buffer, VkIndexType indexType ) {
 		Vk.vkCmdBindIndexBuffer( this, buffer.Handle, 0, indexType );
 	}
-	public unsafe void BindIndexBuffer ( Buffer<ushort> buffer ) {
+	public unsafe void BindU16IndexBuffer ( Buffer buffer ) {
 		bindIndexBuffer( buffer, VkIndexType.Uint16 );
 	}
-	public unsafe void BindIndexBuffer ( Buffer<uint> buffer ) {
+	public unsafe void BindU32IndexBuffer ( Buffer buffer ) {
 		bindIndexBuffer( buffer, VkIndexType.Uint32 );
 	}
 

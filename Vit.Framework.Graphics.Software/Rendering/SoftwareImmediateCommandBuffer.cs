@@ -10,7 +10,6 @@ using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
-using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -30,6 +29,10 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		return new DisposeAction<ICommandBuffer>( this, static self => {
 			( (SoftwareImmadiateCommandBuffer)self ).renderTarget = null!;
 		} );
+	}
+
+	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
+		data.CopyTo( ((IByteBuffer)buffer).Bytes.Slice( (int)offset ) );
 	}
 
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {

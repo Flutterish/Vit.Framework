@@ -14,12 +14,15 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 		Handle = GL.GenBuffer();
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
+	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		GL.BindBuffer( Type, Handle );
 
-		var length = size * Stride;
-		GL.BufferStorage( Type, (int)length, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
-		Data = (T*)GL.MapBufferRange( Type, 0, (int)length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+		GL.BufferStorage( Type, (int)size, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
+		Data = (T*)GL.MapBufferRange( Type, 0, (int)size, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+	}
+
+	public void Allocate ( uint size, BufferUsage usageHint ) {
+		AllocateRaw( size * Stride, usageHint );
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
@@ -38,5 +41,9 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 
 	protected override void Dispose ( bool disposing ) {
 		GL.DeleteBuffer( Handle );
+	}
+
+	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		throw new NotImplementedException();
 	}
 }

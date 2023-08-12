@@ -3,10 +3,10 @@ using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
-using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Memory;
 using Vulkan;
+using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
 namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
@@ -30,7 +30,7 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 
 	public unsafe void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
-		var uniformBuffer = (Buffer<T>)buffer;
+		var uniformBuffer = (Buffer)buffer;
 
 		var bufferInfo = new VkDescriptorBufferInfo() {
 			buffer = uniformBuffer,

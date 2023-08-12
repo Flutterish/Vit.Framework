@@ -1,6 +1,7 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vulkan;
@@ -52,7 +53,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		);
 
 		var length = (uint)source.Width * (uint)source.Height;
-		buffer.Allocate( length );
+		buffer.Allocate( length * IBuffer<Rgba32>.Stride );
 
 		TransitionLayout( VkImageLayout.TransferDstOptimal, aspect, commands );
 
@@ -68,7 +69,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	}
 	public unsafe void Transfer<TPixel> ( ReadOnlySpan<TPixel> data, CommandBuffer commands ) where TPixel : unmanaged {
 		var length = Size.width * Size.height;
-		buffer.Allocate( length );
+		buffer.Allocate( length * IBuffer<TPixel>.Stride );
 
 		TransitionLayout( VkImageLayout.TransferDstOptimal, VkImageAspectFlags.Color, commands ); // TODO also bad! (aspect)
 

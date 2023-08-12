@@ -5,7 +5,7 @@ using Vortice.Direct3D11;
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
 public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandle where T : unmanaged {
-	public int Stride => (int)(Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride);
+	public uint Stride => Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
@@ -14,6 +14,12 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		Device = device;
 		Context = context;
 		Type = type;
+	}
+
+	public unsafe void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		var map = Context.Map( Handle!, MapMode.WriteDiscard );
+		data.CopyTo( new Span<byte>( (byte*)map.DataPointer + offset, data.Length ) );
+		Context.Unmap( Handle! );
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
@@ -34,7 +40,7 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		Context.Unmap( Handle! );
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
+	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		Handle?.Dispose();
 
 		CpuAccessFlags flags = 0;
@@ -44,12 +50,16 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 			flags |= CpuAccessFlags.Write;
 
 		Device.CreateBuffer( new BufferDescription {
-			ByteWidth = (int)size * Stride,
+			ByteWidth = (int)size,
 			Usage = ResourceUsage.Dynamic,
 			BindFlags = Type,
 			CPUAccessFlags = flags
 		}, null, out var handle ).Validate();
 		Handle = handle;
+	}
+
+	public void Allocate ( uint size, BufferUsage usageHint ) {
+		AllocateRaw( size * Stride, usageHint );
 	}
 
 	protected override void Dispose ( bool disposing ) {

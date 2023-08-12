@@ -27,6 +27,9 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		} );
 	}
 
+	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
+		((ID3D11DeviceBuffer)buffer).UploadRaw( data, offset, Context );
+	}
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
 		((DeviceBuffer<T>)buffer).Upload( data, offset, Context );
 	}

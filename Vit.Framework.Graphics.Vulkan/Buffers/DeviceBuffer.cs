@@ -4,43 +4,30 @@ using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
-public class DeviceBuffer<T> : Buffer<T>, IDeviceBuffer<T> where T : unmanaged {
+public interface IVulkanDeviceBuffer : IDeviceBuffer {
+	void Transfer ( ReadOnlySpan<byte> data, uint offset, CommandBuffer commands );
+}
+
+public class DeviceBuffer<T> : Buffer, IVulkanDeviceBuffer, IDeviceBuffer<T> where T : unmanaged {
+	public uint Stride => UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 	HostBuffer<T> stagingBuffer;
 	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device, flags | VkBufferUsageFlags.TransferDst ) {
 		stagingBuffer = new( device, VkBufferUsageFlags.TransferSrc );
 	}
 
-	public unsafe CommandBuffer Allocate ( ReadOnlySpan<T> data, CommandPool pool ) {
-		stagingBuffer.Allocate( data );
-		base.Allocate( (ulong)data.Length );
-
-		var commands = pool.CreateCommandBuffer();
-		commands.Begin( VkCommandBufferUsageFlags.OneTimeSubmit );
-		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length );
-		commands.Finish();
-
-		return commands;
-	}
-
-	public unsafe void Allocate ( ReadOnlySpan<T> data, CommandBuffer commands ) {
-		stagingBuffer.Allocate( data );
-		base.Allocate( (ulong)data.Length );
-
-		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length );
+	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
+		stagingBuffer.Allocate( size );
+		base.Allocate( size );
 	}
 
 	void IBuffer<T>.Allocate ( uint size, BufferUsage usageHint ) {
-		stagingBuffer.Allocate( (ulong)size );
-		base.Allocate( (ulong)size );
+		AllocateRaw( size * Stride, usageHint );
 	}
 
-	public void AllocateAndTransfer ( ReadOnlySpan<T> data, CommandPool pool, VkQueue queue ) {
-		var copy = Allocate( data, pool );
-		copy.Submit( queue );
-		Vk.vkQueueWaitIdle( queue );
-		pool.FreeCommandBuffer( copy );
+	public void Transfer ( ReadOnlySpan<byte> data, uint offset, CommandBuffer commands ) {
+		stagingBuffer.UploadRaw( data, offset );
+		commands.Copy( stagingBuffer, this, (uint)data.Length, srcOffset: offset, dstOffset: offset );
 	}
-
 	public void Transfer ( ReadOnlySpan<T> data, ulong offset, CommandBuffer commands ) {
 		stagingBuffer.Transfer( data, offset );
 		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length, srcOffset: offset * Stride, dstOffset: offset * Stride );

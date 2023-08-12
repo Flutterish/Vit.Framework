@@ -3,7 +3,11 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
-public class DeviceBuffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T> where T : unmanaged {
+public interface IGlDeviceBuffer : IGlBuffer, IDeviceBuffer {
+	void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 );
+}
+
+public class DeviceBuffer<T> : DisposableObject, IGlDeviceBuffer, IDeviceBuffer<T> where T : unmanaged {
 	public uint Stride => Type == BufferTarget.UniformBuffer ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 
 	public int Handle { get; }
@@ -15,12 +19,20 @@ public class DeviceBuffer<T> : DisposableObject, IGlBuffer, IDeviceBuffer<T> whe
 		stagingBuffer = new( BufferTarget.CopyReadBuffer );
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		var length = size * Stride;
+	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		GL.BindBuffer( Type, Handle );
-		GL.BufferStorage( Type, (int)length, (nint)null, BufferStorageFlags.None );
+		GL.BufferStorage( Type, (int)size, (nint)null, BufferStorageFlags.None );
 
-		stagingBuffer.Allocate( size, usageHint );
+		stagingBuffer.AllocateRaw( size, usageHint );
+	}
+
+	public void Allocate ( uint size, BufferUsage usageHint ) {
+		AllocateRaw( size * Stride, usageHint );
+	}
+
+	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		stagingBuffer.UploadRaw( data, offset );
+		GL.CopyNamedBufferSubData( stagingBuffer.Handle, Handle, (int)offset, (int)offset, data.Length );
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {

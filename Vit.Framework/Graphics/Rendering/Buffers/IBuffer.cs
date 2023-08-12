@@ -7,6 +7,13 @@ namespace Vit.Framework.Graphics.Rendering.Buffers;
 /// </summary>
 public interface IBuffer : IDisposable {
 	Type StoredType { get; }
+
+	/// <summary>
+	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
+	/// </summary>
+	/// <param name="size">Amount of <b>bytes</b> that this buffer needs to be able to hold. Must be greater than 0.</param>
+	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
+	void AllocateRaw ( uint size, BufferUsage usageHint );
 }
 
 /// <inheritdoc cref="IBuffer"/>
@@ -27,7 +34,7 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// </summary>
 	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
 	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	void Allocate ( uint size, BufferUsage usageHint ); // TODO add reallocate
+	void Allocate ( uint size, BufferUsage usageHint );
 }
 
 /// <summary>
@@ -37,12 +44,16 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 /// This type of buffer should be used for rapidly updated data, such as uniforms, or anything you need to be able to read per-frame.
 /// </remarks>
 public interface IHostBuffer : IBuffer {
-
+	/// <summary>
+	/// Uploads data to a buffer.
+	/// </summary>
+	/// <param name="data">The data to upload.</param>
+	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
+	void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 );
 }
 
 /// <inheritdoc cref="IHostBuffer"/>
 public interface IHostBuffer<T> : IHostBuffer, IBuffer<T> where T : unmanaged {
-
 	/// <summary>
 	/// Uploads data to a buffer.
 	/// </summary>
@@ -67,5 +78,20 @@ public interface IDeviceBuffer : IBuffer {
 
 /// <inheritdoc cref="IDeviceBuffer"/>
 public interface IDeviceBuffer<T> : IDeviceBuffer, IBuffer<T> where T : unmanaged {
+
+}
+
+/// <summary>
+/// GPU-side storage of arbitrary data stored in cpu-local memory. Can be persistently mapped.
+/// </summary>
+/// <remarks>
+/// This type of buffer can not be used for drawing, but it can be copied over to <see cref="IDeviceBuffer"/>s.
+/// </remarks>
+public interface IStagingBuffer : IBuffer {
+	unsafe void* GetData ();
+}
+
+/// <inheritdoc cref="IStagingBuffer"/>
+public interface IStagingBuffer<T> : IStagingBuffer, IBuffer<T> where T : unmanaged {
 
 }

@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
-using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Uniforms;
@@ -25,7 +24,6 @@ using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
-using Vit.Framework.Windowing.Console;
 using Vit.Framework.Windowing.Sdl;
 using Vit.Framework.Windowing.Sdl.Input;
 

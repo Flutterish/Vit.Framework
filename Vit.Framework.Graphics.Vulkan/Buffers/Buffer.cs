@@ -1,11 +1,8 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
-using Vulkan;
+﻿using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
-public abstract class Buffer<T> : DisposableVulkanObject<VkBuffer> where T : unmanaged {
-	public uint Stride => UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
-
+public abstract class Buffer : DisposableVulkanObject<VkBuffer> {
 	public readonly Device Device;
 	protected VkDeviceMemory Memory;
 	public readonly VkBufferUsageFlags UsageFlags;
@@ -21,7 +18,7 @@ public abstract class Buffer<T> : DisposableVulkanObject<VkBuffer> where T : unm
 
 		VkBufferCreateInfo info = new() {
 			sType = VkStructureType.BufferCreateInfo,
-			size = Stride * length,
+			size = length,
 			usage = UsageFlags,
 			sharingMode = sharingMode
 		};

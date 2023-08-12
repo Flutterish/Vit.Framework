@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
+using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
@@ -38,6 +39,10 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 			((VulkanDeferredCommandBuffer)self).Buffer.FinishRenderPass();
 			((VulkanDeferredCommandBuffer)self).frameBuffer = null!;
 		} );
+	}
+
+	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
+		((IVulkanDeviceBuffer)buffer).Transfer( data, offset, Buffer );
 	}
 
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
@@ -103,9 +108,9 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			if ( IndexBufferType == IndexBufferType.UInt16 )
-				Buffer.BindIndexBuffer( (Buffer<ushort>)IndexBuffer );
+				Buffer.BindU16IndexBuffer( (Buffer)IndexBuffer );
 			else
-				Buffer.BindIndexBuffer( (Buffer<uint>)IndexBuffer );
+				Buffer.BindU32IndexBuffer( (Buffer)IndexBuffer );
 		}
 	}
 

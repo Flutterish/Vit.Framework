@@ -4,8 +4,12 @@ using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
-public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferHandle where T : unmanaged {
-	public int Stride => (int)(Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride);
+public interface ID3D11DeviceBuffer : IDeviceBuffer, ID3D11BufferHandle {
+	void UploadRaw ( ReadOnlySpan<byte> data, uint offset, ID3D11DeviceContext context );
+}
+
+public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11DeviceBuffer where T : unmanaged {
+	public uint Stride => Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
@@ -18,6 +22,11 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 	}
 
 	MappedSubresource data;
+	public unsafe void UploadRaw ( ReadOnlySpan<byte> data, uint offset, ID3D11DeviceContext context ) {
+		data.CopyTo( new Span<byte>( (byte*)this.data.DataPointer + offset, data.Length ) );
+		context.CopyResource( Handle!, stagingBuffer! );
+	}
+
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset, ID3D11DeviceContext context ) {
 		if ( Type.HasFlag( BindFlags.ConstantBuffer ) ) { // TODO vtable this out
 			var stride = IBuffer<T>.UniformBufferStride;
@@ -34,12 +43,12 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 		context.CopyResource( Handle!, stagingBuffer! );
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
+	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		Handle?.Dispose();
 		stagingBuffer?.Dispose();
 
 		Device.CreateBuffer( new BufferDescription {
-			ByteWidth = (int)size * Stride,
+			ByteWidth = (int)size,
 			Usage = ResourceUsage.Default,
 			BindFlags = Type,
 			CPUAccessFlags = CpuAccessFlags.None
@@ -47,13 +56,17 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 		Handle = handle;
 
 		Device.CreateBuffer( new BufferDescription {
-			ByteWidth = (int)size * Stride,
+			ByteWidth = (int)size,
 			Usage = ResourceUsage.Staging,
 			BindFlags = BindFlags.None,
 			CPUAccessFlags = CpuAccessFlags.Write
 		}, null, out stagingBuffer ).Validate();
 
 		data = Context.Map( stagingBuffer, MapMode.Write );
+	}
+
+	public void Allocate ( uint size, BufferUsage usageHint ) {
+		AllocateRaw( size * Stride, usageHint );
 	}
 
 	protected override void Dispose ( bool disposing ) {

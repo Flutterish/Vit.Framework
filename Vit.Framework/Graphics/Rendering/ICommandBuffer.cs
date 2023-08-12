@@ -29,6 +29,14 @@ public interface ICommandBuffer {
 	void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
 
 	/// <summary>
+	/// Uploads data to a buffer.
+	/// </summary>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	/// <param name="data">The data to upload.</param>
+	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
+	void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 );
+
+	/// <summary>
 	/// Uploads data to a texture.
 	/// </summary>
 	/// <typeparam name="TPixel">The type of pixel to upload</typeparam>
@@ -170,6 +178,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	protected abstract DisposeAction<ICommandBuffer> RenderTo ( TFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil );
 
 	public abstract void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
+	public abstract void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 );
 
 	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
 		UploadTextureData( (TTexture)texture, data );
