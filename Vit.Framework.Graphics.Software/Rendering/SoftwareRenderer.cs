@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Graphics.Software.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -35,6 +36,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
 		return new ShaderSet( parts );
 	}
+	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
+		return new UniformSetPool( type );
+	}
 	public virtual IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
 		return new Buffer<T>();
 	}
@@ -49,9 +53,5 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	SoftwareImmadiateCommandBuffer commandBuffer;
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
-	}
-
-	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
-		throw new NotImplementedException();
 	}
 }

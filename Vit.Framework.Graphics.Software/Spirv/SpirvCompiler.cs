@@ -278,6 +278,12 @@ public class SpirvCompiler {
 			currentFunction!.AddInstruction( chain );
 			ensureResultExists( chain.ResultId, chain.ResultTypeId );
 		}
+		else if ( code == OpCode.FMul ) {
+			var mul = new FMul( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), LeftId = read( ref data ), RightId = read( ref data ) };
+			Instructions.Add( mul );
+			currentFunction!.AddInstruction( mul );
+			ensureResultExists( mul.ResultId, mul.ResultTypeId );
+		}
 		else if ( code == OpCode.MatrixTimesVector ) {
 			var mul = new MatrixTimesVector( source ) { ResultTypeId = read( ref data ), ResultId = read( ref data ), MatrixId = read( ref data ), VectorId = read( ref data ) };
 			Instructions.Add( mul );

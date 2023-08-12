@@ -2,7 +2,7 @@
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 
-namespace Vit.Framework.Graphics.Direct3D11.Uniforms;
+namespace Vit.Framework.Graphics.Software.Uniforms;
 
 public class UniformSetPool : IUniformSetPool {
 	UniformSetInfo type;

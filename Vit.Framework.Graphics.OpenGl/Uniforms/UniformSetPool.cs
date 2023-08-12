@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
+﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 

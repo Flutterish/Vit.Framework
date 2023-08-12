@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Vulkan.Buffers;
-using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Memory;
 using Vulkan;

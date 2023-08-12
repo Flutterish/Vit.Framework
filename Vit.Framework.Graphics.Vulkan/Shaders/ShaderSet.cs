@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Memory;
 using Vulkan;

@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Uniforms;
@@ -7,7 +8,6 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
@@ -24,8 +24,7 @@ using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
-using Vit.Framework.Windowing.Sdl;
-using Vit.Framework.Windowing.Sdl.Input;
+using Vit.Framework.Windowing.Console;
 
 namespace Vit.Framework.Tests;
 
@@ -36,11 +35,11 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override Host GetHost () {
-		return new SdlHost( primaryApp: this );
+		return new ConsoleHost( primaryApp: this );
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.Direct3D11 );
+		return available.First( x => x == CursesApi.GraphicsApiType );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -98,8 +97,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			uiEventSource = new() { Root = Root };
 			globalInputTrackers = new();
-			cursorTracker = new CursorTracker( (SdlWindow)window );
-			globalInputTrackers.Add( cursorTracker );
+			//cursorTracker = new CursorTracker( (SdlWindow)window );
+			//globalInputTrackers.Add( cursorTracker );
 			this.window = window;
 
 			globalInputTrackers.EventEmitted += e => {
@@ -128,13 +127,13 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
-			Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
-			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
-				? ColorRgba.Red
-				: cursorTracker.State.IsDown( CursorButton.Right )
-				? ColorRgba.Blue
-				: ColorRgba.HotPink;
+			//var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			//Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
+			//cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
+			//	? ColorRgba.Red
+			//	: cursorTracker.State.IsDown( CursorButton.Right )
+			//	? ColorRgba.Blue
+			//	: ColorRgba.HotPink;
 
 			Root.Update();
 			Root.ComputeLayout();
