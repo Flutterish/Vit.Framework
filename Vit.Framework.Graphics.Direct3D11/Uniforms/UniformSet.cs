@@ -17,11 +17,10 @@ public class UniformSet : DisposableObject, IUniformSet {
 		Set = set;
 	}
 
-	public Dictionary<uint, ID3D11BufferHandle> ConstantBuffers = new();
+	public Dictionary<uint, (ID3D11BufferHandle buffer, int offset, int stride)> ConstantBuffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
-		Debug.Assert( offset == 0 );
-		ConstantBuffers[binding] = (ID3D11BufferHandle)buffer;
+		ConstantBuffers[binding] = ((ID3D11BufferHandle)buffer, (int)(offset * IBuffer<T>.UniformBufferStride) / 16, (int)IBuffer<T>.Stride );
 	}
 
 	public Dictionary<uint, Texture2D> Samplers = new();
@@ -30,14 +29,21 @@ public class UniformSet : DisposableObject, IUniformSet {
 		Samplers[binding] = (Texture2D)texture;
 	}
 
-	public void Apply ( ShaderSet shaders, ID3D11DeviceContext context ) {
+	[ThreadStatic]
+	static int[]? firstConstant;
+	[ThreadStatic]
+	static int[]? numConstants;
+	public void Apply ( ShaderSet shaders, ID3D11DeviceContext ctx ) {
 		var mapping = shaders.UniformMapping;
-		
-		foreach ( var (originalBinding, buffer) in ConstantBuffers ) {
+
+		var context = (ID3D11DeviceContext1)ctx;
+		foreach ( var (originalBinding, (buffer, offset, stride)) in ConstantBuffers ) {
 			var binding = mapping.Bindings[(Set, originalBinding)];
 
-			context.VSSetConstantBuffer( (int)binding, buffer.Handle );
-			context.PSSetConstantBuffer( (int)binding, buffer.Handle );
+			(firstConstant ??= new int[1])[0] = offset;
+			(numConstants ??= new int[1])[0] = stride;
+			context.VSSetConstantBuffer1( (int)binding, buffer.Handle, firstConstant, numConstants );
+			context.PSSetConstantBuffer1( (int)binding, buffer.Handle, firstConstant, numConstants );
 		}
 		
 		foreach ( var (originalBinding, texture) in Samplers ) {

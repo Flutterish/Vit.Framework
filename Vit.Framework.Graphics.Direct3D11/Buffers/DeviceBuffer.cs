@@ -6,7 +6,7 @@ using Vortice.Direct3D11;
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
 public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferHandle where T : unmanaged {
-	public static readonly int Stride = Marshal.SizeOf( default( T ) );
+	public int Stride => (int)(Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride);
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
@@ -19,8 +19,19 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 	}
 
 	MappedSubresource data;
-	public void Upload ( ReadOnlySpan<T> data, uint offset, ID3D11DeviceContext context ) {
-		data.CopyTo( MemoryMarshal.Cast<byte, T>( this.data.AsSpan( (data.Length + (int)offset) * Stride ) )[(int)offset..] );
+	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset, ID3D11DeviceContext context ) {
+		if ( Type.HasFlag( BindFlags.ConstantBuffer ) ) { // TODO vtable this out
+			var stride = IBuffer<T>.UniformBufferStride;
+			byte* ptr = ((byte*)this.data.DataPointer) + offset * stride;
+			for ( int i = 0; i < data.Length; i++ ) {
+				*((T*)ptr) = data[i];
+				ptr += stride;
+			}
+		}
+		else {
+			data.CopyTo( new Span<T>( (void*)((byte*)this.data.DataPointer + offset), data.Length ) );
+		}
+
 		context.CopyResource( Handle!, stagingBuffer! );
 	}
 

@@ -38,7 +38,7 @@ public class Direct3D11WindowSurface : WindowGraphicsSurface {
 			null,
 			DriverType.Hardware,
 			DeviceCreationFlags.Debug,
-			new FeatureLevel[] { },
+			new FeatureLevel[] { FeatureLevel.Level_11_1 },
 			swapChainDescription,
 			out var swapchain,
 			out var device,
@@ -46,7 +46,7 @@ public class Direct3D11WindowSurface : WindowGraphicsSurface {
 			out var context
 		) );
 
-		var renderer = new Direct3D11Renderer( dx, device!, context! );
+		var renderer = new Direct3D11Renderer( dx, device!, new ID3D11DeviceContext1( context!.NativePointer ) );
 
 		return (new Queues.Swapchain( swapchain!, renderer, window, Args ), renderer);
 	}
