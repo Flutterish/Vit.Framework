@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
 using Vit.Framework.Platform;
@@ -25,6 +26,8 @@ using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
+using Vit.Framework.Windowing.Sdl;
+using Vit.Framework.Windowing.Sdl.Input;
 
 namespace Vit.Framework.Tests;
 
@@ -35,11 +38,11 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override Host GetHost () {
-		return new ConsoleHost( primaryApp: this );
+		return new SdlHost( primaryApp: this );
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x == CursesApi.GraphicsApiType );
+		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -97,8 +100,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			uiEventSource = new() { Root = Root };
 			globalInputTrackers = new();
-			//cursorTracker = new CursorTracker( (SdlWindow)window );
-			//globalInputTrackers.Add( cursorTracker );
+			cursorTracker = new CursorTracker( (SdlWindow)window );
+			globalInputTrackers.Add( cursorTracker );
 			this.window = window;
 
 			globalInputTrackers.EventEmitted += e => {
@@ -127,13 +130,13 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Root.Size = window.Size.Cast<float>();
 			globalInputTrackers.Update();
 
-			//var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
-			//Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
-			//cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
-			//	? ColorRgba.Red
-			//	: cursorTracker.State.IsDown( CursorButton.Right )
-			//	? ColorRgba.Blue
-			//	: ColorRgba.HotPink;
+			var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
+			Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
+			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
+				? ColorRgba.Red
+				: cursorTracker.State.IsDown( CursorButton.Right )
+				? ColorRgba.Blue
+				: ColorRgba.HotPink;
 
 			Root.Update();
 			Root.ComputeLayout();

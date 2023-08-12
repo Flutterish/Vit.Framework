@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Software.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
+using static Vit.Framework.Input.CursorState;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
@@ -138,7 +139,80 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		return shader.Execute( memory );
 	}
 
-	bool testDepth ( ref D24S8 pixel, float depth ) {
+	bool testDepthStencil ( ref D24S8 pixel, float depth ) { // TODO something is wrong with this when rendering text (maybe degenerate triangles?)
+		if ( !StencilTest.IsEnabled )
+			return depthTest( ref pixel, depth );
+
+		var stencil = pixel.Stencil & StencilState.CompareMask;
+		var reference = StencilState.ReferenceValue & StencilState.CompareMask;
+		bool testValue = StencilTest.CompareOperation switch {
+			CompareOperation.LessThan => reference < stencil,
+			CompareOperation.GreaterThan => reference > stencil,
+			CompareOperation.Equal => reference == stencil,
+			CompareOperation.NotEqual => reference != stencil,
+			CompareOperation.LessThanOrEqual => reference <= stencil,
+			CompareOperation.GreaterThanOrEqual => reference >= stencil,
+			CompareOperation.Always => true,
+			CompareOperation.Never or _ => false
+		};
+
+		if ( testValue ) {
+			if ( depthTest( ref pixel, depth ) ) {
+				stencilOperation( ref pixel, StencilState.PassOperation );
+				return true;
+			}
+			else {
+				stencilOperation( ref pixel, StencilState.DepthFailOperation );
+				return false;
+			}
+		}
+		else {
+			stencilOperation( ref pixel, StencilState.StencilFailOperation );
+			return false;
+		}
+	}
+
+	void stencilOperation ( ref D24S8 pixel, StencilOperation operation ) {
+		byte result = pixel.Stencil;
+		switch ( operation ) {
+			case StencilOperation.SetTo0:
+				result = 0;
+				break;
+
+			case StencilOperation.ReplaceWithReference:
+				result = (byte)StencilState.ReferenceValue;
+				break;
+
+			case StencilOperation.Invert:
+				result = (byte)(~pixel.Stencil);
+				break;
+
+			case StencilOperation.Increment:
+				if ( result != 255 )
+					result++;
+				break;
+
+			case StencilOperation.Decrement:
+				if ( result != 0 )
+					result--;
+				break;
+
+			case StencilOperation.IncrementWithWrap:
+				result++;
+				break;
+
+			case StencilOperation.DecrementWithWrap:
+				result--;
+				break;
+
+			default:
+				return;
+		}
+
+		pixel.Stencil = (byte)((result & StencilState.WriteMask) | (pixel.Stencil & ~StencilState.WriteMask));
+	}
+
+	bool depthTest ( ref D24S8 pixel, float depth ) {
 		if ( !DepthTest.IsEnabled )
 			return true;
 
@@ -202,7 +276,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 				bB *= bW * w;
 				bC *= cW * w;
 				var depth = a.Z * bA + b.Z * bB + c.Z * bC;
-				if ( !testDepth( ref depthRow[x], depth ) )
+				if ( !testDepthStencil( ref depthRow[x], depth ) )
 					continue;
 
 				ShaderSet.VertexStageLinkage.Interpolate( bA, bB, bC, memory );
