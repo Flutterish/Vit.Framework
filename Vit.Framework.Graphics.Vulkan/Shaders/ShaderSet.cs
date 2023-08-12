@@ -25,7 +25,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		}
 
 		var setCount = this.GetUniformSetIndices().Count();
-		UniformSets = new UniformSet?[setCount];
+		UniformSets = new StandaloneUniformSet?[setCount];
 		DescriptorSets = new VkDescriptorSet[setCount];
 	}
 
@@ -33,28 +33,29 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	public UniformSet?[] UniformSets;
+	public IDescriptorSet?[] UniformSets;
 	public VkDescriptorSet[] DescriptorSets;
 	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets[set];
+		return UniformSets[set]!;
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		if ( UniformSets[set] is UniformSet existing ) {
-			var value = new UniformSet( existing );
+		if ( UniformSets[set] is StandaloneUniformSet existing ) {
+			var value = new StandaloneUniformSet( existing );
 			DebugMemoryAlignment.SetDebugData( value, set, this );
 			return value;
 		}
 		else {
-			var value = new UniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
+			var value = new StandaloneUniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
 			DebugMemoryAlignment.SetDebugData( value, set, this );
 			return value;
 		}
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
-		UniformSets[set] = (UniformSet)uniforms;
-		DescriptorSets[set] = ((UniformSet)uniforms).DescriptorSet;
+		var value = (IDescriptorSet)uniforms;
+		UniformSets[set] = value;
+		DescriptorSets[set] = value.Handle;
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) { }

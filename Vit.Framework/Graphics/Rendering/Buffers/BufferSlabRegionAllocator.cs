@@ -20,7 +20,7 @@ public class BufferSlabRegionAllocator<TBuffer> : DisposableObject where TBuffer
 		SlabSize = slabSize;
 	}
 
-	Region? lastRegion;
+	Region? lastRegion; // TODO instead of individual uploads to the buffer, we could batch them
 	Stack<Region> freeRegions = new();
 	public Allocation Allocate ( IRenderer renderer ) {
 		if ( !freeRegions.TryPeek( out var region ) ) {

@@ -2,7 +2,9 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv;
@@ -47,5 +49,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	SoftwareImmadiateCommandBuffer commandBuffer;
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
+	}
+
+	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
+		throw new NotImplementedException();
 	}
 }

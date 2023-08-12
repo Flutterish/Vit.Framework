@@ -2,12 +2,15 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -53,6 +56,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
 		return new ShaderSet( parts.Select( x => (ShaderModule)x ) );
+	}
+
+	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
+		return type.GenerateUniformBindingsSet().CreateDescriptorPool( Device, size );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {

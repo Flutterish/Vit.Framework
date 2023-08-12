@@ -6,14 +6,19 @@ using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
-public class DescriptorSet : VulkanObject<VkDescriptorSet> {
+public interface IDescriptorSet : IUniformSet, IVulkanHandle<VkDescriptorSet> {
+	VkDescriptorSetLayout Layout { get; }
+}
+
+public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
+	public VkDescriptorSetLayout Layout { get; }
 	public unsafe DescriptorSet ( DescriptorPool pool, VkDescriptorSetLayout layout ) {
+		Layout = layout;
 		var info = new VkDescriptorSetAllocateInfo() {
 			sType = VkStructureType.DescriptorSetAllocateInfo,
 			descriptorPool = pool,
@@ -24,7 +29,9 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet> {
 		Vk.vkAllocateDescriptorSets( pool.Device, &info, out Instance ).Validate();
 	}
 
-	public unsafe void ConfigureUniforms<T> ( Buffer<T> uniformBuffer, uint binding, uint offset = 0 ) where T : unmanaged {
+	public unsafe void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
+		var uniformBuffer = (Buffer<T>)buffer;
+
 		var bufferInfo = new VkDescriptorBufferInfo() {
 			buffer = uniformBuffer,
 			offset = offset * IBuffer<T>.UniformBufferStride,
@@ -44,7 +51,11 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet> {
 		Vk.vkUpdateDescriptorSets( uniformBuffer.Device, 1, &write, 0, 0 );
 	}
 
-	public unsafe void ConfigureTexture ( Image image, VkSampler sampler, uint binding ) {
+	public unsafe void SetSampler ( ITexture texture, uint binding ) {
+		var imageTexture = (ImageTexture)texture;
+		Image image = imageTexture.Image;
+		VkSampler sampler = imageTexture.Sampler;
+
 		var imageInfo = new VkDescriptorImageInfo() {
 			imageLayout = VkImageLayout.ShaderReadOnlyOptimal,
 			imageView = image.View,
@@ -63,56 +74,41 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet> {
 
 		Vk.vkUpdateDescriptorSets( image.Device, 1, &write, 0, 0 );
 	}
+
+	public void Dispose () { }
 }
 
-public class UniformSet : DisposableObject, IUniformSet {
+public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 	public readonly VkDescriptorSetLayoutBinding[] LayoutBindings;
-	public readonly VkDescriptorSetLayout Layout;
 	public readonly DescriptorPool DescriptorPool;
 	public readonly DescriptorSet DescriptorSet;
-	Ref<uint> layoutReferenceCount;
+	public VkDescriptorSetLayout Layout => DescriptorSet.Layout;
+	public VkDescriptorSet Handle => DescriptorSet.Handle;
 
-	public unsafe UniformSet ( Device device, UniformSetInfo info ) {
-		layoutReferenceCount = new( 1 );
+	public unsafe StandaloneUniformSet ( Device device, UniformSetInfo info ) {
 		LayoutBindings = info.GenerateUniformBindingsSet();
-		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
-			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-			bindingCount = (uint)LayoutBindings.Length,
-			pBindings = LayoutBindings.Data()
-		};
-		Vk.vkCreateDescriptorSetLayout( device, &uniformInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();
 		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
-		DescriptorSet = DescriptorPool.CreateSet( Layout );
+		DescriptorSet = DescriptorPool.CreateSet();
 	}
 
-	public UniformSet ( UniformSet value ) {
-		layoutReferenceCount = value.layoutReferenceCount;
-		layoutReferenceCount.Value++;
+	public StandaloneUniformSet ( StandaloneUniformSet value ) {
 		var device = value.DescriptorPool.Device;
 		LayoutBindings = value.LayoutBindings;
-		Layout = value.Layout;
 		DescriptorPool = LayoutBindings.CreateDescriptorPool( device );
-		DescriptorSet = DescriptorPool.CreateSet( Layout );
+		DescriptorSet = DescriptorPool.CreateSet();
 	}
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
-		DescriptorSet.ConfigureUniforms( (Buffer<T>)buffer, binding, offset );
+		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
 	}
 
 	public void SetSampler ( ITexture texture, uint binding ) {
-		var image = (ImageTexture)texture;
-		DescriptorSet.ConfigureTexture( image.Image, image.Sampler, binding );
+		DescriptorSet.SetSampler( texture, binding );
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
 		DescriptorPool.Dispose();
-
-		layoutReferenceCount.Value--;
-		if ( layoutReferenceCount.Value > 0 )
-			return;
-
-		Vk.vkDestroyDescriptorSetLayout( DescriptorPool.Device, Layout, VulkanExtensions.TODO_Allocator );
 	}
 }

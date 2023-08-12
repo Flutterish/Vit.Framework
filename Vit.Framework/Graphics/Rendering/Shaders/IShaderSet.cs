@@ -18,6 +18,7 @@ public interface IShaderSet : IDisposable {
 	/// Creates a new uniform set appropriate for binding to this shader set.
 	/// </summary>
 	/// <remarks>
+	/// You should use a <see cref="IUniformSetPool"/> instead of creating a uniform set here. <br/>
 	/// Creating a uniform set gives you the ownership of it.
 	/// </remarks>
 	IUniformSet CreateUniformSet ( uint set = 0 );

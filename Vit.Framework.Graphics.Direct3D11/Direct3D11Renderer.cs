@@ -6,7 +6,9 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -144,5 +146,9 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		RasterizerState.Dispose();
 		Device.Dispose();
 		Context.Dispose();
+	}
+
+	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
+		throw new NotImplementedException();
 	}
 }
