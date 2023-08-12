@@ -42,7 +42,7 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 	}
 
 	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
-		((IVulkanDeviceBuffer)buffer).Transfer( data, offset, Buffer );
+		((IVulkanDeviceBuffer)buffer).TransferRaw( data, offset, Buffer );
 	}
 
 	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {

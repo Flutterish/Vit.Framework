@@ -53,7 +53,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		);
 
 		var length = (uint)source.Width * (uint)source.Height;
-		buffer.Allocate( length * IBuffer<Rgba32>.Stride );
+		buffer.Allocate( length );
 
 		TransitionLayout( VkImageLayout.TransferDstOptimal, aspect, commands );
 

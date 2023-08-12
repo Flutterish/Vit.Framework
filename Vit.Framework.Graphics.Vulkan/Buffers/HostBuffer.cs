@@ -8,30 +8,31 @@ public unsafe class HostBuffer<T> : Buffer, IHostBuffer<T> where T : unmanaged {
 	T* data;
 	public HostBuffer ( Device device, VkBufferUsageFlags flags ) : base( device, flags ) { }
 
-	public unsafe void Allocate ( ulong size ) {
+	public void AllocateRaw ( uint size ) {
 		base.Allocate( size );
 		void* dataPointer;
 		Vk.vkMapMemory( Device, Memory, 0, size, 0, &dataPointer ).Validate();
 		data = (T*)dataPointer;
 	}
-
-	public unsafe void Allocate ( ReadOnlySpan<T> data ) {
-		Allocate( (ulong)data.Length * Stride );
-		data.CopyTo( new Span<T>( this.data, data.Length ) );
-	}
-
 	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
-		Allocate( (ulong)size );
+		AllocateRaw( size );
 	}
 
-	void IBuffer<T>.Allocate ( uint size, BufferUsage usageHint ) {
-		Allocate( (ulong)size * Stride );
+	public void Allocate ( uint size ) {
+		AllocateRaw( size * Stride );
+	}
+	public void Allocate ( uint size, BufferUsage usageHint ) {
+		AllocateRaw( size * Stride );
 	}
 
 	public Span<T> GetDataSpan ( int length, int offset = 0 )
 		=> new Span<T>( data + offset, length );
 
-	public unsafe void Transfer ( ReadOnlySpan<T> data, ulong offset = 0 ) {
+	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		data.CopyTo( new Span<byte>( this.data + offset, data.Length ) );
+	}
+
+	public void Upload ( ReadOnlySpan<T> data, uint offset ) {
 		if ( UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ) { // TODO vtable this out
 			var stride = IBuffer<T>.UniformBufferStride;
 			byte* ptr = ((byte*)this.data) + offset * stride;
@@ -43,18 +44,6 @@ public unsafe class HostBuffer<T> : Buffer, IHostBuffer<T> where T : unmanaged {
 		else {
 			data.CopyTo( new Span<T>( this.data + offset, data.Length ) );
 		}
-	}
-
-	public unsafe void Transfer ( in T data, ulong offset = 0 ) {
-		*(this.data + offset) = data;
-	}
-
-	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
-		data.CopyTo( new Span<byte>( this.data + offset, data.Length ) );
-	}
-
-	void IHostBuffer<T>.Upload ( ReadOnlySpan<T> data, uint offset ) {
-		Transfer( data, (ulong)offset );
 	}
 
 	public void Unmap () {
