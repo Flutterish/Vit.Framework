@@ -114,8 +114,8 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 
 		GL.BindVertexArray( vao );
 
-		foreach ( var (index, set) in ShaderSet.UniformSets ) {
-			set.Apply( index, ShaderSet );
+		foreach ( var i in ShaderSet.UniformSets ) {
+			i.Apply();
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {

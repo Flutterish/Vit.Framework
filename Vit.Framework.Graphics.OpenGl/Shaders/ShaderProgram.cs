@@ -18,7 +18,8 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 	public ShaderProgram ( IEnumerable<UnlinkedShader> shaders ) {
 		Shaders = shaders.ToImmutableArray();
 
-		UniformMapping = this.CreateUniformInfo().CreateFlatMapping();
+		var uniformInfo = this.CreateUniformInfo();
+		UniformMapping = uniformInfo.CreateFlatMapping();
 		LinkedShaders = shaders.Select( x => x.GetShader( UniformMapping ) ).ToImmutableArray();
 
 		Handle = GL.CreateProgram();
@@ -33,35 +34,39 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 			throw new Exception( info );
 		}
 
-		GL.GetProgram( Handle, GetProgramParameterName.ActiveUniformBlocks, out var uboCount );
-		var pairs = new RentedArray<(uint set, uint bining)>( uboCount );
-		for ( int i = 0; i < uboCount; i++ ) {
-			GL.GetActiveUniformBlock( Handle, i, ActiveUniformBlockParameter.UniformBlockBinding, out var binding );
-			var key = UniformMapping.Bindings.First( x => x.Value == binding ).Key;
-			pairs[i] = key;
-		}
-		for ( uint i = 0; i < uboCount; i++ ) {
-			UniformMapping.Bindings[pairs[i]] = i;
-		}
-
 		foreach ( var i in LinkedShaders ) {
 			GL.DetachShader( Handle, i.Handle );
 		}
+
+		foreach ( var i in uniformInfo.Sets ) {
+			foreach ( var j in i.Value.Resources.Where( x => x.ResourceType == SPIRVCross.spvc_resource_type.UniformBuffer ) ) {
+				var index = UniformMapping.Bindings[(i.Key, j.Binding)];
+				GL.UniformBlockBinding( (uint)Handle, index, index );
+			}
+		}
+
+		var sets = uniformInfo.Sets.Any() ? uniformInfo.Sets.Max( x => x.Key ) + 1 : 0;
+		UniformLayouts = new UniformLayout[sets];
+		UniformSets = new UniformSet[sets];
+		for ( uint i = 0; i < sets; i++ ) {
+			UniformLayouts[i] = new( i, uniformInfo.Sets.GetValueOrDefault( i ) ?? new(), UniformMapping );
+		}
 	}
 
-	public Dictionary<uint, UniformSet> UniformSets = new();
+	public UniformLayout[] UniformLayouts;
+	public UniformSet[] UniformSets;
 	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets.GetValueOrDefault( set );
+		return UniformSets[set];
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		var value = new UniformSet();
-		DebugMemoryAlignment.SetDebugData( value, set, this );
+		var value = new UniformSet( UniformLayouts[set] );
+		DebugMemoryAlignment.SetDebugData( value, UniformLayouts[set].Type.Resources );
 		return value;
 	}
 
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size) {
-		return new UniformSetPool( this.CreateUniformSetInfo( set ) );
+		return new UniformSetPool( UniformLayouts[set] );
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {

@@ -1,27 +1,25 @@
-﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Graphics.Rendering.Uniforms;
+﻿using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
 public class UniformSetPool : IUniformSetPool {
-	UniformSetInfo type;
+	UniformLayout layout;
 	Stack<IUniformSet> uniforms = new();
-	public UniformSetPool ( UniformSetInfo type ) {
-		this.type = type;
+	public UniformSetPool ( UniformLayout layout ) {
+		this.layout = layout;
 	}
 
 	public IUniformSet Rent () {
 		if ( !uniforms.TryPop( out var set ) ) {
-			set = new UniformSet();
-			DebugMemoryAlignment.SetDebugData( set, type.Resources );
+			set = new UniformSet( layout );
+			DebugMemoryAlignment.SetDebugData( set, layout.Type.Resources );
 		}
 
 		return set;
 	}
 
 	public void Free ( IUniformSet set ) {
-		((UniformSet)set).Free();
 		uniforms.Push( set );
 	}
 

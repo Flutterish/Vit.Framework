@@ -10,6 +10,7 @@ namespace Vit.Framework.Graphics.Rendering.Validation;
 public static class DebugMemoryAlignment {
 	static Dictionary<IUniformSet, Dictionary<uint, DataTypeInfo>> debugInfo = new();
 	[Conditional( "DEBUG" )]
+	[Obsolete("Use the other ovaload")]
 	public static void SetDebugData ( IUniformSet set, uint id, IShaderSet shaders ) {
 		var parts = shaders.Parts.Select( x => x.ShaderInfo );
 		var uniforms = parts.SelectMany<ShaderInfo, UniformResourceInfo>( x => x.Uniforms.Sets.TryGetValue( id, out var info ) ? info.Resources : Array.Empty<UniformResourceInfo>() );

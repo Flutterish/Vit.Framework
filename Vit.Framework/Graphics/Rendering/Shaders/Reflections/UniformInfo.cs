@@ -82,25 +82,35 @@ public class UniformFlatMapping {
 		}
 	}
 
-	public uint[] CreateBindingLookup ( uint set ) {
-		var size = Bindings.Where( x => x.Key.set == set ).Max( x => x.Key.binding );
-		var lut = new uint[size];
-		for ( uint i = 0; i < size; i++ ) {
-			if ( Bindings.TryGetValue( (set, i), out var mapped ) )
-				lut[i] = mapped;
-			else
-				lut[i] = uint.MaxValue;
+	/// <summary>
+	/// Creates a lookup table such that <c>resources</c> will be translated to arrays of size <c>resources.count</c> 
+	/// and <c>bindingLookup</c> when indexed with the original binding will return the index into the translated array of a given <c>resources.type</c>.
+	/// <c>resources.offset</c> is the start index in the global uniform array.
+	/// </summary>
+	/// <returns></returns>
+	public (uint[] bindingLookup, (spvc_resource_type type, uint offset, int count)[] resources) CreateResourceLookup ( uint set, UniformSetInfo type ) {
+		var bindings = Bindings.Where( x => x.Key.set == set );
+		var size = bindings.Any() ? bindings.Max( x => x.Key.binding ) + 1 : 0;
+
+		var bindingLookup = new uint[size];
+		Array.Fill( bindingLookup, uint.MaxValue );
+
+		var resourceTypes = type.Resources.GroupBy( x => x.ResourceType );
+		var resourceCount = resourceTypes.Count();
+		var resources = new (spvc_resource_type type, uint offset, int count)[resourceCount];
+		uint i = 0;
+		foreach ( var group in resourceTypes ) {
+			var count = group.Count();
+			var first = count == 0 ? 0 : group.Min( x => Bindings[(set, x.Binding)] );
+
+			resources[i++] = (group.Key, first, count);
+			uint j = 0;
+			foreach ( var resource in group ) {
+				bindingLookup[resource.Binding] = j++;
+			}
 		}
 
-		return lut;
-	}
-
-	public (uint offset, int count) GetResourceArraySize ( uint set, UniformSetInfo type, spvc_resource_type resourceType ) {
-		var resources = type.Resources.Where( x => x.ResourceType == resourceType );
-		var count = resources.Count();
-		var first = resources.Min( x => Bindings[(set, x.Binding)] );
-
-		return (first, count);
+		return (bindingLookup, resources);
 	}
 }
 
