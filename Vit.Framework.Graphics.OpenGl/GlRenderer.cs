@@ -34,7 +34,7 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
-		return new ShaderProgram( parts.Select( x => x as UnlinkedShader )! );
+		return new ShaderProgram( parts.Select( x => (x as UnlinkedShader)! ), vertexInput );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {

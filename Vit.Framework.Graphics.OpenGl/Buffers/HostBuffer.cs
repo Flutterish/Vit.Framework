@@ -22,7 +22,7 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 	}
 
 	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * Stride, usageHint );
+		AllocateRaw( size * Stride, usageHint ); // TODO for uniform buffers we can remove the end-padding
 	}
 
 	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {

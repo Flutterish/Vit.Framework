@@ -4,9 +4,8 @@ using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Interop;
 using Vit.Framework.Memory;
-using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.PrimitiveType;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
@@ -41,6 +40,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) ) {
 			GL.UseProgram( ShaderSet.Handle );
+			ShaderSet.InputLayout!.BindVAO();
 		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
@@ -104,42 +104,21 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 	}
 
-	int vao;
 	DrawElementsType indexType;
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		if ( vao == 0 ) {
-			vao = GL.GenVertexArray();
-		}
-
-		GL.BindVertexArray( vao );
-
 		foreach ( var i in ShaderSet.UniformSets ) {
 			i.Apply();
+		}
+
+		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
+			var buffer = (IGlBuffer)VertexBuffer;
+			ShaderSet.InputLayout!.BindBuffers( FixedSpan.From( buffer.Handle ).AsSpan() );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			GL.BindBuffer( BufferTarget.ElementArrayBuffer, ((IGlObject)IndexBuffer).Handle );
 			indexType = IndexBufferType == IndexBufferType.UInt32 ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort;
-		}
-
-		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			var buffer = (IGlBuffer)VertexBuffer;
-			GL.BindBuffer( BufferTarget.ArrayBuffer, buffer.Handle );
-			int offset = 0;
-
-			var stride = (int)buffer.Stride;
-			foreach ( var i in ShaderSet.Parts.First( x => x.Type == ShaderPartType.Vertex ).ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
-				var length = (int)i.Type.FlattendedDimensions;
-				var (size, type) = i.Type.PrimitiveType switch {
-					PrimitiveType.Float32 => (sizeof( float ), VertexAttribPointerType.Float),
-					var x when true => throw new Exception( $"Unknown data type: {x}" )
-				};
-
-				GL.VertexAttribPointer( i.Location, length, type, false, stride, offset );
-				GL.EnableVertexAttribArray( i.Location );
-				offset += length * size;
-			}
 		}
 	}
 
@@ -148,11 +127,5 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
 	}
 
-	public void Dispose () {
-		if ( vao != 0 ) {
-			GL.BindVertexArray( 0 );
-			GL.DeleteVertexArray( vao );
-			vao = 0;
-		}
-	}
+	public void Dispose () { }
 }

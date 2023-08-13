@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.OpenGl.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Memory;
@@ -13,7 +14,11 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<Shader> LinkedShaders;
 
 	public readonly int Handle;
-	public ShaderProgram ( IEnumerable<UnlinkedShader> shaders ) {
+	public readonly VertexInputLayout? InputLayout;
+	public ShaderProgram ( IEnumerable<UnlinkedShader> shaders, VertexInputDescription? vertexInput ) {
+		if ( vertexInput != null )
+			InputLayout = new( vertexInput );
+
 		Shaders = shaders.ToImmutableArray();
 
 		var uniformInfo = this.CreateUniformInfo();
@@ -72,6 +77,7 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 	}
 
 	protected override void Dispose ( bool disposing ) {
+		InputLayout?.Dispose();
 		GL.DeleteProgram( Handle );
 	}
 }
