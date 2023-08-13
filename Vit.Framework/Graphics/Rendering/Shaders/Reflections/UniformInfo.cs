@@ -6,13 +6,14 @@ using System.Runtime.InteropServices;
 namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 public class UniformInfo {
+	static readonly spvc_resource_type[] resourceTypes = new[] { spvc_resource_type.UniformBuffer, spvc_resource_type.SampledImage, spvc_resource_type.StorageBuffer };
 	public readonly Dictionary<uint, UniformSetInfo> Sets = new();
 
 	public unsafe void ParseSpirv ( spvc_compiler compiler, spvc_resources resources ) {
 		spvc_reflected_resource* list = default;
 		nuint count = default;
 
-		foreach ( var resourceType in new[] { spvc_resource_type.UniformBuffer, spvc_resource_type.SampledImage, spvc_resource_type.StorageBuffer } ) {
+		foreach ( var resourceType in resourceTypes ) {
 			SPIRV.spvc_resources_get_resource_list_for_type( resources, resourceType, (spvc_reflected_resource*)&list, &count );
 			for ( nuint i = 0; i < count; i++ ) {
 				var res = list[i];
@@ -22,6 +23,7 @@ public class UniformInfo {
 					Sets.Add( set, setInfo = new() );
 
 				var resource = new UniformResourceInfo();
+				resource.ResourceType = resourceType;
 				resource.ParseSpriv( compiler, res );
 				setInfo.Resources.Add( resource );
 			}
@@ -32,29 +34,21 @@ public class UniformInfo {
 		return $"<\n\t{string.Join( "\n", Sets.Select( x => $"Set {x.Key} {x.Value}" ) ).Replace( "\n", "\n\t" )}\n>";
 	}
 
+	/// <summary>
+	/// Creates a flat mapping of uniforms (for backends that do not support uniform sets). <br/>
+	/// The resulting mapping's resources are contigious by resource type globally (within a set each type is contigious too).
+	/// </summary>
+	/// <remarks>
+	/// Example mapping: <c>[unifrom buffers[set 0[1, 2]; set 1[3, 4, 5]]; samplers[set 0[6]; set 1[7, 8]]</c>
+	/// </remarks>
 	public UniformFlatMapping CreateFlatMapping () {
 		UniformFlatMapping mapping = new();
-		HashSet<uint> takenBindings = new();
 
-		uint _nextBinding = 0;
-		uint getAvaialbleBinding () {
-			while ( takenBindings.Contains( _nextBinding ) )
-				_nextBinding++;
-
-			return _nextBinding;
-		}
-
-		foreach ( var (set, setInfo) in Sets ) {
-			foreach ( var i in setInfo.Resources ) {
-				if ( takenBindings.Contains( i.Binding ) ) {
-					var binding = getAvaialbleBinding();
-					takenBindings.Add( binding );
-					mapping.Bindings.Add( (set, i.Binding), binding );
-				}
-				else {
-					var binding = i.Binding;
-					takenBindings.Add( binding );
-					mapping.Bindings.Add( (set, i.Binding), binding );
+		uint nextBinding = 0;
+		foreach ( var resourceType in resourceTypes ) {
+			foreach ( var (set, setInfo) in Sets ) {
+				foreach ( var i in setInfo.Resources.Where( x => x.ResourceType == resourceType ) ) {
+					mapping.Bindings.Add( (set, i.Binding), nextBinding++ );
 				}
 			}
 		}

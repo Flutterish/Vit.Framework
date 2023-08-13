@@ -3,6 +3,7 @@
 namespace Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
 public class UniformResourceInfo : ResourceInfo {
+	public spvc_resource_type ResourceType;
 	public uint Binding;
 	public uint BindingBinaryOffset;
 	public HashSet<ShaderPartType> Stages = new();

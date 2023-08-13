@@ -59,6 +59,7 @@ public static class IShaderSetExtensions {
 		foreach ( var i in uniforms.GroupBy( x => x.Binding ) ) {
 			var rep = i.First(); // TODO check if they all agree on type
 			info.Resources.Add( new() {
+				ResourceType = rep.ResourceType,
 				Name = rep.Name,
 				Type = rep.Type,
 				Binding = rep.Binding,
