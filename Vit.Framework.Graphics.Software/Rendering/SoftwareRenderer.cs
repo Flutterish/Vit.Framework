@@ -32,7 +32,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		} );
 	}
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
-		return new ShaderSet( parts );
+		return new ShaderSet( parts, vertexInput );
 	}
 	public virtual IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
 		return new Buffer<T>();

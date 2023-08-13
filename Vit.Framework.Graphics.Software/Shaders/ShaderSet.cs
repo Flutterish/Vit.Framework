@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -14,13 +16,16 @@ namespace Vit.Framework.Graphics.Software.Shaders;
 public class ShaderSet : IShaderSet {
 	public IEnumerable<IShaderPart> Parts => Shaders;
 	public readonly ImmutableArray<SoftwareShader> Shaders;
+	public readonly VertexInputDescription InputDescription;
 
-	public ShaderSet ( IEnumerable<IShaderPart> parts ) { 
+	public ShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) { 
 		Shaders = parts.Select( x => (SoftwareShader)x ).ToImmutableArray();
 
 		// TODO this asssumes "vertex -> fragment" shader set
 		var vert = Shaders.OfType<SoftwareVertexShader>().Single();
 		var frag = Shaders.OfType<SoftwareFragmentShader>().Single();
+		Debug.Assert( vertexInput != null );
+		InputDescription = vertexInput;
 
 		ShaderMemory memory = default;
 
@@ -30,7 +35,7 @@ public class ShaderSet : IShaderSet {
 
 		VertexDebugFrame = BakedDebug = new() { Name = "Vertex Shader", ParentFrame = BakedDebug, StackPointerOffset = memory.StackPointer };
 		(VertexStageLinkage, var vertexOutputs) = bakeVertexOutputs( vert, ref memory, ref VertexStage, "Vert" );
-		VertexInputs = bakeInputs( vert, ref memory, ref VertexStage, "Vert" );
+		VertexInputs = bakeInputs( vert, ref memory, ref VertexStage, "Vert", vertexInput );
 		VertexStage.StackPointer = memory.StackPointer;
 
 		FragmentDebugFrame = BakedDebug = new() { Name = "Fragment Shader", ParentFrame = BakedDebug, StackPointerOffset = memory.StackPointer };
@@ -151,7 +156,7 @@ public class ShaderSet : IShaderSet {
 		return (linkage, outputs);
 	}
 
-	StageVariables bakeInputs ( SoftwareShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName ) {
+	StageVariables bakeInputs ( SoftwareShader shader, ref ShaderMemory memory, ref BakedStageInfo stageInfo, string debugName, VertexInputDescription vertexInput ) {
 		StageVariables inputs = new();
 
 		foreach ( var (location, input) in shader.InputsByLocation ) {

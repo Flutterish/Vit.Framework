@@ -1,10 +1,8 @@
 ﻿using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
-using Vit.Framework.Tests.VisualTests;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
@@ -16,8 +14,8 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new TwoDTestApp( typeof( VisualTestRunner ) );
-		//var app = new Program();
+		//var app = new TwoDTestApp( typeof( VisualTestRunner ) );
+		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 		app = null;
@@ -36,9 +34,9 @@ public partial class Program : App {
 
 	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
-			//CursesApi.GraphicsApiType,
+			CursesApi.GraphicsApiType,
 			//Direct3D11Api.GraphicsApiType,
-			VulkanApi.GraphicsApiType,
+			//VulkanApi.GraphicsApiType,
 			//OpenGlApi.GraphicsApiType
 		};
 

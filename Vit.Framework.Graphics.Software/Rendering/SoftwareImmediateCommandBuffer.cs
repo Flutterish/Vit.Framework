@@ -79,6 +79,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		}
 	}
 
+	IByteBuffer[] vertexBuffers = new IByteBuffer[1];
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		using var rentedMemory = new RentedArray<byte>( 1024 );
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
@@ -101,7 +102,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		}
 
 		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
-		var vertexBytes = vertexBuffer.Bytes;
+		vertexBuffers[0] = vertexBuffer;
 		if ( Topology == Topology.Triangles ) {
 			while ( indices.MoveNext() ) {
 				var indexA = indices.Current;
@@ -110,9 +111,10 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 				indices.MoveNext();
 				var indexC = indices.Current;
 
-				var a = execute( vert, vertexBytes, indexA, memory, 0 );
-				var b = execute( vert, vertexBytes, indexB, memory, 1 );
-				var c = execute( vert, vertexBytes, indexC, memory, 2 );
+				
+				var a = execute( vert, indexA, memory, 0 );
+				var b = execute( vert, indexB, memory, 1 );
+				var c = execute( vert, indexC, memory, 2 );
 
 				beginStage( ShaderSet.FragmentStage, ref memory );
 				rasterize( a, b, c, frag, memory );
@@ -123,14 +125,21 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		}
 	}
 
-	VertexShaderOutput execute ( SoftwareVertexShader shader, ReadOnlySpan<byte> data, uint index, ShaderMemory memory, int vertexIndex ) {
-		var offset = shader.Stride * (int)index;
-		data = data.Slice( offset, shader.Stride );
-		foreach ( var (location, id) in shader.InputIdByLocation.OrderBy( x => x.Key ) ) {
-			var info = ShaderSet.VertexInputs[location];
-			var size = info.Type.Size;
-			data[..size].CopyTo( memory.GetMemory( info.Address, size ) );
-			data = data[size..];
+	VertexShaderOutput execute ( SoftwareVertexShader shader, uint index, ShaderMemory memory, int vertexIndex ) {
+		foreach ( var (bufferIndex, attributes) in ShaderSet.InputDescription.BufferBindings ) {
+			var buffer = vertexBuffers[(int)bufferIndex];
+			var offset = (int)(attributes.Stride * index);
+			var data = buffer.Bytes;
+			data = data.Slice( offset, shader.Stride );
+
+			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
+				var inputId = shader.InputIdByLocation[location];
+				var info = ShaderSet.VertexInputs[location];
+				var size = info.Type.Size;
+
+				data[..size].CopyTo( memory.GetMemory( info.Address, size ) );
+				data = data[size..];
+			}
 		}
 
 		foreach ( var (location, variable) in ShaderSet.VertexStageLinkage.Variables[vertexIndex] ) {
