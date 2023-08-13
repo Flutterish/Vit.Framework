@@ -79,14 +79,13 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		}
 	}
 
-	IByteBuffer[] vertexBuffers = new IByteBuffer[1];
+	IByteBuffer[] vertexBuffers = new IByteBuffer[16];
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		using var rentedMemory = new RentedArray<byte>( 1024 );
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
 
 		//memory.DebugFrame = ShaderSet.BakedDebug;
 
-		var vertexBuffer = (IByteBuffer)VertexBuffer;
 		var shaders = ShaderSet.Shaders;
 
 		var vert = (SoftwareVertexShader)ShaderSet.Shaders.First( x => x.Type == ShaderPartType.Vertex );
@@ -102,7 +101,6 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		}
 
 		var indices = enumerateIndices( vertexCount, offset ).GetEnumerator();
-		vertexBuffers[0] = vertexBuffer;
 		if ( Topology == Topology.Triangles ) {
 			while ( indices.MoveNext() ) {
 				var indexA = indices.Current;
@@ -307,6 +305,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		
+		for ( int i = 0; i < VertexBuffers.Length; i++ ) {
+			vertexBuffers[i] = (IByteBuffer)VertexBuffers[i];
+		}
 	}
 }

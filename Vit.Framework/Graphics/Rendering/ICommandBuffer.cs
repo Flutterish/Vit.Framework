@@ -83,9 +83,9 @@ public interface ICommandBuffer {
 	void SetStencilTest ( BufferTest test, StencilState state );
 
 	/// <summary>
-	/// Maps a packed vertex buffer to a all locations in the current shader set.
+	/// Binds a vertex buffer to the pipeline.
 	/// </summary>
-	void BindVertexBuffer ( IBuffer buffer ); // TODO allow multiple buffers with shader set and mesh descriptors
+	void BindVertexBuffer ( IBuffer buffer, uint binding = 0 );
 
 	/// <summary>
 	/// Sets the index buffer to use when drawing indexed elements.
@@ -236,18 +236,20 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
 
-	// TODO you cna have multiple of these
-	protected IBuffer VertexBuffer { get; private set; } = null!;
-	public void BindVertexBuffer ( IBuffer buffer ) {
-		VertexBuffer = buffer;
-		BufferInvalidations |= BufferInvalidations.Vertex;
+	protected IBuffer[] VertexBuffers { get; private set; } = new IBuffer[16];
+	public void BindVertexBuffer ( IBuffer buffer, uint binding ) {
+		if ( buffer.TrySet( ref VertexBuffers[binding] ) )
+			BufferInvalidations |= BufferInvalidations.Vertex;
 	}
 
 	protected IndexBufferType IndexBufferType { get; private set; }
 	protected IBuffer IndexBuffer { get; private set; } = null!;
 	public void BindIndexBuffer ( IBuffer buffer ) {
+		if ( buffer == IndexBuffer )
+			return;
+
 		IndexBuffer = buffer;
-		IndexBufferType = buffer is IBuffer<uint> ? IndexBufferType.UInt32 : IndexBufferType.UInt16;
+		IndexBufferType = buffer is IBuffer<uint> ? IndexBufferType.UInt32 : IndexBufferType.UInt16; // TODO bad!
 		BufferInvalidations |= BufferInvalidations.Index;
 	}
 

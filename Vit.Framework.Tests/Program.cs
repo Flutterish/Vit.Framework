@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
+using Vit.Framework.Tests.VisualTests;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
