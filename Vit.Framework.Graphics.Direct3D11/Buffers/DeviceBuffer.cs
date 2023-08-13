@@ -6,10 +6,10 @@ namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
 public interface ID3D11DeviceBuffer : IDeviceBuffer, ID3D11BufferHandle {
 	void UploadRaw ( ReadOnlySpan<byte> data, uint offset, ID3D11DeviceContext context );
+	void UploadSparseRaw ( ReadOnlySpan<byte> data, uint size, uint stride, uint offset, ID3D11DeviceContext context );
 }
 
 public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11DeviceBuffer where T : unmanaged {
-	public uint Stride => Type.HasFlag( BindFlags.ConstantBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
@@ -27,19 +27,13 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11DeviceB
 		context.CopyResource( Handle!, stagingBuffer! );
 	}
 
-	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset, ID3D11DeviceContext context ) {
-		if ( Type.HasFlag( BindFlags.ConstantBuffer ) ) { // TODO vtable this out
-			var stride = IBuffer<T>.UniformBufferStride;
-			byte* ptr = ((byte*)this.data.DataPointer) + offset * stride;
-			for ( int i = 0; i < data.Length; i++ ) {
-				*((T*)ptr) = data[i];
-				ptr += stride;
-			}
+	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint stride, uint offset, ID3D11DeviceContext context ) {
+		var ptr = (byte*)this.data.DataPointer + offset;
+		int size = (int)_size;
+		for ( int i = 0; i < data.Length; i += size ) {
+			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
+			ptr += stride;
 		}
-		else {
-			data.CopyTo( new Span<T>( (void*)((byte*)this.data.DataPointer + offset), data.Length ) );
-		}
-
 		context.CopyResource( Handle!, stagingBuffer! );
 	}
 
@@ -63,10 +57,6 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11DeviceB
 		}, null, out stagingBuffer ).Validate();
 
 		data = Context.Map( stagingBuffer, MapMode.Write );
-	}
-
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * Stride, usageHint );
 	}
 
 	protected override void Dispose ( bool disposing ) {

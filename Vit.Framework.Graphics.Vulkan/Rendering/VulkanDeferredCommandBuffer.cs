@@ -45,8 +45,8 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		((IVulkanDeviceBuffer)buffer).TransferRaw( data, offset, Buffer );
 	}
 
-	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
-		((DeviceBuffer<T>)buffer).Transfer( data, offset, Buffer );
+	public override void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 ) {
+		((IVulkanDeviceBuffer)buffer).TransferSparseRaw( data, size, stride, offset, Buffer );
 	}
 
 	protected override void UploadTextureData<TPixel> ( ImageTexture texture, ReadOnlySpan<TPixel> data ) {

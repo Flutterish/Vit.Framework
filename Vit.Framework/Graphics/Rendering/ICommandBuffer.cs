@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -20,21 +21,32 @@ public interface ICommandBuffer {
 	/// <returns>An action which will finish rendering to the framebuffer.</returns>
 	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
 
-	/// <summary>
-	/// Uploads data to a buffer.
-	/// </summary>
+	/// <inheritdoc cref="IHostBuffer.UploadRaw(ReadOnlySpan{byte}, uint)"/>
 	/// <param name="buffer">The device buffer to upload to.</param>
-	/// <param name="data">The data to upload.</param>
-	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
-	void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
-
-	/// <summary>
-	/// Uploads data to a buffer.
-	/// </summary>
-	/// <param name="buffer">The device buffer to upload to.</param>
-	/// <param name="data">The data to upload.</param>
-	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
 	void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 );
+
+	/// <inheritdoc cref="IHostBuffer.UploadSparseRaw(ReadOnlySpan{byte}, uint, uint, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
+
+	/// <inheritdoc cref="IHostBuffer{T}.Upload(ReadOnlySpan{T}, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		UploadRaw( buffer, MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
+	}
+
+	/// <inheritdoc cref="IHostBuffer{T}.UploadUniform(ReadOnlySpan{T}, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public void UploadUniform<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		UploadAligned( buffer, data, 256, offset );
+	}
+
+	/// <inheritdoc cref="IHostBuffer{T}.UploadAligned(ReadOnlySpan{T}, uint, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public void UploadAligned<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		var stride = (IBuffer<T>.Stride + alignment - 1) / alignment * alignment;
+		UploadSparseRaw( buffer, MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+	}
 
 	/// <summary>
 	/// Uploads data to a texture.
@@ -186,8 +198,8 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	}
 	protected abstract DisposeAction<ICommandBuffer> RenderTo ( TFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil );
 
-	public abstract void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged;
 	public abstract void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 );
+	public abstract void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
 
 	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
 		UploadTextureData( (TTexture)texture, data );

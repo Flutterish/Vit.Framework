@@ -74,7 +74,7 @@ public class Sprite : Drawable {
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
 				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-				buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+				buffer.AllocateUniform( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 				return buffer;
 			} );
 
@@ -179,7 +179,7 @@ public class Sprite : Drawable {
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices );
 			commands.BindIndexBuffer( indices );
-			uniforms.Buffer.Upload( new Uniforms { // in theory we could make the matrix and tint per-instance to both save space on uniform buffers and batch sprites
+			uniforms.Buffer.UploadUniform( new Uniforms { // in theory we could make the matrix and tint per-instance to both save space on uniform buffers and batch sprites
 				Matrix = new( UnitToGlobalMatrix ),
 				Tint = tint
 			}, uniforms.Offset );

@@ -30,8 +30,9 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
 		((ID3D11DeviceBuffer)buffer).UploadRaw( data, offset, Context );
 	}
-	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
-		((DeviceBuffer<T>)buffer).Upload( data, offset, Context );
+
+	public override void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 ) {
+		((ID3D11DeviceBuffer)buffer).UploadSparseRaw( data, size, stride, offset, Context );
 	}
 
 	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {

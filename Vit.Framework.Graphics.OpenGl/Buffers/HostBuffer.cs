@@ -4,11 +4,11 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
 public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> where T : unmanaged {
-	public uint Stride => Type == BufferTarget.UniformBuffer ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
+	public uint Stride => IBuffer<T>.Stride;
 
 	public int Handle { get; }
 	public readonly BufferTarget Type;
-	public T* Data;
+	public void* Data;
 	public HostBuffer ( BufferTarget type ) {
 		Type = type;
 		Handle = GL.GenBuffer();
@@ -18,32 +18,23 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostBuffer<T> 
 		GL.BindBuffer( Type, Handle );
 
 		GL.BufferStorage( Type, (int)size, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
-		Data = (T*)GL.MapBufferRange( Type, 0, (int)size, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+		Data = (void*)GL.MapBufferRange( Type, 0, (int)size, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * Stride, usageHint ); // TODO for uniform buffers we can remove the end-padding
+	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		data.CopyTo( new Span<byte>( (byte*)this.Data + offset, data.Length ) );
 	}
 
-	public unsafe void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
-		if ( Type == BufferTarget.UniformBuffer ) { // TODO vtable this out
-			var stride = IBuffer<T>.UniformBufferStride;
-			byte* ptr = ((byte*)this.Data) + offset * stride;
-			for ( int i = 0; i < data.Length; i++ ) {
-				*((T*)ptr) = data[i];
-				ptr += stride;
-			}
-		}
-		else {
-			data.CopyTo( new Span<T>( this.Data + offset, data.Length ) );
+	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
+		byte* ptr = (byte*)this.Data + offset;
+		var size = (int)_size;
+		for ( int i = 0; i < data.Length; i += size ) {
+			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
+			ptr += stride;
 		}
 	}
 
 	protected override void Dispose ( bool disposing ) {
 		GL.DeleteBuffer( Handle );
-	}
-
-	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
-		throw new NotImplementedException();
 	}
 }

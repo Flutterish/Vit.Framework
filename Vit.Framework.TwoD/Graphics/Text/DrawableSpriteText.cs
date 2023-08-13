@@ -181,7 +181,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			copy.Upload( indices, indicesList.AsSpan() );
 			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 			copy.Upload( vertices, verticesList.AsSpan() );
-			uniforms.Allocate( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+			uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 			uniformSet.SetSampler( texture.Value, binding: 1 );
@@ -206,7 +206,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			commands.SetShaders( shaders );
 			commands.BindVertexBuffer( vertices! );
 			commands.BindIndexBuffer( indices! );
-			uniforms!.Upload( new Uniforms {
+			uniforms!.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( size, size ) * UnitToGlobalMatrix ),
 				Tint = tint
 			} );

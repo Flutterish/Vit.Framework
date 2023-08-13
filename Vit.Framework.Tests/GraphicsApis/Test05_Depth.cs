@@ -82,7 +82,7 @@ public class Test05_Depth : GenericRenderThread {
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
 		positions.Allocate( (uint)model.Vertices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		indices.Allocate( indexCount = (uint)model.Indices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
@@ -116,7 +116,7 @@ public class Test05_Depth : GenericRenderThread {
 
 		commands.BindVertexBuffer( positions );
 		commands.BindIndexBuffer( indices );
-		uniformBuffer.Upload( new Uniforms {
+		uniformBuffer.UploadUniform( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, -0.3f, 0 )
 				* Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 5).Degrees() )

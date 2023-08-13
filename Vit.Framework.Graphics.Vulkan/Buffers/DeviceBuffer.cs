@@ -6,10 +6,11 @@ namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public interface IVulkanDeviceBuffer : IDeviceBuffer {
 	void TransferRaw ( ReadOnlySpan<byte> data, uint offset, CommandBuffer commands );
+	void TransferSparseRaw ( ReadOnlySpan<byte> data, uint size, uint stride, uint offset, CommandBuffer commands );
 }
 
 public class DeviceBuffer<T> : Buffer, IVulkanDeviceBuffer, IDeviceBuffer<T> where T : unmanaged {
-	public uint Stride => UsageFlags.HasFlag( VkBufferUsageFlags.UniformBuffer ) ? IBuffer<T>.UniformBufferStride : IBuffer<T>.Stride;
+	public uint Stride => IBuffer<T>.Stride;
 	HostBuffer<T> stagingBuffer;
 	public DeviceBuffer ( Device device, VkBufferUsageFlags flags ) : base( device, flags | VkBufferUsageFlags.TransferDst ) {
 		stagingBuffer = new( device, VkBufferUsageFlags.TransferSrc );
@@ -20,17 +21,17 @@ public class DeviceBuffer<T> : Buffer, IVulkanDeviceBuffer, IDeviceBuffer<T> whe
 		base.Allocate( size );
 	}
 
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * Stride, usageHint );
-	}
-
 	public void TransferRaw ( ReadOnlySpan<byte> data, uint offset, CommandBuffer commands ) {
 		stagingBuffer.UploadRaw( data, offset );
 		commands.Copy( stagingBuffer, this, (uint)data.Length, srcOffset: offset, dstOffset: offset );
 	}
-	public void Transfer ( ReadOnlySpan<T> data, uint offset, CommandBuffer commands ) {
-		stagingBuffer.Upload( data, offset );
-		commands.Copy( stagingBuffer, this, Stride * (uint)data.Length, srcOffset: offset * Stride, dstOffset: offset * Stride );
+
+	public void TransferSparseRaw ( ReadOnlySpan<byte> data, uint size, uint stride, uint offset, CommandBuffer commands ) {
+		stagingBuffer.UploadSparseRaw( data, size, stride, offset );
+		for ( uint i = 0; i < data.Length; i += size ) {
+			commands.Copy( stagingBuffer, this, size, offset, offset ); // TODO merge this into one call
+			offset += stride;
+		}
 	}
 
 	protected override uint FindMemoryType ( VkMemoryRequirements requirements ) {

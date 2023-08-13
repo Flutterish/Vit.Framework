@@ -33,7 +33,7 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 
 		var bufferInfo = new VkDescriptorBufferInfo() {
 			buffer = uniformBuffer,
-			offset = offset * IBuffer<T>.UniformBufferStride,
+			offset = offset * IBuffer<T>.AlignedStride(256),
 			range = IBuffer<T>.Stride
 		};
 

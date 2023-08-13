@@ -27,10 +27,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
 		var buf = (IGlBuffer)buffer;
 
+		var alignedStride = (buf.Stride + 255) / 256 * 256;
 		binding = layout.BindingLookup[binding];
 		UboBuffers[binding] = buf.Handle;
-		UboOffsets[binding] = (nint)(offset * buf.Stride);
-		UboSizes[binding] = (nint)(buf.Stride);
+		UboOffsets[binding] = (nint)(offset * alignedStride);
+		UboSizes[binding] = (nint)buf.Stride;
 	}
 
 	int[] Textures;

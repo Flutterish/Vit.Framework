@@ -160,7 +160,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				return false;
 
 			globalUniformBuffer = Renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
-			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
+			globalUniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
 			var basic = ShaderStore.GetShader( new() {
 				Vertex = new() {
@@ -180,7 +180,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		protected override void BeforeRender () {
 			var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( Renderer.CreateLeftHandCorrectionMatrix<float>() );
-			globalUniformBuffer.Upload( new GlobalUniforms {
+			globalUniformBuffer.UploadUniform( new GlobalUniforms {
 				Matrix = new( mat )
 			} );
 		}

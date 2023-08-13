@@ -35,8 +35,13 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		data.CopyTo( ((IByteBuffer)buffer).Bytes.Slice( (int)offset ) );
 	}
 
-	public override void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) {
-		( (Buffer<T>)buffer ).Upload( data, offset );
+	public override unsafe void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
+		var ptr = ((IByteBuffer)buffer).Bytes.Data() + offset;
+		var size = (int)_size;
+		for ( int i = 0; i < data.Length; i += size ) {
+			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
+			ptr += stride;
+		}
 	}
 
 	protected override void UploadTextureData<TPixel> ( Texture texture, ReadOnlySpan<TPixel> data ) {

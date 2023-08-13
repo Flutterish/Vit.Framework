@@ -32,7 +32,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 		binding = layout.BindingLookup[binding];
 
 		ConstantBufferHandles[binding] = (ID3D11BufferHandle)buffer;
-		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.UniformBufferStride) / 16;
+		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.AlignedStride(256)) / 16;
 		ConstantBuffersSizes[binding] = (int)IBuffer<T>.Stride;
 	}
 

@@ -1,30 +1,32 @@
-﻿using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.Software.Buffers;
 
 public class Buffer<T> : IHostBuffer<T>, IDeviceBuffer<T>, IByteBuffer where T : unmanaged {
 	public byte[] Data { get; private set; } = Array.Empty<byte>();
-
-	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
-		data.CopyTo( Data.AsSpan().Slice( (int)offset, data.Length ) );
-	}
-	public void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
-		UploadRaw( MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
-	}
+	public Span<byte> Bytes => Data.AsSpan();
 
 	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		Data = new byte[size];
 	}
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * IBuffer<T>.Stride, usageHint );
+
+	public void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
+		data.CopyTo( Data.AsSpan().Slice( (int)offset, data.Length ) );
+	}
+
+	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
+		var ptr = Data.Data() + offset;
+		var size = (int)_size;
+		for ( int i = 0; i < data.Length; i += size ) {
+			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
+			ptr += stride;
+		}
 	}
 
 	public void Dispose () {
 		
 	}
-
-	public Span<byte> Bytes => Data.AsSpan();
 }
 
 public interface IByteBuffer {

@@ -78,7 +78,7 @@ public class Test04_Samplers : GenericRenderThread {
 
 		positions.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 		indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		uniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
@@ -117,7 +117,7 @@ public class Test04_Samplers : GenericRenderThread {
 
 		commands.BindVertexBuffer( positions );
 		commands.BindIndexBuffer( indices );
-		uniformBuffer.Upload( new Uniforms {
+		uniformBuffer.UploadUniform( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, 0, 1.2f )
 				* Renderer.CreateLeftHandCorrectionMatrix<float>()
