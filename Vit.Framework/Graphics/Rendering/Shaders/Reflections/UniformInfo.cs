@@ -81,6 +81,27 @@ public class UniformFlatMapping {
 			wordView[(int)resource.BindingBinaryOffset] = binding;
 		}
 	}
+
+	public uint[] CreateBindingLookup ( uint set ) {
+		var size = Bindings.Where( x => x.Key.set == set ).Max( x => x.Key.binding );
+		var lut = new uint[size];
+		for ( uint i = 0; i < size; i++ ) {
+			if ( Bindings.TryGetValue( (set, i), out var mapped ) )
+				lut[i] = mapped;
+			else
+				lut[i] = uint.MaxValue;
+		}
+
+		return lut;
+	}
+
+	public (uint offset, int count) GetResourceArraySize ( uint set, UniformSetInfo type, spvc_resource_type resourceType ) {
+		var resources = type.Resources.Where( x => x.ResourceType == resourceType );
+		var count = resources.Count();
+		var first = resources.Min( x => Bindings[(set, x.Binding)] );
+
+		return (first, count);
+	}
 }
 
 public class UniformFlatMappingDictionary<T> : IEnumerable<KeyValuePair<UniformFlatMapping, T>> where T : notnull {
