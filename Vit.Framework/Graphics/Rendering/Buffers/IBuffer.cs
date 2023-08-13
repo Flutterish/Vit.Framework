@@ -7,8 +7,6 @@ namespace Vit.Framework.Graphics.Rendering.Buffers;
 /// GPU-side storage of arbitrary data. This storage might be in gpu-local or cpu-local memory, depending on usage.
 /// </summary>
 public interface IBuffer : IDisposable {
-	Type StoredType { get; }
-
 	/// <summary>
 	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
 	/// </summary>
@@ -25,8 +23,6 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// </summary>
 	public static readonly uint Stride = (uint)Marshal.SizeOf( default(T) );
 	public static uint AlignedStride ( uint alinment ) => (Stride + alinment - 1) / alinment * alinment;
-
-	Type IBuffer.StoredType => typeof(T);
 
 	/// <summary>
 	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
