@@ -15,8 +15,9 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public unsafe ShaderSet ( IEnumerable<ShaderModule> modules, VertexInputDescription? vertexInput ) {
 		Modules = modules.ToImmutableArray();
 		var uniformInfo = this.CreateUniformInfo();
-		if ( modules.FirstOrDefault( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ) is ShaderModule vertexModule ) {
-			(Attributes, AttributeSets) = vertexModule.Spirv.Reflections.GenerateVertexBindings();
+
+		if ( vertexInput != null ) {
+			(Attributes, AttributeSets) = vertexInput.GenerateVertexBindings();
 		}
 		else {
 			Attributes = Array.Empty<VkVertexInputAttributeDescription>();
