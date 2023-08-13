@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Platform;
@@ -37,7 +38,7 @@ public class Test01_HelloTriangle : GenericRenderThread {
 				outColor = vec4( 0, 1, 0, 1 );
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
-		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment } );
+		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
 		positions = Renderer.CreateDeviceBuffer<Point2<float>>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );

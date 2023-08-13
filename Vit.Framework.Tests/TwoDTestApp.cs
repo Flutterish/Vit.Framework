@@ -40,7 +40,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.Direct3D11 );
+		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -162,7 +162,13 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			globalUniformBuffer = Renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
 			globalUniformBuffer.Allocate( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
-			var basic = ShaderStore.GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
+			var basic = ShaderStore.GetShader( new() {
+				Vertex = new() {
+					Shader = BasicVertexShader.Identifier,
+					Input = BasicVertexShader.InputDescription
+				},
+				Fragment = BasicFragmentShader.Identifier
+			} );
 
 			ShaderStore.CompileNew( Renderer );
 			globalSet = basic.Value.CreateUniformSet( 0 );

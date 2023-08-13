@@ -52,7 +52,13 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
-		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
+		shader = deps.Resolve<ShaderStore>().GetShader( new() {
+			Vertex = new() {
+				Shader = BasicVertexShader.Identifier,
+				Input = BasicVertexShader.InputDescription
+			},
+			Fragment = BasicFragmentShader.Identifier
+		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
 	}

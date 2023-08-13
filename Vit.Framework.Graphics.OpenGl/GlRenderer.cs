@@ -6,6 +6,7 @@ using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -32,7 +33,7 @@ public class GlRenderer : IRenderer {
 		return new UnlinkedShader( spirv );
 	}
 
-	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
+	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
 		return new ShaderProgram( parts.Select( x => x as UnlinkedShader )! );
 	}
 

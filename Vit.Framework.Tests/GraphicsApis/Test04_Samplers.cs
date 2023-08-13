@@ -5,6 +5,7 @@ using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
@@ -66,7 +67,7 @@ public class Test04_Samplers : GenericRenderThread {
 				outColor = texture( texSampler, inUv );
 			}
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
-		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment } );
+		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
 		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );

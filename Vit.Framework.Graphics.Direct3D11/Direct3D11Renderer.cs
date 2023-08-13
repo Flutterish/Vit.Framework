@@ -6,6 +6,7 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -47,7 +48,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new UnlinkedShader( spirv, Device );
 	}
 
-	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
+	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
 		return new ShaderSet( parts );
 	}
 

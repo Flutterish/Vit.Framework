@@ -21,7 +21,13 @@ public class Sprite : Drawable {
 		base.OnLoad( deps );
 
 		drawDependencies = deps.Resolve<DrawDependencies>();
-		shader = deps.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
+		shader = deps.Resolve<ShaderStore>().GetShader( new() { 
+			Vertex = new() { 
+				Shader = BasicVertexShader.Identifier,
+				Input = BasicVertexShader.InputDescription
+			}, 
+			Fragment = BasicFragmentShader.Identifier 
+		} );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
 
@@ -72,7 +78,13 @@ public class Sprite : Drawable {
 				return buffer;
 			} );
 
-			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
+			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
+				Vertex = new() {
+					Shader = BasicVertexShader.Identifier,
+					Input = BasicVertexShader.InputDescription
+				},
+				Fragment = BasicFragmentShader.Identifier
+			} );
 			basicShader.Compile( renderer );
 			UniformSetAllocator = new( basicShader.Value, set: 1, poolSize: 256 );
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Vulkan.Uniforms;
 using Vit.Framework.Memory;
@@ -11,9 +12,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<ShaderModule> Modules;
 	public IEnumerable<IShaderPart> Parts => Modules;
 
-	public ShaderSet ( params ShaderModule[] modules ) : this( (IEnumerable<ShaderModule>)modules ) { }
-
-	public unsafe ShaderSet ( IEnumerable<ShaderModule> modules ) {
+	public unsafe ShaderSet ( IEnumerable<ShaderModule> modules, VertexInputDescription? vertexInput ) {
 		Modules = modules.ToImmutableArray();
 		if ( modules.FirstOrDefault( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ) is ShaderModule vertexModule ) {
 			(Attributes, AttributeSets) = vertexModule.Spirv.Reflections.GenerateVertexBindings();

@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
@@ -30,7 +31,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 			_ => throw new ArgumentException( $"Unsupported shader type: {spirv.Type}", nameof( spirv ) )
 		} );
 	}
-	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
+	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
 		return new ShaderSet( parts );
 	}
 	public virtual IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {

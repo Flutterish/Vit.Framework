@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Shaders;
@@ -20,7 +21,7 @@ public class ShaderStore : DisposableObject {
 	Dictionary<ShaderDescription, Shader> shaders = new();
 	public Shader GetShader ( ShaderDescription description ) {
 		if ( !shaders.TryGetValue( description, out var shader ) ) {
-			shader = new( new[] { shaderParts[description.Vertex!], shaderParts[description.Fragment!] } );
+			shader = new( new[] { shaderParts[description.Vertex!.Value.Shader], shaderParts[description.Fragment!] }, description.Vertex!.Value.Input );
 			shaders.Add( description, shader );
 			shadersToCompile.Enqueue( shader );
 		}
@@ -50,6 +51,11 @@ public class ShaderIdentifier {
 }
 
 public struct ShaderDescription {
-	public ShaderIdentifier? Vertex;
+	public VertexShaderDescription? Vertex;
 	public ShaderIdentifier? Fragment;
+}
+
+public struct VertexShaderDescription {
+	public required ShaderIdentifier Shader;
+	public required VertexInputDescription Input;
 }

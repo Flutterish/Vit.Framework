@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
@@ -51,8 +52,8 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return Device.CreateShaderModule( spirv );
 	}
 
-	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
-		return new ShaderSet( parts.Select( x => (ShaderModule)x ) );
+	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
+		return new ShaderSet( parts.Select( x => (ShaderModule)x ), vertexInput );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
