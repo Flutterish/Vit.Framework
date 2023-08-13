@@ -14,6 +14,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 	public unsafe ShaderSet ( IEnumerable<ShaderModule> modules, VertexInputDescription? vertexInput ) {
 		Modules = modules.ToImmutableArray();
+		var uniformInfo = this.CreateUniformInfo();
 		if ( modules.FirstOrDefault( x => x.StageCreateInfo.stage.HasFlag( VkShaderStageFlags.Vertex ) ) is ShaderModule vertexModule ) {
 			(Attributes, AttributeSets) = vertexModule.Spirv.Reflections.GenerateVertexBindings();
 		}
@@ -25,24 +26,30 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		var setCount = this.GetUniformSetIndices().Count();
 		UniformSets = new IDescriptorSet?[setCount];
 		DescriptorSets = new VkDescriptorSet[setCount];
+		DescriptorSetLayouts = new DescriptorSetLayout[setCount];
+
+		for ( uint i = 0; i < setCount; i++ ) {
+			DescriptorSetLayouts[i] = new( Modules[0].Device, uniformInfo.Sets.GetValueOrDefault( i ) ?? new() );
+		}
 	}
 
-	// TODO binding and offset values of these should be generated based on some logical linking between mesh vertex buffers and material attributes
+	public DescriptorSetLayout[] DescriptorSetLayouts;
+	public VkDescriptorSet[] DescriptorSets;
+	public IDescriptorSet?[] UniformSets;
+
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	public IDescriptorSet?[] UniformSets;
-	public VkDescriptorSet[] DescriptorSets;
 	public IUniformSet? GetUniformSet ( uint set = 0 ) {
 		return UniformSets[set]!;
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		return new StandaloneUniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
+		return new StandaloneUniformSet( DescriptorSetLayouts[set] );
 	}
 
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
-		return new DescriptorPool( Modules[0].Device, size, this.CreateUniformSetInfo( set ) );
+		return new DescriptorPool( DescriptorSetLayouts[set], size );
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
@@ -51,5 +58,9 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		DescriptorSets[set] = value.Handle;
 	}
 
-	protected override unsafe void Dispose ( bool disposing ) { }
+	protected override unsafe void Dispose ( bool disposing ) {
+		foreach ( var i in DescriptorSetLayouts ) {
+			i.Dispose();
+		}
+	}
 }

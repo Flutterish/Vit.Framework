@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
@@ -86,8 +85,8 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 	public VkDescriptorSetLayout Layout => DescriptorSet.Layout;
 	public VkDescriptorSet Handle => DescriptorSet.Handle;
 
-	public unsafe StandaloneUniformSet ( Device device, UniformSetInfo info ) {
-		DescriptorPool = new DescriptorPool( device, 1, info );
+	public unsafe StandaloneUniformSet ( DescriptorSetLayout layout ) {
+		DescriptorPool = new DescriptorPool( layout, 1 );
 		DescriptorSet = DescriptorPool.CreateSet();
 	}
 

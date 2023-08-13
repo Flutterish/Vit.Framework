@@ -1,21 +1,16 @@
-﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Graphics.Rendering.Uniforms;
+﻿using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
-using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Uniforms;
 
 public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniformSetPool {
-	public readonly Device Device;
-	public readonly UniformSetInfo Type;
-	public readonly VkDescriptorSetLayout Layout;
-	public unsafe DescriptorPool ( Device device, uint size, UniformSetInfo type ) {
-		Device = device;
-		Type = type;
-
-		var layoutBindings = type.GenerateUniformBindingsSet();
+	public Device Device => Layout.Device;
+	public readonly DescriptorSetLayout Layout;
+	public unsafe DescriptorPool ( DescriptorSetLayout layout, uint size ) {
+		Layout = layout;
+		var layoutBindings = layout.LayoutBindings;
 
 		var values = new VkDescriptorPoolSize[layoutBindings.Length];
 		for ( int i = 0; i < values.Length; i++ ) {
@@ -31,21 +26,14 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 			pPoolSizes = values.Data(),
 			maxSets = size
 		};
-		Vk.vkCreateDescriptorPool( device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
-
-		var uniformInfo = new VkDescriptorSetLayoutCreateInfo() {
-			sType = VkStructureType.DescriptorSetLayoutCreateInfo,
-			bindingCount = (uint)layoutBindings.Length,
-			pBindings = layoutBindings.Data()
-		};
-		Vk.vkCreateDescriptorSetLayout( device, &uniformInfo, VulkanExtensions.TODO_Allocator, out Layout ).Validate();
+		Vk.vkCreateDescriptorPool( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 
 		created = new( (int)size );
 	}
 
 	public DescriptorSet CreateSet () {
 		var value = new DescriptorSet( this, Layout );
-		DebugMemoryAlignment.SetDebugData( value, Type.Resources );
+		DebugMemoryAlignment.SetDebugData( value, Layout.Type.Resources );
 		return value;
 	}
 
@@ -62,7 +50,6 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
-		Vk.vkDestroyDescriptorSetLayout( Device, Layout, VulkanExtensions.TODO_Allocator );
 		Vk.vkDestroyDescriptorPool( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
 }
