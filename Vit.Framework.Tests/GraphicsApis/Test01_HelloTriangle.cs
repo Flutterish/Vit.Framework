@@ -18,8 +18,8 @@ public class Test01_HelloTriangle : GenericRenderThread {
 	IShaderPart fragment = null!;
 	IShaderSet shaderSet = null!;
 
-	IDeviceBuffer<Point2<float>> positions = null!;
-	IDeviceBuffer<uint> indices = null!;
+	StagedDeviceBuffer<Point2<float>> positions = null!;
+	StagedDeviceBuffer<uint> indices = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -40,19 +40,19 @@ public class Test01_HelloTriangle : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = Renderer.CreateDeviceBuffer<Point2<float>>( BufferType.Vertex );
-		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+		positions = new( Renderer, BufferType.Vertex );
+		indices = new( Renderer, BufferType.Index );
 
-		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		positions.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, new Point2<float>[] {
+			positions.Upload( commands, new Point2<float>[] {
 				new( 0, -0.5f ),
 				new( 0.7f, 0.3f ),
 				new( -0.5f, 0.7f )
 			} );
-			commands.Upload( indices, new uint[] {
+			indices.Upload( commands, new uint[] {
 				2, 1, 0
 			} );
 		}
@@ -71,8 +71,8 @@ public class Test01_HelloTriangle : GenericRenderThread {
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );
 
-		commands.BindVertexBuffer( positions );
-		commands.BindIndexBuffer( indices );
+		commands.BindVertexBuffer( positions.DeviceBuffer );
+		commands.BindIndexBuffer( indices.DeviceBuffer );
 
 		commands.SetTopology( Topology.Triangles );
 		commands.DrawIndexed( 3 );

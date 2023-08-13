@@ -32,8 +32,8 @@ public class Test04_Samplers : GenericRenderThread {
 		public Matrix4<float> ModelMatrix;
 	}
 
-	IDeviceBuffer<Vertex> positions = null!;
-	IDeviceBuffer<uint> indices = null!;
+	StagedDeviceBuffer<Vertex> positions = null!;
+	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture texture = null!;
 	IUniformSet uniformSet = null!;
@@ -69,15 +69,15 @@ public class Test04_Samplers : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+		positions = new( Renderer, BufferType.Vertex );
+		indices = new( Renderer, BufferType.Index );
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 		using var image = Image.Load<Rgba32>( "./texture.jpg" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.RGBA32 );
 
-		positions.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		positions.Allocate( 4, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices.Allocate( 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
@@ -85,13 +85,13 @@ public class Test04_Samplers : GenericRenderThread {
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		uniformSet.SetSampler( texture, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, new Vertex[] {
+			positions.Upload( commands, new Vertex[] {
 				new() { Position = new( -0.5f, 0.5f ), UV = new( 0, 1 ) },
 				new() { Position = new( 0.5f, 0.5f ), UV = new( 1, 1 ) },
 				new() { Position = new( 0.5f, -0.5f ), UV = new( 1, 0 ) },
 				new() { Position = new( -0.5f, -0.5f ), UV = new( 0, 0 ) }
 			} );
-			commands.Upload( indices, new uint[] {
+			indices.Upload( commands, new uint[] {
 				0, 1, 2,
 				0, 2, 3
 			} );
@@ -115,8 +115,8 @@ public class Test04_Samplers : GenericRenderThread {
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );
 
-		commands.BindVertexBuffer( positions );
-		commands.BindIndexBuffer( indices );
+		commands.BindVertexBuffer( positions.DeviceBuffer );
+		commands.BindIndexBuffer( indices.DeviceBuffer );
 		uniformBuffer.UploadUniform( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, 0, 1.2f )

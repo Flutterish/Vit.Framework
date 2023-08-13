@@ -87,8 +87,8 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 	SharedResourceInvalidations textMesh;
 
 	IUniformSet? uniformSet;
-	IDeviceBuffer<uint>? indices;
-	IDeviceBuffer<Vertex>? vertices;
+	StagedDeviceBuffer<uint>? indices;
+	StagedDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
 
@@ -169,18 +169,18 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			}
 
 			Source.indexCount = indicesList.Count;
-			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
-			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			indices = new( renderer, BufferType.Index );
+			vertices = new( renderer, BufferType.Vertex );
 			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 			uniformSet = shaders.CreateUniformSet( set: 1 );
 
 			if ( Source.indexCount == 0 )
 				return;
 
-			indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( indices, indicesList.AsSpan() );
-			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( vertices, verticesList.AsSpan() );
+			indices.Allocate( (uint)indicesList.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			indices.Upload( copy, indicesList.AsSpan() );
+			vertices.Allocate( (uint)verticesList.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			vertices.Upload( copy, verticesList.AsSpan() );
 			uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
@@ -204,8 +204,8 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			shaders.SetUniformSet( uniformSet!, set: 1 );
 
 			commands.SetShaders( shaders );
-			commands.BindVertexBuffer( vertices! );
-			commands.BindIndexBuffer( indices! );
+			commands.BindVertexBuffer( vertices!.DeviceBuffer );
+			commands.BindIndexBuffer( indices!.DeviceBuffer );
 			uniforms!.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( size, size ) * UnitToGlobalMatrix ),
 				Tint = tint

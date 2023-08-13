@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
@@ -39,14 +38,6 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 			((VulkanDeferredCommandBuffer)self).Buffer.FinishRenderPass();
 			((VulkanDeferredCommandBuffer)self).frameBuffer = null!;
 		} );
-	}
-
-	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
-		((IVulkanDeviceBuffer)buffer).TransferRaw( data, offset, Buffer );
-	}
-
-	public override void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 ) {
-		((IVulkanDeviceBuffer)buffer).TransferSparseRaw( data, size, stride, offset, Buffer );
 	}
 
 	protected override void UploadTextureData<TPixel> ( ImageTexture texture, ReadOnlySpan<TPixel> data ) {

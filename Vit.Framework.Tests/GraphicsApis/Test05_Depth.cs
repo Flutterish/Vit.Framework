@@ -35,8 +35,8 @@ public class Test05_Depth : GenericRenderThread {
 	}
 
 	uint indexCount;
-	IDeviceBuffer<Vertex> positions = null!;
-	IDeviceBuffer<uint> indices = null!;
+	StagedDeviceBuffer<Vertex> positions = null!;
+	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture texture = null!;
 	IUniformSet uniformSet = null!;
@@ -72,16 +72,16 @@ public class Test05_Depth : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+		positions = new( Renderer, BufferType.Vertex );
+		indices = new( Renderer, BufferType.Index );
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.RGBA32 );
 
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-		positions.Allocate( (uint)model.Vertices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		indices.Allocate( indexCount = (uint)model.Indices.Count, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		positions.Allocate( (uint)model.Vertices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices.Allocate( indexCount = (uint)model.Indices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
@@ -89,11 +89,11 @@ public class Test05_Depth : GenericRenderThread {
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		uniformSet.SetSampler( texture, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, model.Vertices.Select( x => new Vertex {
+			positions.Upload( commands, model.Vertices.Select( x => new Vertex {
 				Position = x.Position.XYZ,
 				UV = x.TextureCoordinates.XY
 			} ).ToArray() );
-			commands.Upload( indices, model.Indices.AsSpan() );
+			indices.Upload( commands, model.Indices.AsSpan() );
 
 			if ( !image.DangerousTryGetSinglePixelMemory( out var memory ) )
 				throw new Exception( "Oops, cant load image" );
@@ -114,8 +114,8 @@ public class Test05_Depth : GenericRenderThread {
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );
 
-		commands.BindVertexBuffer( positions );
-		commands.BindIndexBuffer( indices );
+		commands.BindVertexBuffer( positions.DeviceBuffer );
+		commands.BindIndexBuffer( indices.DeviceBuffer );
 		uniformBuffer.UploadUniform( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitX, -90f.Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, -0.3f, 0 )

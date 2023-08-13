@@ -23,8 +23,8 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 		public ColorRgb<float> Color;
 	}
 
-	IDeviceBuffer<Vertex> positions = null!;
-	IDeviceBuffer<uint> indices = null!;
+	StagedDeviceBuffer<Vertex> positions = null!;
+	StagedDeviceBuffer<uint> indices = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -51,19 +51,19 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = Renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-		indices = Renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+		positions = new( Renderer, BufferType.Vertex );
+		indices = new( Renderer, BufferType.Index );
 
-		positions.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-		indices.Allocate( 3, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+		positions.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
-			commands.Upload( positions, new Vertex[] {
+			positions.Upload( commands, new Vertex[] {
 				new() { Position = new( 0, -0.5f ), Color = ColorRgb.Red },
 				new() { Position = new( 0.7f, 0.3f ), Color = ColorRgb.Green },
 				new() { Position = new( -0.5f, 0.7f ), Color = ColorRgb.Blue }
 			} );
-			commands.Upload( indices, new uint[] {
+			indices.Upload( commands, new uint[] {
 				2, 1, 0
 			} );
 		}
@@ -82,8 +82,8 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );
 
-		commands.BindVertexBuffer( positions );
-		commands.BindIndexBuffer( indices );
+		commands.BindVertexBuffer( positions.DeviceBuffer );
+		commands.BindIndexBuffer( indices.DeviceBuffer );
 
 		commands.SetTopology( Topology.Triangles );
 		commands.DrawIndexed( 3 );

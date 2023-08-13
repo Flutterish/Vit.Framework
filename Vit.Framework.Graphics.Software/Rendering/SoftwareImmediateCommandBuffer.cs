@@ -31,19 +31,6 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		} );
 	}
 
-	public override void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 ) {
-		data.CopyTo( ((IByteBuffer)buffer).Bytes.Slice( (int)offset ) );
-	}
-
-	public override unsafe void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
-		var ptr = ((IByteBuffer)buffer).Bytes.Data() + offset;
-		var size = (int)_size;
-		for ( int i = 0; i < data.Length; i += size ) {
-			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
-			ptr += stride;
-		}
-	}
-
 	protected override void UploadTextureData<TPixel> ( Texture texture, ReadOnlySpan<TPixel> data ) {
 		MemoryMarshal.Cast<TPixel,byte>( data ).CopyTo( MemoryMarshal.Cast<Rgba32, byte>( texture.AsSpan() ) );
 	}

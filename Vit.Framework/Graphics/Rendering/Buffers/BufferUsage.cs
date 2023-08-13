@@ -5,6 +5,7 @@
 /// </summary>
 [Flags]
 public enum BufferUsage {
+	None = 0,
 	CpuRead = 1,
 	CpuWrite = 2,
 	GpuRead = 4,
