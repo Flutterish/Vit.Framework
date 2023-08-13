@@ -36,6 +36,13 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		texture.Upload( data );
 	}
 
+	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		var src = (IGlBuffer)source;
+		var dst = (IGlBuffer)destination;
+
+		GL.CopyNamedBufferSubData( src.Handle, dst.Handle, (nint)sourceOffset, (nint)destinationOffset, (int)length );
+	}
+
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) ) {
 			GL.UseProgram( ShaderSet.Handle );

@@ -319,4 +319,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 
 	}
+
+	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		throw new NotImplementedException();
+	}
 }

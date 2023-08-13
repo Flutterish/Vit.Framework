@@ -40,6 +40,9 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public virtual IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
 		return new Buffer<T>();
 	}
+	public virtual IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
+		return new Buffer<T>();
+	}
 
 	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Texture( size, format );

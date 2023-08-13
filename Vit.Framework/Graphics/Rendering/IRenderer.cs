@@ -25,7 +25,7 @@ public interface IRenderer : IDisposable {
 
 	IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged;
 	IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged;
-	//IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged; // TODO also add non-mutable buffers
+	IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged; // TODO also add non-mutable buffers
 
 	ITexture CreateTexture ( Size2<uint> size, PixelFormat format );
 

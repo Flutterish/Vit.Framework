@@ -70,6 +70,10 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		} );
 	}
 
+	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
+		return new StagingBuffer<T>( Device, Context );
+	}
+
 	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Texture2D( Device, size, format );
 	}

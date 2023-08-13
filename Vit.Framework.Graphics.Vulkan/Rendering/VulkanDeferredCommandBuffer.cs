@@ -53,6 +53,13 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		texture.Image.Transfer( data, Buffer );
 	}
 
+	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		var src = (IVulkanHandle<VkBuffer>)source;
+		var dst = (IVulkanHandle<VkBuffer>)destination;
+
+		Buffer.Copy( src.Handle, dst.Handle, length, sourceOffset, destinationOffset );
+	}
+
 	Pipeline pipeline = null!;
 	const PipelineInvalidations pipelineInvalidations = PipelineInvalidations.Shaders | PipelineInvalidations.Framebuffer | PipelineInvalidations.Topology 
 		| PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;

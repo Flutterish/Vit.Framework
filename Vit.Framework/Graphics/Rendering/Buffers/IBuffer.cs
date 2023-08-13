@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Graphics.Rendering.Buffers;
 
@@ -12,7 +11,6 @@ public interface IBuffer : IDisposable {
 	/// </summary>
 	/// <param name="size">Amount of <b>bytes</b> that this buffer needs to be able to hold. Must be greater than 0.</param>
 	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	[MethodImpl( MethodImplOptions.AggressiveInlining )]
 	void AllocateRaw ( uint size, BufferUsage usageHint );
 }
 
@@ -23,35 +21,6 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 	/// </summary>
 	public static readonly uint Stride = (uint)Marshal.SizeOf( default(T) );
 	public static uint AlignedStride ( uint alinment ) => (Stride + alinment - 1) / alinment * alinment;
-
-	/// <summary>
-	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
-	/// </summary>
-	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
-	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	public void Allocate ( uint size, BufferUsage usageHint ) {
-		AllocateRaw( size * Stride, usageHint );
-	}
-
-	/// <summary>
-	/// Allocates (clearing any previous data) a new chunk of memory for this buffer. This chunk will be suited to hold uniform data (aligned to 256 bytes).
-	/// </summary>
-	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
-	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	public void AllocateUniform ( uint size, BufferUsage usageHint ) {
-		AllocateAligned( size, 256, usageHint );
-	}
-
-	/// <summary>
-	/// Allocates (clearing any previous data) a new chunk of memory for this buffer. This chunk will pad between elements such that every element will be aligned to the given alignemnt.
-	/// </summary>
-	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
-	/// <param name="alignment">Alignment of elements in bytes.</param>
-	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	public void AllocateAligned ( uint size, uint alignment, BufferUsage usageHint ) {
-		var stride = (Stride + alignment - 1) / alignment * alignment;
-		AllocateRaw( (size - 1) * stride + Stride, usageHint );
-	}
 }
 
 /// <summary>
@@ -66,7 +35,6 @@ public interface IHostBuffer : IBuffer {
 	/// </summary>
 	/// <param name="data">The data to upload.</param>
 	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
-	[MethodImpl( MethodImplOptions.AggressiveInlining )]
 	void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 );
 
 	/// <summary>
@@ -76,55 +44,12 @@ public interface IHostBuffer : IBuffer {
 	/// <param name="size">Size of each element in <paramref name="data"/>. Must be smaller or equal to <paramref name="stride"/>.</param>
 	/// <param name="stride">Stride of each element in the buffer.</param>
 	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
-	[MethodImpl( MethodImplOptions.AggressiveInlining )]
 	void UploadSparseRaw ( ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
 }
 
 /// <inheritdoc cref="IHostBuffer"/>
 public interface IHostBuffer<T> : IHostBuffer, IBuffer<T> where T : unmanaged {
-	/// <summary>
-	/// Uploads data to the buffer.
-	/// </summary>
-	/// <param name="data">The data to upload.</param>
-	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
-	public void Upload ( ReadOnlySpan<T> data, uint offset = 0 ) {
-		UploadRaw( MemoryMarshal.AsBytes( data ), offset * Stride );
-	}
-
-	/// <inheritdoc cref="Upload(ReadOnlySpan{T}, uint)"/>
-	public void Upload ( T data, uint offset = 0 ) {
-		Upload( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
-	}
-
-	/// <summary>
-	/// Uploads data to the buffer. The uploaded data will be suited to hold uniform data (aligned to 256 bytes).
-	/// </summary>
-	/// <param name="data">The data to upload.</param>
-	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
-	public void UploadUniform ( ReadOnlySpan<T> data, uint offset = 0 ) {
-		UploadAligned( data, 256, offset );
-	}
-
-	/// <inheritdoc cref="UploadUniform(ReadOnlySpan{T}, uint)"/>
-	public void UploadUniform ( T data, uint offset = 0 ) {
-		UploadUniform( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
-	}
-
-	/// <summary>
-	/// Uploads data to the buffer. The data wil be uploaded such that each element is placed on an alignment boundary.
-	/// </summary>
-	/// <param name="data">The data to upload.</param>
-	/// <param name="alignment">Alignment of elements in bytes.</param>
-	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
-	public void UploadAligned ( ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) {
-		var stride = (Stride + alignment - 1) / alignment * alignment;
-		UploadSparseRaw( MemoryMarshal.AsBytes( data ), Stride, stride, offset * stride );
-	}
-
-	/// <inheritdoc cref="UploadAligned(ReadOnlySpan{T}, uint, uint)"/>
-	public void UploadAligned ( T data, uint alignment, uint offset = 0 ) {
-		UploadAligned( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), alignment, offset );
-	}
+	
 }
 
 /// <summary>
@@ -151,18 +76,258 @@ public interface IDeviceBuffer<T> : IDeviceBuffer, IBuffer<T> where T : unmanage
 public unsafe interface IStagingBuffer : IBuffer {
 	void* GetData ();
 
-	public Span<T> AsSpan<T> ( int length ) where T : unmanaged
-		=> new Span<T>( (T*)GetData(), length );
+	/// <summary>
+	/// Copies data from this buffer to another.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of bytes to copy.</param>
+	/// <param name="sourceOffset">Offset into this buffer in bytes.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in bytes.</param>
+	void CopyToRaw ( IHostBuffer buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 
-	public Span<T> AsSpan<T> ( int start, int length ) where T : unmanaged 
-		=> new Span<T>( (T*)GetData() + start, length );
+	/// <summary>
+	/// Copies data from this buffer to another, such that the data is chunked into <c><paramref name="size"/></c>-byte chunks and each chunk is placed every <c><paramref name="stride"/></c> bytes in destination the buffer.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of bytes to copy.</param>
+	/// <param name="size">Amount of bytes per chunk.</param>
+	/// <param name="stride">Stride of each element in the buffer.</param>
+	/// <param name="sourceOffset">Offset into this buffer in bytes.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in bytes.</param>
+	void SparseCopyToRaw ( IHostBuffer buffer, uint length, uint size, uint stride, uint sourceOffset = 0, uint destinationOffset = 0 );
 }
 
 /// <inheritdoc cref="IStagingBuffer"/>
 public unsafe interface IStagingBuffer<T> : IStagingBuffer, IBuffer<T> where T : unmanaged {
-	public Span<T> AsSpan ( int length )
-		=> new Span<T>( (T*)GetData(), length );
+	
+}
 
-	public Span<T> AsSpan ( int start, int length )
-		=> new Span<T>( (T*)GetData() + start, length );
+/// <summary>
+/// An interface which implements <see cref="IHostBuffer{T}"/> and <see cref="IStagingBuffer{T}"/> for backends where the 2 are not distinct.
+/// </summary>
+public interface IHostStagingBuffer<T> : IHostBuffer<T>, IStagingBuffer<T> where T : unmanaged {
+	void IHostBuffer.UploadRaw( ReadOnlySpan<byte> data, uint offset ) {
+		((IStagingBuffer)this).UploadRaw( data, offset );
+	}
+
+	void IHostBuffer.UploadSparseRaw( ReadOnlySpan<byte> data, uint size, uint stride, uint offset ) {
+		((IStagingBuffer)this).UploadSparseRaw( data, size, stride, offset );
+	}
+
+	void IStagingBuffer.CopyToRaw( IHostBuffer buffer, uint length, uint sourceOffset, uint destinationOffset ) {
+		this.CopyToRaw( (IStagingBuffer)buffer, length, sourceOffset, destinationOffset );
+	}
+
+	void IStagingBuffer.SparseCopyToRaw( IHostBuffer buffer, uint length, uint size, uint stride, uint sourceOffset, uint destinationOffset ) {
+		this.SparseCopyToRaw( (IStagingBuffer)buffer, length, size, stride, sourceOffset, destinationOffset );
+	}
+}
+
+public static class BufferExtensions {
+	/// <summary>
+	/// Allocates (clearing any previous data) a new chunk of memory for this buffer.
+	/// </summary>
+	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
+	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
+	public static void Allocate<T> ( this IBuffer<T> @this, uint size, BufferUsage usageHint ) where T : unmanaged {
+		@this.AllocateRaw( size * IBuffer<T>.Stride, usageHint );
+	}
+
+	/// <summary>
+	/// Allocates (clearing any previous data) a new chunk of memory for this buffer. This chunk will be suited to hold uniform data (aligned to 256 bytes).
+	/// </summary>
+	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
+	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
+	public static void AllocateUniform<T> ( this IBuffer<T> @this, uint size, BufferUsage usageHint ) where T : unmanaged {
+		@this.AllocateAligned( size, 256, usageHint );
+	}
+
+	/// <summary>
+	/// Allocates (clearing any previous data) a new chunk of memory for this buffer. This chunk will pad between elements such that every element will be aligned to the given alignemnt.
+	/// </summary>
+	/// <param name="size">Amount of elements (*not* bytes) that this buffer needs to be able to hold. Must be greater than 0.</param>
+	/// <param name="alignment">Alignment of elements in bytes.</param>
+	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
+	public static void AllocateAligned<T> ( this IBuffer<T> @this, uint size, uint alignment, BufferUsage usageHint ) where T : unmanaged {
+		var stride = (IBuffer<T>.Stride + alignment - 1) / alignment * alignment;
+		@this.AllocateRaw( (size - 1) * stride + IBuffer<T>.Stride, usageHint );
+	}
+
+	/// <summary>
+	/// Uploads data to the buffer.
+	/// </summary>
+	/// <param name="data">The data to upload.</param>
+	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
+	public static void Upload<T> ( this IHostBuffer<T> @this, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadRaw( MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
+	}
+
+	/// <inheritdoc cref="Upload{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	public static void Upload<T> ( this IHostBuffer<T> @this, T data, uint offset = 0 ) where T : unmanaged {
+		@this.Upload( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
+	}
+
+	/// <summary>
+	/// Uploads data to the buffer. The uploaded data will be suited to hold uniform data (aligned to 256 bytes).
+	/// </summary>
+	/// <param name="data">The data to upload.</param>
+	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
+	public static void UploadUniform<T> ( this IHostBuffer<T> @this, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadAligned( data, 256, offset );
+	}
+
+	/// <inheritdoc cref="UploadUniform{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	public static void UploadUniform<T> ( this IHostBuffer<T> @this, T data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadUniform( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
+	}
+
+	/// <summary>
+	/// Uploads data to the buffer. The data wil be uploaded such that each element is placed on an alignment boundary.
+	/// </summary>
+	/// <param name="data">The data to upload.</param>
+	/// <param name="alignment">Alignment of elements in bytes.</param>
+	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
+	public static void UploadAligned<T> ( this IHostBuffer<T> @this, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		var stride = IBuffer<T>.AlignedStride( alignment );
+		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+	}
+
+	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint, uint)"/>
+	public static void UploadAligned<T> ( this IHostBuffer<T> @this, T data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		@this.UploadAligned( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), alignment, offset );
+	}
+
+	/// <inheritdoc cref="IStagingBuffer.CopyToRaw(IHostBuffer, uint, uint, uint)"/>
+	public static void CopyToRaw ( this IStagingBuffer @this, IStagingBuffer buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		buffer.UploadRaw( @this.AsSpan<byte>( (int)sourceOffset, (int)length ), destinationOffset );
+	}
+
+	/// <inheritdoc cref="IStagingBuffer.SparseCopyToRaw(IHostBuffer, uint, uint, uint, uint, uint)"/>
+	public static void SparseCopyToRaw ( this IStagingBuffer @this, IStagingBuffer buffer, uint length, uint size, uint stride, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		buffer.UploadSparseRaw( @this.AsSpan<byte>( (int)sourceOffset, (int)length ), size, stride, destinationOffset );
+	}
+
+	public static unsafe Span<T> AsSpan<T> ( this IStagingBuffer @this, int length ) where T : unmanaged
+		=> new Span<T>( (T*)@this.GetData(), length );
+
+	public static unsafe Span<T> AsSpan<T> ( this IStagingBuffer @this, int start, int length ) where T : unmanaged
+		=> new Span<T>( (T*)@this.GetData() + start, length );
+
+	/// <inheritdoc cref="IHostBuffer.UploadRaw(ReadOnlySpan{byte}, uint)"/>
+	public static unsafe void UploadRaw ( this IStagingBuffer @this, ReadOnlySpan<byte> data, uint offset = 0 ) {
+		data.CopyTo( new Span<byte>( (byte*)@this.GetData() + offset, data.Length ) );
+	}
+
+	/// <inheritdoc cref="IHostBuffer.UploadSparseRaw(ReadOnlySpan{byte}, uint, uint, uint)"/>
+	public static unsafe void UploadSparseRaw ( this IStagingBuffer @this, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 ) {
+		var ptr = (byte*)@this.GetData() + offset;
+		var Size = (int)size;
+		for ( int i = 0; i < data.Length; i += Size ) {
+			data.Slice( i, Size ).CopyTo( new Span<byte>( ptr, Size ) );
+			ptr += stride;
+		}
+	}
+
+	public static unsafe Span<T> AsSpan<T> ( this IStagingBuffer<T> @this, int length ) where T : unmanaged
+		=> new Span<T>( (T*)@this.GetData(), length );
+
+	public static unsafe Span<T> AsSpan<T> ( this IStagingBuffer<T> @this, int start, int length ) where T : unmanaged
+		=> new Span<T>( (T*)@this.GetData() + start, length );
+
+	/// <summary>
+	/// Copies data from this buffer to another.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of elements to copy.</param>
+	/// <param name="sourceOffset">Offset into this buffer in elements.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
+	public static void CopyTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.CopyToRaw( buffer, length * IBuffer<T>.Stride, sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.Stride );
+	}
+	/// <inheritdoc cref="CopyTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint)"/>
+	public static void CopyTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.CopyToRaw( buffer, length * IBuffer<T>.Stride, sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.Stride );
+	}
+
+	/// <summary>
+	/// Copies data from this buffer to another. The uploaded data will be suited to hold uniform data (aligned to 256 bytes).
+	/// Assumes this buffer is packed.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of elements to copy.</param>
+	/// <param name="sourceOffset">Offset into this buffer in elements.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
+	public static void PackedCopyUniformTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.CopyAlignedTo( buffer, length, 256, sourceOffset, destinationOffset );
+	}
+	/// <inheritdoc cref="PackedCopyUniformTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint)"/>
+	public static void PackedCopyUniformTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.CopyAlignedTo( buffer, length, 256, sourceOffset, destinationOffset );
+	}
+
+	/// <summary>
+	/// Copies data from this buffer to another. The uploaded data will be suited to hold uniform data (aligned to 256 bytes).
+	/// Assumes this buffer's elements are aligned to 256.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of elements to copy.</param>
+	/// <param name="sourceOffset">Offset into this buffer in elements.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
+	public static void UniformCopyUniformTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		var alignedStride = IBuffer<T>.AlignedStride( 256 );
+		@this.CopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, sourceOffset * alignedStride, destinationOffset * alignedStride ); // TODO add doubly sparse operations?
+	}
+	/// <inheritdoc cref="UniformCopyUniformTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint)"/>
+	public static void UniformCopyUniformTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		var alignedStride = IBuffer<T>.AlignedStride( 256 );
+		@this.CopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, sourceOffset * alignedStride, destinationOffset * alignedStride ); // TODO add doubly sparse operations?
+	}
+
+	/// <summary>
+	/// Copies data from this buffer to another. The data wil be uploaded such that each element is placed on an alignment boundary.
+	/// Assumes this buffer is packed.
+	/// </summary>
+	/// <param name="buffer">The destination buffer.</param>
+	/// <param name="length">Amount of elements to copy.</param>
+	/// <param name="alignment">Alignment of elements in bytes.</param>
+	/// <param name="sourceOffset">Offset into this buffer in elements.</param>
+	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
+	public static void CopyAlignedTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint alignment, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
+	}
+	/// <inheritdoc cref="CopyAlignedTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint, uint)"/>
+	public static void CopyAlignedTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint alignment, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
+	}
+
+	/// <inheritdoc cref="Upload{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	public static void Upload<T> ( this IStagingBuffer<T> @this, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadRaw( MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
+	}
+
+	/// <inheritdoc cref="Upload{T}(IHostBuffer{T}, T, uint)"/>
+	public static void Upload<T> ( this IStagingBuffer<T> @this, T data, uint offset = 0 ) where T : unmanaged {
+		@this.Upload( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
+	}
+
+	/// <inheritdoc cref="UploadUniform{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	public static void UploadUniform<T> ( this IStagingBuffer<T> @this, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadAligned( data, 256, offset );
+	}
+
+	/// <inheritdoc cref="UploadUniform{T}(IHostBuffer{T}, T, uint)"/>
+	public static void UploadUniform<T> ( this IStagingBuffer<T> @this, T data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadUniform( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), offset );
+	}
+
+	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint, uint)"/>
+	public static void UploadAligned<T> ( this IStagingBuffer<T> @this, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		var stride = IBuffer<T>.AlignedStride( alignment );
+		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+	}
+
+	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, T, uint, uint)"/>
+	public static void UploadAligned<T> ( this IStagingBuffer<T> @this, T data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		@this.UploadAligned( MemoryMarshal.CreateReadOnlySpan( ref data, 1 ), alignment, offset );
+	}
 }

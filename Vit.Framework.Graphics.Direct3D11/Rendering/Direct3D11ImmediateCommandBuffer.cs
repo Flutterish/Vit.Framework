@@ -39,6 +39,18 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		texture.Upload( data, Context );
 	}
 
+	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		var src = (ID3D11BufferHandle)source;
+		var dst = (ID3D11BufferHandle)destination;
+
+		Context.CopySubresourceRegion( dst.Handle, 0, (int)destinationOffset, 0, 0, src.Handle, 0, new() {
+			Left = (int)sourceOffset,
+			Right = (int)(sourceOffset + length),
+			Back = 1,
+			Bottom = 1
+		} );
+	}
+
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( invalidations.HasFlag( PipelineInvalidations.Shaders ) ) {
 			foreach ( var i in ( ShaderSet.LinkedShaders ) ) {

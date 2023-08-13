@@ -4,7 +4,12 @@ using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
-public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandle where T : unmanaged {
+public interface IMappable {
+	MappedSubresource Map ();
+	void Unmap ();
+}
+
+public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandle, IMappable where T : unmanaged {
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
@@ -15,14 +20,22 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		Type = type;
 	}
 
+	public MappedSubresource Map () {
+		return Context.Map( Handle!, MapMode.WriteNoOverwrite );
+	}
+
+	public void Unmap () {
+		Context.Unmap( Handle! );
+	}
+
 	public unsafe void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 ) {
-		var map = Context.Map( Handle!, MapMode.WriteDiscard ); // TODO I dont get why it has to be discrd. Context is an immediate context, not a deferred one.
+		var map = Context.Map( Handle!, MapMode.WriteNoOverwrite );
 		data.CopyTo( new Span<byte>( (byte*)map.DataPointer + offset, data.Length ) );
 		Context.Unmap( Handle! );
 	}
 
 	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
-		var map = Context.Map( Handle!, MapMode.WriteDiscard );
+		var map = Context.Map( Handle!, MapMode.WriteNoOverwrite );
 		var ptr = (byte*)map.DataPointer + offset;
 		int size = (int)_size;
 		for ( int i = 0; i < data.Length; i += size ) {

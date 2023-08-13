@@ -74,6 +74,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		} );
 	}
 
+	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
+		return new HostBuffer<T>( Device, VkBufferUsageFlags.TransferSrc );
+	}
+
 	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new ImageTexture( Device, size, format );
 	}

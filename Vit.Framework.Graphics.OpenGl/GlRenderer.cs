@@ -55,6 +55,10 @@ public class GlRenderer : IRenderer {
 		} );
 	}
 
+	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
+		return new HostBuffer<T>( BufferTarget.CopyReadBuffer );
+	}
+
 	public ITexture CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
 		return new Texture2D( size, format );
 	}

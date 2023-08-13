@@ -88,22 +88,31 @@ public class Sprite : Drawable {
 			basicShader.Compile( renderer );
 			UniformSetAllocator = new( basicShader.Value, set: 1, poolSize: 256 );
 
-			using var copy = renderer.CreateImmediateCommandBuffer();
-			Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
-			Indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( Indices, new ushort[] {
+			using var indexSource = renderer.CreateStagingBuffer<ushort>();
+			indexSource.Allocate( 6, BufferUsage.GpuRead | BufferUsage.GpuRarely | BufferUsage.CpuWrite | BufferUsage.CpuRarely );
+			indexSource.Upload( stackalloc ushort[] {
 				0, 1, 2,
 				0, 2, 3
 			} );
 
-			Vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-			Vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-			copy.Upload( Vertices, new Vertex[] {
+			using var vertexSource = renderer.CreateStagingBuffer<Vertex>();
+			vertexSource.Allocate( 4, BufferUsage.GpuRead | BufferUsage.GpuRarely | BufferUsage.CpuWrite | BufferUsage.CpuRarely );
+			vertexSource.Upload( stackalloc Vertex[] {
 				new() { PositionAndUV = new( 0, 1 ) },
 				new() { PositionAndUV = new( 1, 1 ) },
 				new() { PositionAndUV = new( 1, 0 ) },
 				new() { PositionAndUV = new( 0, 0 ) }
 			} );
+
+			using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
+				Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
+				Indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				copy.CopyBuffer( indexSource, Indices, 6 );
+
+				Vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+				Vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				copy.CopyBuffer( vertexSource, Vertices, 4 );
+			}
 		}
 
 		protected override void Dispose ( bool disposing ) {

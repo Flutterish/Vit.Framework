@@ -29,25 +29,6 @@ public interface ICommandBuffer {
 	/// <param name="buffer">The device buffer to upload to.</param>
 	void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
 
-	/// <inheritdoc cref="IHostBuffer{T}.Upload(ReadOnlySpan{T}, uint)"/>
-	/// <param name="buffer">The device buffer to upload to.</param>
-	public void Upload<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		UploadRaw( buffer, MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
-	}
-
-	/// <inheritdoc cref="IHostBuffer{T}.UploadUniform(ReadOnlySpan{T}, uint)"/>
-	/// <param name="buffer">The device buffer to upload to.</param>
-	public void UploadUniform<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		UploadAligned( buffer, data, 256, offset );
-	}
-
-	/// <inheritdoc cref="IHostBuffer{T}.UploadAligned(ReadOnlySpan{T}, uint, uint)"/>
-	/// <param name="buffer">The device buffer to upload to.</param>
-	public void UploadAligned<T> ( IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
-		var stride = (IBuffer<T>.Stride + alignment - 1) / alignment * alignment;
-		UploadSparseRaw( buffer, MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
-	}
-
 	/// <summary>
 	/// Uploads data to a texture.
 	/// </summary>
@@ -55,6 +36,16 @@ public interface ICommandBuffer {
 	/// <param name="texture">The texture to upload to.</param>
 	/// <param name="data">The image data to upload.</param>
 	void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
+
+	/// <summary>
+	/// Copies data from one buffer to another.
+	/// </summary>
+	/// <param name="source">The source buffer.</param>
+	/// <param name="destination">The destination buffer.</param>
+	/// <param name="length">The amount of data to copy in bytes.</param>
+	/// <param name="sourceOffset">Offset into the source buffer in bytes.</param>
+	/// <param name="destinationOffset">Offset into the destination buffer in bytes.</param>
+	void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 
 	IShaderSet ShaderSet { get; }
 	/// <summary>
@@ -175,6 +166,37 @@ public static class ICommandBufferExtensions {
 			data.buffer.SetStencilTest( data.stencil.test, data.stencil.state );
 		} );
 	}
+
+	/// <inheritdoc cref="BufferExtensions.Upload{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public static void Upload<T> ( this ICommandBuffer @this, IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadRaw( buffer, MemoryMarshal.AsBytes( data ), offset * IBuffer<T>.Stride );
+	}
+
+	/// <inheritdoc cref="BufferExtensions.UploadUniform{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public static void UploadUniform<T> ( this ICommandBuffer @this, IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		@this.UploadAligned( buffer, data, 256, offset );
+	}
+
+	/// <inheritdoc cref="BufferExtensions.UploadAligned{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint, uint)"/>
+	/// <param name="buffer">The device buffer to upload to.</param>
+	public static void UploadAligned<T> ( this ICommandBuffer @this, IDeviceBuffer<T> buffer, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
+		var stride = (IBuffer<T>.Stride + alignment - 1) / alignment * alignment;
+		@this.UploadSparseRaw( buffer, MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+	}
+
+	/// <summary>
+	/// Copies data from one buffer to another.
+	/// </summary>
+	/// <param name="source">The source buffer.</param>
+	/// <param name="destination">The destination buffer.</param>
+	/// <param name="length">The amount of data to copy in elements.</param>
+	/// <param name="sourceOffset">Offset into the source buffer in elements.</param>
+	/// <param name="destinationOffset">Offset into the destination buffer in elements.</param>
+	public static void CopyBuffer<T> ( this ICommandBuffer @this, IBuffer<T> source, IBuffer<T> destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
+		@this.CopyBufferRaw( source, destination, length * IBuffer<T>.Stride, sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.Stride );
+	}
 }
 
 /// <summary>
@@ -200,6 +222,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	public abstract void UploadRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint offset = 0 );
 	public abstract void UploadSparseRaw ( IDeviceBuffer buffer, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
+	public abstract void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 
 	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
 		UploadTextureData( (TTexture)texture, data );
