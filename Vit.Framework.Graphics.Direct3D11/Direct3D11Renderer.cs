@@ -3,13 +3,10 @@ using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Direct3D11.Rendering;
 using Vit.Framework.Graphics.Direct3D11.Shaders;
 using Vit.Framework.Graphics.Direct3D11.Textures;
-using Vit.Framework.Graphics.Direct3D11.Uniforms;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -52,10 +49,6 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
 		return new ShaderSet( parts, Context );
-	}
-
-	public IUniformSetPool CreateUniformSetPool ( uint size, UniformSetInfo type ) {
-		return new UniformSetPool( type );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {

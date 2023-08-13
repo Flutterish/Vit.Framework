@@ -4,7 +4,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 namespace Vit.Framework.Graphics.Rendering.Uniforms;
 
 /// <summary>
-/// A set of uniform values. May be shared across multiple shader parts and shader sets. <br/>
+/// A set of uniform values for a specific shader set. <br/>
 /// A uniform set and its underlying data may not be modified while bound to a command buffer.
 /// </summary>
 /// <remarks>

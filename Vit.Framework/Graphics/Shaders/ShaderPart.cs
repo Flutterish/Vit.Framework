@@ -16,7 +16,8 @@ public class ShaderPart : DisposableObject {
 	public IShaderPart Value = null!;
 
 	public void Compile ( IRenderer renderer ) {
-		Value = renderer.CompileShaderPart( Bytecode );
+		if ( Value == null )
+			Value = renderer.CompileShaderPart( Bytecode );
 	}
 
 	protected override void Dispose ( bool disposing ) {

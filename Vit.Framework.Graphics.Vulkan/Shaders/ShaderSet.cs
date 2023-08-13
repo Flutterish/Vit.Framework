@@ -42,6 +42,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		return new StandaloneUniformSet( Modules[0].Device, this.CreateUniformSetInfo( set ) );
 	}
 
+	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
+		return new DescriptorPool( Modules[0].Device, size, this.CreateUniformSetInfo( set ) );
+	}
+
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
 		var value = (IDescriptorSet)uniforms;
 		UniformSets[set] = value;

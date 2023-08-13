@@ -70,6 +70,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		return value;
 	}
 
+	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
+		return new UniformSetPool( this.CreateUniformSetInfo( set ) );
+	}
+
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {
 		UniformSets[set] = (UniformSet)uniforms;
 	}

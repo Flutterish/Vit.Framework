@@ -24,6 +24,11 @@ public interface IShaderSet : IDisposable {
 	IUniformSet CreateUniformSet ( uint set = 0 );
 
 	/// <summary>
+	/// Creates a pool of <see cref="IUniformSet"/>s.
+	/// </summary>
+	IUniformSetPool CreateUniformSetPool ( uint set, uint size );
+
+	/// <summary>
 	/// Binds a uniform set to the shader set.
 	/// </summary>
 	void SetUniformSet ( IUniformSet uniforms, uint set = 0 );

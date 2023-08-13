@@ -3,7 +3,6 @@ using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
-using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Mathematics;
@@ -66,17 +65,16 @@ public class Sprite : Drawable {
 		public IDeviceBuffer<ushort> Indices = null!;
 		public IDeviceBuffer<Vertex> Vertices = null!;
 
-		public void Initialize ( IRenderer renderer ) {
-			UniformAllocator = new( 256, 1, renderer, static ( r, s ) => {
+		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
+			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
 				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 				buffer.Allocate( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 				return buffer;
 			} );
 
-			UniformSetAllocator = new( new[] {
-				BasicVertexShader.Spirv.Reflections,
-				BasicFragmentShader.Spirv.Reflections
-			}.CreateUniformSetInfo( set: 1 ), renderer, 256 );
+			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() { Vertex = BasicVertexShader.Identifier, Fragment = BasicFragmentShader.Identifier } );
+			basicShader.Compile( renderer );
+			UniformSetAllocator = new( basicShader.Value, set: 1, poolSize: 256 );
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 			Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );

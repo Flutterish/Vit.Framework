@@ -10,7 +10,6 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
 public class UniformSet : DisposableObject, IUniformSet {
-
 	public Dictionary<uint, (IGlBuffer buffer, int stride, uint offset)> Buffers = new();
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
@@ -30,8 +29,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 			var binding = mapping.Bindings[(set, originalBinding)];
 
 			var UBOindex = binding;
-			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)binding, buffer.Handle, (nint)offset, stride );
-			GL.UniformBlockBinding( (uint)program.Handle, UBOindex, binding );
+			GL.BindBufferRange( BufferRangeTarget.UniformBuffer, (int)binding, buffer.Handle, (nint)offset, stride ); // TODO these can be optimised into one call if we know the flat mapping
+			GL.UniformBlockBinding( (uint)program.Handle, UBOindex, binding ); // this can be extracted to progam itself
 		}
 
 		foreach ( var (originalBinding, texture) in Samplers ) {

@@ -51,7 +51,7 @@ public abstract partial class Basic2DApp<TRoot> {
 			
 			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
 				if ( dep is IDrawDependency drawDependency )
-					drawDependency.Initialize( Renderer );
+					drawDependency.Initialize( Renderer, Dependencies );
 			}
 
 			ShaderStore = Dependencies.Resolve<ShaderStore>();
@@ -124,5 +124,5 @@ public abstract partial class Basic2DApp<TRoot> {
 }
 
 public interface IDrawDependency {
-	void Initialize ( IRenderer renderer );
+	void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies );
 }

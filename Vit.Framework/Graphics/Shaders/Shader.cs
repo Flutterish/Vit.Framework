@@ -17,7 +17,11 @@ public class Shader : DisposableObject {
 	public IShaderSet Value = null!;
 
 	public void Compile ( IRenderer renderer ) {
-		Value = renderer.CreateShaderSet( Parts.Select( x => x.Value ) );
+		if ( Value == null ) {
+			foreach ( var i in Parts )
+				i.Compile( renderer );
+			Value = renderer.CreateShaderSet( Parts.Select( x => x.Value ) );
+		}
 	}
 
 	protected override void Dispose ( bool disposing ) {

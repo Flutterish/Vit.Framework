@@ -6,14 +6,11 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.Shaders;
 
 public class ShaderStore : DisposableObject {
-	ConcurrentQueue<ShaderPart> partsToCompile = new();
 	ConcurrentQueue<Shader> shadersToCompile = new();
-
 	Dictionary<ShaderIdentifier, ShaderPart> shaderParts = new();
 
 	public void AddShaderPart ( ShaderIdentifier id, ShaderPart part ) {
 		shaderParts.Add( id, part );
-		partsToCompile.Enqueue( part );
 	}
 
 	public void AddShaderPart ( ShaderIdentifier id, SpirvBytecode part ) {
@@ -31,16 +28,8 @@ public class ShaderStore : DisposableObject {
 		return shader;
 	}
 
-	public void CompileNew ( IRenderer renderer ) { // TODO this is not correct. a shader can be added while its parts are not compiled.
-		while ( partsToCompile.TryDequeue( out var part ) ) {
-			part.Compile( renderer );
-		}
-
+	public void CompileNew ( IRenderer renderer ) {
 		while ( shadersToCompile.TryDequeue( out var shader ) ) {
-			foreach ( var i in shader.Parts ) {
-				if ( i.Value == null ) // this is a fix for that, but we should just do it better
-					i.Compile( renderer );
-			}
 			shader.Compile( renderer );
 		}
 	}

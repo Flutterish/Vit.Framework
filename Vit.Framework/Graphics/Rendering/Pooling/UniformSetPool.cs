@@ -1,4 +1,4 @@
-﻿using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
+﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 
 namespace Vit.Framework.Graphics.Rendering.Pooling;
@@ -8,16 +8,16 @@ namespace Vit.Framework.Graphics.Rendering.Pooling;
 /// </summary>
 public class UniformSetPool : RegionAllocator<UniformSetPool.Allocation, UniformSetPool.Region>, IDisposable {
 	public readonly uint PoolSize;
-	public readonly UniformSetInfo Type;
-	public readonly IRenderer Renderer;
-	public UniformSetPool ( UniformSetInfo type, IRenderer renderer, uint poolSize ) {
+	public readonly uint Set;
+	public readonly IShaderSet Shaders;
+	public UniformSetPool ( IShaderSet shaders, uint set, uint poolSize ) {
 		PoolSize = poolSize;
-		Type = type;
-		Renderer = renderer;
+		Set = set;
+		Shaders = shaders;
 	}
 
 	protected override Region CreateRegion ( Region? last ) {
-		return new Region( last, Renderer.CreateUniformSetPool( PoolSize, Type ), PoolSize );
+		return new Region( last, Shaders.CreateUniformSetPool( Set, PoolSize ), PoolSize );
 	}
 
 	protected override Allocation Allocate ( Region region ) {
