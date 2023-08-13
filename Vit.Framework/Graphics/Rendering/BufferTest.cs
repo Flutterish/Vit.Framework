@@ -11,10 +11,18 @@ public struct BufferTest {
 		IsEnabled = true;
 		CompareOperation = compareOperation;
 	}
+
+	public override string ToString () {
+		return IsEnabled ? $"{CompareOperation}" : "Disabled";
+	}
 }
 
 public struct DepthState {
 	public required bool WriteOnPass;
+
+	public override string ToString () {
+		return $"WriteOnPass = {WriteOnPass}";
+	}
 }
 
 [Flags]
@@ -55,6 +63,10 @@ public struct StencilState { // TODO it seems there are separate functions for f
 	public required uint CompareMask;
 	public required uint WriteMask;
 	public uint ReferenceValue;
+
+	public override string ToString () {
+		return $"Pass = {PassOperation}, Fail = {StencilFailOperation}, DepthFail = {DepthFailOperation} (Reference = {ReferenceValue}, CompareMask = 0x{CompareMask:X}, WriteMask = 0x{WriteMask:X})";
+	}
 }
 
 public enum StencilOperation {
