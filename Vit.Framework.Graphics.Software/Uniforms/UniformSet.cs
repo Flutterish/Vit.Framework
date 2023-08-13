@@ -20,6 +20,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 		Samplers[binding] = (Texture)texture;
 	}
 
+	public void Free () {
+		UniformBuffers.Clear();
+		Samplers.Clear();
+	}
+
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}

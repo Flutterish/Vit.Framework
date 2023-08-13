@@ -41,6 +41,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 		}
 	}
 
+	public void Free () {
+		Buffers.Clear();
+		Samplers.Clear();
+	}
+
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}

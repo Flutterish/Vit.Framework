@@ -21,6 +21,7 @@ public class UniformSetPool : IUniformSetPool {
 	}
 
 	public void Free ( IUniformSet set ) {
+		((UniformSet)set).Free();
 		uniforms.Push( set );
 	}
 
