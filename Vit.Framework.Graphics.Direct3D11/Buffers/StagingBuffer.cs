@@ -25,15 +25,15 @@ public class StagingBuffer<T> : DisposableObject, IStagingBuffer<T>, ID3D11Buffe
 		mappable.Unmap();
 	}
 
-	public unsafe void SparseCopyToRaw ( IHostBuffer buffer, uint length, uint _size, uint stride, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+	public unsafe void SparseCopyToRaw ( IHostBuffer buffer, uint length, uint _size, uint sourceStride, uint destinationStride, uint sourceOffset = 0, uint destinationOffset = 0 ) {
 		var mappable = (IMappable)buffer;
 
 		var map = mappable.Map();
 		var ptr = (byte*)map.DataPointer + destinationOffset;
 		int size = (int)_size;
-		for ( int i = 0; i < length; i += size ) {
+		for ( int i = 0; i < length; i += (int)sourceStride ) {
 			this.AsSpan<byte>( i + (int)sourceOffset, size ).CopyTo( new Span<byte>( ptr, size ) );
-			ptr += stride;
+			ptr += destinationStride;
 		}
 		mappable.Unmap();
 	}

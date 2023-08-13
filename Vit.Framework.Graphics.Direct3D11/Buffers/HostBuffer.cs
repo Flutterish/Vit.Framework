@@ -34,13 +34,13 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		Context.Unmap( Handle! );
 	}
 
-	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint stride, uint offset = 0 ) {
+	public unsafe void UploadSparseRaw ( ReadOnlySpan<byte> data, uint _size, uint sourceStride, uint descinationStride, uint offset = 0 ) {
 		var map = Context.Map( Handle!, MapMode.WriteNoOverwrite );
 		var ptr = (byte*)map.DataPointer + offset;
 		int size = (int)_size;
-		for ( int i = 0; i < data.Length; i += size ) {
+		for ( int i = 0; i < data.Length; i += (int)sourceStride ) {
 			data.Slice( i, size ).CopyTo( new Span<byte>( ptr, size ) );
-			ptr += stride;
+			ptr += descinationStride;
 		}
 		Context.Unmap( Handle! );
 	}

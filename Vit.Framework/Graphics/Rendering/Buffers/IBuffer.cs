@@ -38,13 +38,14 @@ public interface IHostBuffer : IBuffer {
 	void UploadRaw ( ReadOnlySpan<byte> data, uint offset = 0 );
 
 	/// <summary>
-	/// Uploads data to the buffer, such that <c><paramref name="data"/></c> is chunked into <c><paramref name="size"/></c>-byte chunks and each chunk is placed every <c><paramref name="stride"/></c> bytes in the buffer.
+	/// Uploads data to the buffer, such that <c><paramref name="data"/></c> is chunked into <c><paramref name="size"/></c>-byte chunks and each chunk is placed every <c><paramref name="destinationStride"/></c> bytes in the buffer.
 	/// </summary>
 	/// <param name="data">The data to upload.</param>
-	/// <param name="size">Size of each element in <paramref name="data"/>. Must be smaller or equal to <paramref name="stride"/>.</param>
-	/// <param name="stride">Stride of each element in the buffer.</param>
+	/// <param name="size">Size of each element in <paramref name="data"/>. Must be smaller or equal to <paramref name="destinationStride"/>.</param>
+	/// <param name="sourceStride">Stride of each element in the data. For packed data, equal to <paramref name="size"/>.</param>
+	/// <param name="destinationStride">Stride of each element in the buffer.</param>
 	/// <param name="offset">Offset (in <b>bytes</b>) into the buffer.</param>
-	void UploadSparseRaw ( ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 );
+	void UploadSparseRaw ( ReadOnlySpan<byte> data, uint size, uint sourceStride, uint destinationStride, uint offset = 0 );
 }
 
 /// <inheritdoc cref="IHostBuffer"/>
@@ -91,10 +92,11 @@ public unsafe interface IStagingBuffer : IBuffer {
 	/// <param name="buffer">The destination buffer.</param>
 	/// <param name="length">Amount of bytes to copy.</param>
 	/// <param name="size">Amount of bytes per chunk.</param>
-	/// <param name="stride">Stride of each element in the buffer.</param>
+	/// <param name="sourceStride">Stride of each element in the data. For packed data, equal to <paramref name="size"/>.</param>
+	/// <param name="destinationStride">Stride of each element in the buffer.</param>
 	/// <param name="sourceOffset">Offset into this buffer in bytes.</param>
 	/// <param name="destinationOffset">Offset into the destinaton buffer in bytes.</param>
-	void SparseCopyToRaw ( IHostBuffer buffer, uint length, uint size, uint stride, uint sourceOffset = 0, uint destinationOffset = 0 );
+	void SparseCopyToRaw ( IHostBuffer buffer, uint length, uint size, uint sourceStride, uint destinationStride, uint sourceOffset = 0, uint destinationOffset = 0 );
 }
 
 /// <inheritdoc cref="IStagingBuffer"/>
@@ -110,16 +112,16 @@ public interface IHostStagingBuffer<T> : IHostBuffer<T>, IStagingBuffer<T> where
 		((IStagingBuffer)this).UploadRaw( data, offset );
 	}
 
-	void IHostBuffer.UploadSparseRaw( ReadOnlySpan<byte> data, uint size, uint stride, uint offset ) {
-		((IStagingBuffer)this).UploadSparseRaw( data, size, stride, offset );
+	void IHostBuffer.UploadSparseRaw( ReadOnlySpan<byte> data, uint size, uint sourceStride, uint destinationStride, uint offset ) {
+		((IStagingBuffer)this).UploadSparseRaw( data, size, sourceStride, destinationStride, offset );
 	}
 
 	void IStagingBuffer.CopyToRaw( IHostBuffer buffer, uint length, uint sourceOffset, uint destinationOffset ) {
 		this.CopyToRaw( (IStagingBuffer)buffer, length, sourceOffset, destinationOffset );
 	}
 
-	void IStagingBuffer.SparseCopyToRaw( IHostBuffer buffer, uint length, uint size, uint stride, uint sourceOffset, uint destinationOffset ) {
-		this.SparseCopyToRaw( (IStagingBuffer)buffer, length, size, stride, sourceOffset, destinationOffset );
+	void IStagingBuffer.SparseCopyToRaw( IHostBuffer buffer, uint length, uint size, uint sourceStride, uint destinationStride, uint sourceOffset, uint destinationOffset ) {
+		this.SparseCopyToRaw( (IStagingBuffer)buffer, length, size, sourceStride, destinationStride, sourceOffset, destinationOffset );
 	}
 }
 
@@ -189,7 +191,7 @@ public static class BufferExtensions {
 	/// <param name="offset">Offset (in amount of elements) into the buffer.</param>
 	public static void UploadAligned<T> ( this IHostBuffer<T> @this, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
 		var stride = IBuffer<T>.AlignedStride( alignment );
-		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, IBuffer<T>.Stride, stride, offset * stride );
 	}
 
 	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint, uint)"/>
@@ -202,9 +204,9 @@ public static class BufferExtensions {
 		buffer.UploadRaw( @this.AsSpan<byte>( (int)sourceOffset, (int)length ), destinationOffset );
 	}
 
-	/// <inheritdoc cref="IStagingBuffer.SparseCopyToRaw(IHostBuffer, uint, uint, uint, uint, uint)"/>
-	public static void SparseCopyToRaw ( this IStagingBuffer @this, IStagingBuffer buffer, uint length, uint size, uint stride, uint sourceOffset = 0, uint destinationOffset = 0 ) {
-		buffer.UploadSparseRaw( @this.AsSpan<byte>( (int)sourceOffset, (int)length ), size, stride, destinationOffset );
+	/// <inheritdoc cref="IStagingBuffer.SparseCopyToRaw(IHostBuffer, uint, uint, uint, uint, uint, uint)"/>
+	public static void SparseCopyToRaw ( this IStagingBuffer @this, IStagingBuffer buffer, uint length, uint size, uint sourceStride, uint destinationStride, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		buffer.UploadSparseRaw( @this.AsSpan<byte>( (int)sourceOffset, (int)length ), size, sourceStride, destinationStride, destinationOffset );
 	}
 
 	public static unsafe Span<T> AsSpan<T> ( this IStagingBuffer @this, int length ) where T : unmanaged
@@ -218,13 +220,13 @@ public static class BufferExtensions {
 		data.CopyTo( new Span<byte>( (byte*)@this.GetData() + offset, data.Length ) );
 	}
 
-	/// <inheritdoc cref="IHostBuffer.UploadSparseRaw(ReadOnlySpan{byte}, uint, uint, uint)"/>
-	public static unsafe void UploadSparseRaw ( this IStagingBuffer @this, ReadOnlySpan<byte> data, uint size, uint stride, uint offset = 0 ) {
+	/// <inheritdoc cref="IHostBuffer.UploadSparseRaw(ReadOnlySpan{byte}, uint, uint, uint, uint)"/>
+	public static unsafe void UploadSparseRaw ( this IStagingBuffer @this, ReadOnlySpan<byte> data, uint size, uint sourceStride, uint destinationStride, uint offset = 0 ) {
 		var ptr = (byte*)@this.GetData() + offset;
 		var Size = (int)size;
-		for ( int i = 0; i < data.Length; i += Size ) {
+		for ( int i = 0; i < data.Length; i += (int)sourceStride ) {
 			data.Slice( i, Size ).CopyTo( new Span<byte>( ptr, Size ) );
-			ptr += stride;
+			ptr += destinationStride;
 		}
 	}
 
@@ -275,12 +277,12 @@ public static class BufferExtensions {
 	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
 	public static void UniformCopyUniformTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
 		var alignedStride = IBuffer<T>.AlignedStride( 256 );
-		@this.CopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, sourceOffset * alignedStride, destinationOffset * alignedStride ); // TODO add doubly sparse operations?
+		@this.SparseCopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, IBuffer<T>.Stride, alignedStride, alignedStride, sourceOffset * alignedStride, destinationOffset * alignedStride );
 	}
 	/// <inheritdoc cref="UniformCopyUniformTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint)"/>
 	public static void UniformCopyUniformTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
 		var alignedStride = IBuffer<T>.AlignedStride( 256 );
-		@this.CopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, sourceOffset * alignedStride, destinationOffset * alignedStride ); // TODO add doubly sparse operations?
+		@this.SparseCopyToRaw( buffer, (length - 1) * alignedStride + IBuffer<T>.Stride, IBuffer<T>.Stride, alignedStride, alignedStride, sourceOffset * alignedStride, destinationOffset * alignedStride );
 	}
 
 	/// <summary>
@@ -293,11 +295,11 @@ public static class BufferExtensions {
 	/// <param name="sourceOffset">Offset into this buffer in elements.</param>
 	/// <param name="destinationOffset">Offset into the destinaton buffer in elements.</param>
 	public static void CopyAlignedTo<T> ( this IStagingBuffer<T> @this, IHostBuffer<T> buffer, uint length, uint alignment, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
-		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
+		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
 	}
 	/// <inheritdoc cref="CopyAlignedTo{T}(IStagingBuffer{T}, IHostBuffer{T}, uint, uint, uint, uint)"/>
 	public static void CopyAlignedTo<T> ( this IStagingBuffer<T> @this, IStagingBuffer<T> buffer, uint length, uint alignment, uint sourceOffset = 0, uint destinationOffset = 0 ) where T : unmanaged {
-		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
+		@this.SparseCopyToRaw( buffer, length * IBuffer<T>.Stride, length, length, IBuffer<T>.AlignedStride( alignment ), sourceOffset * IBuffer<T>.Stride, destinationOffset * IBuffer<T>.AlignedStride( alignment ) );
 	}
 
 	/// <inheritdoc cref="Upload{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint)"/>
@@ -323,7 +325,7 @@ public static class BufferExtensions {
 	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, ReadOnlySpan{T}, uint, uint)"/>
 	public static void UploadAligned<T> ( this IStagingBuffer<T> @this, ReadOnlySpan<T> data, uint alignment, uint offset = 0 ) where T : unmanaged {
 		var stride = IBuffer<T>.AlignedStride( alignment );
-		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, stride, offset * stride );
+		@this.UploadSparseRaw( MemoryMarshal.AsBytes( data ), IBuffer<T>.Stride, IBuffer<T>.Stride, stride, offset * stride );
 	}
 
 	/// <inheritdoc cref="UploadAligned{T}(IHostBuffer{T}, T, uint, uint)"/>
