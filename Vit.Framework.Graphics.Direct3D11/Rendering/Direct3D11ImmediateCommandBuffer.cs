@@ -72,7 +72,16 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 	}
 
-	ID3D11Buffer[] buffers = new ID3D11Buffer[16]; // TODO we should set these at SetVertexBuffer
+	ID3D11BufferHandle[] vertexBuffers = new ID3D11BufferHandle[16];
+	ID3D11Buffer[] buffers = new ID3D11Buffer[16];
+	int[] bufferOffsets = new int[16];
+	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
+		var bufferSet = ((ID3D11BufferHandle)buffer).TrySet( ref vertexBuffers[binding] );
+		var offsetSet = ((int)offset).TrySet( ref bufferOffsets[binding] );
+
+		return bufferSet || offsetSet;
+	}
+	
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		foreach ( var i in ShaderSet.UniformSets ) {
 			i.Apply( Context );
@@ -83,10 +92,10 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			for ( int i = 0; i < ShaderSet.BufferOffsets.Length; i++ ) {
-				buffers[i] = ((ID3D11BufferHandle)VertexBuffers[i]).Handle!;
+			for ( int i = 0; i < ShaderSet.BufferStrides.Length; i++ ) { // TODO this could be avoided if we could reallocate without changing the handle like opengl and vulkan
+				buffers[i] = vertexBuffers[i].Handle!;
 			}
-			Context.IASetVertexBuffers( 0, buffers, ShaderSet.BufferStrides, ShaderSet.BufferOffsets );
+			Context.IASetVertexBuffers( 0, ShaderSet.BufferStrides.Length, buffers, ShaderSet.BufferStrides, bufferOffsets );
 		}
 	}
 

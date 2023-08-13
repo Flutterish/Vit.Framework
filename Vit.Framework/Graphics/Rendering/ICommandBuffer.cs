@@ -85,7 +85,16 @@ public interface ICommandBuffer {
 	/// <summary>
 	/// Binds a vertex buffer to the pipeline.
 	/// </summary>
-	void BindVertexBuffer ( IBuffer buffer, uint binding = 0 ); // TODO also add offset
+	/// <param name="offset">Offset into the buffer in <b>bytes</b>.</param>
+	void BindVertexBufferRaw ( IBuffer buffer, uint binding = 0, uint offset = 0 );
+
+	/// <summary>
+	/// Binds a vertex buffer to the pipeline.
+	/// </summary>
+	/// <param name="offset">Offset into the buffer in <b>elements</b>.</param>
+	public void BindVertexBuffer<T> ( IBuffer<T> buffer, uint binding = 0, uint offset = 0 ) where T : unmanaged {
+		BindVertexBufferRaw( buffer, binding, offset * IBuffer<T>.Stride );
+	}
 
 	/// <summary>
 	/// Sets the index buffer to use when drawing indexed elements.
@@ -236,11 +245,12 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
 
-	protected IBuffer[] VertexBuffers { get; private set; } = new IBuffer[16];
-	public void BindVertexBuffer ( IBuffer buffer, uint binding ) {
-		if ( buffer.TrySet( ref VertexBuffers[binding] ) )
+	public void BindVertexBufferRaw ( IBuffer buffer, uint binding, uint offset ) {
+		if ( UpdateVertexBufferMetadata( buffer, binding, offset ) )
 			BufferInvalidations |= BufferInvalidations.Vertex;
 	}
+
+	protected abstract bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset );
 
 	protected IndexBufferType IndexBufferType { get; private set; }
 	protected IBuffer IndexBuffer { get; private set; } = null!;

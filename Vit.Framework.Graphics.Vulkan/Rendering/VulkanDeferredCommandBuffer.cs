@@ -99,16 +99,26 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		}
 	}
 
+	VkBuffer[] vertexBuffers = new VkBuffer[16];
+	ulong[] bufferOffsets = new ulong[16];
+	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
+		var offsetSet = ((ulong)offset).TrySet( ref bufferOffsets[binding] );
+
+		var buf = ((IVulkanHandle<VkBuffer>)buffer).Handle;
+		if ( vertexBuffers[binding] != buf ) {
+			vertexBuffers[binding] = buf;
+			return true;
+		}
+
+		return offsetSet;
+	}
+
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( ShaderSet.DescriptorSets.Length != 0 )
 			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			Span<VkBuffer> vertexBuffers = stackalloc VkBuffer[ShaderSet.VertexBufferCount];
-			for ( int i = 0; i < ShaderSet.VertexBufferCount; i++ ) {
-				vertexBuffers[i] = ((IVulkanHandle<VkBuffer>)VertexBuffers[i]).Handle;
-			}
-			Buffer.BindVertexBuffers( vertexBuffers );
+			Buffer.BindVertexBuffers( vertexBuffers.AsSpan( 0, ShaderSet.VertexBufferCount ) );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {

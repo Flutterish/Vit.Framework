@@ -105,18 +105,22 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 
 	DrawElementsType indexType;
 
+	int[] vertexBuffers = new int[16];
+	nint[] bufferOffsets = new nint[16];
+	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
+		var bufferSet = ((IGlBuffer)buffer).Handle.TrySet( ref vertexBuffers[binding] );
+		var offsetSet = ((nint)offset).TrySet( ref bufferOffsets[offset] );
+
+		return bufferSet || offsetSet;
+	}
+
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		foreach ( var i in ShaderSet.UniformSets ) {
 			i.Apply();
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			Span<int> handles = stackalloc int[ShaderSet.InputLayout!.BindingPoints];
-			for ( int i = 0; i < ShaderSet.InputLayout.BindingPoints; i++ ) {
-				handles[i] = ((IGlBuffer)VertexBuffers[i]).Handle;
-			}
-
-			ShaderSet.InputLayout!.BindBuffers( handles );
+			ShaderSet.InputLayout!.BindBuffers( vertexBuffers, bufferOffsets, ShaderSet.InputLayout.BindingPoints );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {

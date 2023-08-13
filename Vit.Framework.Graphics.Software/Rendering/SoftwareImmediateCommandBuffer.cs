@@ -80,6 +80,14 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	IByteBuffer[] vertexBuffers = new IByteBuffer[16];
+	uint[] bufferOffsets = new uint[16];
+	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
+		var bufferSet = ((IByteBuffer)buffer).TrySet( ref vertexBuffers[binding] );
+		var offsetSet = offset.TrySet( ref bufferOffsets[binding] );
+
+		return bufferSet || offsetSet;
+	}
+
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		using var rentedMemory = new RentedArray<byte>( 1024 );
 		var memory = new ShaderMemory { Memory = rentedMemory.AsSpan() };
@@ -109,7 +117,6 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 				indices.MoveNext();
 				var indexC = indices.Current;
 
-				
 				var a = execute( vert, indexA, memory, 0 );
 				var b = execute( vert, indexB, memory, 1 );
 				var c = execute( vert, indexC, memory, 2 );
@@ -128,7 +135,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 			var buffer = vertexBuffers[(int)bufferIndex];
 			var offset = (int)(attributes.Stride * index);
 			var data = buffer.Bytes;
-			data = data.Slice( offset, shader.Stride );
+			data = data.Slice( offset + (int)bufferOffsets[(int)bufferIndex], shader.Stride );
 
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var inputId = shader.InputIdByLocation[location];
@@ -305,8 +312,6 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		for ( int i = 0; i < VertexBuffers.Length; i++ ) {
-			vertexBuffers[i] = (IByteBuffer)VertexBuffers[i];
-		}
+
 	}
 }

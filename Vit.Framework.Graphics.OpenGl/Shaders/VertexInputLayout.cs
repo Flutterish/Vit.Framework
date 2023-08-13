@@ -9,14 +9,12 @@ public class VertexInputLayout : DisposableObject {
 	public readonly int VAO;
 	public readonly int BindingPoints;
 	int[] strides;
-	nint[] offsets;
 	public VertexInputLayout ( VertexInputDescription vertexInput ) {
 		VAO = GL.GenVertexArray();
 		GL.BindVertexArray( VAO );
 
 		BindingPoints = vertexInput.BufferBindings.Any() ? (int)vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
 		strides = new int[BindingPoints];
-		offsets = new nint[BindingPoints];
 
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
@@ -31,7 +29,6 @@ public class VertexInputLayout : DisposableObject {
 				GL.VertexAttribBinding( location, buffer );
 			}
 
-			offsets[buffer] = 0;
 			strides[buffer] = (int)attributes.Stride;
 			GL.VertexBindingDivisor( (int)buffer, attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1 );
 		}
@@ -41,8 +38,8 @@ public class VertexInputLayout : DisposableObject {
 		GL.BindVertexArray( VAO );
 	}
 
-	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers ) {
-		GL.BindVertexBuffers( 0, buffers.Length, buffers.Data(), offsets.Data(), strides.Data() );
+	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers, ReadOnlySpan<nint> offsets, int count ) {
+		GL.BindVertexBuffers( 0, count, buffers.Data(), offsets.Data(), strides.Data() );
 	}
 
 	protected override void Dispose ( bool disposing ) {

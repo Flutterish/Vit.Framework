@@ -36,7 +36,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 		var bufferCount = vertexInput.BufferBindings.Any() ? vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
 		BufferStrides = new int[bufferCount];
-		BufferOffsets = new int[bufferCount];
 
 		var inputs = new InputElementDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Count)];
 		var inputIndex = 0;
@@ -60,7 +59,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 			}
 
 			BufferStrides[buffer] = (int)attributes.Stride;
-			BufferOffsets[buffer] = 0;
 		}
 
 		var vert = LinkedShaders.OfType<VertexShader>().First();
@@ -68,7 +66,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	}
 
 	public int[] BufferStrides;
-	public int[] BufferOffsets;
 
 	public UniformLayout[] UniformLayouts;
 	public UniformSet[] UniformSets;
