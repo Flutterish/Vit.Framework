@@ -18,6 +18,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 		if ( vertexInput != null ) {
 			(Attributes, AttributeSets) = vertexInput.GenerateVertexBindings();
+			VertexBufferCount = vertexInput.BufferBindings.Any() ? (int)vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
 		}
 		else {
 			Attributes = Array.Empty<VkVertexInputAttributeDescription>();
@@ -38,6 +39,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public VkDescriptorSet[] DescriptorSets;
 	public IDescriptorSet?[] UniformSets;
 
+	public int VertexBufferCount;
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 

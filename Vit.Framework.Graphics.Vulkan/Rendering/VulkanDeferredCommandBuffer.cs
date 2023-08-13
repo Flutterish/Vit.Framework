@@ -103,8 +103,13 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		if ( ShaderSet.DescriptorSets.Length != 0 )
 			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
 
-		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) )
-			Buffer.BindVertexBuffer( (IVulkanHandle<VkBuffer>)VertexBuffer );
+		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
+			Span<VkBuffer> vertexBuffers = stackalloc VkBuffer[ShaderSet.VertexBufferCount];
+			for ( int i = 0; i < ShaderSet.VertexBufferCount; i++ ) {
+				vertexBuffers[i] = ((IVulkanHandle<VkBuffer>)VertexBuffers[i]).Handle;
+			}
+			Buffer.BindVertexBuffers( vertexBuffers );
+		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			if ( IndexBufferType == IndexBufferType.UInt16 )

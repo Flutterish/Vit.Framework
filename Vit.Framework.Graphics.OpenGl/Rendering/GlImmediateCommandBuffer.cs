@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
@@ -112,8 +111,12 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			var buffer = (IGlBuffer)VertexBuffer;
-			ShaderSet.InputLayout!.BindBuffers( FixedSpan.From( buffer.Handle ).AsSpan() );
+			Span<int> handles = stackalloc int[ShaderSet.InputLayout!.BindingPoints];
+			for ( int i = 0; i < ShaderSet.InputLayout.BindingPoints; i++ ) {
+				handles[i] = ((IGlBuffer)VertexBuffers[i]).Handle;
+			}
+
+			ShaderSet.InputLayout!.BindBuffers( handles );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {

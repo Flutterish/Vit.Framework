@@ -6,17 +6,17 @@ using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.Primi
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
 
 public class VertexInputLayout : DisposableObject {
-	public int VAO;
-	int bindingPoints;
+	public readonly int VAO;
+	public readonly int BindingPoints;
 	int[] strides;
 	nint[] offsets;
 	public VertexInputLayout ( VertexInputDescription vertexInput ) {
 		VAO = GL.GenVertexArray();
 		GL.BindVertexArray( VAO );
 
-		bindingPoints = vertexInput.BufferBindings.Any() ? (int)vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
-		strides = new int[bindingPoints];
-		offsets = new nint[bindingPoints];
+		BindingPoints = vertexInput.BufferBindings.Any() ? (int)vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
+		strides = new int[BindingPoints];
+		offsets = new nint[BindingPoints];
 
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
@@ -42,7 +42,7 @@ public class VertexInputLayout : DisposableObject {
 	}
 
 	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers ) {
-		GL.BindVertexBuffers( 0, int.Min( buffers.Length, bindingPoints ), buffers.Data(), offsets.Data(), strides.Data() );
+		GL.BindVertexBuffers( 0, buffers.Length, buffers.Data(), offsets.Data(), strides.Data() );
 	}
 
 	protected override void Dispose ( bool disposing ) {

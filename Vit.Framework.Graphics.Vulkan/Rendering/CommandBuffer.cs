@@ -59,6 +59,11 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
 	}
 
+	public unsafe void BindVertexBuffers ( ReadOnlySpan<VkBuffer> buffers ) {
+		var offsets = stackalloc ulong[buffers.Length];
+		Vk.vkCmdBindVertexBuffers( this, 0, 1, buffers.Data(), offsets );
+	}
+
 	void bindIndexBuffer ( IVulkanHandle<VkBuffer> buffer, VkIndexType indexType ) {
 		Vk.vkCmdBindIndexBuffer( this, buffer.Handle, 0, indexType );
 	}

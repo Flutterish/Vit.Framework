@@ -72,6 +72,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 	}
 
+	ID3D11Buffer[] buffers = new ID3D11Buffer[16]; // TODO we should set these at SetVertexBuffer
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		foreach ( var i in ShaderSet.UniformSets ) {
 			i.Apply( Context );
@@ -82,7 +83,10 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			Context.IASetVertexBuffer( 0, ((ID3D11BufferHandle)VertexBuffer).Handle!, ShaderSet.Stride );
+			for ( int i = 0; i < ShaderSet.BufferOffsets.Length; i++ ) {
+				buffers[i] = ((ID3D11BufferHandle)VertexBuffers[i]).Handle!;
+			}
+			Context.IASetVertexBuffers( 0, buffers, ShaderSet.BufferStrides, ShaderSet.BufferOffsets );
 		}
 	}
 

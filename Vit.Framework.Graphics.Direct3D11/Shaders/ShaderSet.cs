@@ -15,7 +15,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public IEnumerable<IShaderPart> Parts => Shaders;
 	public readonly ImmutableArray<UnlinkedShader> Shaders;
 	public readonly ImmutableArray<Shader> LinkedShaders;
-	public readonly int Stride;
 
 	public readonly ID3D11InputLayout? Layout;
 	public ShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
@@ -34,6 +33,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 		if ( vertexInput == null )
 			return;
+
+		var bufferCount = vertexInput.BufferBindings.Any() ? vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
+		BufferStrides = new int[bufferCount];
+		BufferOffsets = new int[bufferCount];
 
 		var inputs = new InputElementDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Count)];
 		var inputIndex = 0;
@@ -55,12 +58,17 @@ public class ShaderSet : DisposableObject, IShaderSet {
 					InstanceDataStepRate = attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1
 				};
 			}
-			Stride = (int)attributes.Stride;
+
+			BufferStrides[buffer] = (int)attributes.Stride;
+			BufferOffsets[buffer] = 0;
 		}
 
 		var vert = LinkedShaders.OfType<VertexShader>().First();
 		Layout = vert.Handle.Device.CreateInputLayout( inputs, vert.Source.Span );
 	}
+
+	public int[] BufferStrides;
+	public int[] BufferOffsets;
 
 	public UniformLayout[] UniformLayouts;
 	public UniformSet[] UniformSets;

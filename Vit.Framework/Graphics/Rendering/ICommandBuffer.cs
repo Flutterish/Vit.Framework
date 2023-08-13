@@ -85,7 +85,7 @@ public interface ICommandBuffer {
 	/// <summary>
 	/// Binds a vertex buffer to the pipeline.
 	/// </summary>
-	void BindVertexBuffer ( IBuffer buffer, uint binding = 0 );
+	void BindVertexBuffer ( IBuffer buffer, uint binding = 0 ); // TODO also add offset
 
 	/// <summary>
 	/// Sets the index buffer to use when drawing indexed elements.
