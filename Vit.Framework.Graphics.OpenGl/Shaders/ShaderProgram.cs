@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.OpenGl.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Memory;
@@ -14,13 +13,12 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<Shader> LinkedShaders;
 
 	public readonly int Handle;
-	public readonly UniformFlatMapping UniformMapping;
 	public ShaderProgram ( IEnumerable<UnlinkedShader> shaders ) {
 		Shaders = shaders.ToImmutableArray();
 
 		var uniformInfo = this.CreateUniformInfo();
-		UniformMapping = uniformInfo.CreateFlatMapping();
-		LinkedShaders = shaders.Select( x => x.GetShader( UniformMapping ) ).ToImmutableArray();
+		var uniformMapping = uniformInfo.CreateFlatMapping();
+		LinkedShaders = shaders.Select( x => x.GetShader( uniformMapping ) ).ToImmutableArray();
 
 		Handle = GL.CreateProgram();
 		foreach ( var i in LinkedShaders ) {
@@ -40,7 +38,7 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 
 		foreach ( var i in uniformInfo.Sets ) {
 			foreach ( var j in i.Value.Resources.Where( x => x.ResourceType == SPIRVCross.spvc_resource_type.UniformBuffer ) ) {
-				var index = UniformMapping.Bindings[(i.Key, j.Binding)];
+				var index = uniformMapping.Bindings[(i.Key, j.Binding)];
 				GL.UniformBlockBinding( (uint)Handle, index, index );
 			}
 		}
@@ -49,7 +47,7 @@ public class ShaderProgram : DisposableObject, IShaderSet {
 		UniformLayouts = new UniformLayout[sets];
 		UniformSets = new UniformSet[sets];
 		for ( uint i = 0; i < sets; i++ ) {
-			UniformLayouts[i] = new( i, uniformInfo.Sets.GetValueOrDefault( i ) ?? new(), UniformMapping );
+			UniformLayouts[i] = new( i, uniformInfo.Sets.GetValueOrDefault( i ) ?? new(), uniformMapping );
 		}
 	}
 

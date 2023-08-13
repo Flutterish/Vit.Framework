@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Direct3D11.Buffers;
-using Vit.Framework.Graphics.Direct3D11.Shaders;
 using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -11,46 +10,57 @@ using Vortice.Direct3D11;
 namespace Vit.Framework.Graphics.Direct3D11.Uniforms;
 
 public class UniformSet : DisposableObject, IUniformSet {
-	public Dictionary<uint, (ID3D11BufferHandle buffer, int offset, int stride)> ConstantBuffers = new();
+	UniformLayout layout;
+	public UniformSet ( UniformLayout layout ) {
+		this.layout = layout;
+
+		ConstantBufferHandles = new ID3D11BufferHandle[layout.ConstantBufferCount];
+		ConstantBuffers = new ID3D11Buffer[layout.ConstantBufferCount];
+		ConstantBuffersOffsets = new int[layout.ConstantBufferCount];
+		ConstantBuffersSizes = new int[layout.ConstantBufferCount];
+
+		SamplerResources = new ID3D11ShaderResourceView[layout.SamplerCount];
+		SamplerStates = new ID3D11SamplerState[layout.SamplerCount];
+	}
+
+	ID3D11BufferHandle[] ConstantBufferHandles;
+	ID3D11Buffer[] ConstantBuffers;
+	int[] ConstantBuffersOffsets;
+	int[] ConstantBuffersSizes;
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
-		ConstantBuffers[binding] = ((ID3D11BufferHandle)buffer, (int)(offset * IBuffer<T>.UniformBufferStride) / 16, (int)IBuffer<T>.Stride );
+		binding = layout.BindingLookup[binding];
+
+		ConstantBufferHandles[binding] = (ID3D11BufferHandle)buffer;
+		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.UniformBufferStride) / 16;
+		ConstantBuffersSizes[binding] = (int)IBuffer<T>.Stride;
 	}
 
-	public Dictionary<uint, Texture2D> Samplers = new();
-
+	ID3D11ShaderResourceView[] SamplerResources;
+	ID3D11SamplerState[] SamplerStates;
 	public void SetSampler ( ITexture texture, uint binding ) {
-		Samplers[binding] = (Texture2D)texture;
+		var tx = (Texture2D)texture;
+		binding = layout.BindingLookup[binding];
+
+		SamplerResources[binding] = tx.ResourceView;
+		SamplerStates[binding] = tx.Sampler;
 	}
 
-	[ThreadStatic]
-	static int[]? firstConstant;
-	[ThreadStatic]
-	static int[]? numConstants;
-	public void Apply ( uint set, ShaderSet shaders, ID3D11DeviceContext ctx ) { // TODO we can compress this into pretty much 3 calls every time with prepared arrays for set*s calls
-		var mapping = shaders.UniformMapping;
-
+	public void Apply ( ID3D11DeviceContext ctx ) {
 		var context = (ID3D11DeviceContext1)ctx;
-		foreach ( var (originalBinding, (buffer, offset, stride)) in ConstantBuffers ) {
-			var binding = mapping.Bindings[(set, originalBinding)];
 
-			(firstConstant ??= new int[1])[0] = offset;
-			(numConstants ??= new int[1])[0] = stride;
-			context.VSSetConstantBuffer1( (int)binding, buffer.Handle, firstConstant, numConstants ); // TODO set only in shaders that need it
-			context.PSSetConstantBuffer1( (int)binding, buffer.Handle, firstConstant, numConstants );
+		for ( int i = 0; i < ConstantBufferHandles.Length; i++ ) {
+			ConstantBuffers[i] = ConstantBufferHandles[i].Handle!; // TODO maybe can be removed if we can reallocate withotu changing the pointer
+			// TODO also we need to remove some layers from this api bc some calls are doing unnecessary operations (pretty much everything that uses the C# classes actually)
+			// and also not allowing us to pass pointers which is yucky
 		}
-		
-		foreach ( var (originalBinding, texture) in Samplers ) {
-			var binding = mapping.Bindings[(set, originalBinding)];
 
-			context.PSSetShaderResource( (int)binding, texture.ResourceView );
-			context.PSSetSampler( (int)binding, texture.Sampler );
-		}
-	}
+		// TODO set only in shaders that need it..?
+		context.VSSetConstantBuffers1( layout.FirstConstantBuffer, layout.ConstantBufferCount, ConstantBuffers, ConstantBuffersOffsets, ConstantBuffersSizes );
+		context.PSSetConstantBuffers1( layout.FirstConstantBuffer, layout.ConstantBufferCount, ConstantBuffers, ConstantBuffersOffsets, ConstantBuffersSizes );
 
-	public void Free () {
-		Samplers.Clear();
-		ConstantBuffers.Clear();
+		context.PSSetShaderResources( layout.FirstSampler, SamplerResources );
+		context.PSSetSamplers( layout.FirstSampler, SamplerStates );
 	}
 
 	protected override void Dispose ( bool disposing ) {

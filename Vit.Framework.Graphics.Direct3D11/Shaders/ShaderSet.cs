@@ -16,15 +16,20 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<Shader> LinkedShaders;
 
 	public readonly ID3D11InputLayout? Layout;
-	public readonly ID3D11DeviceContext Context;
 	public readonly int Stride;
-	public readonly UniformFlatMapping UniformMapping;
-	public ShaderSet ( IEnumerable<IShaderPart> parts, ID3D11DeviceContext context ) {
-		Context = context;
+	public ShaderSet ( IEnumerable<IShaderPart> parts ) {
 		Shaders = parts.Select( x => (UnlinkedShader)x ).ToImmutableArray();
 
-		UniformMapping = this.CreateUniformInfo().CreateFlatMapping();
-		LinkedShaders = Shaders.Select( x => x.GetShader( UniformMapping ) ).ToImmutableArray();
+		var uniformInfo = this.CreateUniformInfo();
+		var uniformMapping = uniformInfo.CreateFlatMapping();
+		LinkedShaders = Shaders.Select( x => x.GetShader( uniformMapping ) ).ToImmutableArray();
+
+		var sets = uniformInfo.Sets.Any() ? uniformInfo.Sets.Max( x => x.Key ) + 1 : 0;
+		UniformLayouts = new UniformLayout[sets];
+		UniformSets = new UniformSet[sets];
+		for ( uint j = 0; j < sets; j++ ) {
+			UniformLayouts[j] = new( j, uniformInfo.Sets.GetValueOrDefault( j ) ?? new(), uniformMapping );
+		}
 
 		var vert = LinkedShaders.OfType<VertexShader>().FirstOrDefault();
 		if ( vert is null )
@@ -59,19 +64,20 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		Layout = vert.Handle.Device.CreateInputLayout( inputs, vert.Source.Span );
 	}
 
-	public Dictionary<uint, UniformSet> UniformSets = new();
+	public UniformLayout[] UniformLayouts;
+	public UniformSet[] UniformSets;
 	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets.GetValueOrDefault( set );
+		return UniformSets[set];
 	}
 
 	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		var value = new UniformSet();
-		DebugMemoryAlignment.SetDebugData( value, set, this );
+		var value = new UniformSet( UniformLayouts[set] );
+		DebugMemoryAlignment.SetDebugData( value, UniformLayouts[set].Type.Resources );
 		return value;
 	}
 
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
-		return new UniformSetPool( this.CreateUniformSetInfo( set ) );
+		return new UniformSetPool( UniformLayouts[set] );
 	}
 
 	public void SetUniformSet ( IUniformSet uniforms, uint set = 0 ) {

@@ -48,7 +48,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts ) {
-		return new ShaderSet( parts, Context );
+		return new ShaderSet( parts );
 	}
 
 	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
