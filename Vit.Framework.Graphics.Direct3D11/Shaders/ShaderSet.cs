@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Vit.Framework.Graphics.Direct3D11.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
@@ -14,10 +15,10 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public IEnumerable<IShaderPart> Parts => Shaders;
 	public readonly ImmutableArray<UnlinkedShader> Shaders;
 	public readonly ImmutableArray<Shader> LinkedShaders;
+	public readonly int Stride;
 
 	public readonly ID3D11InputLayout? Layout;
-	public readonly int Stride;
-	public ShaderSet ( IEnumerable<IShaderPart> parts ) {
+	public ShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
 		Shaders = parts.Select( x => (UnlinkedShader)x ).ToImmutableArray();
 
 		var uniformInfo = this.CreateUniformInfo();
@@ -31,36 +32,33 @@ public class ShaderSet : DisposableObject, IShaderSet {
 			UniformLayouts[j] = new( j, uniformInfo.Sets.GetValueOrDefault( j ) ?? new(), uniformMapping );
 		}
 
-		var vert = LinkedShaders.OfType<VertexShader>().FirstOrDefault();
-		if ( vert is null )
+		if ( vertexInput == null )
 			return;
 
-		var vertInfo = Shaders.First( x => x.Type == ShaderPartType.Vertex );
-		var inputs = new InputElementDescription[vertInfo.ShaderInfo.Input.Resources.Count];
-		int i = 0;
-		int offset = 0;
-		foreach ( var vertex in vertInfo.ShaderInfo.Input.Resources.OrderBy( x => x.Location ) ) {
-			var (size, format) = (vertex.Type.PrimitiveType, vertex.Type.Dimensions) switch {
-				(PrimitiveType.Float32, [2]) => (sizeof(float), Format.R32G32_Float),
-				(PrimitiveType.Float32, [3]) => (sizeof(float), Format.R32G32B32_Float),
-				_ => throw new Exception( "Unrecognized format" )
-			};
-			size *= (int)vertex.Type.FlattendedDimensions;
+		var inputs = new InputElementDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Count)];
+		var inputIndex = 0;
+		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
+			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
+				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.Float32, [2]) => Format.R32G32_Float,
+					(PrimitiveType.Float32, [3]) => Format.R32G32B32_Float,
+					_ => throw new Exception( "Unrecognized format" )
+				};
 
-			inputs[i++] = new() {
-				SemanticName = "TEXCOORD",
-				SemanticIndex = (int)vertex.Location,
-				Format = format,
-				Slot = 0,
-				AlignedByteOffset = offset,
-				Classification = InputClassification.PerVertexData,
-				InstanceDataStepRate = 0
-			};
-
-			offset += size;
+				inputs[inputIndex++] = new() {
+					SemanticName = "TEXCOORD",
+					SemanticIndex = (int)location,
+					Format = format,
+					Slot = (int)buffer,
+					AlignedByteOffset = (int)attribute.Offset,
+					Classification = attributes.InputRate == BufferInputRate.PerVertex ? InputClassification.PerVertexData : InputClassification.PerInstanceData,
+					InstanceDataStepRate = attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1
+				};
+			}
+			Stride = (int)attributes.Stride;
 		}
 
-		Stride = offset;
+		var vert = LinkedShaders.OfType<VertexShader>().First();
 		Layout = vert.Handle.Device.CreateInputLayout( inputs, vert.Source.Span );
 	}
 
