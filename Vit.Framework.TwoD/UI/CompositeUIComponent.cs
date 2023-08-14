@@ -238,7 +238,7 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 }
 
 [Flags]
-public enum LayoutInvalidations { // TODO we need flags for when the parent needs to recompute its own layout or just propagate the update
+public enum LayoutInvalidations {
 	None = 0,
 	/// <summary>
 	/// Some layout parameter of this component changed. This will force this component to recalculate its layout.

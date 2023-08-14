@@ -7,7 +7,7 @@ public class DependencyCache : IDependencyCache {
 	}
 
 	Dictionary<DependencyIdentifier, object?> store = new();
-	Dictionary<DependencyIdentifier, object?> cache = new(); // TODO maybe only store in cache if the dependency was requested multiple times?
+	Dictionary<DependencyIdentifier, object?> cache = new();
 	public void Cache ( object? value, DependencyIdentifier identifier ) {
 		store.Add( identifier, value );
 		cache[identifier] = value;

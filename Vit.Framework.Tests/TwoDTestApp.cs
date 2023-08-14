@@ -40,7 +40,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.Direct3D11 );
+		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -150,7 +150,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		public TestRenderThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Host host, Window window, GraphicsApiType api, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, host, window, api, dependencies, name ) {
 		}
 
-		struct GlobalUniforms { // TODO we need a debug check for memory alignment in these
+		struct GlobalUniforms {
 			public Matrix4x3<float> Matrix;
 		}
 		IUniformSet globalSet = null!;
