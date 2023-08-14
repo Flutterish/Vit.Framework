@@ -63,7 +63,7 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 	}
 }
 
-public struct LayoutParams {
+public struct LayoutParams : IInterpolatable<LayoutParams, float> {
 	/// <summary>
 	/// Size of the element.
 	/// </summary>
@@ -76,4 +76,12 @@ public struct LayoutParams {
 	/// Point on the parent on which <see cref="Origin"/> will be placed.
 	/// </summary>
 	public RelativeAxes2<float> Anchor;
+
+	public LayoutParams Lerp ( LayoutParams goal, float time ) {
+		return new() {
+			Size = Size.Lerp( goal.Size, time ),
+			Origin = Origin.Lerp( goal.Origin, time ),
+			Anchor = Anchor.Lerp( goal.Anchor, time )
+		};
+	}
 }

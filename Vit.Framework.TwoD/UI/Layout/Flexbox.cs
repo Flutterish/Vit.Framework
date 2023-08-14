@@ -260,7 +260,7 @@ public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.Ch
 	}
 }
 
-public struct FlexboxParams {
+public struct FlexboxParams : IInterpolatable<FlexboxParams, float> {
 	/// <summary>
 	/// Size of the element.
 	/// </summary>
@@ -280,4 +280,12 @@ public struct FlexboxParams {
 	/// Defaults to 1. This is proportional to the size of the element.
 	/// </remarks>
 	public float? Shrink;
+
+	public FlexboxParams Lerp ( FlexboxParams goal, float time ) {
+		return new() {
+			Size = Size.Lerp( goal.Size, time ),
+			Grow = Grow.Lerp( goal.Grow, time ),
+			Shrink = (Shrink ?? 1).Lerp( goal.Shrink ?? 1, time )
+		};
+	}
 }

@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Memory;
+﻿using Vit.Framework.Mathematics;
+using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Layout;
 
 namespace Vit.Framework.TwoD.UI.Layout;
@@ -144,7 +145,7 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 }
 
-public struct FlowParams {
+public struct FlowParams : IInterpolatable<FlowParams, float> {
 	/// <summary>
 	/// Margins outside the element provide spacing between elements.
 	/// </summary>
@@ -157,4 +158,11 @@ public struct FlowParams {
 	/// Size of the element.
 	/// </summary>
 	public SizeBounds2<float> Size;
+
+	public FlowParams Lerp ( FlowParams goal, float time ) {
+		return new() {
+			Margins = Margins.Lerp( goal.Margins, time ),
+			Size = Size.Lerp( goal.Size, time )
+		};
+	}
 }

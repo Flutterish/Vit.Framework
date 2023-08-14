@@ -2,15 +2,17 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
 
-public abstract class UIComponent : IUIComponent {
+public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	public UIComponent () {
 		IHasEventTrees<UIComponent>.AddDeclaredEventHandlers( this, static ( d, t, h ) => d.AddEventHandler( t, h ) );
 	}
@@ -230,8 +232,12 @@ public abstract class UIComponent : IUIComponent {
 		: Parent.GlobalToUnitMatrix * LocalToUnitMatrix;
 	#endregion
 	#region Lifetime
+	public IClock Clock { get; private set; } = null!;
+	public AnimationTimeline AnimationTimeline { get; } = new() { CurrentTime = double.NegativeInfinity }; // negative infinity start time basically makes load-time animations finish instantly
 	public bool IsLoaded { get; private set; }
-	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) { }
+	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		Clock = dependencies.Resolve<IClock>();
+	}
 	public void Load ( IReadOnlyDependencyCache dependencies ) {
 		if ( IsLoaded )
 			throw new InvalidOperationException( "Component is already loaded" );
@@ -251,7 +257,9 @@ public abstract class UIComponent : IUIComponent {
 	}
 	protected virtual void OnUnload () { }
 
-	public virtual void Update () { }
+	public virtual void Update () {
+		AnimationTimeline.Update( Clock.CurrentTime );
+	}
 
 	public abstract DrawNode GetDrawNode ( int subtreeIndex );
 	public abstract void DisposeDrawNodes ();

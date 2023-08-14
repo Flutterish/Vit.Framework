@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct LayoutUnit<T> : IEquatable<LayoutUnit<T>> where T : INumber<T> {
+public struct LayoutUnit<T> : IInterpolatable<LayoutUnit<T>, T>, IEquatable<LayoutUnit<T>> where T : INumber<T> {
 	public T Relative;
 	public T Absolute;
 
@@ -67,6 +68,13 @@ public struct LayoutUnit<T> : IEquatable<LayoutUnit<T>> where T : INumber<T> {
 
 	public override int GetHashCode () {
 		return HashCode.Combine( Relative, Absolute );
+	}
+
+	public LayoutUnit<T> Lerp ( LayoutUnit<T> goal, T time ) {
+		return new() {
+			Relative = Relative.Lerp( goal.Relative, time ),
+			Absolute = Absolute.Lerp( goal.Absolute, time )
+		};
 	}
 }
 

@@ -1,6 +1,15 @@
-﻿namespace Vit.Framework.TwoD.UI;
+﻿using Vit.Framework.Graphics.Animations;
+using Vit.Framework.Mathematics;
 
-public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T> where T : UIComponent where TParam : struct {
+namespace Vit.Framework.TwoD.UI;
+
+public interface IParametrizedContainer<in T, TParam> where TParam : struct {
+	TParam GetLayoutParameters ( T child );
+	void UpdateLayoutParameters ( T child, TParam param );
+	void UpdateLayoutParameters ( T child, Func<TParam, TParam> transformer );
+}
+
+public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>, IParametrizedContainer<T, TParam> where T : UIComponent where TParam : struct {
 	List<TParam> parameters = new();
 
 	public virtual IEnumerable<(T child, TParam @param)> LayoutChildren {
@@ -71,5 +80,84 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 	public void ClearChildren ( bool dispose ) {
 		parameters.Clear();
 		ClearInternalChildren( dispose );
+	}
+}
+
+public static class ParametrizedContainerExtensions {
+	public class ParametersAnimation<T, TContainer, TParam> : Animation<T, TParam>
+		where TContainer : IParametrizedContainer<T, TParam>
+		where T : UIComponent
+		where TParam : struct, IInterpolatable<TParam, float> // TODO an overload for doubles
+	{
+		TContainer container;
+		public ParametersAnimation ( T target, TContainer container, TParam endValue, double startTime, double endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) {
+			this.container = container;
+		}
+
+		protected override TParam GetValue () {
+			return container.GetLayoutParameters( Target );
+		}
+
+		protected override void SetValue ( TParam value ) {
+			container.UpdateLayoutParameters( Target, value );
+		}
+
+		protected override TParam Interpolate ( double t ) {
+			return StartValue.Lerp( EndValue, (float)t );
+		}
+
+		public override IReadOnlyList<AnimationDomain> Domains => LayoutParametersAnimationDomains;
+	}
+
+	public class ParametersTransformerAnimation<T, TContainer, TParam> : DynamicAnimation<T, TParam>
+		where TContainer : IParametrizedContainer<T, TParam>
+		where T : UIComponent
+		where TParam : struct, IInterpolatable<TParam, float> // TODO an overload for doubles
+	{
+		TContainer container;
+		Func<TParam, TParam> transformer;
+		public ParametersTransformerAnimation ( T target, TContainer container, Func<TParam, TParam> transformer, double startTime, double endTime, EasingFunction easing ) : base( target, startTime, endTime, easing ) {
+			this.container = container;
+			this.transformer = transformer;
+		}
+
+		protected override TParam GetValue () {
+			return container.GetLayoutParameters( Target );
+		}
+		protected override TParam CreateEndValue () {
+			return transformer( StartValue );
+		}
+
+		protected override void SetValue ( TParam value ) {
+			container.UpdateLayoutParameters( Target, value );
+		}
+
+		protected override TParam Interpolate ( double t ) {
+			return StartValue.Lerp( EndValue, (float)t );
+		}
+
+		public override IReadOnlyList<AnimationDomain> Domains => LayoutParametersAnimationDomains;
+	}
+
+	public static readonly AnimationDomain LayoutParametersAnimationDomain = new() { Name = "Layout Parameters" };
+	public static readonly IReadOnlyList<AnimationDomain> LayoutParametersAnimationDomains = new[] { LayoutParametersAnimationDomain };
+
+	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, TParam goal, double duration, EasingFunction? easing = null ) 
+		where TContainer : IParametrizedContainer<T, TParam>, ICanBeAnimated
+		where T : UIComponent 
+		where TParam : struct, IInterpolatable<TParam, float>
+	{
+		return sequence.AnimateOther( child )
+			.Add( new ParametersAnimation<T, TContainer, TParam>( child, sequence.Source, goal, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) )
+			.AnimateOther( sequence.Source );
+	}
+
+	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, Func<TParam, TParam> transformer, double duration, EasingFunction? easing = null )
+		where TContainer : IParametrizedContainer<T, TParam>, ICanBeAnimated
+		where T : UIComponent
+		where TParam : struct, IInterpolatable<TParam, float> {
+		return sequence.AnimateOther( child )
+			.Add( new ParametersTransformerAnimation<T, TContainer, TParam>( child, sequence.Source, transformer, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) )
+			.AnimateOther( sequence.Source );
 	}
 }

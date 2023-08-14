@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct RelativeAxes2<T> : IEquatable<RelativeAxes2<T>> where T : INumber<T> {
+public struct RelativeAxes2<T> : IInterpolatable<RelativeAxes2<T>, T>, IEquatable<RelativeAxes2<T>> where T : INumber<T> {
 	public LayoutUnit<T> X;
 	public LayoutUnit<T> Y;
 
@@ -70,6 +70,13 @@ public struct RelativeAxes2<T> : IEquatable<RelativeAxes2<T>> where T : INumber<
 
 	public override int GetHashCode () {
 		return HashCode.Combine( X, Y );
+	}
+
+	public RelativeAxes2<T> Lerp ( RelativeAxes2<T> goal, T time ) {
+		return new() {
+			X = X.Lerp( goal.X, time ),
+			Y = Y.Lerp( goal.Y, time )
+		};
 	}
 }
 

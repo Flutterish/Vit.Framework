@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct RelativeSize2<T> where T : INumber<T> {
+public struct RelativeSize2<T> : IInterpolatable<RelativeSize2<T>, T> where T : INumber<T> {
 	public LayoutUnit<T> Width;
 	public LayoutUnit<T> Height;
 
@@ -40,5 +40,12 @@ public struct RelativeSize2<T> where T : INumber<T> {
 
 	public override string ToString () {
 		return $"{Width}x{Height}";
+	}
+
+	public RelativeSize2<T> Lerp ( RelativeSize2<T> goal, T time ) {
+		return new() {
+			Width = Width.Lerp( goal.Width, time ),
+			Height = Height.Lerp( goal.Height, time )
+		};
 	}
 }

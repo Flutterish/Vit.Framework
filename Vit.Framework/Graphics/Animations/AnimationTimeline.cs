@@ -43,7 +43,7 @@ public class AnimationTimeline {
 			if ( !animationsByDomain.TryGetValue( i, out var current ) )
 				animationsByDomain.Add( i, current = new() );
 
-			current.Last?.Value.OnInterrupted( animation.StartTime );
+			current.Last?.Value.OnInterrupted( animation.StartTime ); // TODO we can add something to let the new animation know it interrupted something, giving it the ability to "preserve momentum"
 			tryUpdate( current.Last?.Value, animation.StartTime );
 			current.AddLast( animation );
 		}
