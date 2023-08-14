@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vit.Framework.Graphics;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Graphics;
@@ -9,10 +8,7 @@ using Vit.Framework.TwoD.UI.Animations;
 namespace Vit.Framework.TwoD.UI.Graphics;
 
 public class Box : Visual<Sprite>, IEventHandler<HoveredEvent>, IHasAlphaTint {
-	[SetsRequiredMembers]
-	public Box () {
-		Displayed = new();
-	}
+	public Box () : base( new() ) { }
 
 	public ColorRgba<float> Tint {
 		get => Displayed.Tint;

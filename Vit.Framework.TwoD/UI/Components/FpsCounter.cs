@@ -1,18 +1,12 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Performance;
-using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Graphics;
-using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Components;
 
-public class FpsCounter : LayoutContainer {
-	SpriteText text;
-
+public class FpsCounter : SpriteText {
 	public FpsCounter () {
-		AddChild( text = new() { FontSize = 32 }, new() {
-			Size = new( 1f.Relative() )
-		} );
+		FontSize = 32;
 	}
 
 	FpsCounterData data = null!;
@@ -22,7 +16,7 @@ public class FpsCounter : LayoutContainer {
 	}
 
 	public override void Update () {
-		text.Text = string.Join( " / ", data.Counters.Select( x => $"{x.counter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
+		Text = string.Join( " / ", data.Counters.Select( x => $"{x.counter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
 
 		base.Update();
 	}

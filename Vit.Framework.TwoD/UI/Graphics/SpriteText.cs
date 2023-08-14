@@ -1,24 +1,28 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.TwoD.Graphics.Text;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
 public class SpriteText : Visual<DrawableSpriteText> {
-	[SetsRequiredMembers]
-	public SpriteText () {
-		Displayed = new();
-	}
+	public SpriteText () : base( new() ) { }
 
 	public string Text {
 		get => Displayed.Text;
-		set => Displayed.Text = value;
+		set {
+			Displayed.Text = value;
+			InvalidateLayout( LayoutInvalidations.RequiredSize );
+		}
 	}
 	public float FontSize {
 		get => Displayed.FontSize;
-		set => Displayed.FontSize = value;
+		set {
+			Displayed.FontSize = value;
+			InvalidateLayout( LayoutInvalidations.RequiredSize );
+		}
 	}
 	public ColorRgba<float> Tint {
 		get => Displayed.Tint;
@@ -36,6 +40,7 @@ public class SpriteText : Visual<DrawableSpriteText> {
 		set {
 			Displayed.Font = value;
 			fontIdentifier = null;
+			InvalidateLayout( LayoutInvalidations.RequiredSize );
 		}
 	}
 	FontIdentifier? fontIdentifier = FontStore.DefaultFont;
@@ -47,7 +52,12 @@ public class SpriteText : Visual<DrawableSpriteText> {
 				return;
 
 			Displayed.Font = fontStore.GetFont( value );
+			InvalidateLayout( LayoutInvalidations.RequiredSize );
 		}
+	}
+
+	protected override Size2<float> ComputeRequiredSize () {
+		return Displayed.CalculateBoundingBox().Size;
 	}
 
 	protected override void PerformLayout () {

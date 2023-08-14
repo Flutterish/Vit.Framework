@@ -42,7 +42,6 @@ public class VisualTestRunner : Flexbox {
 				Tint = ColorRgba.Black,
 				Text = i.Name
 			}, new() {
-				Size = new( 1f.Relative(), 32 ),
 				Anchor = new( 10, 0.5f.Relative() ),
 				Origin = Anchor.CentreLeft
 			} );

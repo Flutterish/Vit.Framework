@@ -67,7 +67,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		} );
 		var _instance = Activator.CreateInstance( type );
 		UIComponent instance =
-			_instance is Drawable drawable ? new Visual { Displayed = drawable }
+			_instance is Drawable drawable ? new Visual( drawable )
 			: _instance is UIComponent component ? component
 			: throw new InvalidOperationException( "the test type is funky" );
 		Root.AddChild( instance, new() {
@@ -113,7 +113,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override bool Initialize () {
-			Root.AddChild( cursor = new Visual<Sprite> { Displayed = new() { Tint = ColorRgba.HotPink } }, new() {
+			Root.AddChild( cursor = new Visual<Sprite>( new() { Tint = ColorRgba.HotPink } ), new() {
 				Size = new( 18 ),
 				Origin = Anchor.Centre
 			} );

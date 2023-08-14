@@ -47,6 +47,18 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		}
 	}
 
+	public AxisAlignedBox2<float> CalculateBoundingBox () {
+		var advance = Vector2<float>.Zero; // in font units
+		foreach ( var rune in text.EnumerateRunes() ) {
+			var glyph = font.GetGlyph( rune );
+			advance.X += (float)glyph.HorizontalAdvance;
+		}
+
+		advance = advance * fontSize / (float)font.UnitsPerEm;
+
+		return new Size2<float>( advance.X, fontSize );
+	}
+
 	Shader shader = null!;
 	Texture texture = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {

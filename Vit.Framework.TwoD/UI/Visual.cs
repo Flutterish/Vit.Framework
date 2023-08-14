@@ -7,16 +7,16 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
 
-public class Visual : Visual<Drawable> { }
+public class Visual : Visual<Drawable> {
+	public Visual ( Drawable displayed ) : base( displayed ) { }
+}
 public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
-	T displayed = null!;
-	public required T Displayed {
-		get => displayed;
-		init {
-			displayed = value;
-			displayed.DrawNodesInvalidated = onDrawNodesInvalidated;
-		}
+	public Visual ( T displayed ) {
+		Displayed = displayed;
+		displayed.DrawNodesInvalidated = onDrawNodesInvalidated;
 	}
+
+	public readonly T Displayed;
 
 	protected override void OnMatrixInvalidated () {
 		InvalidateLayout( LayoutInvalidations.Self );
