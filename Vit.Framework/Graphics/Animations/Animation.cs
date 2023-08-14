@@ -51,9 +51,9 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 
 	protected abstract TValue GetValue ();
 	protected abstract void SetValue ( TValue value );
-	protected abstract TValue Interpolate ( double t );
+	protected abstract TValue Interpolate ( TValue from, TValue to, double t );
 	public sealed override void Update ( double time ) {
-		SetValue( Interpolate( Duration == 0 ? 1 : Easing((time - StartTime) / Duration) ) );
+		SetValue( Interpolate( StartValue, EndValue, Duration == 0 ? 1 : Easing((time - StartTime) / Duration) ) );
 	}
 
 	public sealed override void OnStarted () {
@@ -65,7 +65,7 @@ public abstract class Animation<TTarget, TValue> : Animation where TTarget : cla
 	}
 
 	public sealed override void OnEnded () {
-		SetValue( Interpolate( 1 ) );
+		SetValue( Interpolate( StartValue, EndValue, 1 ) );
 	}
 	public sealed override void OnEndRewound () {
 		
@@ -96,9 +96,9 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation where TTarge
 	protected abstract TValue GetValue ();
 	protected abstract TValue CreateEndValue ();
 	protected abstract void SetValue ( TValue value );
-	protected abstract TValue Interpolate ( double t );
+	protected abstract TValue Interpolate ( TValue from, TValue to, double t );
 	public sealed override void Update ( double time ) {
-		SetValue( Interpolate( Duration == 0 ? 1 : Easing( (time - StartTime) / Duration ) ) );
+		SetValue( Interpolate( StartValue, EndValue, Duration == 0 ? 1 : Easing( (time - StartTime) / Duration ) ) );
 	}
 
 	public sealed override void OnStarted () {
@@ -111,7 +111,7 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation where TTarge
 	}
 
 	public sealed override void OnEnded () {
-		SetValue( Interpolate( 1 ) );
+		SetValue( Interpolate( StartValue, EndValue, 1 ) );
 	}
 	public sealed override void OnEndRewound () {
 

@@ -14,8 +14,8 @@ public class AlphaTintAnimation : Animation<IHasAlphaTint, ColorRgba<float>> {
 		Target.Tint = value;
 	}
 
-	protected override ColorRgba<float> Interpolate ( double t ) {
-		return StartValue.Interpolate( EndValue, (float)t );
+	protected override ColorRgba<float> Interpolate ( ColorRgba<float> from, ColorRgba<float> to, double t ) {
+		return from.Interpolate( to, (float)t );
 	}
 
 	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasTint.AnimationDomain, IHasAlpha.AnimationDomain };
@@ -33,8 +33,8 @@ public class TintAnimation : Animation<IHasTint, ColorRgb<float>> {
 		Target.Tint = value;
 	}
 
-	protected override ColorRgb<float> Interpolate ( double t ) {
-		return StartValue.Interpolate( EndValue, (float)t );
+	protected override ColorRgb<float> Interpolate ( ColorRgb<float> from, ColorRgb<float> to, double t ) {
+		return from.Interpolate( to, (float)t );
 	}
 
 	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasTint.AnimationDomain };
@@ -52,9 +52,9 @@ public class AlphaAnimation : Animation<IHasAlpha, float> {
 		Target.Alpha = value;
 	}
 
-	protected override float Interpolate ( double t ) {
+	protected override float Interpolate ( float from, float to, double t ) {
 		var time = (float)t;
-		return (1 - time) * StartValue + time * EndValue;
+		return (1 - time) * from + time * to;
 	}
 
 	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasAlpha.AnimationDomain };

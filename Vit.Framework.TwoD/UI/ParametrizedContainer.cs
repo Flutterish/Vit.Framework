@@ -102,8 +102,8 @@ public static class ParametrizedContainerExtensions {
 			container.UpdateLayoutParameters( Target, value );
 		}
 
-		protected override TParam Interpolate ( double t ) {
-			return StartValue.Lerp( EndValue, (float)t );
+		protected override TParam Interpolate ( TParam from, TParam to, double t ) {
+			return from.Lerp( to, (float)t );
 		}
 
 		public override IReadOnlyList<AnimationDomain> Domains => LayoutParametersAnimationDomains;
@@ -132,8 +132,8 @@ public static class ParametrizedContainerExtensions {
 			container.UpdateLayoutParameters( Target, value );
 		}
 
-		protected override TParam Interpolate ( double t ) {
-			return StartValue.Lerp( EndValue, (float)t );
+		protected override TParam Interpolate ( TParam from, TParam to, double t ) {
+			return from.Lerp( to, (float)t );
 		}
 
 		public override IReadOnlyList<AnimationDomain> Domains => LayoutParametersAnimationDomains;
