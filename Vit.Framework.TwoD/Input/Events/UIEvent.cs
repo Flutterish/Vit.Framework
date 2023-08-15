@@ -2,4 +2,4 @@
 
 namespace Vit.Framework.TwoD.Input.Events;
 
-public abstract record UIEvent : Event { }
+public abstract record UIEvent : Event { } // TODO add relative timestamp

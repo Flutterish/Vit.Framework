@@ -22,9 +22,9 @@ public class UIEventSource {
 					break;
 
 				if ( pressedHandlers.Remove( pressed.Button, out var previousHandler ) )
-					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp }, previousHandler );
+					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, previousHandler );
 
-				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition, Timestamp = pressed.Timestamp }, hovered ) )
+				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, hovered ) )
 					pressedHandlers.Add( pressed.Button, hovered );
 				break;
 
@@ -32,19 +32,23 @@ public class UIEventSource {
 				if ( !pressedHandlers.Remove( released.Button, out handler ) )
 					break;
 
-				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
+				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition }, handler );
 				if ( handler == hovered ) 
-					triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition, Timestamp = released.Timestamp }, handler );
+					triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition }, handler );
 				break;
 
 			case CursorMovedEvent moved:
-				handler = triggerEvent( new HoveredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp } ); // TODO could we reuse/pool events? making one essentially every frame sounds bad
+				handler = triggerEvent( new HoveredEvent { EventPosition = moved.EventPosition } ); // TODO could we reuse/pool events? making one essentially every frame sounds bad
 				if ( handler == hovered )
 					break;
 
-				triggerEvent( new CursorExitedEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp }, hovered );
+				triggerEvent( new CursorExitedEvent { EventPosition = moved.EventPosition }, hovered );
 				hovered = handler;
-				triggerEvent( new CursorEnteredEvent { EventPosition = moved.EventPosition, Timestamp = moved.Timestamp }, handler );
+				triggerEvent( new CursorEnteredEvent { EventPosition = moved.EventPosition }, handler );
+				break;
+
+			case Framework.Input.Events.TextInputEvent text: // TODO this should be fed directly into a focused element
+				triggerEvent( new TextInputEvent { Text = text.Text } );
 				break;
 
 			default:

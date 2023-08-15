@@ -38,7 +38,7 @@ public class CursorState : IHasTimestamp {
 			}
 		}
 
-		protected override IEnumerable<Event> EmitEvents ( Delta delta ) {
+		protected override IEnumerable<TimestampedEvent> EmitEvents ( Delta delta ) {
 			if ( delta.Type.HasFlag( DeltaType.Position ) ) {
 				yield return new CursorMovedEvent {
 					Timestamp = state.Timestamp,

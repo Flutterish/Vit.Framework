@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Input.Events;
 
-public abstract record CursorEvent : Event, IPositionalEvent {
+public abstract record CursorEvent : TimestampedEvent, IPositionalEvent {
 	public required CursorState CursorState { get; init; }
 	public Point2<float> EventPosition => CursorState.ScreenSpacePosition;
 }

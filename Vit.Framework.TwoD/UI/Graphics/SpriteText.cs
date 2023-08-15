@@ -14,14 +14,14 @@ public class SpriteText : Visual<DrawableSpriteText> {
 		get => Displayed.Text;
 		set {
 			Displayed.Text = value;
-			InvalidateLayout( LayoutInvalidations.RequiredSize );
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}
 	public float FontSize {
 		get => Displayed.FontSize;
 		set {
 			Displayed.FontSize = value;
-			InvalidateLayout( LayoutInvalidations.RequiredSize );
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}
 	public ColorRgba<float> Tint {
@@ -40,7 +40,7 @@ public class SpriteText : Visual<DrawableSpriteText> {
 		set {
 			Displayed.Font = value;
 			fontIdentifier = null;
-			InvalidateLayout( LayoutInvalidations.RequiredSize );
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}
 	FontIdentifier? fontIdentifier = FontStore.DefaultFont;
@@ -52,7 +52,7 @@ public class SpriteText : Visual<DrawableSpriteText> {
 				return;
 
 			Displayed.Font = fontStore.GetFont( value );
-			InvalidateLayout( LayoutInvalidations.RequiredSize );
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}
 

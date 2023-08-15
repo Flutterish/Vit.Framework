@@ -10,6 +10,19 @@ namespace Vit.Framework.Input;
 public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput> 
 	where TUpdate : IHasTimestamp where TInput : IHasTimestamp 
 {
+	bool enabled = true;
+	public bool IsEnabled {
+		get => enabled;
+		set {
+			enabled = value;
+			if ( !value ) {
+				lock ( scheduledUpdates ) {
+					scheduledUpdates.Clear();
+				}
+			}
+		}
+	}
+
 	Queue<TUpdate> scheduledUpdates = new();
 	Queue<TUpdate> updates = new();
 
@@ -17,6 +30,9 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 	/// Schedules an update to be realised on the next poll.
 	/// </summary>
 	protected void ScheduleUpdate ( TUpdate update ) {
+		if ( !IsEnabled )
+			return;
+
 		lock ( scheduledUpdates ) {
 			scheduledUpdates.Enqueue( update );
 		}
@@ -45,10 +61,10 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 	/// <summary>
 	/// Emits events related to the change.
 	/// </summary>
-	protected abstract IEnumerable<Event> EmitEvents ( TUpdate update );
+	protected abstract IEnumerable<TimestampedEvent> EmitEvents ( TUpdate update );
 
 	public event Action<IInputTracker, TInput>? InputChanged;
-	public event Action<IInputTracker, Event>? InputEventEmitted;
+	public event Action<IInputTracker, TimestampedEvent>? InputEventEmitted;
 
 	public abstract void Dispose ();
 }
@@ -63,5 +79,11 @@ public interface IInputTracker {
 	/// </summary>
 	void Update ();
 
-	event Action<IInputTracker, Event>? InputEventEmitted;
+	/// <summary>
+	/// Controls if this tracker will process changes. <see langword="true"/> by default. 
+	/// You need to disable it manually to avoid allocating memeory for changes that will never be collected.
+	/// </summary>
+	bool IsEnabled { get; set; }
+
+	event Action<IInputTracker, TimestampedEvent>? InputEventEmitted;
 }

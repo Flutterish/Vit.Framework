@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace Vit.Framework.Input;
+﻿namespace Vit.Framework.Input;
 
 /// <summary>
 /// A collection of input trackers, which can be dynamically detected or lost.

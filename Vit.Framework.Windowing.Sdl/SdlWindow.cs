@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Input;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Windowing.Sdl.Backends;
 using Vit.Framework.Windowing.Sdl.Input;
@@ -132,6 +133,11 @@ public class SdlWindow : Window, IGlWindow, IDirect3D11Window, IVulkanWindow {
 			//	OnPhysicalKeyDown( key );
 		}
 	}
+
+	public unsafe void OnEvent ( SDL.SDL_TextInputEvent e ) {
+		OnTextInput?.Invoke( new CString( e.text ).ToString() );
+	}
+	public event Action<string>? OnTextInput;
 
 	public void CheckResize () {
 		SDL.SDL_GetWindowSize( Pointer, out var width, out var height );

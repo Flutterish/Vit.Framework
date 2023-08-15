@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Vit.Framework.Interop;
 
+/// <summary>
+/// UTF-8 encoded null-terminated string.
+/// </summary>
 public unsafe struct CString {
 	byte* ptr;
 	byte[]? data;
@@ -27,6 +30,9 @@ public unsafe struct CString {
 		data[^1] = 0;
 	}
 
+	/// <summary>
+	/// Returns the text this cstring represents.
+	/// </summary>
 	public override string ToString () {
 		return (string)this;
 	}

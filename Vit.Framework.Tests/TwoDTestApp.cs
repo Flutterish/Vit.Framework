@@ -89,6 +89,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 	class TestUpdateThread : UpdateThread {
 		Dictionary<CursorState.Tracker, Visual<Sprite>> cursors = new();
+		HashSet<IInputTracker> otherInputTrackers = new();
+
 		UIEventSource uiEventSource;
 		Window window;
 		InputTrackerCollection inputTrackers;
@@ -117,6 +119,10 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 					cursor.InputEventEmitted += onCursorInputEventEmitted;
 				}
+				else {
+					otherInputTrackers.Add( detected );
+					detected.InputEventEmitted += onInputEventEmitted;
+				}
 			}, lost => {
 				if ( lost is CursorState.Tracker cursor ) {
 					cursors.Remove( cursor, out var visual );
@@ -124,10 +130,17 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 					cursor.InputEventEmitted -= onCursorInputEventEmitted;
 				}
+				else {
+					otherInputTrackers.Remove( lost );
+					lost.InputEventEmitted -= onInputEventEmitted;
+				}
 			} );
 
 			Root.Size = window.Size.Cast<float>();
 			foreach ( var i in cursors.Keys ) {
+				i.Update();
+			}
+			foreach ( var i in otherInputTrackers ) {
 				i.Update();
 			}
 
@@ -135,7 +148,16 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Root.ComputeLayout();
 		}
 
-		private void onCursorInputEventEmitted ( IInputTracker src, Event e ) {
+		private void onInputEventEmitted ( IInputTracker src, TimestampedEvent e ) {
+			var translated = uiEventSource.TriggerEvent( e );
+
+			if ( translated || e is not ILoggableEvent )
+				return;
+
+			Console.WriteLine( $"{e} was not translated to a UI event" );
+		}
+
+		private void onCursorInputEventEmitted ( IInputTracker src, TimestampedEvent e ) {
 			var cursorTracker = (CursorState.Tracker)src;
 			var cursor = cursors[cursorTracker];
 
@@ -147,12 +169,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 
-			var translated = uiEventSource.TriggerEvent( e );
-
-			if ( translated || e is not ILoggableEvent )
-				return;
-
-			Console.WriteLine( $"{e} was not translated to a UI event" );
+			onInputEventEmitted( src, e );
 		}
 
 		protected override void Dispose ( bool disposing ) {

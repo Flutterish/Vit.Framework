@@ -36,6 +36,7 @@ public class SdlHost : Host {
 				ThrowSdl( "sdl initialisation failed" );
 			}
 
+			SDL.SDL_StartTextInput();
 			SDL.SDL_AddEventWatch( eventFilter = new SDL.SDL_EventFilter( eventWatch ), 0 );
 			return true;
 		}
@@ -82,6 +83,12 @@ public class SdlHost : Host {
 			}
 			else if ( e.type is SDL.SDL_EventType.SDL_KEYDOWN or SDL.SDL_EventType.SDL_KEYUP ) {
 				var @event = e.key;
+				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
+					window.OnEvent( @event );
+				}
+			}
+			else if ( e.type is SDL.SDL_EventType.SDL_TEXTINPUT ) {
+				var @event = e.text;
 				if ( windowsById.TryGetValue( @event.windowID, out var window ) ) {
 					window.OnEvent( @event );
 				}

@@ -5,7 +5,7 @@ namespace Vit.Framework.Windowing.Sdl.Input;
 
 public class CursorTracker : CursorState.Tracker, IDisposable {
 	SdlWindow window;
-	public CursorTracker ( SdlWindow window ) { // TODO use SDL timestamps?
+	public CursorTracker ( SdlWindow window ) {
 		this.window = window;
 		window.CursorMoved += onCursorMoved;
 		window.MouseButtonStateChanged += onMouseButtonStateChanged;
@@ -25,7 +25,7 @@ public class CursorTracker : CursorState.Tracker, IDisposable {
 			return;
 
 		CursorState.Delta delta = new() {
-			Timestamp = DateTime.Now,
+			Timestamp = DateTime.Now, // TODO use SDL timestamps
 			Type = CursorState.DeltaType.Buttons,
 		};
 		delta.ButtonsChanged[index] = true;
@@ -35,7 +35,7 @@ public class CursorTracker : CursorState.Tracker, IDisposable {
 
 	private void onCursorMoved ( Mathematics.Point2<float> position ) {
 		ScheduleUpdate( new() {
-			Timestamp = DateTime.Now,
+			Timestamp = DateTime.Now, // TODO use SDL timestamps
 			Type = CursorState.DeltaType.Position,
 			Position = (position.X, window.Height - position.Y)
 		} );
