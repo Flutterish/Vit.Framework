@@ -1,5 +1,7 @@
-﻿namespace Vit.Framework.TwoD.Input.Events;
+﻿using Vit.Framework.Input.Events;
 
-public record UITextInputEvent : UIEvent {
+namespace Vit.Framework.TwoD.Input.Events;
+
+public record UITextInputEvent : UIEvent, INonPropagableEvent {
 	public required string Text { get; init; }
 }

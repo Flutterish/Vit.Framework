@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.TwoD.Input.Events;
 
-public interface ITextInputHandler : IEventHandler<UITextInputEvent>, IEventHandler<ClipboardCopyEvent>, IEventHandler<ClipboardPasteTextEvent> {
+public interface ITextInputHandler : IEventHandler<UITextInputEvent>, IEventHandler<ClipboardCopyEvent>, IEventHandler<ClipboardPasteTextEvent>, IFocusable {
 	bool OnTextInput ( UITextInputEvent @event );
 	bool OnClipboardCopy ( ClipboardCopyEvent @event );
 	bool OnClipboardPaste ( ClipboardPasteTextEvent @event );

@@ -1,8 +1,9 @@
 ﻿using Vit.Framework.Input;
+using Vit.Framework.Input.Events;
 
 namespace Vit.Framework.TwoD.Input.Events;
 
-public abstract record ClipboardEvent : UIEvent {
+public abstract record ClipboardEvent : UIEvent, INonPropagableEvent {
 	public required Clipboard Clipboard { get; init; }
 }
 

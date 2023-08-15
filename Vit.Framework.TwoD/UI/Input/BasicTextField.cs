@@ -10,7 +10,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler {
+public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler, IClickable { // TODO other ways to gain focus beside clicking (tabbing and global handlers?)
 	SpriteText spriteText;
 	Box selectionBox;
 	int cursorIndex => selection.start;
@@ -23,7 +23,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		set {
 			if ( selection == value )
 				return;
-
+			
 			selection = value;
 			updateSelection();
 		}
@@ -306,5 +306,29 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 
 	public bool OnKeyUp ( PlatformAction key ) {
 		return false;
+	}
+
+	public bool OnFocused ( FocusGainedEvent @event ) {
+		return true;
+	}
+
+	public bool OnFocusLost ( FocusLostEvent @event ) {
+		return true;
+	}
+
+	public bool OnPressed ( PressedEvent @event ) {
+		return @event.Button == CursorButton.Left;
+	}
+
+	public bool OnReleased ( ReleasedEvent @event ) {
+		return true;
+	}
+
+	public bool OnClicked ( ClickedEvent @event ) {
+		return true;
+	}
+
+	public bool OnHovered ( HoveredEvent @event ) {
+		return true;
 	}
 }

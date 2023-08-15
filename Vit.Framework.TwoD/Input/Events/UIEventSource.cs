@@ -13,6 +13,8 @@ public class UIEventSource {
 	Dictionary<Key, UIComponent> keyboardHandlers = new();
 	Dictionary<PlatformAction, UIComponent> platformActionHandlers = new();
 	UIComponent? hovered;
+	UIComponent? focused;
+	UIFocus focus;
 	Clipboard clipboard;
 
 	public UIEventSource ( IReadOnlyDependencyCache dependencies ) {
@@ -20,6 +22,8 @@ public class UIEventSource {
 		platformBindings.Pressed += onPressed;
 		platformBindings.Repeated += onRepeated;
 		platformBindings.Released += onReleased;
+
+		focus = new( this );
 	}
 
 	void pressKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value, Action? releasedPrevious = null ) where TKey : struct, Enum {
@@ -51,10 +55,10 @@ public class UIEventSource {
 		repeatKey( platformActionHandlers, action );
 
 		if ( action == PlatformAction.Copy ) {
-			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard } );
+			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard }, focused );
 		}
 		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
-			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text } );
+			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text }, focused );
 		}
 	}
 
@@ -62,10 +66,18 @@ public class UIEventSource {
 		pressKey( platformActionHandlers, action );
 
 		if ( action == PlatformAction.Copy ) {
-			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard } );
+			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard }, focused );
 		}
 		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
-			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text } );
+			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text }, focused );
+		}
+	}
+
+	void releaseFocus ( UIFocus focus ) {
+		if ( focus == this.focus ) {
+			triggerEvent( new FocusLostEvent { Focus = focus }, focused );
+			this.focus = new( this );
+			this.focused = null;
 		}
 	}
 
@@ -82,6 +94,9 @@ public class UIEventSource {
 
 				if ( cursorHandlers.Remove( pressed.Button, out var previousHandler ) )
 					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, previousHandler );
+				
+				if ( hovered != focused && focused != null )
+					releaseFocus( focus );
 
 				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, hovered ) )
 					cursorHandlers.Add( pressed.Button, hovered );
@@ -92,8 +107,16 @@ public class UIEventSource {
 					break;
 
 				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition }, handler );
-				if ( handler == hovered ) 
+				if ( handler == hovered ) {
 					triggerEvent( new ClickedEvent { Button = released.Button, EventPosition = released.EventPosition }, handler );
+					if ( focused == handler )
+						break;
+
+					if ( focused != null )
+						releaseFocus( focus );
+					if ( triggerEvent( new FocusGainedEvent { Focus = focus }, handler ) )
+						focused = handler;
+				}
 				break;
 
 			case CursorMovedEvent moved:
@@ -106,8 +129,9 @@ public class UIEventSource {
 				triggerEvent( new CursorEnteredEvent { EventPosition = moved.EventPosition }, handler );
 				break;
 
-			case TextInputEvent text: // TODO this should be fed directly into a focused element
-				triggerEvent( new UITextInputEvent { Text = text.Text } );
+			case TextInputEvent text:
+				if ( focused != null )
+					triggerEvent( new UITextInputEvent { Text = text.Text }, focused );
 				break;
 
 			case KeyDownEvent down:
@@ -150,5 +174,18 @@ public class UIEventSource {
 
 		if ( e is ILoggableEvent ) Console.WriteLine( $"{e} was trigerred on {handler} {(handled ? "and handled" : "but not handled")}" );
 		return handled;
+	}
+
+
+	class UIFocus : Focus {
+		UIEventSource source;
+
+		public UIFocus ( UIEventSource source ) {
+			this.source = source;
+		}
+
+		public override void Release () {
+			source.releaseFocus( this );
+		}
 	}
 }
