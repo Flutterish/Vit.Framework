@@ -59,6 +59,45 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		return new Size2<float>( advance.X, fontSize );
 	}
 
+	public AxisAlignedBox2<float> CalculateBoundingBox ( int startIndex, int length ) {
+		Vector2<float>? start = null;
+		Vector2<float>? end = null;
+
+		var advance = Vector2<float>.Zero; // in font units
+		int index = 0;
+		foreach ( var rune in text.EnumerateRunes() ) {
+			if ( index == startIndex ) {
+				start = advance;
+			}
+			if ( index - startIndex == length ) {
+				end = advance;
+				goto end;
+			}
+
+			var glyph = font.GetGlyph( rune );
+			advance.X += (float)glyph.HorizontalAdvance;
+			index++;
+		}
+
+		end:
+		if ( start == null ) {
+			start = advance;
+		}
+		if ( end == null ) {
+			end = advance;
+		}
+
+		var startValue = start.Value * fontSize / (float)font.UnitsPerEm;
+		var endValue = end.Value * fontSize / (float)font.UnitsPerEm;
+
+		return new AxisAlignedBox2<float> {
+			MinY = 0,
+			MaxY = fontSize,
+			MinX = float.Min( startValue.X, endValue.X ),
+			MaxX = float.Max( startValue.X, endValue.X )
+		};
+	}
+
 	Shader shader = null!;
 	Texture texture = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {

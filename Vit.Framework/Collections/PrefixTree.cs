@@ -11,16 +11,7 @@ public abstract class PrefixTree<TKey, TChunk, TValue> where TChunk : notnull {
 		return children?.GetValueOrDefault( chunk );
 	}
 
-	public bool HasValue => hasValue;
-	public TValue Value => value;
-
-	public IEnumerable<KeyValuePair<TChunk, PrefixTree<TKey, TChunk, TValue>>> Children
-		=> children ?? Enumerable.Empty<KeyValuePair<TChunk, PrefixTree<TKey, TChunk, TValue>>>();
-
-	protected abstract PrefixTree<TKey, TChunk, TValue> CreateNode ();
-	protected abstract IEnumerable<TChunk> GetChunks ( TKey key );
-
-	public void Add ( TKey key, TValue value ) {
+	public PrefixTree<TKey, TChunk, TValue> GetOrCreateNode ( TKey key ) {
 		var chunks = GetChunks( key );
 		var node = this;
 		foreach ( var i in chunks ) {
@@ -30,6 +21,26 @@ public abstract class PrefixTree<TKey, TChunk, TValue> where TChunk : notnull {
 
 			node = next;
 		}
+
+		return node;
+	}
+
+	public bool HasValue => hasValue;
+	public TValue Value => value;
+
+	public void SetValue ( TValue value ) {
+		hasValue = true;
+		this.value = value;
+	}
+
+	public IEnumerable<KeyValuePair<TChunk, PrefixTree<TKey, TChunk, TValue>>> Children
+		=> children ?? Enumerable.Empty<KeyValuePair<TChunk, PrefixTree<TKey, TChunk, TValue>>>();
+
+	protected abstract PrefixTree<TKey, TChunk, TValue> CreateNode ();
+	protected abstract IEnumerable<TChunk> GetChunks ( TKey key );
+
+	public void Add ( TKey key, TValue value ) {
+		var node = GetOrCreateNode( key );
 
 		node.hasValue = true;
 		node.value = value;

@@ -4,7 +4,7 @@ namespace Vit.Framework.Input;
 
 public class KeyBindingConverter<TFrom, TTo> where TFrom : struct, Enum where TTo : struct, Enum {
 	List<KeyBinding<TFrom, TTo>> bindings = new();
-	EnumerablePrefixTree<TFrom, TTo> prefixTree = new();
+	EnumerablePrefixTree<TFrom, List<TTo>> prefixTree = new();
 	public IEnumerable<KeyBinding<TFrom, TTo>> Bindings {
 		get => bindings;
 		set {
@@ -12,7 +12,10 @@ public class KeyBindingConverter<TFrom, TTo> where TFrom : struct, Enum where TT
 			prefixTree.Clear();
 			bindings.AddRange( value );
 			foreach ( var i in value ) {
-				prefixTree.Add( i.Binding, i.Value );
+				var node = prefixTree.GetOrCreateNode( i.Binding );
+				if ( !node.HasValue )
+					node.SetValue( new() );
+				node.Value.Add( i.Value );
 			}
 		}
 	}
@@ -91,8 +94,8 @@ public class KeyBindingConverter<TFrom, TTo> where TFrom : struct, Enum where TT
 		foreach ( var i in pressedInputs )
 			unusedInputs.Add( i );
 
-		ConsumedMode tryConsume ( PrefixTree<IEnumerable<TFrom>, TFrom, TTo> node, bool anyConsumed ) {
-			foreach ( var (key, child) in node.Children ) {
+		ConsumedMode tryConsume ( PrefixTree<IEnumerable<TFrom>, TFrom, List<TTo>> node, bool anyConsumed ) {
+			foreach ( var (key, child) in node.Children.OrderBy( x => x.Key ) ) {
 				if ( !unusedInputs.Remove( key ) )
 					continue;
 				bool isPersistent = persistent.Contains( key );
@@ -114,7 +117,10 @@ public class KeyBindingConverter<TFrom, TTo> where TFrom : struct, Enum where TT
 			}
 
 			if ( node.HasValue ) {
-				swapPressed.Add( node.Value );
+				foreach ( var i in node.Value ) {
+					swapPressed.Add( i );
+				}
+				
 				return anyConsumed ? ConsumedMode.Consumed : ConsumedMode.PersistentOnly;
 			}
 			else {

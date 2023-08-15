@@ -11,7 +11,7 @@ public enum Key {
 	One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Zero,
 	ExclaimationMark, At, Hash, Dollar, Percent, Caret, Ampersand, Asterisk, LeftPerenthesis, RightPerenthesis,
 	Minus, Underscore, Equals, Plus,
-	Tab, CapsLock, LeftHost, RightHost, LeftSquareBracket, RightSquareBracket, LeftCurlyBracket, RightCurlyBracket,
+	Tab, CapsLock, LeftSquareBracket, RightSquareBracket, LeftCurlyBracket, RightCurlyBracket,
 	Semicolon, Colon, SingleQuote, DoubleQuote, Slash, Backslash, Pipe,
 	Comma, Dot, Smaller, Greater, QuestionMark,
 	Insert, Home, PageUp, Delete, End, PageDown,
@@ -25,6 +25,7 @@ public enum Key {
 	LeftShift, RightShift,
 	LeftControl, RightControl,
 	Alt, AltGr,
+	LeftHost, RightHost
 }
 
 public static class KeyExtensions {
@@ -59,6 +60,7 @@ public static class KeyExtensions {
 			Key.LeftControl or Key.RightControl => MergedKey.Control,
 			Key.LeftShift or Key.RightShift => MergedKey.Shift,
 			Key.Alt or Key.AltGr => MergedKey.Alt,
+			Key.LeftHost or Key.RightHost => MergedKey.Host,
 			_ => (MergedKey)key
 		};
 	}

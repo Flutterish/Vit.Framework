@@ -11,7 +11,7 @@ public enum MergedKey {
 	One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Zero,
 	ExclaimationMark, At, Hash, Dollar, Percent, Caret, Ampersand, Asterisk, LeftPerenthesis, RightPerenthesis,
 	Minus, Underscore, Equals, Plus,
-	Tab, CapsLock, LeftHost, RightHost, LeftSquareBracket, RightSquareBracket, LeftCurlyBracket, RightCurlyBracket,
+	Tab, CapsLock, LeftSquareBracket, RightSquareBracket, LeftCurlyBracket, RightCurlyBracket,
 	Semicolon, Colon, SingleQuote, DoubleQuote, Slash, Backslash, Pipe,
 	Comma, Dot, Smaller, Greater, QuestionMark,
 	Insert, Home, PageUp, Delete, End, PageDown,
@@ -25,4 +25,5 @@ public enum MergedKey {
 	Shift,
 	Control,
 	Alt,
+	Host
 }

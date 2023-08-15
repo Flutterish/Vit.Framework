@@ -7,7 +7,7 @@ public static class MathExtensions {
 	/// True modulus, where the sign of the result is the same as the mod.
 	/// </summary>
 	public static T Mod<T> ( this T value, T mod ) where T : INumber<T> {
-		return value <= T.Zero
+		return value < T.Zero
 			? value % mod + mod
 			: value % mod;
 	}

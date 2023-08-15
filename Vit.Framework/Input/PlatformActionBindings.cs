@@ -11,7 +11,7 @@ public abstract class PlatformActionBindings {
 
 	class Converter : KeyBindingConverter<MergedKey, PlatformAction> {
 		protected override IEnumerable<MergedKey> CreatePersistent ( IEnumerable<MergedKey> all ) {
-			return all.Where( x => x is MergedKey.Shift or MergedKey.Control or MergedKey.Alt );
+			return all.Where( x => x is MergedKey.Shift or MergedKey.Control or MergedKey.Alt or MergedKey.Host );
 		}
 	}
 

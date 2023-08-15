@@ -7,16 +7,16 @@ namespace Vit.Framework.TwoD.Input.Events;
 public class UIEventSource {
 	public required UIComponent Root { get; init; }
 
-	PlatformActionBindings platformBindibgs = new DefaultPlatformActionBindings();
+	PlatformActionBindings platformBindings = new DefaultPlatformActionBindings();
 	Dictionary<CursorButton, UIComponent> cursorHandlers = new();
 	Dictionary<Key, UIComponent> keyboardHandlers = new();
 	Dictionary<PlatformAction, UIComponent> platformActionHandlers = new();
 	UIComponent? hovered;
 
 	public UIEventSource () {
-		platformBindibgs.Pressed += onPressed;
-		platformBindibgs.Repeated += onRepeated;
-		platformBindibgs.Released += onReleased;
+		platformBindings.Pressed += onPressed;
+		platformBindings.Repeated += onRepeated;
+		platformBindings.Released += onReleased;
 	}
 
 	void pressKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value, Action? releasedPrevious = null ) where TKey : struct, Enum {
@@ -94,18 +94,18 @@ public class UIEventSource {
 				break;
 
 			case KeyDownEvent down:
-				pressKey( keyboardHandlers, down.Key, () => platformBindibgs.Remove( down.Key ) );
-				platformBindibgs.Add( down.Key );
+				pressKey( keyboardHandlers, down.Key, () => platformBindings.Remove( down.Key ) );
+				platformBindings.Add( down.Key );
 				break;
 
 			case KeyUpEvent up:
 				releaseKey( keyboardHandlers, up.Key );
-				platformBindibgs.Remove( up.Key );
+				platformBindings.Remove( up.Key );
 				break;
 
 			case KeyRepeatEvent repeat:
 				repeatKey( keyboardHandlers, repeat.Key );
-				platformBindibgs.Add( repeat.Key );
+				platformBindings.Repeat( repeat.Key );
 				break;
 
 			default:

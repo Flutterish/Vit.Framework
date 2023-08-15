@@ -47,15 +47,10 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 		foreach ( var (i, param) in LayoutChildren ) {
 			var childSize = param.Size.GetSize( size ).Contain( i.RequiredSize );
 
-			var origin = childSize * param.Origin;
-			var anchor = size * param.Anchor;
-
-			var position = anchor - origin;
-
 			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) ) 
-				result.Width = float.Max( result.Width, float.Max( 0, position.X ) + childSize.Width );
+				result.Width = float.Max( result.Width, childSize.Width );
 			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) ) 
-				result.Height = float.Max( result.Height, float.Max( 0, position.Y ) + childSize.Height );
+				result.Height = float.Max( result.Height, childSize.Height );
 		}
 
 		return new() {
