@@ -29,5 +29,22 @@ public class LayoutAnimationTest : TestScene {
 				Origin = anchor
 			} );
 		}
+
+		bool toggle = true;
+		AddChild( new BasicButton {
+			Clicked = () => {
+				if ( toggle ) {
+					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 100 ), 1000, Easing.InOut );
+				}
+				else {
+					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 0 ), 1000, Easing.InOut );
+				}
+				toggle = !toggle;
+			}
+		}, new() {
+			Size = (100, 100),
+			Anchor = Anchor.Centre,
+			Origin = Anchor.Centre
+		} );
 	}
 }
