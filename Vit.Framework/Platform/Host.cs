@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Windowing;
 
 namespace Vit.Framework.Platform;
@@ -10,7 +11,7 @@ public abstract class Host : IDisposable {
 	}
 
 	public abstract Task<Window> CreateWindow ();
-
+	public abstract Clipboard GetClipboard ();
 	public abstract GraphicsApi CreateGraphicsApi ( GraphicsApiType api, IEnumerable<RenderingCapabilities> capabilities );
 
 	public abstract IEnumerable<GraphicsApiType> SupportedRenderingApis { get; }

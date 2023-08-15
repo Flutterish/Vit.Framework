@@ -3,7 +3,6 @@ using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input;
-using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Graphics;
@@ -11,7 +10,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicTextField : LayoutContainer, IEventHandler<UITextInputEvent>, IKeyBindingHandler<PlatformAction> {
+public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler {
 	SpriteText spriteText;
 	Box selectionBox;
 	int cursorIndex => selection.start;
@@ -87,7 +86,7 @@ public class BasicTextField : LayoutContainer, IEventHandler<UITextInputEvent>, 
 	}
 
 	bool typedWords;
-	public bool OnEvent ( UITextInputEvent @event ) {
+	public bool OnTextInput ( UITextInputEvent @event ) {
 		Text = Text.Substring( 0, selectionStart ) + @event.Text + Text.Substring( selectionEnd );
 		var index = selectionStart + @event.Text.Length;
 		Selection = (index, index);
@@ -97,6 +96,28 @@ public class BasicTextField : LayoutContainer, IEventHandler<UITextInputEvent>, 
 
 		if ( typedWords && @event.Text.Any( char.IsWhiteSpace ) )
 			pushHistoryStack();
+
+		return true;
+	}
+
+	public bool OnClipboardCopy ( ClipboardCopyEvent @event ) {
+		if ( changesPending )
+			pushHistoryStack();
+
+		@event.Clipboard.CopyText( selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength ) );
+		return true;
+	}
+
+	public bool OnClipboardPaste ( ClipboardPasteTextEvent @event ) {
+		if ( changesPending )
+			pushHistoryStack();
+
+		var pasted = new string( @event.Text.Where( x => !char.IsControl( x ) ).ToArray() );
+		Text = Text.Substring( 0, selectionStart ) + pasted + Text.Substring( selectionEnd );
+		var index = selectionStart + pasted.Length;
+		Selection = (index, index);
+
+		pushHistoryStack();
 
 		return true;
 	}
@@ -272,6 +293,9 @@ public class BasicTextField : LayoutContainer, IEventHandler<UITextInputEvent>, 
 				spriteText.Text = stack.text;
 				Selection = stack.selection;
 				break;
+
+				// TODO also use glyph-size rather than amounf of utf-16 codepoints
+				// TODO also use IME
 
 			default:
 				return false;

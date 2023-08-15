@@ -5,9 +5,11 @@ using Vit.Framework.Graphics.Direct3D11;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Input;
 using Vit.Framework.Interop;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
+using Vit.Framework.Windowing.Sdl.Input;
 
 namespace Vit.Framework.Windowing.Sdl;
 
@@ -167,6 +169,12 @@ public class SdlHost : Host {
 		VulkanApi.GraphicsApiType,
 		Direct3D11Api.GraphicsApiType
 	};
+
+
+	SdlClipboard clipboard = new();
+	public override Clipboard GetClipboard () {
+		return clipboard;
+	}
 
 	public override void Dispose ( bool isDisposing ) {
 		foreach ( var i in windowsById )

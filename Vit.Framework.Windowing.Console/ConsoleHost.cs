@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Platform;
 
 namespace Vit.Framework.Windowing.Console;
@@ -26,5 +27,10 @@ public class ConsoleHost : Host {
 
 	public override void Dispose ( bool isDisposing ) {
 		
+	}
+
+	Clipboard clipboard = new InMemoryClipboard();
+	public override Clipboard GetClipboard () {
+		return clipboard;
 	}
 }

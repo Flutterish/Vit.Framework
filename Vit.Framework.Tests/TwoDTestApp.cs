@@ -97,7 +97,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		InputTrackerCollection inputTrackers;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			inputTrackers = window.CreateInputTrackers();
-			uiEventSource = new() { Root = Root };
+			uiEventSource = new( dependencies ) { Root = Root };
 			this.window = window;
 		}
 

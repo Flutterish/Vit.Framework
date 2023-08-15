@@ -72,6 +72,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );
 		Dependencies.Cache<IClock>( clock );
+		Dependencies.Cache( Host.GetClipboard() );
 
 		MainUpdateThread = CreateUpdateThread();
 		MainRenderThread = CreateRenderThread();

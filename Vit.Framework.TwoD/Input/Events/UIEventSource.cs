@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Input;
+﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.UI;
 
@@ -12,8 +13,10 @@ public class UIEventSource {
 	Dictionary<Key, UIComponent> keyboardHandlers = new();
 	Dictionary<PlatformAction, UIComponent> platformActionHandlers = new();
 	UIComponent? hovered;
+	Clipboard clipboard;
 
-	public UIEventSource () {
+	public UIEventSource ( IReadOnlyDependencyCache dependencies ) {
+		clipboard = dependencies.Resolve<Clipboard>();
 		platformBindings.Pressed += onPressed;
 		platformBindings.Repeated += onRepeated;
 		platformBindings.Released += onReleased;
@@ -46,10 +49,24 @@ public class UIEventSource {
 
 	private void onRepeated ( PlatformAction action ) {
 		repeatKey( platformActionHandlers, action );
+
+		if ( action == PlatformAction.Copy ) {
+			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard } );
+		}
+		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
+			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text } );
+		}
 	}
 
 	private void onPressed ( PlatformAction action ) {
 		pressKey( platformActionHandlers, action );
+
+		if ( action == PlatformAction.Copy ) {
+			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard } );
+		}
+		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
+			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text } );
+		}
 	}
 
 	/// <summary>
