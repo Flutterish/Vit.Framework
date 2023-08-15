@@ -2,6 +2,7 @@
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Input;
 
 namespace Vit.Framework.TwoD.Input.Events;
 
@@ -17,6 +18,11 @@ public class UIEventSource {
 	UIFocus focus;
 	Clipboard clipboard;
 
+	EventTree<UIComponent>? lastValidTabIndex;
+	EventTree<UIComponent>? currentTabIndex;
+	public BasicTabVisualizer? TabVisualizer { get; init; }
+	bool isTabFocused;
+
 	public UIEventSource ( IReadOnlyDependencyCache dependencies ) {
 		clipboard = dependencies.Resolve<Clipboard>();
 		platformBindings.Pressed += onPressed;
@@ -26,15 +32,26 @@ public class UIEventSource {
 		focus = new( this );
 	}
 
-	void pressKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value, Action? releasedPrevious = null ) where TKey : struct, Enum {
+	bool pressKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value, Action? releasedPrevious = null ) where TKey : struct, Enum {
 		if ( map.TryGetValue( value, out var handler ) ) {
 			triggerEvent( new KeyUpEvent<TKey> { Key = value }, handler );
 			releasedPrevious?.Invoke();
 		}
 
-		handler = triggerEvent( new KeyDownEvent<TKey> { Key = value } );
-		if ( handler != null )
-			map.Add( value, handler );
+		var @event = new KeyDownEvent<TKey> { Key = value };
+		if ( triggerEvent( @event, focused ) ) {
+			map.Add( value, focused! );
+			return true;
+		}
+		else {
+			handler = triggerEvent( @event );
+			if ( handler != null ) {
+				map.Add( value, handler );
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void releaseKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value ) where TKey : struct, Enum {
@@ -42,43 +59,97 @@ public class UIEventSource {
 			triggerEvent( new KeyUpEvent<TKey> { Key = value }, handler );
 	}
 
-	void repeatKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value ) where TKey : struct, Enum {
+	bool repeatKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value ) where TKey : struct, Enum {
 		if ( map.TryGetValue( value, out var handler ) )
-			triggerEvent( new KeyRepeatEvent<TKey> { Key = value }, handler );
+			return triggerEvent( new KeyRepeatEvent<TKey> { Key = value }, handler );
+
+		return false;
 	}
 
-	private void onReleased ( PlatformAction action ) {
+	void onReleased ( PlatformAction action ) {
 		releaseKey( platformActionHandlers, action );
 	}
 
-	private void onRepeated ( PlatformAction action ) {
-		repeatKey( platformActionHandlers, action );
+	void onRepeated ( PlatformAction action ) {
+		if ( repeatKey( platformActionHandlers, action ) )
+			return;
 
+		onPlatformAction( action );
+	}
+
+	void onPressed ( PlatformAction action ) {
+		if ( pressKey( platformActionHandlers, action ) )
+			return;
+
+		onPlatformAction( action );
+	}
+	
+	void onPlatformAction ( PlatformAction action ) {
 		if ( action == PlatformAction.Copy ) {
 			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard }, focused );
 		}
-		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
-			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text }, focused );
+		else if ( action == PlatformAction.Paste ) {
+			if ( clipboard.GetText( 0 ) is string text )
+				triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text }, focused );
+		}
+		else if ( action == PlatformAction.TabForward ) {
+			tab( forward: true );
+		}
+		else if ( action == PlatformAction.TabBackward ) {
+			tab( forward: false );
 		}
 	}
 
-	private void onPressed ( PlatformAction action ) {
-		pressKey( platformActionHandlers, action );
+	void tab ( bool forward ) {
+		var previous = currentTabIndex;
+		if ( currentTabIndex == null ) {
+			if ( forward ) {
+				currentTabIndex = Root.HandledEventTypes.TryGetValue( typeof( TabFocusGainedEvent ), out var index ) ? index : null;
+				if ( currentTabIndex?.Handler == null )
+					currentTabIndex = currentTabIndex?.NextWithHandler;
+			}
+			else {
+				currentTabIndex = lastValidTabIndex;
+			}
+		}
+		else {
+			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
+		}
 
-		if ( action == PlatformAction.Copy ) {
-			triggerEvent( new ClipboardCopyEvent { Clipboard = clipboard }, focused );
+		releaseFocus();
+		TabFocusGainedEvent @event = new() { Focus = focus };
+		while ( currentTabIndex != null ) {
+			if ( currentTabIndex.Handler!.Invoke( @event ) ) {
+				focused = currentTabIndex.Source;
+				isTabFocused = true;
+				if ( TabVisualizer != null )
+					TabVisualizer.Target = focused;
+				return;
+			}
+
+			previous = currentTabIndex;
+			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
 		}
-		else if ( action == PlatformAction.Paste && clipboard.GetText( 0 ) is string text ) {
-			triggerEvent( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text }, focused );
-		}
+
+		if ( forward )
+			lastValidTabIndex = previous;
+		else
+			lastValidTabIndex = null;
 	}
 
-	void releaseFocus ( UIFocus focus ) {
-		if ( focus == this.focus ) {
-			triggerEvent( new FocusLostEvent { Focus = focus }, focused );
-			this.focus = new( this );
-			this.focused = null;
-		}
+	void releaseFocus () {
+		isTabFocused = false;
+		if ( TabVisualizer != null )
+			TabVisualizer.Target = null;
+		triggerEvent( new FocusLostEvent { Focus = focus }, focused );
+		focus = new( this );
+		focused = null;
+	}
+
+	void manualReleaseFocus () {
+		releaseFocus();
+		currentTabIndex = null;
+		lastValidTabIndex = null;
 	}
 
 	/// <summary>
@@ -95,8 +166,11 @@ public class UIEventSource {
 				if ( cursorHandlers.Remove( pressed.Button, out var previousHandler ) )
 					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, previousHandler );
 				
-				if ( hovered != focused && focused != null )
-					releaseFocus( focus );
+				if ( hovered != focused && focused != null ) {
+					releaseFocus();
+					lastValidTabIndex = null;
+					currentTabIndex = hovered.HandledEventTypes.TryGetValue( typeof( TabFocusGainedEvent ), out var tabbable ) ? tabbable : null; 
+				}
 
 				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, hovered ) )
 					cursorHandlers.Add( pressed.Button, hovered );
@@ -113,7 +187,7 @@ public class UIEventSource {
 						break;
 
 					if ( focused != null )
-						releaseFocus( focus );
+						releaseFocus();
 					if ( triggerEvent( new FocusGainedEvent { Focus = focus }, handler ) )
 						focused = handler;
 				}
@@ -185,7 +259,8 @@ public class UIEventSource {
 		}
 
 		public override void Release () {
-			source.releaseFocus( this );
+			if ( source.focus == this )
+				source.manualReleaseFocus();
 		}
 	}
 }

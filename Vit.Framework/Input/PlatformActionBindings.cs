@@ -115,6 +115,8 @@ public class DefaultPlatformActionBindings : PlatformActionBindings {
 		new( PlatformAction.ZoomOut, new[] { MergedKey.Control, MergedKey.Minus } ),
 		new( PlatformAction.ZoomOut, new[] { MergedKey.Control, MergedKey.NumpadSubstract } ),
 		new( PlatformAction.ZoomDefault, new[] { MergedKey.Control, MergedKey.Zero } ),
-		new( PlatformAction.ZoomDefault, new[] { MergedKey.Control, MergedKey.NumpadZero } )
+		new( PlatformAction.ZoomDefault, new[] { MergedKey.Control, MergedKey.NumpadZero } ),
+		new( PlatformAction.TabForward, MergedKey.Tab ),
+		new( PlatformAction.TabBackward, new[] { MergedKey.Shift, MergedKey.Tab } )
 	};
 }

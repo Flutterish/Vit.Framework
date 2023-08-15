@@ -196,9 +196,10 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
 		=> GlobalToUnitMatrix.Apply( point );
-
 	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
 		=> UnitToGlobalMatrix.Apply( point );
+	public Point2<float> LocalSpaceToAnotherSpace ( Point2<float> point, UIComponent other )
+		=> other.ScreenSpaceToLocalSpace( LocalSpaceToScreenSpace( point ) );
 
 	Matrix3<float>? unitToLocal;
 	Matrix3<float>? unitToLocalInverse;

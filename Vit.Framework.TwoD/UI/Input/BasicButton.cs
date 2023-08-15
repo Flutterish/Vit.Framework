@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
+using Vit.Framework.Input;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Animations;
@@ -8,7 +9,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicButton : LayoutContainer, IClickable, IHoverable {
+public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabbable, IKeyBindingHandler<Key> {
 	ColorRgba<float> hoverColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.GreenYellow, 0.5f );
 	ColorRgba<float> backgroundColour = ColorRgba.GreenYellow;
 	ColorRgba<float> pressedColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.Black, 0.1f );
@@ -96,6 +97,39 @@ public class BasicButton : LayoutContainer, IClickable, IHoverable {
 	public bool OnCursorExited ( CursorExitedEvent @event ) {
 		isHovered = false;
 		onInteractionStateChanged();
+		return true;
+	}
+
+	Focus? focus;
+	public bool OnTabbedOver ( TabFocusGainedEvent @event ) {
+		focus = @event.Focus;
+		return true;
+	}
+
+	public bool OnEvent ( FocusLostEvent @event ) {
+		focus = null;
+		return true;
+	}
+
+	protected override void OnUnload () {
+		base.OnUnload();
+		focus?.Release();
+	}
+
+	public bool OnKeyDown ( Key key, bool isRepeat ) {
+		if ( focus == null )
+			return false;
+
+		if ( key is Key.Enter or Key.Space ) {
+			background.Animate().FlashColour( FlashColour, isHovered ? HoverColour : BackgroundColour, 200 );
+			Clicked?.Invoke();
+
+			return true;
+		}
+		return false;
+	}
+
+	public bool OnKeyUp ( Key key ) {
 		return true;
 	}
 }

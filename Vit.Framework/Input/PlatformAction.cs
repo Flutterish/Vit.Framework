@@ -42,5 +42,8 @@ public enum PlatformAction {
 
 	ZoomIn,
 	ZoomOut,
-	ZoomDefault
+	ZoomDefault,
+
+	TabForward,
+	TabBackward
 }

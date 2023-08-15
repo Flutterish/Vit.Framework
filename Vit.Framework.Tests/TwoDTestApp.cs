@@ -22,6 +22,7 @@ using Vit.Framework.TwoD.Templates;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.TwoD.UI.Graphics;
+using Vit.Framework.TwoD.UI.Input;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
@@ -97,11 +98,15 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		InputTrackerCollection inputTrackers;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			inputTrackers = window.CreateInputTrackers();
-			uiEventSource = new( dependencies ) { Root = Root };
+			var tabVisualizer = new BasicTabVisualizer();
+			uiEventSource = new( dependencies ) { Root = Root, TabVisualizer = tabVisualizer };
 			this.window = window;
 		}
 
 		protected override bool Initialize () {
+			Root.AddChild( uiEventSource.TabVisualizer!, new() {
+				Size = new( 1f.Relative() )
+			} );
 			return true;
 		}
 
