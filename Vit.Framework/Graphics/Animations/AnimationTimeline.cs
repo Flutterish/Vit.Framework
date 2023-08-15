@@ -68,7 +68,7 @@ public class AnimationTimeline {
 
 			tryUpdate( current, animation.StartTime );
 			if ( current.Last != null && !current.Last.Value.WasInterrupted ) {
-				current.Last.Value.OnInterrupted( animation.StartTime,  by: animation );
+				current.Last.Value.OnInterrupted( animation );
 			}
 			
 			current.AddLast( animation );

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Vit.Framework.Graphics.Animations;
 
@@ -19,13 +20,13 @@ public abstract class Animation {
 	/// </remarks>
 	public abstract IReadOnlyList<AnimationDomain> Domains { get; }
 	public virtual OverlapResolutionContract? OverlapResolutionContract => null;
-	public double InterruptedAt { get; private set; } = double.PositiveInfinity;
+	public double InterruptedAt => InterruptedBy?.StartTime ?? double.PositiveInfinity;
 	public Animation? InterruptedBy { get; private set; }
+	[MemberNotNullWhen(true, nameof(InterruptedBy))]
 	public bool WasInterrupted => InterruptedBy != null;
-	public void OnInterrupted ( double time, Animation by ) { // TODO not sure what happens if it gets interrupted in 2 different domains
-		Debug.Assert( !WasInterrupted || (time == InterruptedAt && by == InterruptedBy), "I dont know how to handle this yet. Please dont get interrupted in 2 places at once." );
+	public void OnInterrupted ( Animation by ) { // TODO not sure what happens if it gets interrupted in 2 different domains
+		Debug.Assert( !WasInterrupted || by == InterruptedBy, "I dont know how to handle this yet. Please dont get interrupted in 2 places at once." );
 
-		InterruptedAt = time;
 		InterruptedBy = by;
 	}
 
