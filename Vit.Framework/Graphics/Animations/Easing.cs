@@ -111,6 +111,10 @@ public static class Easing {
 	};
 	public static readonly EasingFunction InBounce = x => { return 1 - OutBounce( 1 - x ); };
 
+	public static readonly EasingFunction SmoothStep = x => x * x * ( 3 - 2 * x );
+	public static readonly EasingFunction SmootherStep = x => x * x * x * ( 10 - x * ( 15 - x * 6 ) );
+	public static readonly EasingFunction SmoothestStep = x => x * x * x * x * ( 35 - x * ( 84 - x * ( 70 - x * 20 ) ) );
+
 	public static readonly EasingFunction None = x => x;
 	public static readonly EasingFunction In = InQuad;
 	public static readonly EasingFunction InOut = InOutQuad;

@@ -23,15 +23,38 @@ public class AnimationTimeline {
 	public void Update ( double time ) {
 		animations.SeekTo( time );
 		foreach ( var (domain, list) in animationsByDomain ) {
-			tryUpdate( list.Last?.Value, time );
+			tryUpdate( list, time );
 		}
 	}
 
-	void tryUpdate ( Animation? animation, double time ) {
-		if ( animation is null || time > animation.EndTime || time > animation.InterruptedAt )
+	static IEnumerable<Animation> getResolvees ( LinkedList<Animation> list, OverlapResolutionContract contract ) {
+		var last = list.Last;
+		while ( last != null ) {
+			if ( last.Value.OverlapResolutionContract != contract )
+				break;
+
+			yield return last.Value;
+			last = last.Previous;
+		}
+	}
+
+	void tryUpdate ( LinkedList<Animation> domain, double time ) {
+		var last = domain.Last;
+		if ( last == null || last.Value.InterruptedAt < time )
 			return;
 
-		animation.Update( time );
+		if ( last.Previous == null ) {
+			last.Value.Update( time );
+		}
+		else {
+			var contract = last.Value.OverlapResolutionContract;
+			if ( contract == null ) { // null contract means just a regular interruption
+				last.Value.Update( time );
+				return;
+			}
+
+			contract.Update( getResolvees( domain, contract ), time );
+		}
 	}
 
 	// values are ordered from oldest (first node) to newest (last node) by start time.
@@ -43,8 +66,11 @@ public class AnimationTimeline {
 			if ( !animationsByDomain.TryGetValue( i, out var current ) )
 				animationsByDomain.Add( i, current = new() );
 
-			current.Last?.Value.OnInterrupted( animation.StartTime ); // TODO we can add something to let the new animation know it interrupted something, giving it the ability to "preserve momentum"
-			tryUpdate( current.Last?.Value, animation.StartTime );
+			tryUpdate( current, animation.StartTime );
+			if ( current.Last != null && !current.Last.Value.WasInterrupted ) {
+				current.Last.Value.OnInterrupted( animation.StartTime,  by: animation );
+			}
+			
 			current.AddLast( animation );
 		}
 

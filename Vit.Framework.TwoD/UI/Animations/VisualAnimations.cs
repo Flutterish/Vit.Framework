@@ -10,11 +10,11 @@ public class AlphaTintAnimation : Animation<IHasAlphaTint, ColorRgba<float>> {
 		return Target.Tint;
 	}
 
-	protected override void SetValue ( ColorRgba<float> value ) {
+	public override void SetValue ( ColorRgba<float> value ) {
 		Target.Tint = value;
 	}
 
-	protected override ColorRgba<float> Interpolate ( ColorRgba<float> from, ColorRgba<float> to, double t ) {
+	public override ColorRgba<float> Interpolate ( ColorRgba<float> from, ColorRgba<float> to, double t ) {
 		return from.Interpolate( to, (float)t );
 	}
 
@@ -29,11 +29,11 @@ public class TintAnimation : Animation<IHasTint, ColorRgb<float>> {
 		return Target.Tint;
 	}
 
-	protected override void SetValue ( ColorRgb<float> value ) {
+	public override void SetValue ( ColorRgb<float> value ) {
 		Target.Tint = value;
 	}
 
-	protected override ColorRgb<float> Interpolate ( ColorRgb<float> from, ColorRgb<float> to, double t ) {
+	public override ColorRgb<float> Interpolate ( ColorRgb<float> from, ColorRgb<float> to, double t ) {
 		return from.Interpolate( to, (float)t );
 	}
 
@@ -48,11 +48,11 @@ public class AlphaAnimation : Animation<IHasAlpha, float> {
 		return Target.Alpha;
 	}
 
-	protected override void SetValue ( float value ) {
+	public override void SetValue ( float value ) {
 		Target.Alpha = value;
 	}
 
-	protected override float Interpolate ( float from, float to, double t ) {
+	public override float Interpolate ( float from, float to, double t ) {
 		var time = (float)t;
 		return (1 - time) * from + time * to;
 	}

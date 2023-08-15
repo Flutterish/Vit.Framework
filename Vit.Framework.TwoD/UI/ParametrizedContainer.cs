@@ -98,11 +98,11 @@ public static class ParametrizedContainerExtensions {
 			return container.GetLayoutParameters( Target );
 		}
 
-		protected override void SetValue ( TParam value ) {
+		public override void SetValue ( TParam value ) {
 			container.UpdateLayoutParameters( Target, value );
 		}
 
-		protected override TParam Interpolate ( TParam from, TParam to, double t ) {
+		public override TParam Interpolate ( TParam from, TParam to, double t ) {
 			return from.Lerp( to, (float)t );
 		}
 
@@ -128,11 +128,11 @@ public static class ParametrizedContainerExtensions {
 			return transformer( StartValue );
 		}
 
-		protected override void SetValue ( TParam value ) {
+		public override void SetValue ( TParam value ) {
 			container.UpdateLayoutParameters( Target, value );
 		}
 
-		protected override TParam Interpolate ( TParam from, TParam to, double t ) {
+		public override TParam Interpolate ( TParam from, TParam to, double t ) {
 			return from.Lerp( to, (float)t );
 		}
 
