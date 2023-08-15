@@ -95,10 +95,98 @@ public static class IHasEventTreesExtensions {
 public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 	public required TSelf Source { get; init; }
 
+	public int Depth { get; private set; }
 	public Func<Event, bool>? Handler;
-	public List<EventTree<TSelf>>? Children;
+	List<EventTree<TSelf>>? children;
+	public EventTree<TSelf>? Parent { get; private set; }
+	public IReadOnlyList<EventTree<TSelf>> Children => children ?? (IReadOnlyList<EventTree<TSelf>>)Array.Empty<EventTree<TSelf>>();
+	
+	public void Add ( EventTree<TSelf> child ) {
+		(children ??= new()).Add( child );
+		child.Depth = children.Count - 1;
+		child.Parent = this;
+	}
+	public void Remove ( EventTree<TSelf> child ) {
+		var index = children!.IndexOf( child );
+		children!.RemoveAt( index );
+		child.Parent = null;
+		for ( int i = index; i < children.Count; i++ ) {
+			children[i].Depth--;
+		}
+	}
 
-	public bool ShouldBeCulled => Handler == null && Children?.Any() != true;
+	public void Sort ( Comparison<EventTree<TSelf>> comparer ) {
+		children!.Sort( comparer );
+		for ( int i = 0; i < children.Count; i++ ) {
+			children[i].Depth = i;
+		}
+	}
+
+	public EventTree<TSelf>? Next {
+		get {
+			if ( Children.Any() == true )
+				return Children[0];
+
+			var node = this;
+			var parent = Parent;
+			while ( parent != null ) {
+				if ( parent.Children.Count > node.Depth + 1 )
+					return parent.Children[node.Depth + 1];
+
+				node = parent;
+				parent = node.Parent;
+			}
+
+			return null;
+		}
+	}
+
+	public EventTree<TSelf>? NextWithHandler {
+		get {
+			var node = Next;
+			while ( node != null ) {
+				if ( node.Handler != null )
+					return node;
+
+				node = node.Next;
+			}
+
+			return null;
+		}
+	}
+
+	public EventTree<TSelf>? Previous {
+		get {
+			var parent = Parent;
+			if ( parent == null )
+				return null;
+
+			if ( Depth == 0 )
+				return parent;
+
+			var sibling = parent.Children[Depth - 1];
+			while ( sibling != null && sibling.Children.Any() )
+				sibling = sibling.Children[^1];
+
+			return sibling;
+		}
+	}
+
+	public EventTree<TSelf>? PreviousWithHandler {
+		get {
+			var node = Previous;
+			while ( node != null ) {
+				if ( node.Handler != null )
+					return node;
+
+				node = node.Previous;
+			}
+
+			return null;
+		}
+	}
+
+	public bool ShouldBeCulled => Handler == null && Children.Any() != true;
 
 	[ThreadStatic]
 	static Stack<EventTree<TSelf>>? enumerationStack;

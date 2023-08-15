@@ -96,23 +96,28 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	void onChildEventHandlerRemoved ( Type type, EventTree<UIComponent> tree ) {
+		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+			return;
+
 		var ourTree = GetEventTree( type );
-		ourTree.Children!.Remove( tree );
+		ourTree.Remove( tree );
 		TryTrimEventTree( type );
 
 		sortEventTree( ourTree );
 	}
 
 	void onChildEventHandlerAdded ( Type type, EventTree<UIComponent> tree ) {
+		if ( type.IsAssignableTo( typeof( INonPropagableEvent ) ) )
+			return;
+
 		var ourTree = GetEventTree( type );
-		ourTree.Children ??= new();
-		ourTree.Children.Add( tree );
+		ourTree.Add( tree );
 
 		sortEventTree( ourTree );
 	}
 
 	void sortEventTree ( EventTree<UIComponent> tree ) {
-		tree.Children!.Sort( static ( a, b ) => a.Source.Depth - b.Source.Depth );
+		tree.Sort( static ( a, b ) => a.Source.Depth - b.Source.Depth );
 	}
 
 	protected virtual IReadOnlyDependencyCache CreateDependencies ( IReadOnlyDependencyCache parent ) {

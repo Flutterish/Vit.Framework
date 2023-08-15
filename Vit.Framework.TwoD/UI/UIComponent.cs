@@ -18,9 +18,6 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	}
 
 	#region Hierarchy
-	/// <summary>
-	/// Represents the index of this component in its parent (if it has a parent).
-	/// </summary>
 	public int Depth { get; internal set; }
 	ICompositeUIComponent<UIComponent>? parent;
 	public ICompositeUIComponent<UIComponent>? Parent {
@@ -30,7 +27,6 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 			OnParentMatrixInvalidated();
 		}
 	}
-	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
 	#endregion
 	#region Layout
 	public LayoutInvalidations LayoutInvalidations { get; private set; } = LayoutInvalidations.Self;
@@ -351,6 +347,13 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 }
 
 public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, IDisposable {
+	new ICompositeUIComponent<UIComponent>? Parent { get; }
+	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
+	/// <summary>
+	/// Represents the index of this component in its parent (if it has a parent).
+	/// </summary>
+	int Depth { get; }
+
 	void InvalidateLayout ( LayoutInvalidations invalidations );
 
 	/// <summary>
