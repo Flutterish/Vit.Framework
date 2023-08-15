@@ -1,4 +1,4 @@
-﻿using Vit.Framework.Input;
+﻿using Vit.Framework.Input.Trackers;
 
 namespace Vit.Framework.Windowing.Console.Input;
 

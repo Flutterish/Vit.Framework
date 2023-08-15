@@ -1,4 +1,4 @@
-﻿namespace Vit.Framework.Input;
+﻿namespace Vit.Framework.Input.Trackers;
 
 /// <summary>
 /// A collection of input trackers, which can be dynamically detected or lost.
@@ -15,7 +15,7 @@ public abstract class InputTrackerCollection : IDisposable {
 	}
 
 	protected void OnTrackerLost ( IInputTracker tracker ) {
-		lock( pending ) {
+		lock ( pending ) {
 			anyChanges = true;
 			pending.Enqueue( (tracker, false) );
 		}

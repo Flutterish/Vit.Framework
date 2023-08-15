@@ -1,15 +1,14 @@
 ﻿using Vit.Framework.Input.Events;
 
-namespace Vit.Framework.Input;
+namespace Vit.Framework.Input.Trackers;
 
 /// <summary>
 /// Queues inputs from a separate input thread and tracks them on another.
 /// </summary>
 /// <typeparam name="TUpdate">A change in the input state.</typeparam>
 /// <typeparam name="TInput">The input state.</typeparam>
-public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput> 
-	where TUpdate : IHasTimestamp where TInput : IHasTimestamp 
-{
+public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
+	where TUpdate : IHasTimestamp where TInput : IHasTimestamp {
 	bool enabled = true;
 	public bool IsEnabled {
 		get => enabled;

@@ -1,7 +1,7 @@
 ﻿using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Curses.Windowing;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Input;
+using Vit.Framework.Input.Trackers;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Windowing.Console.Input;
 

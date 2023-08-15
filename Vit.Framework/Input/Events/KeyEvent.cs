@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Input.Events;
+﻿using Vit.Framework.Input.Trackers;
+
+namespace Vit.Framework.Input.Events;
 
 public abstract record KeyEvent : TimestampedEvent {
 	public required KeyboardState State { get; init; }

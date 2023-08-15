@@ -7,9 +7,50 @@ namespace Vit.Framework.TwoD.Input.Events;
 public class UIEventSource {
 	public required UIComponent Root { get; init; }
 
+	PlatformActionBindings platformBindibgs = new DefaultPlatformActionBindings();
 	Dictionary<CursorButton, UIComponent> cursorHandlers = new();
 	Dictionary<Key, UIComponent> keyboardHandlers = new();
+	Dictionary<PlatformAction, UIComponent> platformActionHandlers = new();
 	UIComponent? hovered;
+
+	public UIEventSource () {
+		platformBindibgs.Pressed += onPressed;
+		platformBindibgs.Repeated += onRepeated;
+		platformBindibgs.Released += onReleased;
+	}
+
+	void pressKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value, Action? releasedPrevious = null ) where TKey : struct, Enum {
+		if ( map.TryGetValue( value, out var handler ) ) {
+			triggerEvent( new KeyUpEvent<TKey> { Key = value }, handler );
+			releasedPrevious?.Invoke();
+		}
+
+		handler = triggerEvent( new KeyDownEvent<TKey> { Key = value } );
+		if ( handler != null )
+			map.Add( value, handler );
+	}
+
+	void releaseKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value ) where TKey : struct, Enum {
+		if ( map.Remove( value, out var handler ) )
+			triggerEvent( new KeyUpEvent<TKey> { Key = value }, handler );
+	}
+
+	void repeatKey<TKey> ( Dictionary<TKey, UIComponent> map, TKey value ) where TKey : struct, Enum {
+		if ( map.TryGetValue( value, out var handler ) )
+			triggerEvent( new KeyRepeatEvent<TKey> { Key = value }, handler );
+	}
+
+	private void onReleased ( PlatformAction action ) {
+		releaseKey( platformActionHandlers, action );
+	}
+
+	private void onRepeated ( PlatformAction action ) {
+		repeatKey( platformActionHandlers, action );
+	}
+
+	private void onPressed ( PlatformAction action ) {
+		pressKey( platformActionHandlers, action );
+	}
 
 	/// <summary>
 	/// Triggers UI events based on the provided events.
@@ -53,22 +94,18 @@ public class UIEventSource {
 				break;
 
 			case KeyDownEvent down:
-				if ( keyboardHandlers.TryGetValue( down.Key, out handler ) )
-					triggerEvent( new KeyUpEvent<Key> { Key = down.Key }, handler );
-
-				handler = triggerEvent( new KeyDownEvent<Key> { Key = down.Key } );
-				if ( handler != null )
-					keyboardHandlers.Add( down.Key, handler );
+				pressKey( keyboardHandlers, down.Key, () => platformBindibgs.Remove( down.Key ) );
+				platformBindibgs.Add( down.Key );
 				break;
 
 			case KeyUpEvent up:
-				if ( keyboardHandlers.Remove( up.Key, out handler ) )
-					triggerEvent( new KeyUpEvent<Key> { Key = up.Key }, handler );
+				releaseKey( keyboardHandlers, up.Key );
+				platformBindibgs.Remove( up.Key );
 				break;
 
 			case KeyRepeatEvent repeat:
-				if ( keyboardHandlers.TryGetValue( repeat.Key, out handler ) )
-					triggerEvent( new KeyRepeatEvent<Key> { Key = repeat.Key }, handler );
+				repeatKey( keyboardHandlers, repeat.Key );
+				platformBindibgs.Add( repeat.Key );
 				break;
 
 			default:

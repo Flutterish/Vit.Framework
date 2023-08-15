@@ -1,5 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Input;
+using Vit.Framework.Input.Trackers;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing;

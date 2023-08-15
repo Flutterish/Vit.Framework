@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Input.Events;
 
-namespace Vit.Framework.Input;
+namespace Vit.Framework.Input.Trackers;
 
 public class KeyboardState : IHasTimestamp {
 	public DateTime Timestamp { get; private set; }

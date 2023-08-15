@@ -1,5 +1,6 @@
 ﻿using SDL2;
 using Vit.Framework.Input;
+using Vit.Framework.Input.Trackers;
 
 namespace Vit.Framework.Windowing.Sdl.Input;
 

@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Input.Trackers;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Input.Events;
 

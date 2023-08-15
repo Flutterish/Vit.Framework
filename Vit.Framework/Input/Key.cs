@@ -4,9 +4,6 @@ public enum Key {
 	Q, W, E, R, T, Y, U, I, O, P,
 	A, S, D, F, G, H, J, K, L, Z,
 	X, C, V, B, N, M, Space,
-	LeftShift, RightShift,
-	LeftControl, RightControl,
-	Alt, AltGr,
 	Enter, Backspace, Escape,
 	F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
 	PrintScreen, ScrollLock, Break,
@@ -23,7 +20,11 @@ public enum Key {
 	NumpadDivide, NumpadMultiply, NumpadSubstract, NumpadAdd, NumpadEnter,
 	NumpadOne, NumpadTwo, NumpadThree, NumpadFour,
 	NumpadFive, NumpadSix, NumpadSeven, NumpadEight, NumpadNine, NumpadZero,
-	NumpadDot
+	NumpadDot,
+
+	LeftShift, RightShift,
+	LeftControl, RightControl,
+	Alt, AltGr,
 }
 
 public static class KeyExtensions {
@@ -52,4 +53,13 @@ public static class KeyExtensions {
 	/// </summary>
 	public static Key? GetKeyByScanCode ( int scancode )
 		=> keysByScanCode.TryGetValue( scancode, out var key ) ? key : null;
+	
+	public static MergedKey ToMerged ( this Key key ) {
+		return key switch {
+			Key.LeftControl or Key.RightControl => MergedKey.Control,
+			Key.LeftShift or Key.RightShift => MergedKey.Shift,
+			Key.Alt or Key.AltGr => MergedKey.Alt,
+			_ => (MergedKey)key
+		};
+	}
 }

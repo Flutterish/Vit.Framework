@@ -2,7 +2,7 @@
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.Input;
+namespace Vit.Framework.Input.Trackers;
 
 public class CursorState : IHasTimestamp {
 	public const int ButtonCount = 5;
@@ -31,7 +31,7 @@ public class CursorState : IHasTimestamp {
 					state.down[i] = update.ButtonsDown[i];
 				}
 			}
-			
+
 			if ( update.Type.HasFlag( DeltaType.Position ) ) {
 				state.LastScreenSpacePosition = state.ScreenSpacePosition;
 				state.ScreenSpacePosition = update.Position;

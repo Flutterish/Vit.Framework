@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Input.Trackers;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;

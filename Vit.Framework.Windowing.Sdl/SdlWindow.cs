@@ -4,7 +4,7 @@ using Vit.Framework.Graphics.OpenGl.Windowing;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Graphics.Vulkan.Windowing;
-using Vit.Framework.Input;
+using Vit.Framework.Input.Trackers;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Windowing.Sdl.Backends;
