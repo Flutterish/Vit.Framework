@@ -3,7 +3,7 @@ using Vit.Framework.Input;
 
 namespace Vit.Framework.Windowing.Sdl.Input;
 
-public class CursorTracker : CursorState.Tracker {
+public class CursorTracker : CursorState.Tracker, IDisposable {
 	SdlWindow window;
 	public CursorTracker ( SdlWindow window ) { // TODO use SDL timestamps?
 		this.window = window;

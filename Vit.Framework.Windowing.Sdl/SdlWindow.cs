@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Vulkan.Windowing;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Windowing.Sdl.Backends;
+using Vit.Framework.Windowing.Sdl.Input;
 using Vulkan;
 
 namespace Vit.Framework.Windowing.Sdl;
@@ -80,6 +81,10 @@ public class SdlWindow : Window, IGlWindow, IDirect3D11Window, IVulkanWindow {
 		await Recreate();
 
 		return backend.CreateSurface( api, args, this );
+	}
+
+	public override InputTrackerCollection CreateInputTrackers () {
+		return new SdlInputTrackerCollection( this );
 	}
 
 	protected Task Recreate () {

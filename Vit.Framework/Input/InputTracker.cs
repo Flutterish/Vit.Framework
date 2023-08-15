@@ -30,9 +30,9 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 
 		while ( updates.TryDequeue( out var update ) ) {
 			Update( update );
-			InputChanged?.Invoke( State );
+			InputChanged?.Invoke( this, State );
 			foreach ( var e in EmitEvents( update ) ) {
-				InputEventEmitted?.Invoke( e );
+				InputEventEmitted?.Invoke( this, e );
 			}
 		}
 	}
@@ -47,21 +47,21 @@ public abstract class InputTracker<TUpdate, TInput> : IInputTracker<TInput>
 	/// </summary>
 	protected abstract IEnumerable<Event> EmitEvents ( TUpdate update );
 
-	public event Action<TInput>? InputChanged;
-	public event Action<Event>? InputEventEmitted;
+	public event Action<IInputTracker, TInput>? InputChanged;
+	public event Action<IInputTracker, Event>? InputEventEmitted;
 
 	public abstract void Dispose ();
 }
 
 public interface IInputTracker<TInput> : IInputTracker where TInput : IHasTimestamp {
-	event Action<TInput>? InputChanged;
+	event Action<IInputTracker, TInput>? InputChanged;
 }
 
-public interface IInputTracker : IDisposable {
+public interface IInputTracker {
 	/// <summary>
 	/// Polls all pending changes and triggers related events.
 	/// </summary>
 	void Update ();
 
-	event Action<Event>? InputEventEmitted;
+	event Action<IInputTracker, Event>? InputEventEmitted;
 }

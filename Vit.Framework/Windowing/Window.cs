@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Windowing;
@@ -28,6 +29,8 @@ public abstract class Window : IWindow, IDisposable {
 	/// Depending on the graphics backend and/or the host, this might visually close and reopen the window.
 	/// </remarks>
 	public abstract Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args );
+
+	public abstract InputTrackerCollection CreateInputTrackers ();
 
 	public bool IsClosed { get; private set; }
 	public event Action<Window>? Closed;

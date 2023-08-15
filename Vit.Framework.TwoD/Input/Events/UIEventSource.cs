@@ -14,7 +14,7 @@ public class UIEventSource {
 	/// Triggers UI events based on the provided events.
 	/// </summary>
 	/// <returns><see langword="true"/> if the event was translated to one or more UI events, <see langword="false"/> otherwise.</returns>
-	public bool TriggerEvent ( Event @event ) {
+	public bool TriggerEvent ( Event @event ) { // TODO also keep track of the source. this will be important when we get around to touch input
 		UIComponent? handler = null;
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:

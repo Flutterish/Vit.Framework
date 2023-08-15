@@ -1,7 +1,9 @@
 ﻿using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Curses.Windowing;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Windowing.Console.Input;
 
 namespace Vit.Framework.Windowing.Console;
 
@@ -24,6 +26,10 @@ public class ConsoleWindow : Window {
 			throw new ArgumentException( "Graphics API must be a Curses API created from the same host as this window", nameof( api ) );
 
 		return Task.FromResult<WindowGraphicsSurface>( new CursesWindowSurface( curses, args, this ) );
+	}
+
+	public override InputTrackerCollection CreateInputTrackers () {
+		return new ConsoleInputTrackerCollection();
 	}
 
 	protected override void Dispose ( bool disposing ) {

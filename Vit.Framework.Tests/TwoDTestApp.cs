@@ -14,7 +14,6 @@ using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.TwoD.Graphics;
-using Vit.Framework.TwoD.Input;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
@@ -25,7 +24,6 @@ using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
-using Vit.Framework.Windowing.Sdl.Input;
 
 namespace Vit.Framework.Tests;
 
@@ -90,34 +88,17 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	class TestUpdateThread : UpdateThread {
-		Visual<Sprite> cursor = null!;
+		Dictionary<CursorState.Tracker, Visual<Sprite>> cursors = new();
 		UIEventSource uiEventSource;
-		GlobalInputTrackers globalInputTrackers;
-		CursorState.Tracker cursorTracker;
 		Window window;
+		InputTrackerCollection inputTrackers;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
+			inputTrackers = window.CreateInputTrackers();
 			uiEventSource = new() { Root = Root };
-			globalInputTrackers = new();
-			cursorTracker = new CursorTracker( (SdlWindow)window );
-			globalInputTrackers.Add( cursorTracker );
 			this.window = window;
-
-			globalInputTrackers.EventEmitted += e => {
-				var translated = uiEventSource.TriggerEvent( e );
-
-				if ( translated || e is not ILoggableEvent )
-					return;
-
-				Console.WriteLine( $"{e} was not translated to a UI event" );
-			};
 		}
 
 		protected override bool Initialize () {
-			Root.AddChild( cursor = new Visual<Sprite>( new() { Tint = ColorRgba.HotPink } ), new() {
-				Size = new( 18 ),
-				Origin = Anchor.Centre
-			} );
-
 			return true;
 		}
 
@@ -125,8 +106,38 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			if ( Root.IsDisposed )
 				return;
 
+			inputTrackers.Update( detected => {
+				if ( detected is CursorState.Tracker cursor ) {
+					var visual = new Visual<Sprite>( new() { Tint = ColorRgba.HotPink } );
+					cursors.Add( cursor, visual );
+					Root.AddChild( visual, new() {
+						Size = new( 18 ),
+						Origin = Anchor.Centre
+					} );
+
+					cursor.InputEventEmitted += onCursorInputEventEmitted;
+				}
+			}, lost => {
+				if ( lost is CursorState.Tracker cursor ) {
+					cursors.Remove( cursor, out var visual );
+					Root.RemoveChild( visual! );
+
+					cursor.InputEventEmitted -= onCursorInputEventEmitted;
+				}
+			} );
+
 			Root.Size = window.Size.Cast<float>();
-			globalInputTrackers.Update();
+			foreach ( var i in cursors.Keys ) {
+				i.Update();
+			}
+
+			Root.Update();
+			Root.ComputeLayout();
+		}
+
+		private void onCursorInputEventEmitted ( IInputTracker src, Event e ) {
+			var cursorTracker = (CursorState.Tracker)src;
+			var cursor = cursors[cursorTracker];
 
 			var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
@@ -136,12 +147,16 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				? ColorRgba.Blue
 				: ColorRgba.HotPink;
 
-			Root.Update();
-			Root.ComputeLayout();
+			var translated = uiEventSource.TriggerEvent( e );
+
+			if ( translated || e is not ILoggableEvent )
+				return;
+
+			Console.WriteLine( $"{e} was not translated to a UI event" );
 		}
 
 		protected override void Dispose ( bool disposing ) {
-			globalInputTrackers.Dispose();
+			inputTrackers.Dispose();
 			base.Dispose( disposing );
 		}
 	}
