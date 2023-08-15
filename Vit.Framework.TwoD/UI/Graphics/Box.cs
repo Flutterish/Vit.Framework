@@ -1,13 +1,12 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Textures;
-using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.UI.Animations;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
-public class Box : Visual<Sprite>, IEventHandler<HoveredEvent>, IHasAlphaTint {
+public class Box : Visual<Sprite>, IHandlesPositionalInput, IHasAlphaTint {
 	public Box () : base( new() ) { }
 
 	public ColorRgba<float> Tint {
@@ -20,7 +19,7 @@ public class Box : Visual<Sprite>, IEventHandler<HoveredEvent>, IHasAlphaTint {
 		set => Displayed.Texture = value;
 	}
 
-	public bool OnEvent ( HoveredEvent @event ) {
+	public bool OnHovered ( HoveredEvent @event ) {
 		return true;
 	}
 }

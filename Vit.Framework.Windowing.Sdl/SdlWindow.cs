@@ -126,13 +126,9 @@ public class SdlWindow : Window, IGlWindow, IDirect3D11Window, IVulkanWindow {
 	}
 
 	public void OnEvent ( SDL.SDL_KeyboardEvent e ) {
-		if ( KeyExtensions.GetKeyByScanCode( (int)e.keysym.scancode ) is Key key ) {
-			//if ( e.state == 0 )
-			//	OnPhysicalKeyUp( key );
-			//else
-			//	OnPhysicalKeyDown( key );
-		}
+		OnKeyboardEvent?.Invoke( e );
 	}
+	public event Action<SDL.SDL_KeyboardEvent>? OnKeyboardEvent;
 
 	public unsafe void OnEvent ( SDL.SDL_TextInputEvent e ) {
 		OnTextInput?.Invoke( new CString( e.text ).ToString() );

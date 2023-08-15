@@ -7,7 +7,8 @@ namespace Vit.Framework.TwoD.Input.Events;
 public class UIEventSource {
 	public required UIComponent Root { get; init; }
 
-	Dictionary<CursorButton, UIComponent> pressedHandlers = new();
+	Dictionary<CursorButton, UIComponent> cursorHandlers = new();
+	Dictionary<Key, UIComponent> keyboardHandlers = new();
 	UIComponent? hovered;
 
 	/// <summary>
@@ -21,15 +22,15 @@ public class UIEventSource {
 				if ( hovered == null )
 					break;
 
-				if ( pressedHandlers.Remove( pressed.Button, out var previousHandler ) )
+				if ( cursorHandlers.Remove( pressed.Button, out var previousHandler ) )
 					triggerEvent( new ReleasedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, previousHandler );
 
 				if ( triggerEvent( new PressedEvent { Button = pressed.Button, EventPosition = pressed.EventPosition }, hovered ) )
-					pressedHandlers.Add( pressed.Button, hovered );
+					cursorHandlers.Add( pressed.Button, hovered );
 				break;
 
 			case CursorButtonReleasedEvent released:
-				if ( !pressedHandlers.Remove( released.Button, out handler ) )
+				if ( !cursorHandlers.Remove( released.Button, out handler ) )
 					break;
 
 				triggerEvent( new ReleasedEvent { Button = released.Button, EventPosition = released.EventPosition }, handler );
@@ -47,8 +48,27 @@ public class UIEventSource {
 				triggerEvent( new CursorEnteredEvent { EventPosition = moved.EventPosition }, handler );
 				break;
 
-			case Framework.Input.Events.TextInputEvent text: // TODO this should be fed directly into a focused element
-				triggerEvent( new TextInputEvent { Text = text.Text } );
+			case TextInputEvent text: // TODO this should be fed directly into a focused element
+				triggerEvent( new UITextInputEvent { Text = text.Text } );
+				break;
+
+			case KeyDownEvent down:
+				if ( keyboardHandlers.TryGetValue( down.Key, out handler ) )
+					triggerEvent( new KeyUpEvent<Key> { Key = down.Key }, handler );
+
+				handler = triggerEvent( new KeyDownEvent<Key> { Key = down.Key } );
+				if ( handler != null )
+					keyboardHandlers.Add( down.Key, handler );
+				break;
+
+			case KeyUpEvent up:
+				if ( keyboardHandlers.Remove( up.Key, out handler ) )
+					triggerEvent( new KeyUpEvent<Key> { Key = up.Key }, handler );
+				break;
+
+			case KeyRepeatEvent repeat:
+				if ( keyboardHandlers.TryGetValue( repeat.Key, out handler ) )
+					triggerEvent( new KeyRepeatEvent<Key> { Key = repeat.Key }, handler );
 				break;
 
 			default:

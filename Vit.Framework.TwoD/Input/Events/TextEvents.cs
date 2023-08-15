@@ -1,5 +1,5 @@
 ﻿namespace Vit.Framework.TwoD.Input.Events;
 
-public record TextInputEvent : UIEvent {
+public record UITextInputEvent : UIEvent {
 	public required string Text { get; init; }
 }

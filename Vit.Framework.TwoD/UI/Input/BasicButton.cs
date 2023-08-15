@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
-using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Animations;
@@ -9,7 +8,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicButton : LayoutContainer, IEventHandler<HoveredEvent>, IEventHandler<CursorEnteredEvent>, IEventHandler<CursorExitedEvent>, IEventHandler<PressedEvent>, IEventHandler<ReleasedEvent>, IEventHandler<ClickedEvent> {
+public class BasicButton : LayoutContainer, IClickable, IHoverable {
 	ColorRgba<float> hoverColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.GreenYellow, 0.5f );
 	ColorRgba<float> backgroundColour = ColorRgba.GreenYellow;
 	ColorRgba<float> pressedColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.Black, 0.1f );
@@ -63,21 +62,7 @@ public class BasicButton : LayoutContainer, IEventHandler<HoveredEvent>, IEventH
 			background.Animate().FadeColour( BackgroundColour, 200, Easing.Out );
 	}
 
-	public bool OnEvent ( HoveredEvent @event ) {
-		return true;
-	}
-	public bool OnEvent ( CursorEnteredEvent @event ) {
-		isHovered = true;
-		onInteractionStateChanged();
-		return true;
-	}
-	public bool OnEvent ( CursorExitedEvent @event ) {
-		isHovered = false;
-		onInteractionStateChanged();
-		return true;
-	}
-
-	public bool OnEvent ( PressedEvent @event ) {
+	public bool OnPressed ( PressedEvent @event ) {
 		if ( @event.Button != Framework.Input.CursorButton.Left )
 			return false;
 
@@ -86,15 +71,31 @@ public class BasicButton : LayoutContainer, IEventHandler<HoveredEvent>, IEventH
 		return true;
 	}
 
-	public bool OnEvent ( ReleasedEvent @event ) {
+	public bool OnReleased ( ReleasedEvent @event ) {
 		isPressed = false;
 		onInteractionStateChanged();
 		return true;
 	}
 
-	public bool OnEvent ( ClickedEvent @event ) {
+	public bool OnClicked ( ClickedEvent @event ) {
 		background.Animate().FlashColour( FlashColour, HoverColour, 200 );
 		Clicked?.Invoke();
+		return true;
+	}
+
+	public bool OnHovered ( HoveredEvent @event ) {
+		return true;
+	}
+
+	public bool OnCursorEntered ( CursorEnteredEvent @event ) {
+		isHovered = true;
+		onInteractionStateChanged();
+		return true;
+	}
+
+	public bool OnCursorExited ( CursorExitedEvent @event ) {
+		isHovered = false;
+		onInteractionStateChanged();
 		return true;
 	}
 }

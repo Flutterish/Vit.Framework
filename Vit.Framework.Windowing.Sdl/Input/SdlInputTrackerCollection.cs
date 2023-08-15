@@ -6,6 +6,7 @@ public class SdlInputTrackerCollection : InputTrackerCollection {
 	public SdlInputTrackerCollection ( SdlWindow window ) {
 		OnTrackerDetected( new CursorTracker( window ) );
 		OnTrackerDetected( new TextInputTracker( window ) );
+		OnTrackerDetected( new KeyboardTracker( window ) );
 	}
 
 	public override void Dispose () {

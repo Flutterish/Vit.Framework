@@ -104,58 +104,76 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 	static Stack<EventTree<TSelf>>? enumerationStack;
 	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateHandlers () {
 		var stack = enumerationStack ??= new();
-		stack.Push( this );
 
-		while ( stack.TryPop( out var node ) ) {
-			if ( node.Handler != null )
-				yield return (node.Source, node.Handler);
+		try {
+			stack.Push( this );
 
-			if ( node.Children == null )
-				continue;
+			while ( stack.TryPop( out var node ) ) {
+				if ( node.Handler != null )
+					yield return (node.Source, node.Handler);
 
-			foreach ( var i in node.Children ) {
-				stack.Push( i );
+				if ( node.Children == null )
+					continue;
+
+				foreach ( var i in node.Children ) {
+					stack.Push( i );
+				}
 			}
+		}
+		finally {
+			enumerationStack.Clear();
 		}
 	}
 
 	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers ( Func<TSelf, bool> predicate ) {
 		var stack = enumerationStack ??= new();
-		stack.Push( this );
+		
+		try {
+			stack.Push( this );
 
-		while ( stack.TryPop( out var node ) ) {
-			if ( !predicate( node.Source ) )
-				continue;
+			while ( stack.TryPop( out var node ) ) {
+				if ( !predicate( node.Source ) )
+					continue;
 
-			if ( node.Handler != null )
-				yield return (node.Source, node.Handler);
+				if ( node.Handler != null )
+					yield return (node.Source, node.Handler);
 
-			if ( node.Children == null )
-				continue;
+				if ( node.Children == null )
+					continue;
 
-			foreach ( var i in node.Children ) {
-				stack.Push( i );
+				foreach ( var i in node.Children ) {
+					stack.Push( i );
+				}
 			}
+		}
+		finally {
+			enumerationStack.Clear();
 		}
 	}
 
 	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers<TData> ( TData data, Func<TSelf, TData, bool> predicate ) {
 		var stack = enumerationStack ??= new();
-		stack.Push( this );
+		
+		try {
+			stack.Push( this );
 
-		while ( stack.TryPop( out var node ) ) {
-			if ( !predicate( node.Source, data ) )
-				continue;
+			while ( stack.TryPop( out var node ) ) {
+				if ( !predicate( node.Source, data ) )
+					continue;
 
-			if ( node.Handler != null )
-				yield return (node.Source, node.Handler);
+				if ( node.Handler != null )
+					yield return (node.Source, node.Handler);
 
-			if ( node.Children == null )
-				continue;
+				if ( node.Children == null )
+					continue;
 
-			foreach ( var i in node.Children ) {
-				stack.Push( i );
+				foreach ( var i in node.Children ) {
+					stack.Push( i );
+				}
 			}
+		}
+		finally {
+			enumerationStack.Clear();
 		}
 	}
 

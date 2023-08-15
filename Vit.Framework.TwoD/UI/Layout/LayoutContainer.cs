@@ -52,8 +52,10 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 
 			var position = anchor - origin;
 
-			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) ) result.Width = float.Max( result.Width, position.X + childSize.Width );
-			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) ) result.Height = float.Max( result.Height, position.Y + childSize.Height );
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) ) 
+				result.Width = float.Max( result.Width, float.Max( 0, position.X ) + childSize.Width );
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) ) 
+				result.Height = float.Max( result.Height, float.Max( 0, position.Y ) + childSize.Height );
 		}
 
 		return new() {
