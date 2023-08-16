@@ -19,4 +19,12 @@ public struct LinearColorRgb<T> where T : INumber<T> {
 		G = g;
 		B = b;
 	}
+
+	public static LinearColorRgb<T> operator / ( LinearColorRgb<T> color, T scalar ) {
+		return new() {
+			R = color.R / scalar,
+			G = color.G / scalar,
+			B = color.B / scalar
+		};
+	}
 }

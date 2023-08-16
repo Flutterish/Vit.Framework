@@ -30,4 +30,13 @@ public struct LinearColorRgba<T> where T : INumber<T> {
 			B = value.B;
 		}
 	}
+
+	public static LinearColorRgba<T> operator / ( LinearColorRgba<T> color, T scalar ) {
+		return new() {
+			R = color.R / scalar,
+			G = color.G / scalar,
+			B = color.B / scalar,
+			A = color.A
+		};
+	}
 }
