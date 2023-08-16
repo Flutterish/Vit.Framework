@@ -92,7 +92,7 @@ public static class IHasEventTreesExtensions {
 	}
 }
 
-public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
+public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TODO I would really like these to be strongly typed (event type)
 	public required TSelf Source { get; init; }
 
 	public int Depth { get; private set; }
@@ -200,10 +200,10 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 				if ( node.Handler != null )
 					yield return (node.Source, node.Handler);
 
-				if ( node.Children == null )
+				if ( node.children == null )
 					continue;
 
-				foreach ( var i in node.Children ) {
+				foreach ( var i in node.children ) {
 					stack.Push( i );
 				}
 			}
@@ -226,10 +226,10 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 				if ( node.Handler != null )
 					yield return (node.Source, node.Handler);
 
-				if ( node.Children == null )
+				if ( node.children == null )
 					continue;
 
-				foreach ( var i in node.Children ) {
+				foreach ( var i in node.children ) {
 					stack.Push( i );
 				}
 			}
@@ -252,10 +252,10 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> {
 				if ( node.Handler != null )
 					yield return (node.Source, node.Handler);
 
-				if ( node.Children == null )
+				if ( node.children == null )
 					continue;
 
-				foreach ( var i in node.Children ) {
+				foreach ( var i in node.children ) {
 					stack.Push( i );
 				}
 			}
