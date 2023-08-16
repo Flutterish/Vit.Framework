@@ -6,7 +6,7 @@ public abstract record KeyEvent<TKey> : UIEvent where TKey : struct, Enum {
 	public required TKey Key { get; init; }
 }
 
-public record KeyDownEvent<TKey> : KeyEvent<TKey> where TKey : struct, Enum { }
+public record KeyDownEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { } // TODO also create propagable keybinds
 public record KeyUpEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { }
 public record KeyRepeatEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { }
 

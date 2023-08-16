@@ -73,21 +73,21 @@ public static class IHasEventTreesExtensions {
 	}
 }
 
-public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TODO I would really like these to be strongly typed (event type)
-	public required TSelf Source { get; init; }
+public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> { // TODO I would really like these to be strongly typed (event type)
+	public required TTarget Source { get; init; }
 
 	public int Depth { get; private set; }
 	public Func<Event, bool>? Handler;
-	List<EventTree<TSelf>>? children;
-	public EventTree<TSelf>? Parent { get; private set; }
-	public IReadOnlyList<EventTree<TSelf>> Children => children ?? (IReadOnlyList<EventTree<TSelf>>)Array.Empty<EventTree<TSelf>>();
+	List<EventTree<TTarget>>? children;
+	public EventTree<TTarget>? Parent { get; private set; }
+	public IReadOnlyList<EventTree<TTarget>> Children => children ?? (IReadOnlyList<EventTree<TTarget>>)Array.Empty<EventTree<TTarget>>();
 	
-	public void Add ( EventTree<TSelf> child ) {
+	public void Add ( EventTree<TTarget> child ) {
 		(children ??= new()).Add( child );
 		child.Depth = children.Count - 1;
 		child.Parent = this;
 	}
-	public void Remove ( EventTree<TSelf> child ) {
+	public void Remove ( EventTree<TTarget> child ) {
 		var index = children!.IndexOf( child );
 		children!.RemoveAt( index );
 		child.Parent = null;
@@ -96,14 +96,14 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public void Sort ( Comparison<EventTree<TSelf>> comparer ) {
+	public void Sort ( Comparison<EventTree<TTarget>> comparer ) {
 		children!.Sort( comparer );
 		for ( int i = 0; i < children.Count; i++ ) {
 			children[i].Depth = i;
 		}
 	}
 
-	public EventTree<TSelf>? Next {
+	public EventTree<TTarget>? Next {
 		get {
 			if ( Children.Any() == true )
 				return Children[0];
@@ -122,7 +122,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public EventTree<TSelf>? NextWithHandler {
+	public EventTree<TTarget>? NextWithHandler {
 		get {
 			var node = Next;
 			while ( node != null ) {
@@ -136,7 +136,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public EventTree<TSelf>? Previous {
+	public EventTree<TTarget>? Previous {
 		get {
 			var parent = Parent;
 			if ( parent == null )
@@ -153,7 +153,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public EventTree<TSelf>? PreviousWithHandler {
+	public EventTree<TTarget>? PreviousWithHandler {
 		get {
 			var node = Previous;
 			while ( node != null ) {
@@ -170,8 +170,8 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 	public bool ShouldBeCulled => Handler == null && Children.Any() != true;
 
 	[ThreadStatic]
-	static Stack<EventTree<TSelf>>? enumerationStack;
-	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateHandlers () {
+	static Stack<EventTree<TTarget>>? enumerationStack;
+	public IEnumerable<EventTree<TTarget>> EnumerateHandlers () {
 		var stack = enumerationStack ??= new();
 
 		try {
@@ -179,7 +179,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 
 			while ( stack.TryPop( out var node ) ) {
 				if ( node.Handler != null )
-					yield return (node.Source, node.Handler);
+					yield return node;
 
 				if ( node.children == null )
 					continue;
@@ -194,7 +194,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers ( Func<TSelf, bool> predicate ) {
+	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers ( Func<TTarget, bool> predicate ) {
 		var stack = enumerationStack ??= new();
 		
 		try {
@@ -205,7 +205,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 					continue;
 
 				if ( node.Handler != null )
-					yield return (node.Source, node.Handler);
+					yield return node;
 
 				if ( node.children == null )
 					continue;
@@ -220,7 +220,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public IEnumerable<(TSelf, Func<Event, bool>)> EnumerateCulledHandlers<TData> ( TData data, Func<TSelf, TData, bool> predicate ) {
+	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers<TData> ( TData data, Func<TTarget, TData, bool> predicate ) {
 		var stack = enumerationStack ??= new();
 		
 		try {
@@ -231,7 +231,7 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 					continue;
 
 				if ( node.Handler != null )
-					yield return (node.Source, node.Handler);
+					yield return node;
 
 				if ( node.children == null )
 					continue;
@@ -246,30 +246,45 @@ public class EventTree<TSelf> where TSelf : class, IHasEventTrees<TSelf> { // TO
 		}
 	}
 
-	public TSelf? TriggerEvent ( Event @event ) {
-		foreach ( var (i, handler) in EnumerateHandlers() ) {
-			if ( handler( @event ) )
-				return i;
+	public TTarget? TriggerEvent ( Event @event ) {
+		foreach ( var node in EnumerateHandlers() ) {
+			if ( node.Handler!( @event ) )
+				return node.Source;
 		}
 
 		return null;
 	}
 
-	public TSelf? TriggerCulledEvent ( Event @event, Func<TSelf, bool> predicate ) {
-		foreach ( var (i, handler) in EnumerateCulledHandlers( predicate ) ) {
-			if ( handler( @event ) )
-				return i;
+	public TTarget? TriggerCulledEvent ( Event @event, Func<TTarget, bool> predicate ) {
+		foreach ( var node in EnumerateCulledHandlers( predicate ) ) {
+			if ( node.Handler!( @event ) )
+				return node.Source;
 		}
 
 		return null;
 	}
 
-	public TSelf? TriggerCulledEvent<TData> ( Event @event, TData data, Func<TSelf, TData, bool> predicate ) {
-		foreach ( var (i, handler) in EnumerateCulledHandlers( data, predicate ) ) {
-			if ( handler( @event ) )
-				return i;
+	public TTarget? TriggerCulledEvent<TData> ( Event @event, TData data, Func<TTarget, TData, bool> predicate ) {
+		foreach ( var node in EnumerateCulledHandlers( data, predicate ) ) {
+			if ( node.Handler!( @event ) )
+				return node.Source;
 		}
 
 		return null;
+	}
+
+	public void CreateHandlerQueue ( ICollection<EventTree<TTarget>> collection ) {
+		foreach ( var node in EnumerateHandlers() )
+			collection.Add( node );
+	}
+
+	public void CreateCulledHandlerQueue ( ICollection<EventTree<TTarget>> collection, Func<TTarget, bool> predicate ) {
+		foreach ( var node in EnumerateCulledHandlers( predicate ) )
+			collection.Add( node );
+	}
+
+	public void CreateCulledHandlerQueue<TData> ( ICollection<EventTree<TTarget>> collection, TData data, Func<TTarget, TData, bool> predicate ) {
+		foreach ( var node in EnumerateCulledHandlers( data, predicate ) )
+			collection.Add( node );
 	}
 }

@@ -16,8 +16,12 @@ public record FocusLostEvent : UIEvent, INonPropagableEvent {
 
 public interface IFocusable : IEventHandler<FocusGainedEvent>, IEventHandler<FocusLostEvent> {
 	bool OnFocused ( FocusGainedEvent @event );
+	bool OnFocusLost ( FocusLostEvent @event );
 
 	bool IEventHandler<FocusGainedEvent>.OnEvent ( FocusGainedEvent @event ) {
 		return OnFocused( @event );
+	}
+	bool IEventHandler<FocusLostEvent>.OnEvent ( FocusLostEvent @event ) {
+		return OnFocusLost( @event );
 	}
 }

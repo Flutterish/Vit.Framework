@@ -15,14 +15,13 @@ using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.TwoD.Graphics;
-using Vit.Framework.TwoD.Input.Events;
+using Vit.Framework.TwoD.Input.Events.EventSources;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Templates;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.TwoD.UI.Graphics;
-using Vit.Framework.TwoD.UI.Input;
 using Vit.Framework.TwoD.UI.Layout;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Sdl;
@@ -98,13 +97,12 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		InputTrackerCollection inputTrackers;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			inputTrackers = window.CreateInputTrackers();
-			var tabVisualizer = new BasicTabVisualizer();
-			uiEventSource = new( dependencies ) { Root = Root, TabVisualizer = tabVisualizer };
+			uiEventSource = new( Root, dependencies );
 			this.window = window;
 		}
 
 		protected override bool Initialize () {
-			Root.AddChild( uiEventSource.TabVisualizer!, new() {
+			Root.AddChild( uiEventSource.TabVisualizer, new() {
 				Size = new( 1f.Relative() )
 			} );
 			return true;

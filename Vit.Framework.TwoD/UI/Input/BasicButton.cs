@@ -9,7 +9,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabbable, IKeyBindingHandler<Key> {
+public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabable, IKeyBindingHandler<Key> {
 	ColorRgba<float> hoverColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.GreenYellow, 0.5f );
 	ColorRgba<float> backgroundColour = ColorRgba.GreenYellow;
 	ColorRgba<float> pressedColour = ColorRgba.YellowGreen.Interpolate( ColorRgba.Black, 0.1f );
@@ -101,13 +101,17 @@ public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabbable, I
 	}
 
 	Focus? focus;
-	public bool OnTabbedOver ( TabFocusGainedEvent @event ) {
+	public bool OnFocused ( FocusGainedEvent @event ) {
 		focus = @event.Focus;
 		return true;
 	}
 
-	public bool OnEvent ( FocusLostEvent @event ) {
+	public bool OnFocusLost ( FocusLostEvent @event ) {
 		focus = null;
+		return true;
+	}
+
+	public bool OnTabbedOver ( TabbedOverEvent @event ) {
 		return true;
 	}
 

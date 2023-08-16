@@ -10,7 +10,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler, IClickable, IFocusable, ITabbable {
+public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler, IClickable, IFocusable, ITabable {
 	SpriteText spriteText;
 	Box selectionBox;
 	int cursorIndex => selection.start;
@@ -97,6 +97,15 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		if ( typedWords && @event.Text.Any( char.IsWhiteSpace ) )
 			pushHistoryStack();
 
+		return true;
+	}
+
+	public bool OnClipboardCut ( ClipboardCutEvent @event ) {
+		if ( changesPending )
+			pushHistoryStack();
+
+		@event.Clipboard.CopyText( selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength ) );
+		tryDeleteSelection();
 		return true;
 	}
 
@@ -314,13 +323,12 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		return true;
 	}
 
-	public bool OnTabbedOver ( TabFocusGainedEvent @event ) {
-		focus = @event.Focus;
+	public bool OnFocusLost ( FocusLostEvent @event ) {
+		focus = null;
 		return true;
 	}
 
-	public bool OnEvent ( FocusLostEvent @event ) {
-		focus = null;
+	public bool OnTabbedOver ( TabbedOverEvent @event ) {
 		return true;
 	}
 

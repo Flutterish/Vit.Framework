@@ -8,6 +8,7 @@ using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Timing;
+using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
@@ -347,7 +348,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	#endregion
 }
 
-public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, IDisposable {
+public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput, IDisposable {
 	new ICompositeUIComponent<UIComponent>? Parent { get; }
 	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
 	/// <summary>

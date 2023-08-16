@@ -12,6 +12,10 @@ public record ClipboardCopyEvent : ClipboardEvent {
 
 }
 
+public record ClipboardCutEvent : ClipboardEvent {
+
+}
+
 public record ClipboardPasteTextEvent : ClipboardEvent {
 	public required string Text { get; init; }
 }
