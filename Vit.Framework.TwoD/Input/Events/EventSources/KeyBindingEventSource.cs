@@ -6,10 +6,10 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 	public required THandler Root { get; init; }
 	Dictionary<TKey, THandler> pressHandlers = new();
 
-	public bool Press ( TKey key, THandler target ) {
-		Release( key );
+	public bool Press ( TKey key, double timestamp, THandler target ) {
+		Release( key, timestamp );
 
-		var handler = target.TriggerEvent( new KeyDownEvent<TKey> { Key = key } );
+		var handler = target.TriggerEvent( new KeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
 		if ( handler == null )
 			return false;
 
@@ -17,10 +17,10 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 		return true;
 	}
 
-	public bool Press ( TKey key ) {
-		Release( key );
+	public bool Press ( TKey key, double timestamp ) {
+		Release( key, timestamp );
 
-		var handler = Root.TriggerEvent( new KeyDownEvent<TKey> { Key = key } );
+		var handler = Root.TriggerEvent( new KeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
 		if ( handler == null )
 			return false;
 
@@ -28,19 +28,19 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 		return true;
 	}
 
-	public bool Repeat ( TKey key ) {
+	public bool Repeat ( TKey key, double timestamp ) {
 		if ( !pressHandlers.TryGetValue( key, out var handler ) )
-			return Press( key );
+			return Press( key, timestamp );
 
-		if ( !handler.TriggerEventOnSelf( new KeyRepeatEvent<TKey> { Key = key } ) )
-			return Press( key );
+		if ( !handler.TriggerEventOnSelf( new KeyRepeatEvent<TKey> { Key = key, Timestamp = timestamp } ) )
+			return Press( key, timestamp );
 		return true;
 	}
 
-	public bool Release ( TKey key ) {
+	public bool Release ( TKey key, double timestamp ) {
 		if ( !pressHandlers.Remove( key, out var handler ) )
 			return false;
 
-		return handler.TriggerEventOnSelf( new KeyUpEvent<TKey> { Key = key } );
+		return handler.TriggerEventOnSelf( new KeyUpEvent<TKey> { Key = key, Timestamp = timestamp } );
 	}
 }

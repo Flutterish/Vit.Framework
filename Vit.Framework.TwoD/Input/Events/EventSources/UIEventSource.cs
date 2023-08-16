@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Timing;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Input;
 
@@ -22,9 +23,12 @@ public class UIEventSource {
 
 	Clipboard clipboard;
 
+	IClock clock;
 	public UIEventSource ( UIComponent root, IReadOnlyDependencyCache dependencies ) {
 		Root = root;
 		clipboard = dependencies.Resolve<Clipboard>();
+		clock = dependencies.Resolve<IClock>();
+
 		platformBindings.Pressed += onPressed;
 		platformBindings.Repeated += onRepeated;
 		platformBindings.Released += onReleased;
@@ -40,39 +44,40 @@ public class UIEventSource {
 	}
 
 	void onReleased ( PlatformAction action ) {
-		platformActionEvents.Release( action );
+		platformActionEvents.Release( action, eventTimestamp );
 	}
 
 	void onRepeated ( PlatformAction action ) {
-		if ( platformActionEvents.Repeat( action ) )
+		if ( platformActionEvents.Repeat( action, eventTimestamp ) )
 			return;
 
 		onPlatformAction( action );
 	}
 
 	void onPressed ( PlatformAction action ) {
-		if ( focused != null && platformActionEvents.Press( action, focused ) )
+		if ( focused != null && platformActionEvents.Press( action, eventTimestamp, focused ) )
 			return;
 
 		onPlatformAction( action );
 	}
 
+	double eventTimestamp;
 	void onPlatformAction ( PlatformAction action ) {
 		if ( action == PlatformAction.Copy ) {
-			focused?.TriggerEventOnSelf( new ClipboardCopyEvent { Clipboard = clipboard } );
+			focused?.TriggerEventOnSelf( new ClipboardCopyEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
 		}
 		else if ( action == PlatformAction.Cut ) {
-			focused?.TriggerEventOnSelf( new ClipboardCutEvent { Clipboard = clipboard } );
+			focused?.TriggerEventOnSelf( new ClipboardCutEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
 		}
 		else if ( action == PlatformAction.Paste ) {
 			if ( clipboard.GetText( 0 ) is string text )
-				focused?.TriggerEventOnSelf( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text } );
+				focused?.TriggerEventOnSelf( new ClipboardPasteTextEvent { Clipboard = clipboard, Text = text, Timestamp = eventTimestamp } );
 		}
 		else if ( action == PlatformAction.TabForward ) {
-			setFocus( tabFocus.TabForward(), byTab: true );
+			setFocus( tabFocus.TabForward( eventTimestamp ), byTab: true );
 		}
 		else if ( action == PlatformAction.TabBackward ) {
-			setFocus( tabFocus.TabBackward(), byTab: true );
+			setFocus( tabFocus.TabBackward( eventTimestamp ), byTab: true );
 		}
 	}
 
@@ -88,16 +93,18 @@ public class UIEventSource {
 		if ( focused == target )
 			return;
 
-		focused?.TriggerEventOnSelf( new FocusLostEvent { Focus = Focus } );
+		focused?.TriggerEventOnSelf( new FocusLostEvent { Focus = Focus, Timestamp = eventTimestamp } );
 		focused = target;
-		focused?.TriggerEventOnSelf( new FocusGainedEvent { Focus = Focus } );
+		focused?.TriggerEventOnSelf( new FocusGainedEvent { Focus = Focus, Timestamp = eventTimestamp } );
 	}
 
 	/// <summary>
 	/// Triggers UI events based on the provided events.
 	/// </summary>
 	/// <returns><see langword="true"/> if the event was translated to one or more UI events, <see langword="false"/> otherwise.</returns>
-	public bool TriggerEvent ( Event @event ) { // TODO also keep track of the source. this will be important when we get around to touch input
+	public bool TriggerEvent ( TimestampedEvent @event ) { // TODO also keep track of the source. this will be important when we get around to touch input
+		eventTimestamp = (@event.Timestamp - clock.ClockEpoch).TotalMilliseconds;
+
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:
 				if ( cursorEvents.Hovered != focused ) {
@@ -105,36 +112,36 @@ public class UIEventSource {
 					tabFocus.FindClosestTabIndex( cursorEvents.Hovered );
 				}
 
-				cursorEvents.Press( pressed.CursorState, pressed.Button );
+				cursorEvents.Press( pressed.CursorState, pressed.Button, eventTimestamp );
 				break;
 
 			case CursorButtonReleasedEvent released:
-				cursorEvents.Release( released.CursorState, released.Button, clicked: handler => {
+				cursorEvents.Release( released.CursorState, released.Button, eventTimestamp, clicked: handler => {
 					setFocus( handler );
 				} );
 				break;
 
 			case CursorMovedEvent moved:
-				cursorEvents.Move( moved.CursorState );
+				cursorEvents.Move( moved.CursorState, eventTimestamp );
 				break;
 
 			case TextInputEvent text:
-				focused?.TriggerEventOnSelf( new UITextInputEvent { Text = text.Text } );
+				focused?.TriggerEventOnSelf( new UITextInputEvent { Text = text.Text, Timestamp = eventTimestamp } );
 				break;
 
 			case KeyDownEvent down:
 				if ( focused != null )
-					keyboardEvents.Press( down.Key, focused );
+					keyboardEvents.Press( down.Key, eventTimestamp, focused );
 				platformBindings.Add( down.Key );
 				break;
 
 			case KeyUpEvent up:
-				keyboardEvents.Release( up.Key );
+				keyboardEvents.Release( up.Key, eventTimestamp );
 				platformBindings.Remove( up.Key );
 				break;
 
 			case KeyRepeatEvent repeat:
-				keyboardEvents.Repeat( repeat.Key );
+				keyboardEvents.Repeat( repeat.Key, eventTimestamp );
 				platformBindings.Repeat( repeat.Key );
 				break;
 

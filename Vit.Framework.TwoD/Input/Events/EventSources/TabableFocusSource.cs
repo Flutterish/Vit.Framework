@@ -9,14 +9,18 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 	EventTree<THandler>? currentTabIndex;
 	bool isTabFocused;
 
-	public THandler? TabForward () {
-		return tab( forward: true );
+	public THandler? TabForward ( double timestamp ) {
+		return tab( timestamp, forward: true );
 	}
-	public THandler? TabBackward () {
-		return tab( forward: false );
+	public THandler? TabBackward ( double timestamp ) {
+		return tab( timestamp, forward: false );
 	}
 
-	THandler? tab ( bool forward ) {
+	THandler? tab ( double timestamp, bool forward ) {
+		if ( currentTabIndex != null && isTabFocused ) {
+			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
+		}
+
 		if ( currentTabIndex == null ) {
 			if ( !Root.HandledEventTypes.TryGetValue( typeof( TabbedOverEvent ), out var tabTree ) )
 				return null;
@@ -30,11 +34,8 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 				currentTabIndex = tabTree.Handler == null ? tabTree.NextWithHandler : tabTree;
 			}
 		}
-		else if ( isTabFocused ) {
-			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
-		}
 
-		var @event = new TabbedOverEvent();
+		var @event = new TabbedOverEvent { Timestamp = timestamp };
 		while ( currentTabIndex != null ) {
 			if ( currentTabIndex.Handler!( @event ) ) {
 				isTabFocused = true;

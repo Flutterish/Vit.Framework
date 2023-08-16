@@ -10,23 +10,23 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 
 	public THandler? Hovered { get; private set; }
 
-	public bool Press ( CursorState state, CursorButton button ) {
-		Release( state, button );
+	public bool Press ( CursorState state, CursorButton button, double timestamp ) {
+		Release( state, button, timestamp );
 
-		if ( Hovered == null || !Hovered.TriggerEventOnSelf( new PressedEvent { Button = button, EventPosition = state.ScreenSpacePosition } ) )
+		if ( Hovered == null || !Hovered.TriggerEventOnSelf( new PressedEvent { Button = button, EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } ) )
 			return false;
 
 		buttonHandlers[button] = Hovered;
 		return true;
 	}
 
-	public bool Release ( CursorState state, CursorButton button, Action<THandler>? clicked = null ) {
+	public bool Release ( CursorState state, CursorButton button, double timestamp, Action<THandler>? clicked = null ) {
 		if ( !buttonHandlers.Remove( button, out var previousHandler ) )
 			return false;
 
-		bool result = previousHandler.TriggerEventOnSelf( new ReleasedEvent { Button = button, EventPosition = state.ScreenSpacePosition } );
+		bool result = previousHandler.TriggerEventOnSelf( new ReleasedEvent { Button = button, EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } );
 		if ( previousHandler == Hovered ) {
-			if( previousHandler.TriggerEventOnSelf( new ClickedEvent { Button = button, EventPosition = state.ScreenSpacePosition } ) ) {
+			if( previousHandler.TriggerEventOnSelf( new ClickedEvent { Button = button, EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } ) ) {
 				clicked?.Invoke( previousHandler );
 			}
 		}
@@ -34,13 +34,13 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 		return result;
 	}
 
-	public bool Move ( CursorState state ) { // TODO could we reuse/pool events? making one essentially every frame sounds bad
-		var handler = Root.TriggerCulledEvent( new HoveredEvent { EventPosition = state.ScreenSpacePosition }, state.ScreenSpacePosition, static (handler, pos) => handler.ReceivesPositionalInputAt( pos ) );
+	public bool Move ( CursorState state, double timestamp ) { // TODO could we reuse/pool events? making one essentially every frame sounds bad
+		var handler = Root.TriggerCulledEvent( new HoveredEvent { EventPosition = state.ScreenSpacePosition, Timestamp = timestamp }, state.ScreenSpacePosition, static (handler, pos) => handler.ReceivesPositionalInputAt( pos ) );
 
 		if ( handler != Hovered ) {
-			Hovered?.TriggerEventOnSelf( new CursorExitedEvent { EventPosition = state.ScreenSpacePosition } );
+			Hovered?.TriggerEventOnSelf( new CursorExitedEvent { EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } );
 			Hovered = handler;
-			Hovered?.TriggerEventOnSelf( new CursorEnteredEvent { EventPosition = state.ScreenSpacePosition } );
+			Hovered?.TriggerEventOnSelf( new CursorEnteredEvent { EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } );
 		}
 		
 		return Hovered != null;
