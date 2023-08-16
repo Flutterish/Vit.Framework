@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
+using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Graphics;
@@ -22,7 +23,7 @@ public class LayoutAnimationTest : TestScene {
 				Clicked = () => this.Animate().ChangeLayoutParameters( box, (LayoutParams v) => v with { 
 					Anchor = anchor,
 					Origin = anchor
-				}, 2000, Easing.InOut )
+				}, 2000.Millis(), Easing.InOut )
 			}, new() {
 				Size = (100, 100),
 				Anchor = anchor,
@@ -34,10 +35,10 @@ public class LayoutAnimationTest : TestScene {
 		AddChild( new BasicButton {
 			Clicked = () => {
 				if ( toggle ) {
-					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 100 ), 1000, Easing.InOut );
+					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 100 ), 1000.Millis(), Easing.InOut );
 				}
 				else {
-					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 0 ), 1000, Easing.InOut );
+					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 0 ), 1000.Millis(), Easing.InOut );
 				}
 				toggle = !toggle;
 			}

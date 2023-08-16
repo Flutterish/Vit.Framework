@@ -7,10 +7,12 @@ public class TimeUnits : List<TimeUnitTemplate> {
 public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 	public readonly TimeSpan Span;
 	public readonly string Name;
+	public readonly string Unit;
 
-	public TimeUnitTemplate ( TimeSpan span, string name ) {
+	public TimeUnitTemplate ( TimeSpan span, string name, string unit ) {
 		Span = span;
 		Name = name;
+		Unit = unit;
 	}
 
 	public override string GetTypeName ( TimeUnits data ) {
@@ -63,6 +65,16 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 		sb.AppendLine( $"public static implicit operator {type} ( TimeSpan time )" );
 		sb.AppendLine( $"\t=> new( (double)time.Ticks / {Span.Ticks}L );" );
 
+		generateOperator( sb, "+" );
+		generateOperator( sb, "-" );
+		generateOperator( sb, "/", "double" );
+		generateOperator( sb, "==", "bool" );
+		generateOperator( sb, "!=", "bool" );
+		generateOperator( sb, ">", "bool" );
+		generateOperator( sb, "<", "bool" );
+		generateOperator( sb, ">=", "bool" );
+		generateOperator( sb, "<=", "bool" );
+
 		sb.AppendLine();
 		sb.AppendLine( "public override string ToString () {" );
 		using ( sb.Indent() ) {
@@ -72,7 +84,18 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 	}
 
 	public virtual void GenerateToString ( TimeUnits data, SourceStringBuilder sb ) {
-		sb.AppendLine( $"return $\"{{Value}} {Name.ToLower()}\";" );
+		sb.AppendLine( $"return $\"{{Value}}{Unit}\";" );
+	}
+
+	void generateOperator ( SourceStringBuilder sb, string @operator, string? type = null ) {
+		sb.AppendLine();
+		sb.AppendLine( $"public static {(type ?? Name)} operator {@operator} ( {Name} left, {Name} right )" );
+		using (sb.Indent() ) {
+			if ( type != null )
+				sb.AppendLine( $"=> left.Value {@operator} right.Value;" );
+			else
+				sb.AppendLine( $"=> new( left.Value {@operator} right.Value );" );
+		}
 	}
 
 	protected override void GenerateAfter ( TimeUnits data, SourceStringBuilder sb ) {
@@ -102,7 +125,7 @@ public class TimeUnitTemplate : ClassTemplate<TimeUnits> {
 			sb.AppendLine();
 			sb.AppendLine( "public override string ToString () {" );
 			using ( sb.Indent() ) {
-				sb.AppendLine( $"return $\"{{Value}} per {Name.ToLower()[..^1]}\";" );
+				sb.AppendLine( $"return $\"{{Value}} per {Unit}\";" );
 			}
 			sb.AppendLine( "}" );
 		}

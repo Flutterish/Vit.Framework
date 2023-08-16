@@ -3,6 +3,7 @@ using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input;
+using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Graphics;
@@ -38,7 +39,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		this.Animate().ChangeLayoutParameters( selectionBox, ( LayoutParams v ) => v with {
 			Anchor = Anchor<float>.BottomLeft + boundingBox.Position,
 			Size = boundingBox.Size
-		}, 50, Easing.Out );
+		}, 50.Millis(), Easing.Out );
 	}
 
 	int historyIndex;

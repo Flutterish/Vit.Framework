@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Input.Trackers;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Input.Events.EventSources;
 
@@ -10,7 +11,7 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 
 	public THandler? Hovered { get; private set; }
 
-	public bool Press ( CursorState state, CursorButton button, double timestamp ) {
+	public bool Press ( CursorState state, CursorButton button, Millis timestamp ) {
 		Release( state, button, timestamp );
 
 		if ( Hovered == null || !Hovered.TriggerEventOnSelf( new PressedEvent { Button = button, EventPosition = state.ScreenSpacePosition, Timestamp = timestamp } ) )
@@ -20,7 +21,7 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 		return true;
 	}
 
-	public bool Release ( CursorState state, CursorButton button, double timestamp, Action<THandler>? clicked = null ) {
+	public bool Release ( CursorState state, CursorButton button, Millis timestamp, Action<THandler>? clicked = null ) {
 		if ( !buttonHandlers.Remove( button, out var previousHandler ) )
 			return false;
 
@@ -34,7 +35,7 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 		return result;
 	}
 
-	public bool Move ( CursorState state, double timestamp ) { // TODO could we reuse/pool events? making one essentially every frame sounds bad
+	public bool Move ( CursorState state, Millis timestamp ) { // TODO could we reuse/pool events? making one essentially every frame sounds bad
 		var handler = Root.TriggerCulledEvent( new HoveredEvent { EventPosition = state.ScreenSpacePosition, Timestamp = timestamp }, state.ScreenSpacePosition, static (handler, pos) => handler.ReceivesPositionalInputAt( pos ) );
 
 		if ( handler != Hovered ) {

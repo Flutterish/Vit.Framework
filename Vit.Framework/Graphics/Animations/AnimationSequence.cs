@@ -1,8 +1,10 @@
-﻿namespace Vit.Framework.Graphics.Animations;
+﻿using Vit.Framework.Mathematics;
+
+namespace Vit.Framework.Graphics.Animations;
 
 public struct AnimationSequence<TSource> where TSource : ICanBeAnimated {
-	public required double StartTime { get; init; }
-	public required double EndTime { get; init; }
+	public required Millis StartTime { get; init; }
+	public required Millis EndTime { get; init; }
 	public required TSource Source { get; init; }
 
 	/// <summary>
@@ -23,7 +25,7 @@ public struct AnimationSequence<TSource> where TSource : ICanBeAnimated {
 	/// <summary>
 	/// Increments the start time of future animations by the given delay.
 	/// </summary>
-	public AnimationSequence<TSource> Delay ( double time ) {
+	public AnimationSequence<TSource> Delay ( Millis time ) {
 		return this with { StartTime = StartTime + time, EndTime = StartTime + time };
 	}
 

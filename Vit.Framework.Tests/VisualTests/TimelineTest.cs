@@ -2,6 +2,7 @@
 using Vit.Framework.Collections;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
+using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Animations;
 using Vit.Framework.TwoD.UI.Graphics;
@@ -15,10 +16,10 @@ public class TimelineTest : TestScene {
 	public TimelineTest () {
 		Padding = new( all: 10 );
 		void entered ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FlashColour( ColorRgb.HotPink, ColorRgb.Red, 200, Easing.Out );
+			v.Value.Animate().FlashColour( ColorRgb.HotPink, ColorRgb.Red, 200.Millis(), Easing.Out );
 		}
 		void exited ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FadeColour( ColorRgb.Blue, 400 );
+			v.Value.Animate().FadeColour( ColorRgb.Blue, 400.Millis() );
 		}
 
 		timeline.EventStarted = entered;

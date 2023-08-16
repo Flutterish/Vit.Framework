@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input;
+using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Animations;
@@ -56,11 +57,11 @@ public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabable, IK
 
 	void onInteractionStateChanged () {
 		if ( isPressed )
-			background.Animate().FadeColour( PressedColour, 300, Easing.Out );
+			background.Animate().FadeColour( PressedColour, 300.Millis(), Easing.Out );
 		else if ( isHovered )
-			background.Animate().FadeColour( HoverColour, 300 );
+			background.Animate().FadeColour( HoverColour, 300.Millis() );
 		else
-			background.Animate().FadeColour( BackgroundColour, 200, Easing.Out );
+			background.Animate().FadeColour( BackgroundColour, 200.Millis(), Easing.Out );
 	}
 
 	public bool OnPressed ( PressedEvent @event ) {
@@ -79,7 +80,7 @@ public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabable, IK
 	}
 
 	public bool OnClicked ( ClickedEvent @event ) {
-		background.Animate().FlashColour( FlashColour, HoverColour, 200 );
+		background.Animate().FlashColour( FlashColour, HoverColour, 200.Millis() );
 		Clicked?.Invoke();
 		return true;
 	}
@@ -125,7 +126,7 @@ public class BasicButton : LayoutContainer, IClickable, IHoverable, ITabable, IK
 			return false;
 
 		if ( key is Key.Enter or Key.Space ) {
-			background.Animate().FlashColour( FlashColour, isHovered ? HoverColour : BackgroundColour, 200 );
+			background.Animate().FlashColour( FlashColour, isHovered ? HoverColour : BackgroundColour, 200.Millis() );
 			Clicked?.Invoke();
 
 			return true;

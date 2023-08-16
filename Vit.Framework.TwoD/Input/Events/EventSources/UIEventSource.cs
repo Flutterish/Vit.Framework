@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Input;
@@ -61,7 +62,7 @@ public class UIEventSource {
 		onPlatformAction( action );
 	}
 
-	double eventTimestamp;
+	Millis eventTimestamp;
 	void onPlatformAction ( PlatformAction action ) {
 		if ( action == PlatformAction.Copy ) {
 			focused?.TriggerEventOnSelf( new ClipboardCopyEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
@@ -103,7 +104,7 @@ public class UIEventSource {
 	/// </summary>
 	/// <returns><see langword="true"/> if the event was translated to one or more UI events, <see langword="false"/> otherwise.</returns>
 	public bool TriggerEvent ( TimestampedEvent @event ) { // TODO also keep track of the source. this will be important when we get around to touch input
-		eventTimestamp = (@event.Timestamp - clock.ClockEpoch).TotalMilliseconds;
+		eventTimestamp = @event.Timestamp - clock.ClockEpoch;
 
 		switch ( @event ) {
 			case CursorButtonPressedEvent pressed:

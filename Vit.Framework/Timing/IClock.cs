@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Timing;
+﻿using Vit.Framework.Mathematics;
+
+namespace Vit.Framework.Timing;
 
 public interface IClock {
 	/// <summary>
@@ -9,14 +11,11 @@ public interface IClock {
 	/// <summary>
 	/// Time elapsed during last "tick", in milliseconds.
 	/// </summary>
-	double ElapsedTime { get; }
+	Millis ElapsedTime { get; }
 	/// <summary>
 	/// Total elasped in milliseconds.
 	/// </summary>
-	double CurrentTime { get; }
+	Millis CurrentTime { get; }
 
-	public TimeSpan ElapsedTimeSpan => TimeSpan.FromMilliseconds( ElapsedTime );
-	public TimeSpan CurrentTimeSpan => TimeSpan.FromMilliseconds( CurrentTime );
-
-	public DateTime CurrentDateTime => ClockEpoch + CurrentTimeSpan;
+	public DateTime CurrentDateTime => ClockEpoch + CurrentTime;
 }

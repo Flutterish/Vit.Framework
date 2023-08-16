@@ -4,8 +4,8 @@ using Vit.Framework.Mathematics.SourceGen.Mathematics.GeometricAlgebra;
 using Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra;
 
 var path = "./../../../../Vit.Framework/Mathematics";
-var millis = new TimeUnitTemplate( TimeSpan.FromMilliseconds(1), "Millis" ) { Path = path };
-var seconds = new TimeUnitTemplate( TimeSpan.FromSeconds(1), "Seconds" ) { Path = path };
+var millis = new TimeUnitTemplate( TimeSpan.FromMilliseconds(1), "Millis", "ms" ) { Path = path };
+var seconds = new TimeUnitTemplate( TimeSpan.FromSeconds(1), "Seconds", "s" ) { Path = path };
 var units = new TimeUnits {
 	millis, seconds
 };

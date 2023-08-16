@@ -1,8 +1,10 @@
-﻿namespace Vit.Framework.Graphics.Animations;
+﻿using Vit.Framework.Mathematics;
+
+namespace Vit.Framework.Graphics.Animations;
 
 public interface IValueInterpolatingAnimation<TValue> {
 	void SetValue ( TValue value );
-	TValue GetValue ( double time );
+	TValue GetValue ( Millis time );
 	void ChangeInterpolatedStartValue ( TValue value );
 }
 
@@ -30,7 +32,7 @@ public class ValueInterpolatingAnimationOverlapResolutionContract<TValue> : Over
 		return considered;
 	}
 
-	public override void Update ( IEnumerable<Animation> animations, double time ) {
+	public override void Update ( IEnumerable<Animation> animations, Millis time ) {
 		var considered = getConsidered( animations );
 
 		IValueInterpolatingAnimation<TValue>? previous = considered[^1];

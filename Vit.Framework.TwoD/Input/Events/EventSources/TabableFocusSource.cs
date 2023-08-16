@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Input.Events.EventSources;
 
@@ -9,14 +10,14 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 	EventTree<THandler>? currentTabIndex;
 	bool isTabFocused;
 
-	public THandler? TabForward ( double timestamp ) {
+	public THandler? TabForward ( Millis timestamp ) {
 		return tab( timestamp, forward: true );
 	}
-	public THandler? TabBackward ( double timestamp ) {
+	public THandler? TabBackward ( Millis timestamp ) {
 		return tab( timestamp, forward: false );
 	}
 
-	THandler? tab ( double timestamp, bool forward ) {
+	THandler? tab ( Millis timestamp, bool forward ) {
 		if ( currentTabIndex != null && isTabFocused ) {
 			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
 		}

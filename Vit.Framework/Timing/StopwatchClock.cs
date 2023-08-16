@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Timing;
 
@@ -10,12 +11,12 @@ public class StopwatchClock : IClock {
 	}
 	
 	public void Update () { // TODO prehaps the elapsed time should be limited in order not to have too big delta times
-		var current = stopwatch.Elapsed.TotalMilliseconds;
+		var current = stopwatch.Elapsed.TotalMilliseconds.Millis();
 		ElapsedTime = current - CurrentTime;
 		CurrentTime = current;
 	}
 
 	public DateTime ClockEpoch { get; }
-	public double ElapsedTime { get; private set; }
-	public double CurrentTime { get; private set; }
+	public Millis ElapsedTime { get; private set; }
+	public Millis CurrentTime { get; private set; }
 }

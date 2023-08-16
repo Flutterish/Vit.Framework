@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Collections;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Animations;
 
@@ -11,7 +12,7 @@ public class AnimationTimeline {
 		set => animations.SeekBehaviour = value ? SeekBehaviour.Rewind : SeekBehaviour.Ignore;
 	}
 
-	public double CurrentTime { get => animations.CurrentTime; init => animations.CurrentTime = value; }
+	public Millis CurrentTime { get => animations.CurrentTime.Millis(); init => animations.CurrentTime = value.Value; }
 	Timeline<Animation> animations = new() { SeekBehaviour = SeekBehaviour.Ignore };
 	public AnimationTimeline () {
 		animations.EventStarted = onStarted;
@@ -20,8 +21,8 @@ public class AnimationTimeline {
 		animations.EventEndRewound = onEndRewound;
 	}
 
-	public void Update ( double time ) {
-		animations.SeekTo( time );
+	public void Update ( Millis time ) {
+		animations.SeekTo( time.Value );
 		foreach ( var (domain, list) in animationsByDomain ) {
 			tryUpdate( list, time );
 		}
@@ -38,7 +39,7 @@ public class AnimationTimeline {
 		}
 	}
 
-	void tryUpdate ( LinkedList<Animation> domain, double time ) {
+	void tryUpdate ( LinkedList<Animation> domain, Millis time ) {
 		var last = domain.Last;
 		if ( last == null || last.Value.InterruptedAt < time )
 			return;
@@ -125,19 +126,19 @@ public class AnimationTimeline {
 		if ( !Rewindable && animation.StartTime < CurrentTime )
 			throw new InvalidOperationException( "Cannot insert an in-progress or finished animation to a non-rewindable timeline" );
 
-		animations.Add( animation, animation.StartTime, animation.EndTime );
+		animations.Add( animation, animation.StartTime.Value, animation.EndTime.Value );
 	}
 }
 
 public interface IHasAnimationTimeline : ICanBeAnimated {
 	AnimationTimeline AnimationTimeline { get; }
 
-	double ICanBeAnimated.CurrentTime => AnimationTimeline.CurrentTime;
+	Millis ICanBeAnimated.CurrentTime => AnimationTimeline.CurrentTime;
 	void ICanBeAnimated.AddAnimation ( Animation animation ) => AnimationTimeline.Add( animation );
 }
 
 public interface ICanBeAnimated {
-	double CurrentTime { get; }
+	Millis CurrentTime { get; }
 	void AddAnimation ( Animation animation );
 }
 
@@ -152,14 +153,14 @@ public static class IHasAnimationTimelineExtensions {
 	/// <summary>
 	/// Begins a new animation sequence starting after a delay.
 	/// </summary>
-	public static AnimationSequence<TSource> AnimateDelayed<TSource> ( this TSource source, double delay ) where TSource : ICanBeAnimated {
+	public static AnimationSequence<TSource> AnimateDelayed<TSource> ( this TSource source, Millis delay ) where TSource : ICanBeAnimated {
 		return source.Animate().Delay( delay );
 	}
 
 	/// <summary>
 	/// Begins a new animation sequence starting at the given time.
 	/// </summary>
-	public static AnimationSequence<TSource> AnimateAt<TSource> ( this TSource source, double absoluteTime ) where TSource : ICanBeAnimated {
+	public static AnimationSequence<TSource> AnimateAt<TSource> ( this TSource source, Millis absoluteTime ) where TSource : ICanBeAnimated {
 		return new() { Source = source, StartTime = absoluteTime, EndTime = absoluteTime };
 	}
 
@@ -168,7 +169,7 @@ public static class IHasAnimationTimelineExtensions {
 	/// </summary>
 	public static void FinishAnimations ( this IHasAnimationTimeline source ) {
 		var time = source.AnimationTimeline.CurrentTime;
-		source.AnimationTimeline.Update( double.PositiveInfinity );
+		source.AnimationTimeline.Update( double.PositiveInfinity.Millis() );
 		source.AnimationTimeline.Update( time );
 	}
 }

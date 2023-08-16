@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Graphics.Animations;
+﻿using Vit.Framework.Mathematics;
+
+namespace Vit.Framework.Graphics.Animations;
 
 /// <summary>
 /// A contract for animations which determines how to behave when multiple animations in the same domain try to play at once.
@@ -13,5 +15,5 @@ public abstract class OverlapResolutionContract {
 	/// </summary>
 	/// <param name="animations">Overlapping animations. Must be active at <c><paramref name="time"/></c>. Must be ordered descending by start time, and the first element is the active animation.</param>
 	/// <param name="time">Time parameter.</param>
-	public abstract void Update ( IEnumerable<Animation> animations, double time );
+	public abstract void Update ( IEnumerable<Animation> animations, Millis time );
 }

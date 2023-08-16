@@ -12,7 +12,7 @@ internal abstract class GetterSetterAnimation<TTarget, TValue> : Animation<TTarg
 
 	Func<TTarget, TValue> getter;
 	Action<TTarget, TValue> setter;
-	protected GetterSetterAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) {
+	protected GetterSetterAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) {
 		this.setter = setter;
 
 		var body = getter.Body;
@@ -37,7 +37,7 @@ internal abstract class GetterSetterAnimation<TTarget, TValue> : Animation<TTarg
 }
 
 internal class GetterSetterNumberAnimation<TTarget, TValue> : GetterSetterAnimation<TTarget, TValue> where TTarget : class where TValue : INumber<TValue> {
-	public GetterSetterNumberAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
+	public GetterSetterNumberAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
 
 	public override TValue Interpolate ( TValue from, TValue to, double t ) {
 		return from.Lerp( to, TValue.CreateSaturating( t ) );
@@ -45,7 +45,7 @@ internal class GetterSetterNumberAnimation<TTarget, TValue> : GetterSetterAnimat
 }
 
 internal class GetterSetterInterpolableSingleAnimation<TTarget, TValue> : GetterSetterAnimation<TTarget, TValue> where TTarget : class where TValue : IInterpolatable<TValue, float> {
-	public GetterSetterInterpolableSingleAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
+	public GetterSetterInterpolableSingleAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
 
 	public override TValue Interpolate ( TValue from, TValue to, double t ) {
 		return from.Lerp( to, (float)t );
@@ -53,7 +53,7 @@ internal class GetterSetterInterpolableSingleAnimation<TTarget, TValue> : Getter
 }
 
 internal class GetterSetterInterpolableDoubleAnimation<TTarget, TValue> : GetterSetterAnimation<TTarget, TValue> where TTarget : class where TValue : IInterpolatable<TValue, double> {
-	public GetterSetterInterpolableDoubleAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
+	public GetterSetterInterpolableDoubleAnimation ( TTarget target, Expression<Func<TTarget, TValue>> getter, Action<TTarget, TValue> setter, TValue endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, getter, setter, endValue, startTime, endTime, easing ) { }
 
 	public override TValue Interpolate ( TValue from, TValue to, double t ) {
 		return from.Lerp( to, t );
@@ -62,7 +62,7 @@ internal class GetterSetterInterpolableDoubleAnimation<TTarget, TValue> : Getter
 
 public static class AnimationExtensionsA {
 	[Obsolete( GetterSetterAnimation<object, float>.WarningMessage )]
-	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, double duration, EasingFunction? easing = null )
+	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, Millis duration, EasingFunction? easing = null )
 		where T : class, ICanBeAnimated
 		where TValue : INumber<TValue>
 		=> sequence.Add( new GetterSetterNumberAnimation<T, TValue>( sequence.Source, getter, setter, endValue, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
@@ -70,7 +70,7 @@ public static class AnimationExtensionsA {
 
 public static class AnimationExtensionsB {
 	[Obsolete( GetterSetterAnimation<object, float>.WarningMessage )]
-	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, double duration, EasingFunction? easing = null )
+	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, Millis duration, EasingFunction? easing = null )
 		where T : class, ICanBeAnimated
 		where TValue : IInterpolatable<TValue, float>
 		=> sequence.Add( new GetterSetterInterpolableSingleAnimation<T, TValue>( sequence.Source, getter, setter, endValue, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
@@ -78,7 +78,7 @@ public static class AnimationExtensionsB {
 
 public static class AnimationExtensionsC {
 	[Obsolete( GetterSetterAnimation<object, float>.WarningMessage )]
-	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, double duration, EasingFunction? easing = null )
+	public static AnimationSequence<T> Mutate<T, TValue> ( this AnimationSequence<T> sequence, Expression<Func<T, TValue>> getter, Action<T, TValue> setter, TValue endValue, Millis duration, EasingFunction? easing = null )
 		where T : class, ICanBeAnimated
 		where TValue : IInterpolatable<TValue, double>
 		=> sequence.Add( new GetterSetterInterpolableDoubleAnimation<T, TValue>( sequence.Source, getter, setter, endValue, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );

@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Input.Events.EventSources;
 
@@ -6,7 +7,7 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 	public required THandler Root { get; init; }
 	Dictionary<TKey, THandler> pressHandlers = new();
 
-	public bool Press ( TKey key, double timestamp, THandler target ) {
+	public bool Press ( TKey key, Millis timestamp, THandler target ) {
 		Release( key, timestamp );
 
 		var handler = target.TriggerEvent( new KeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
@@ -17,7 +18,7 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 		return true;
 	}
 
-	public bool Press ( TKey key, double timestamp ) {
+	public bool Press ( TKey key, Millis timestamp ) {
 		Release( key, timestamp );
 
 		var handler = Root.TriggerEvent( new KeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
@@ -28,7 +29,7 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 		return true;
 	}
 
-	public bool Repeat ( TKey key, double timestamp ) {
+	public bool Repeat ( TKey key, Millis timestamp ) {
 		if ( !pressHandlers.TryGetValue( key, out var handler ) )
 			return Press( key, timestamp );
 
@@ -37,7 +38,7 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 		return true;
 	}
 
-	public bool Release ( TKey key, double timestamp ) {
+	public bool Release ( TKey key, Millis timestamp ) {
 		if ( !pressHandlers.Remove( key, out var handler ) )
 			return false;
 

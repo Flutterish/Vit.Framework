@@ -1,17 +1,18 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Animations;
 
 public abstract class Animation {
-	public readonly double StartTime;
-	public readonly double EndTime;
-	protected Animation ( double startTime, double endTime ) {
+	public readonly Millis StartTime;
+	public readonly Millis EndTime;
+	protected Animation ( Millis startTime, Millis endTime ) {
 		StartTime = startTime;
 		EndTime = endTime;
 	}
 
-	public double Duration => EndTime - StartTime;
+	public Millis Duration => EndTime - StartTime;
 	/// <summary>
 	/// Domains of this animation - when 2 animations in the same domain play, the older one is interrupted.
 	/// </summary>
@@ -20,7 +21,7 @@ public abstract class Animation {
 	/// </remarks>
 	public abstract IReadOnlyList<AnimationDomain> Domains { get; }
 	public virtual OverlapResolutionContract? OverlapResolutionContract => null;
-	public double InterruptedAt => InterruptedBy?.StartTime ?? double.PositiveInfinity;
+	public Millis InterruptedAt => InterruptedBy?.StartTime ?? double.PositiveInfinity.Millis();
 	public Animation? InterruptedBy { get; private set; }
 	[MemberNotNullWhen(true, nameof(InterruptedBy))]
 	public bool WasInterrupted => InterruptedBy != null;
@@ -30,7 +31,7 @@ public abstract class Animation {
 		InterruptedBy = by;
 	}
 
-	public abstract void Update ( double time );
+	public abstract void Update ( Millis time );
 	public abstract void OnStarted ();
 	public abstract void OnStartRewound ();
 	public abstract void OnEnded ();
@@ -45,7 +46,7 @@ public abstract class Animation<TTarget, TValue> : Animation, IValueInterpolatin
 	public TValue EndValue { get; private set; }
 	bool hasStarted;
 
-	public Animation ( TTarget target, TValue endValue, double startTime, double endTime, EasingFunction easing ) : base( startTime, endTime ) {
+	public Animation ( TTarget target, TValue endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( startTime, endTime ) {
 		Target = target;
 		EndValue = endValue;
 		Easing = easing;
@@ -55,12 +56,12 @@ public abstract class Animation<TTarget, TValue> : Animation, IValueInterpolatin
 	public abstract void SetValue ( TValue value );
 	public abstract TValue Interpolate ( TValue from, TValue to, double t );
 	public override OverlapResolutionContract? OverlapResolutionContract => ValueInterpolatingAnimationOverlapResolutionContract<TValue>.Value;
-	public sealed override void Update ( double time ) {
+	public sealed override void Update ( Millis time ) {
 		SetValue( GetValue( time ) );
 	}
 
-	public TValue GetValue ( double time ) {
-		return Interpolate( interpolatedStartValue, EndValue, Duration == 0 ? 1 : Easing( (time - StartTime) / Duration ) );
+	public TValue GetValue ( Millis time ) {
+		return Interpolate( interpolatedStartValue, EndValue, Duration == 0.Millis() ? 1 : Easing( (time - StartTime) / Duration ) );
 	}
 
 	public sealed override void OnStarted () {
@@ -99,7 +100,7 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation, IValueInter
 	public TValue EndValue { get; private set; } = default!;
 	bool hasStarted;
 
-	public DynamicAnimation ( TTarget target, double startTime, double endTime, EasingFunction easing ) : base( startTime, endTime ) {
+	public DynamicAnimation ( TTarget target, Millis startTime, Millis endTime, EasingFunction easing ) : base( startTime, endTime ) {
 		Target = target;
 		Easing = easing;
 	}
@@ -109,12 +110,12 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation, IValueInter
 	public abstract void SetValue ( TValue value );
 	public abstract TValue Interpolate ( TValue from, TValue to, double t );
 	public override OverlapResolutionContract? OverlapResolutionContract => ValueInterpolatingAnimationOverlapResolutionContract<TValue>.Value;
-	public sealed override void Update ( double time ) {
+	public sealed override void Update ( Millis time ) {
 		SetValue( GetValue( time ) );
 	}
 
-	public TValue GetValue ( double time ) {
-		return Interpolate( interpolatedStartValue, EndValue, Duration == 0 ? 1 : Easing( (time - StartTime) / Duration ) );
+	public TValue GetValue ( Millis time ) {
+		return Interpolate( interpolatedStartValue, EndValue, Duration == 0.Millis() ? 1 : Easing( (time - StartTime) / Duration ) );
 	}
 	public sealed override void OnStarted () {
 		hasStarted = true;

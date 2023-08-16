@@ -22,8 +22,35 @@ public struct Seconds : IInterpolatable<Seconds, double> {
 	public static implicit operator Seconds ( TimeSpan time )
 		=> new( (double)time.Ticks / 10000000L );
 	
+	public static Seconds operator + ( Seconds left, Seconds right )
+		=> new( left.Value + right.Value );
+	
+	public static Seconds operator - ( Seconds left, Seconds right )
+		=> new( left.Value - right.Value );
+	
+	public static double operator / ( Seconds left, Seconds right )
+		=> left.Value / right.Value;
+	
+	public static bool operator == ( Seconds left, Seconds right )
+		=> left.Value == right.Value;
+	
+	public static bool operator != ( Seconds left, Seconds right )
+		=> left.Value != right.Value;
+	
+	public static bool operator > ( Seconds left, Seconds right )
+		=> left.Value > right.Value;
+	
+	public static bool operator < ( Seconds left, Seconds right )
+		=> left.Value < right.Value;
+	
+	public static bool operator >= ( Seconds left, Seconds right )
+		=> left.Value >= right.Value;
+	
+	public static bool operator <= ( Seconds left, Seconds right )
+		=> left.Value <= right.Value;
+	
 	public override string ToString () {
-		return $"{Value} seconds";
+		return $"{Value}s";
 	}
 }
 
@@ -41,7 +68,7 @@ public struct PerSecond<T> where T : IMultiplyOperators<T, double, T> {
 		=> per.Value * time.Value;
 	
 	public override string ToString () {
-		return $"{Value} per second";
+		return $"{Value} per s";
 	}
 }
 

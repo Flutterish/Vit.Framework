@@ -90,7 +90,7 @@ public static class ParametrizedContainerExtensions {
 		where TParam : struct, IInterpolatable<TParam, float> // TODO an overload for doubles
 	{
 		TContainer container;
-		public ParametersAnimation ( T target, TContainer container, TParam endValue, double startTime, double endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) {
+		public ParametersAnimation ( T target, TContainer container, TParam endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) {
 			this.container = container;
 		}
 
@@ -116,7 +116,7 @@ public static class ParametrizedContainerExtensions {
 	{
 		TContainer container;
 		Func<TParam, TParam> transformer;
-		public ParametersTransformerAnimation ( T target, TContainer container, Func<TParam, TParam> transformer, double startTime, double endTime, EasingFunction easing ) : base( target, startTime, endTime, easing ) {
+		public ParametersTransformerAnimation ( T target, TContainer container, Func<TParam, TParam> transformer, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, startTime, endTime, easing ) {
 			this.container = container;
 			this.transformer = transformer;
 		}
@@ -142,7 +142,7 @@ public static class ParametrizedContainerExtensions {
 	public static readonly AnimationDomain LayoutParametersAnimationDomain = new() { Name = "Layout Parameters" };
 	public static readonly IReadOnlyList<AnimationDomain> LayoutParametersAnimationDomains = new[] { LayoutParametersAnimationDomain };
 
-	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, TParam goal, double duration, EasingFunction? easing = null ) 
+	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, TParam goal, Millis duration, EasingFunction? easing = null ) 
 		where TContainer : IParametrizedContainer<T, TParam>, ICanBeAnimated
 		where T : UIComponent 
 		where TParam : struct, IInterpolatable<TParam, float>
@@ -152,7 +152,7 @@ public static class ParametrizedContainerExtensions {
 			.AnimateOther( sequence.Source );
 	}
 
-	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, Func<TParam, TParam> transformer, double duration, EasingFunction? easing = null )
+	public static AnimationSequence<TContainer> ChangeLayoutParameters<TContainer, T, TParam> ( this AnimationSequence<TContainer> sequence, T child, Func<TParam, TParam> transformer, Millis duration, EasingFunction? easing = null )
 		where TContainer : IParametrizedContainer<T, TParam>, ICanBeAnimated
 		where T : UIComponent
 		where TParam : struct, IInterpolatable<TParam, float> {

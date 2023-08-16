@@ -231,7 +231,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	#endregion
 	#region Lifetime
 	public IClock Clock { get; private set; } = null!;
-	public AnimationTimeline AnimationTimeline { get; } = new() { CurrentTime = double.NegativeInfinity }; // negative infinity start time basically makes load-time animations finish instantly
+	public AnimationTimeline AnimationTimeline { get; } = new() { CurrentTime = double.NegativeInfinity.Millis() }; // negative infinity start time basically makes load-time animations finish instantly
 	public bool IsLoaded { get; private set; }
 	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		Clock = dependencies.Resolve<IClock>();

@@ -22,8 +22,35 @@ public struct Millis : IInterpolatable<Millis, double> {
 	public static implicit operator Millis ( TimeSpan time )
 		=> new( (double)time.Ticks / 10000L );
 	
+	public static Millis operator + ( Millis left, Millis right )
+		=> new( left.Value + right.Value );
+	
+	public static Millis operator - ( Millis left, Millis right )
+		=> new( left.Value - right.Value );
+	
+	public static double operator / ( Millis left, Millis right )
+		=> left.Value / right.Value;
+	
+	public static bool operator == ( Millis left, Millis right )
+		=> left.Value == right.Value;
+	
+	public static bool operator != ( Millis left, Millis right )
+		=> left.Value != right.Value;
+	
+	public static bool operator > ( Millis left, Millis right )
+		=> left.Value > right.Value;
+	
+	public static bool operator < ( Millis left, Millis right )
+		=> left.Value < right.Value;
+	
+	public static bool operator >= ( Millis left, Millis right )
+		=> left.Value >= right.Value;
+	
+	public static bool operator <= ( Millis left, Millis right )
+		=> left.Value <= right.Value;
+	
 	public override string ToString () {
-		return $"{Value} millis";
+		return $"{Value}ms";
 	}
 }
 
@@ -41,7 +68,7 @@ public struct PerMilli<T> where T : IMultiplyOperators<T, double, T> {
 		=> per.Value * time.Value;
 	
 	public override string ToString () {
-		return $"{Value} per milli";
+		return $"{Value} per ms";
 	}
 }
 
