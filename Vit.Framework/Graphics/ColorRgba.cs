@@ -224,8 +224,9 @@ public static class ColorRgba {
 		};
 	}
 
+	const decimal Gamma = 2.2m;
 	public static LinearColorRgba<T> ToLinear<T> ( this ColorRgba<T> color ) where T : IFloatingPointIeee754<T> {
-		T gamma = T.CreateSaturating( 1 / 2.2 );
+		T gamma = T.CreateSaturating( 1 / Gamma );
 		return new() {
 			R = T.Pow( color.R, gamma ),
 			G = T.Pow( color.G, gamma ),
@@ -235,7 +236,7 @@ public static class ColorRgba {
 	}
 
 	public static ColorRgba<T> ToSRGB<T> ( this LinearColorRgba<T> color ) where T : IFloatingPointIeee754<T> {
-		T gamma = T.CreateSaturating( 2.2 );
+		T gamma = T.CreateSaturating( Gamma );
 		return new() {
 			R = T.Pow( color.R, gamma ),
 			G = T.Pow( color.G, gamma ),
