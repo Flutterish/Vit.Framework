@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Input.Events;
 
-namespace Vit.Framework.TwoD.Input.Events;
+namespace Vit.Framework.TwoD.UI.Input.Events;
 
 public abstract record TabEvent : UIEvent { }
 

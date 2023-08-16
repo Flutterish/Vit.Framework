@@ -1,6 +1,6 @@
 ﻿using Vit.Framework.Input.Events;
 
-namespace Vit.Framework.TwoD.Input.Events;
+namespace Vit.Framework.TwoD.UI.Input.Events;
 
 public interface ITextInputHandler : IEventHandler<UITextInputEvent>, IEventHandler<ClipboardCopyEvent>, IEventHandler<ClipboardCutEvent>, IEventHandler<ClipboardPasteTextEvent> {
 	bool OnTextInput ( UITextInputEvent @event );

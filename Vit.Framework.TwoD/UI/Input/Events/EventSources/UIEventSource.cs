@@ -3,10 +3,8 @@ using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Timing;
-using Vit.Framework.TwoD.UI;
-using Vit.Framework.TwoD.UI.Input;
 
-namespace Vit.Framework.TwoD.Input.Events.EventSources;
+namespace Vit.Framework.TwoD.UI.Input.Events.EventSources;
 
 public class UIEventSource {
 	public UIComponent Root { get; private init; }
@@ -64,9 +62,7 @@ public class UIEventSource {
 
 	Millis eventTimestamp;
 	void onPlatformAction ( PlatformAction action ) {
-		if ( action == PlatformAction.Copy ) {
-			focused?.TriggerEventOnSelf( new ClipboardCopyEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
-		}
+		if ( action == PlatformAction.Copy ) focused?.TriggerEventOnSelf( new ClipboardCopyEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
 		else if ( action == PlatformAction.Cut ) {
 			focused?.TriggerEventOnSelf( new ClipboardCutEvent { Clipboard = clipboard, Timestamp = eventTimestamp } );
 		}
@@ -83,9 +79,7 @@ public class UIEventSource {
 	}
 
 	void setFocus ( UIComponent? target, bool byTab = false ) {
-		if ( byTab ) {
-			TabVisualizer.Target = target;
-		}
+		if ( byTab ) TabVisualizer.Target = target;
 		else {
 			tabFocus.ReleaseTabFocus();
 			TabVisualizer.Target = null;
@@ -156,11 +150,11 @@ public class UIEventSource {
 	public class UIFocus : Focus {
 		UIEventSource source;
 		public UIComponent? Target => source.focused;
-	
+
 		public UIFocus ( UIEventSource source ) {
 			this.source = source;
 		}
-	
+
 		public override void Release () {
 			source.setFocus( null );
 		}

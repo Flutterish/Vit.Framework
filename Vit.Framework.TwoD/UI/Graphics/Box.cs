@@ -1,8 +1,8 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.TwoD.Graphics;
-using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.UI.Animations;
+using Vit.Framework.TwoD.UI.Input.Events;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 

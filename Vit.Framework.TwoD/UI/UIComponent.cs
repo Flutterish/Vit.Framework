@@ -8,8 +8,8 @@ using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Timing;
-using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.UI.Input.Events;
 
 namespace Vit.Framework.TwoD.UI;
 

@@ -1,7 +1,7 @@
 ﻿using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.TwoD.Input.Events.EventSources;
+namespace Vit.Framework.TwoD.UI.Input.Events.EventSources;
 
 public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum where THandler : class, IHasEventTrees<THandler> {
 	public required THandler Root { get; init; }

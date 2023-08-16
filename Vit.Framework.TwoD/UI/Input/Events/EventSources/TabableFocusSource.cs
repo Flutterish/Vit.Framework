@@ -2,7 +2,7 @@
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.TwoD.Input.Events.EventSources;
+namespace Vit.Framework.TwoD.UI.Input.Events.EventSources;
 
 public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees<THandler> {
 	public required THandler Root { get; init; }
@@ -18,9 +18,7 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 	}
 
 	THandler? tab ( Millis timestamp, bool forward ) {
-		if ( currentTabIndex != null && isTabFocused ) {
-			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
-		}
+		if ( currentTabIndex != null && isTabFocused ) currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
 
 		if ( currentTabIndex == null ) {
 			if ( !Root.HandledEventTypes.TryGetValue( typeof( TabbedOverEvent ), out var tabTree ) )

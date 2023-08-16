@@ -2,7 +2,7 @@
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 
-namespace Vit.Framework.TwoD.Input.Events;
+namespace Vit.Framework.TwoD.UI.Input.Events;
 
 public abstract record PositionalUIEvent : UIEvent, IPositionalEvent {
 	public required Point2<float> EventPosition { get; init; }

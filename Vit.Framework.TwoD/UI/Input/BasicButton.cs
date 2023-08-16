@@ -2,10 +2,10 @@
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
-using Vit.Framework.TwoD.Input.Events;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Animations;
 using Vit.Framework.TwoD.UI.Graphics;
+using Vit.Framework.TwoD.UI.Input.Events;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
