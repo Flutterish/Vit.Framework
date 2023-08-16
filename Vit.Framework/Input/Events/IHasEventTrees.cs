@@ -45,48 +45,29 @@ public interface IHasEventTrees<TSelf> where TSelf : class, IHasEventTrees<TSelf
 public static class IHasEventTreesExtensions {
 	public static bool TriggerEventOnSelf<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
 		var type = @event.GetType();
-		while ( type != null ) { // TODO the base types should be checked simultaniously
-			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.Handler is Func<Event, bool> handler && handler( @event ) )
-				return true;
-
-			type = type.BaseType;
-		}
-
-		return false;
+		return self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.Handler is Func<Event, bool> handler && handler( @event );
 	}
 
 	public static TSelf? TriggerEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
 		var type = @event.GetType();
-		while ( type != null ) {
-			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event ) is TSelf handler )
-				return handler;
-
-			type = type.BaseType;
-		}
+		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event ) is TSelf handler )
+			return handler;
 
 		return null;
 	}
 
 	public static TSelf? TriggerCulledEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event, Func<TSelf, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
 		var type = @event.GetType();
-		while ( type != null ) {
-			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, predicate ) is TSelf handler )
-				return handler;
-
-			type = type.BaseType;
-		}
+		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, predicate ) is TSelf handler )
+			return handler;
 
 		return null;
 	}
 
 	public static TSelf? TriggerCulledEvent<TSelf, TData> ( this IHasEventTrees<TSelf> self, Event @event, TData data, Func<TSelf, TData, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
 		var type = @event.GetType();
-		while ( type != null ) {
-			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, data, predicate ) is TSelf handler )
-				return handler;
-
-			type = type.BaseType;
-		}
+		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, data, predicate ) is TSelf handler )
+			return handler;
 
 		return null;
 	}
