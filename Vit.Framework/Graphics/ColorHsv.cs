@@ -23,7 +23,7 @@ public struct ColorHsv<TAngle, T>
 		V = v;
 	}
 
-	public ColorRgba<T> ToRgba () {
+	public LinearColorRgb<T> ToRgb () {
 		var c = V * S;
 		var h = H.Mod( TAngle.FullRotation );
 		var x = c * ( T.One - T.Abs((h / _60).Mod(T.One + T.One) - T.One) );
@@ -38,11 +38,13 @@ public struct ColorHsv<TAngle, T>
 			h < _300 ? (x, T.Zero, c) :
 			(c, T.Zero, x);
 
-		return new ColorRgba<T>() {
+		return new LinearColorRgb<T>() {
 			R = r + m,
 			G = g + m,
-			B = b + m,
-			A = T.One
+			B = b + m
 		};
 	}
+
+	public LinearColorRgba<T> ToRgba ( T opacity )
+		=> ToRgb().WithOpacity( opacity );
 }

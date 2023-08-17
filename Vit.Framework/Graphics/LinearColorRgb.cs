@@ -20,6 +20,13 @@ public struct LinearColorRgb<T> where T : INumber<T> {
 		B = b;
 	}
 
+	public LinearColorRgba<T> WithOpacity ( T alpha ) => new() {
+		R = R,
+		G = G,
+		B = B,
+		A = alpha
+	};
+
 	public static LinearColorRgb<T> operator / ( LinearColorRgb<T> color, T scalar ) {
 		return new() {
 			R = color.R / scalar,

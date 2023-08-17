@@ -94,7 +94,7 @@ public class Test03_Uniforms : GenericRenderThread {
 			H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
 			S = 1,
 			V = 1
-		}.ToRgba(), clearDepth: 1 );
+		}.ToRgb(), clearDepth: 1 );
 		commands.SetShaders( shaderSet );
 		commands.SetViewport( framebuffer.Size );
 		commands.SetScissors( framebuffer.Size );

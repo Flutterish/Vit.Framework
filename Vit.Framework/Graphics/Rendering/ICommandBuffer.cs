@@ -19,6 +19,18 @@ public interface ICommandBuffer {
 	/// </summary>
 	/// <returns>An action which will finish rendering to the framebuffer.</returns>
 	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		return RenderTo( framebuffer, clearColor?.WithOpacity( 1 ), clearDepth, clearStencil );
+	}
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, LinearColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		return RenderTo( framebuffer, clearColor?.ToSRGB(), clearDepth, clearStencil );
+	}
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, LinearColorRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		return RenderTo( framebuffer, clearColor?.ToSRGB().WithOpacity( 1 ), clearDepth, clearStencil );
+	}
 
 	/// <summary>
 	/// Uploads data to a texture.

@@ -43,7 +43,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 				Padding = new( -margin ),
 				LayoutChildren = new (Visual<Sprite>, LayoutParams)[] {
 					(new Box { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
-					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba() }, new() {
+					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba( 1 ).ToSRGB() }, new() {
 						Origin = Anchor.Centre,
 						Anchor = Anchor.Centre,
 						Size = new( (i + 1) * 10 )
@@ -71,7 +71,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 
 		for ( int i = 0; i < 30; i++ ) {
 			container.AddChild( new Box {
-				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba()
+				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba( 1 ).ToSRGB()
 			}, new() {
 				Margins = new( margin ),
 				Size = new() {

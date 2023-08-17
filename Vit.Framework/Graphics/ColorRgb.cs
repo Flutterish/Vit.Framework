@@ -4,7 +4,7 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Graphics;
 
 /// <summary>
-/// A color represented in the standard RGB model (sRGB).
+/// A color represented in the standard RGB model (sRGB, gamma = 2.2).
 /// </summary>
 /// <remarks>
 /// The RBG values are linear in perceived brightness. <br/>
@@ -20,6 +20,13 @@ public struct ColorRgb<T> where T : INumber<T> {
 		G = g;
 		B = b;
 	}
+
+	public ColorRgba<T> WithOpacity ( T alpha ) => new() {
+		R = R,
+		G = G,
+		B = B,
+		A = alpha
+	};
 
 	public static ColorRgb<T> operator / ( ColorRgb<T> color, T scalar ) {
 		return new() {
@@ -44,15 +51,15 @@ public struct ColorRgb<T> where T : INumber<T> {
 	public override string ToString () {
 		if ( typeof(T) == typeof(byte) ) {
 			var _255 = T.CreateChecked( 255 );
-			return $"#{R:X2}{G:X2}{B:X2}";
+			return $"(sRGB) #{R:X2}{G:X2}{B:X2}";
 		}
 		else if ( typeof(T).IsAssignableTo(typeof(IFloatingPoint<>)) ) {
 			var _255 = T.CreateChecked( 255 );
 			var (r, g, b) = (byte.CreateTruncating(R * _255),byte.CreateTruncating(G * _255), byte.CreateTruncating(B * _255));
-			return $"#{r:X2}{g:X2}{b:X2}";
+			return $"(sRGB) #{r:X2}{g:X2}{b:X2}";
 		}
 		else {
-			return $"({R}, {G}, {B})";
+			return $"(sRGB) ({R}, {G}, {B})";
 		}
 	}
 }
@@ -209,8 +216,9 @@ public static class ColorRgb {
 		};
 	}
 
+	const decimal Gamma = 2.2m;
 	public static LinearColorRgb<T> ToLinear<T> ( this ColorRgb<T> color ) where T : IFloatingPointIeee754<T> {
-		T gamma = T.CreateSaturating( 1 / 2.2 );
+		T gamma = T.CreateSaturating( 1 / Gamma );
 		return new() {
 			R = T.Pow( color.R, gamma ),
 			G = T.Pow( color.G, gamma ),
@@ -219,7 +227,7 @@ public static class ColorRgb {
 	}
 
 	public static ColorRgb<T> ToSRGB<T> ( this LinearColorRgb<T> color ) where T : IFloatingPointIeee754<T> {
-		T gamma = T.CreateSaturating( 2.2 );
+		T gamma = T.CreateSaturating( Gamma );
 		return new() {
 			R = T.Pow( color.R, gamma ),
 			G = T.Pow( color.G, gamma ),

@@ -4,7 +4,7 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Graphics;
 
 /// <summary>
-/// A color represented in the standard RGB model (sRGB) with an alpha component.
+/// A color represented in the standard RGB model (sRGB, gamma = 2.2) with an alpha component.
 /// </summary>
 /// <remarks>
 /// The RBG values are linear in perceived brightness. <br/>
@@ -58,15 +58,15 @@ public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool
 	public override string ToString () {
 		if ( typeof(T) == typeof(byte) ) {
 			var _255 = T.CreateChecked( 255 );
-			return $"#{R:X2}{G:X2}{B:X2}{( A == _255 ? "" : $"{A:X2}" )}";
+			return $"(sRGB) #{R:X2}{G:X2}{B:X2}{( A == _255 ? "" : $"{A:X2}" )}";
 		}
 		else if ( typeof(T).IsAssignableTo(typeof(IFloatingPoint<>)) ) {
 			var _255 = T.CreateChecked( 255 );
 			var (r, g, b, a) = (byte.CreateTruncating(R * _255),byte.CreateTruncating(G * _255), byte.CreateTruncating(B * _255), byte.CreateTruncating(A * _255));
-			return $"#{r:X2}{g:X2}{b:X2}{( a == 255 ? "" : $"{a:X2}" )}";
+			return $"(sRGB) #{r:X2}{g:X2}{b:X2}{( a == 255 ? "" : $"{a:X2}" )}";
 		}
 		else {
-			return $"({R}, {G}, {B}, {A})";
+			return $"(sRGB) ({R}, {G}, {B}, {A})";
 		}
 	}
 }
