@@ -28,4 +28,8 @@ public class UpdateCounter {
 	public double GetUpdatesPer ( TimeSpan span ) {
 		return updateFrames.Count / (totalTime / span);
 	}
+
+	public override string ToString () {
+		return $"{GetUpdatesPer(TimeSpan.FromSeconds(1))} updates per second";
+	}
 }

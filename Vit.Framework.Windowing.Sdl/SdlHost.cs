@@ -48,7 +48,6 @@ public class SdlHost : Host {
 				action();
 
 			SDL.SDL_PumpEvents();
-			Sleep( 1 );
 		}
 
 		SDL.SDL_EventFilter? eventFilter;
