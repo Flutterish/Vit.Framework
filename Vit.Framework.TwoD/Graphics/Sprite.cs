@@ -62,7 +62,7 @@ public class Sprite : Drawable {
 
 	public struct Uniforms {
 		public Matrix4x3<float> Matrix;
-		public ColorRgba<float> Tint;
+		public ColorSRgba<float> Tint;
 	}
 
 	public class DrawDependencies : DisposableObject, IDrawDependency {
@@ -145,7 +145,7 @@ public class Sprite : Drawable {
 	public class DrawNode : DrawableDrawNode<Sprite> {
 		public DrawNode ( Sprite source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		ColorRgba<float> tint;
+		ColorSRgba<float> tint;
 		Shader shader = null!;
 		Texture texture = null!;
 		SharedResourceUpload textureUpload;
@@ -153,7 +153,7 @@ public class Sprite : Drawable {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
-			tint = Source.tint;
+			tint = Source.tint.ToSRgb();
 			textureUpload = Source.textureInvalidations.GetUpload();
 		}
 

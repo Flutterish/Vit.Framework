@@ -16,10 +16,10 @@ public class TimelineTest : TestScene {
 	public TimelineTest () {
 		Padding = new( all: 10 );
 		void entered ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FlashColour( ColorRgb.HotPink, ColorRgb.Red, 200.Millis(), Easing.Out );
+			v.Value.Animate().FlashColour( ColorRgba.HotPink, ColorRgba.Red, 200.Millis(), Easing.Out );
 		}
 		void exited ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FadeColour( ColorRgb.Blue, 400.Millis() );
+			v.Value.Animate().FadeColour( ColorRgba.Blue, 400.Millis() );
 		}
 
 		timeline.EventStarted = entered;

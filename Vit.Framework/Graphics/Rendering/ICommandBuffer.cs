@@ -18,18 +18,18 @@ public interface ICommandBuffer {
 	/// Starts rendering to a frame buffer.
 	/// </summary>
 	/// <returns>An action which will finish rendering to the framebuffer.</returns>
-	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
-	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorSRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null );
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorSRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorSRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		return RenderTo( framebuffer, clearColor?.WithOpacity( 1 ), clearDepth, clearStencil );
 	}
-	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, LinearColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
-		return RenderTo( framebuffer, clearColor?.ToSRGB(), clearDepth, clearStencil );
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorSRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		return RenderTo( framebuffer, clearColor?.ToSRgb(), clearDepth, clearStencil );
 	}
-	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorRgba{float}?, float?, uint?)"/>
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, LinearColorRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
-		return RenderTo( framebuffer, clearColor?.ToSRGB().WithOpacity( 1 ), clearDepth, clearStencil );
+	/// <inheritdoc cref="RenderTo(IFramebuffer, ColorSRgba{float}?, float?, uint?)"/>
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgb<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+		return RenderTo( framebuffer, clearColor?.ToSRgb().WithOpacity( 1 ), clearDepth, clearStencil );
 	}
 
 	/// <summary>
@@ -198,11 +198,11 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		Renderer = renderer;
 	}
 
-	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
+	public DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer, ColorSRgba<float>? clearColor = null, float? clearDepth = null, uint? clearStencil = null ) {
 		Invalidations |= PipelineInvalidations.Framebuffer;
-		return RenderTo( (TFramebuffer)framebuffer, clearColor ?? ColorRgba.Black, clearDepth ?? 0, clearStencil ?? 0 );
+		return RenderTo( (TFramebuffer)framebuffer, clearColor ?? ColorSRgba.Black, clearDepth ?? 0, clearStencil ?? 0 );
 	}
-	protected abstract DisposeAction<ICommandBuffer> RenderTo ( TFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil );
+	protected abstract DisposeAction<ICommandBuffer> RenderTo ( TFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil );
 
 	public abstract void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 

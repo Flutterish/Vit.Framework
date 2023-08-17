@@ -16,7 +16,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		Context = context;
 	}
 
-	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetView framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetView framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
 		Context.OMSetRenderTargets( framebuffer.Handle, framebuffer.DepthStencil );
 		Context.ClearRenderTargetView( framebuffer.Handle, new( clearColor.R, clearColor.G, clearColor.B, clearColor.A ) );
 		if ( framebuffer.DepthStencil is ID3D11DepthStencilView depthStencil )

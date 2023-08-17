@@ -11,7 +11,7 @@ namespace Vit.Framework.Graphics.OpenGl.Rendering;
 public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, Texture2D, ShaderProgram>, IImmediateCommandBuffer {
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
 
-	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
 		GL.BindFramebuffer( FramebufferTarget.Framebuffer, framebuffer.Handle );
 
 		GL.ClearColor( clearColor.R, clearColor.G, clearColor.B, clearColor.A );

@@ -5,8 +5,8 @@ namespace Vit.Framework.TwoD.UI.Animations;
 
 public interface IHasAlphaTint : IHasAlpha, IHasTint {
 	new ColorRgba<float> Tint { get; set; }
-	ColorRgb<float> IHasTint.Tint { get => Tint.Rgb; set => Tint = Tint with { R = value.R, G = value.G, B = value.B }; }
-	float IHasAlpha.Alpha { get => Tint.A; set => Tint = Tint with { A = value }; }
+	ColorRgb<float> IHasTint.Tint { get => Tint.GetRgb(); set => Tint = Tint.WithRgb( value ); }
+	float IHasAlpha.Alpha { get => Tint.A; set => Tint = Tint.WithOpacity( value ); }
 }
 
 public interface IHasTint {

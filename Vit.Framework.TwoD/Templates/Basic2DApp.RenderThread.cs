@@ -88,7 +88,7 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			BeforeRender();
 			using ( var commands = Swapchain.CreateImmediateCommandBufferForPresentation() ) {
-				using var _ = commands.RenderTo( frame, ColorRgba.Blue );
+				using var _ = commands.RenderTo( frame, ColorSRgba.Blue );
 				commands.SetTopology( Topology.Triangles );
 				commands.SetViewport( frame.Size );
 				commands.SetScissors( frame.Size );

@@ -58,7 +58,7 @@ public class ImageSample : Instruction {
 
 		var coord = memory.Read<Point2<float>>( this.coord.Address( memory.StackPointer ) );
 		var uv = new Point2<int>( (int)MathF.Floor( coord.X * sampler.Size.Width ), (int)MathF.Floor( coord.Y * sampler.Size.Height ) );
-		ColorRgba<float> color;
+		ColorSRgba<float> color;
 		if ( uv.X < 0 || uv.X >= sampler.Size.Width || uv.Y < 0 || uv.Y >= sampler.Size.Height ) {
 			color = new( 0, 0, 0, 1 );
 		}

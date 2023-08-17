@@ -17,9 +17,9 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	public SoftwareImmadiateCommandBuffer ( SoftwareRenderer renderer ) : base( renderer ) { }
 
 	TargetImage renderTarget = null!;
-	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
 		renderTarget = framebuffer;
-		var color = clearColor.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
+		var color = clearColor.ToByte().BitCast<ColorSRgba<byte>, Rgba32>();
 		renderTarget.AsSpan().Fill( color );
 		renderTarget.DepthStencilAsSpan().Fill( new() {
 			Depth = clearDepth,
@@ -290,7 +290,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 
 				ShaderSet.VertexStageLinkage.Interpolate( bA, bB, bC, memory );
 				var fragData = frag.Execute( memory );
-				pixelRow[x] = fragData.Color.ToByte().BitCast<ColorRgba<byte>, Rgba32>();
+				pixelRow[x] = fragData.Color.ToByte().BitCast<ColorSRgba<byte>, Rgba32>();
 			}
 		}
 	}

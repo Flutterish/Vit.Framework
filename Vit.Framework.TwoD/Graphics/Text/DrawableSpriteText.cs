@@ -128,7 +128,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 	struct Uniforms {
 		public Matrix4x3<float> Matrix;
-		public ColorRgba<float> Tint;
+		public ColorSRgba<float> Tint;
 	}
 
 	void invalidateFontMesh () {
@@ -161,7 +161,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		Font font = null!;
 		string text = null!;
 		float size;
-		ColorRgba<float> tint;
+		ColorSRgba<float> tint;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
@@ -169,7 +169,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			font = Source.Font;
 			text = Source.Text;
 			size = Source.FontSize / (float)font.UnitsPerEm;
-			tint = Source.Tint;
+			tint = Source.Tint.ToSRgb();
 			textMeshUpload = Source.textMesh.GetUpload();
 		}
 

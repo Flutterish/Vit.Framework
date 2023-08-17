@@ -15,7 +15,7 @@ public class SoftwareFragmentShader : SoftwareShader {
 		Entry.Call( memory );
 
 		var colorAddress = memory.Read<int>( GlobalScope.VariableInfo[ColorOutputId].Address );
-		var color = memory.Read<ColorRgba<float>>( colorAddress );
+		var color = memory.Read<ColorSRgba<float>>( colorAddress );
 		return new() {
 			Color = color
 		};
@@ -23,5 +23,5 @@ public class SoftwareFragmentShader : SoftwareShader {
 }
 
 public struct FragmentShaderOutput {
-	public ColorRgba<float> Color;
+	public ColorSRgba<float> Color;
 }

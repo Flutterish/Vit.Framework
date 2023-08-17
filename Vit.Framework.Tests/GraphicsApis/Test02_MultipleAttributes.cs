@@ -20,7 +20,7 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 
 	struct Vertex {
 		public Point2<float> Position;
-		public ColorRgb<float> Color;
+		public ColorSRgb<float> Color;
 	}
 
 	StagedDeviceBuffer<Vertex> positions = null!;
@@ -59,9 +59,9 @@ public class Test02_MultipleAttributes : GenericRenderThread {
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, new Vertex[] {
-				new() { Position = new( 0, -0.5f ), Color = ColorRgb.Red },
-				new() { Position = new( 0.7f, 0.3f ), Color = ColorRgb.Green },
-				new() { Position = new( -0.5f, 0.7f ), Color = ColorRgb.Blue }
+				new() { Position = new( 0, -0.5f ), Color = ColorSRgb.Red },
+				new() { Position = new( 0.7f, 0.3f ), Color = ColorSRgb.Green },
+				new() { Position = new( -0.5f, 0.7f ), Color = ColorSRgb.Blue }
 			} );
 			indices.Upload( commands, new uint[] {
 				2, 1, 0

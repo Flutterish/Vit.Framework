@@ -28,8 +28,8 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 	}
 
 	FrameBuffer frameBuffer = null!;
-	protected override DisposeAction<ICommandBuffer> RenderTo ( FrameBuffer framebuffer, ColorRgba<float> clearColor, float clearDepth, uint clearStencil ) {
-		VkClearColorValue color = clearColor.BitCast<ColorRgba<float>, VkClearColorValue>();
+	protected override DisposeAction<ICommandBuffer> RenderTo ( FrameBuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+		VkClearColorValue color = clearColor.BitCast<ColorSRgba<float>, VkClearColorValue>();
 		VkClearDepthStencilValue depthStencil = new VkClearDepthStencilValue( clearDepth, clearStencil );
 		Buffer.BeginRenderPass( this.frameBuffer = framebuffer, new VkClearValue { color = color }, new VkClearValue { depthStencil = depthStencil } );
 		// TODO instead have separate clear commands
