@@ -48,7 +48,7 @@ public class SpriteText : Visual<DrawableSpriteText> {
 	public FontIdentifier FontIdentifier {
 		get => fontIdentifier;
 		set {
-			if ( !value.TrySet( ref fontIdentifier ) )
+			if ( !value.TrySet( ref fontIdentifier ) || !IsLoaded )
 				return;
 
 			Displayed.Font = fontStore.GetFont( value );

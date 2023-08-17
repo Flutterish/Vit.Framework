@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
@@ -22,6 +23,10 @@ public struct RelativeAxes2<T> : IInterpolatable<RelativeAxes2<T>, T>, IEquatabl
 		return new( point );
 	}
 
+	public static implicit operator RelativeAxes2<T> ( ValueTuple<T, T> absolute ) => new() {
+		X = absolute.Item1,
+		Y = absolute.Item2
+	};
 	public static implicit operator RelativeAxes2<T> ( Point2<T> absolute ) => new() {
 		X = absolute.X,
 		Y = absolute.Y

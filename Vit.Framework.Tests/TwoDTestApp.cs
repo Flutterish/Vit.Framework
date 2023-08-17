@@ -55,7 +55,9 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	protected override void PopulateTextureStore ( TextureStore textures ) { }
 
 	protected override void PopulateFontStore ( FontStore fonts ) {
-		fonts.AddFont( FontStore.DefaultFont, new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) ) );
+		var consolas = new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) );
+		fonts.AddFont( FontStore.DefaultFont, consolas );
+		fonts.AddFont( FrameworkUIScheme.Font, consolas );
 	}
 
 	protected override void OnInitialized () {

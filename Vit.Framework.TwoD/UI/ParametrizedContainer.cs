@@ -42,6 +42,14 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 		var param = parameters[child.Depth] = transformer( old );
 		OnChildParameterUpdated( child, old, param );
 	}
+	public void UpdateLayoutParameters<TData> ( T child, TData data, Func<TParam, TData, TParam> transformer ) {
+		if ( child.Parent != this )
+			throw new InvalidOperationException( "Child does not belong to this parent" );
+
+		var old = parameters[child.Depth];
+		var param = parameters[child.Depth] = transformer( old, data );
+		OnChildParameterUpdated( child, old, param );
+	}
 
 	/// <summary>
 	/// Performs the necessary invalidations after a parameter change.

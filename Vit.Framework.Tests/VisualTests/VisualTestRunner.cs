@@ -33,18 +33,10 @@ public class VisualTestRunner : Flexbox {
 
 		foreach ( var i in tests ) {
 			var button = new BasicButton() {
-				Clicked = () => {
-					runTest( i );
-				}
+				Clicked = () => runTest( i ),
+				Text = i.Name,
+				TextAnchor = Anchor<float>.CentreLeft + (10, 0)
 			};
-			button.AddChild( new SpriteText {
-				FontSize = 32,
-				Tint = ColorRgba.Black,
-				Text = i.Name
-			}, new() {
-				Anchor = new( 10, 0.5f.Relative() ),
-				Origin = Anchor.CentreLeft
-			} );
 			sidebar.AddChild( button, new() {
 				Size = new( 1f.Relative(), 80 ),
 				Margins = new() { Vertical = 10 }
