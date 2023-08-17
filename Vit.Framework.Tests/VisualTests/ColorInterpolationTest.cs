@@ -6,18 +6,28 @@ namespace Vit.Framework.Tests.VisualTests;
 
 public class ColorInterpolationTest : TestScene {
 	public ColorInterpolationTest () {
+		var red = new ColorRgba<float>( 1f, 0, 0, 1f );
 		var green = new ColorRgba<float>( 0, 1f, 0, 1f );
+		var blue = new ColorRgba<float>( 0, 0, 1f, 1f );
+
+		var antiRed = new ColorRgba<float>( 0, 1f, 1f, 1f );
+		var antiGreen = new ColorRgba<float>( 1f, 0, 1f, 1f );
+		var antiBlue = new ColorRgba<float>( 1f, 1f, 0, 1f );
+
 		var tests = new (ColorRgba<float> start, ColorRgba<float> end)[] {
 			(ColorRgba.White, ColorRgba.Black),
-			(ColorRgba.Red, ColorRgba.Blue),
-			(ColorRgba.Blue, green),
-			(green, ColorRgba.Red),
-			(ColorRgba.White, ColorRgba.Red),
+			(red, blue),
+			(blue, green),
+			(green, red),
+			(antiRed, antiBlue),
+			(antiBlue, antiGreen),
+			(antiGreen, antiRed),
+			(ColorRgba.White, red),
 			(ColorRgba.White, green),
-			(ColorRgba.White, ColorRgba.Blue),
-			(ColorRgba.Black, ColorRgba.Red),
+			(ColorRgba.White, blue),
+			(ColorRgba.Black, red),
 			(ColorRgba.Black, green),
-			(ColorRgba.Black, ColorRgba.Blue)
+			(ColorRgba.Black, blue)
 		};
 
 		var steps = 50;
