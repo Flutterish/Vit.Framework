@@ -77,6 +77,12 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 	}
 
+	protected override void UpdateUniforms () {
+		foreach ( var i in ShaderSet.UniformSets ) {
+			i.Apply( Context );
+		}
+	}
+
 	ID3D11BufferHandle[] vertexBuffers = new ID3D11BufferHandle[16];
 	ID3D11Buffer[] buffers = new ID3D11Buffer[16];
 	int[] bufferOffsets = new int[16];
@@ -86,12 +92,8 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 
 		return bufferSet || offsetSet;
 	}
-	
-	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		foreach ( var i in ShaderSet.UniformSets ) {
-			i.Apply( Context );
-		}
 
+	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			Context.IASetIndexBuffer( ((ID3D11BufferHandle)IndexBuffer).Handle!, IndexBufferType == IndexBufferType.UInt32 ? Vortice.DXGI.Format.R32_UInt : Vortice.DXGI.Format.R16_UInt, 0 );
 		}

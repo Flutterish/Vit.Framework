@@ -97,6 +97,11 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		}
 	}
 
+	protected override void UpdateUniforms () {
+		if ( ShaderSet.DescriptorSets.Length != 0 )
+			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
+	}
+
 	VkBuffer[] vertexBuffers = new VkBuffer[16];
 	ulong[] bufferOffsets = new ulong[16];
 	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
@@ -112,9 +117,6 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 	}
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		if ( ShaderSet.DescriptorSets.Length != 0 )
-			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets ); // TODO (to all backends) maybe we should only update uniforms when needed
-
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
 			Buffer.BindVertexBuffers( vertexBuffers.AsSpan( 0, ShaderSet.VertexBufferCount ) );
 		}

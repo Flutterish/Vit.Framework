@@ -52,9 +52,14 @@ public interface ICommandBuffer {
 
 	IShaderSet ShaderSet { get; }
 	/// <summary>
-	/// Sets the shaders for the rendering pipeline.
+	/// Sets the shaders for the rendering pipeline. This will also bind or update their uniforms.
 	/// </summary>
 	void SetShaders ( IShaderSet shaders );
+
+	/// <summary>
+	/// Binds or updates the uniform values in the currently bound shader set.
+	/// </summary>
+	void UpdateUniforms ();
 
 	Topology Topology { get; }
 	/// <summary>
@@ -215,12 +220,18 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	IShaderSet ICommandBuffer.ShaderSet => ShaderSet;
 	protected TShaderSet ShaderSet { get; private set; } = null!;
-	public void SetShaders ( IShaderSet shaders ) { // TODO we need to detect uniform changes so we don't waste time binding them again
+	public void SetShaders ( IShaderSet shaders ) {
+		uniformsInvalidated = true;
 		if ( shaders == ShaderSet )
 			return;
 
 		ShaderSet = (TShaderSet)shaders;
 		Invalidations |= PipelineInvalidations.Shaders;
+	}
+
+	bool uniformsInvalidated;
+	void ICommandBuffer.UpdateUniforms () {
+		uniformsInvalidated = true;
 	}
 
 	public Topology Topology { get; private set; }
@@ -280,6 +291,9 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		BufferInvalidations |= BufferInvalidations.Index;
 	}
 
+	/// <inheritdoc cref="ICommandBuffer.UpdateUniforms"/>
+	protected abstract void UpdateUniforms ();
+
 	/// <summary>
 	/// Updates the pipeline parameters specified by flags in <see cref="Invalidations"/>.
 	/// </summary>
@@ -295,6 +309,11 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		if ( Invalidations != PipelineInvalidations.None ) {
 			UpdatePieline( Invalidations );
 			Invalidations = PipelineInvalidations.None;
+		}
+
+		if ( uniformsInvalidated ) {
+			UpdateUniforms();
+			uniformsInvalidated = false;
 		}
 
 		const BufferInvalidations binds = BufferInvalidations.Index | BufferInvalidations.Vertex;

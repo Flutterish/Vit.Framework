@@ -35,6 +35,10 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		MemoryMarshal.Cast<TPixel,byte>( data ).CopyTo( MemoryMarshal.Cast<Rgba32, byte>( texture.AsSpan() ) );
 	}
 
+	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
+		((IByteBuffer)source).Bytes.Slice( (int)sourceOffset ).CopyTo( ((IByteBuffer)destination).Bytes.Slice( (int)destinationOffset ) );
+	}
+
 	IEnumerable<uint> enumerateIndices ( uint count, uint offset ) {
 		var indexBuffer = (IByteBuffer)this.IndexBuffer!;
 		bool isShort = indexBuffer is Buffer<ushort>;
@@ -303,11 +307,11 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		
 	}
 
-	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-
+	protected override void UpdateUniforms () {
+		
 	}
 
-	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
-		throw new NotImplementedException();
+	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
+
 	}
 }

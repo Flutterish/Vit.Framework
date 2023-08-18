@@ -102,6 +102,12 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 	}
 
+	protected override void UpdateUniforms () {
+		foreach ( var i in ShaderSet.UniformSets ) {
+			i.Apply();
+		}
+	}
+
 	DrawElementsType indexType;
 
 	int[] vertexBuffers = new int[16];
@@ -114,10 +120,6 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	}
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
-		foreach ( var i in ShaderSet.UniformSets ) {
-			i.Apply();
-		}
-
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
 			ShaderSet.InputLayout!.BindBuffers( vertexBuffers, bufferOffsets, ShaderSet.InputLayout.BindingPoints );
 		}
