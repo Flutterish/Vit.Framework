@@ -117,6 +117,19 @@ public class DefaultPlatformActionBindings : PlatformActionBindings {
 		new( PlatformAction.ZoomDefault, new[] { MergedKey.Control, MergedKey.Zero } ),
 		new( PlatformAction.ZoomDefault, new[] { MergedKey.Control, MergedKey.NumpadZero } ),
 		new( PlatformAction.TabForward, MergedKey.Tab ),
-		new( PlatformAction.TabBackward, new[] { MergedKey.Shift, MergedKey.Tab } )
+		new( PlatformAction.TabForward, MergedKey.F6 ),
+		new( PlatformAction.TabBackward, new[] { MergedKey.Shift, MergedKey.Tab } ),
+		new( PlatformAction.TabBackward, new[] { MergedKey.Shift, MergedKey.F6 } ),
+
+		new( PlatformAction.Rename, MergedKey.F2 ),
+		new( PlatformAction.Search, MergedKey.F3 ),
+		new( PlatformAction.Search, new[] { MergedKey.Control, MergedKey.F } ),
+		new( PlatformAction.Refresh, MergedKey.F5 ),
+		new( PlatformAction.Refresh, new[] { MergedKey.Control, MergedKey.R } ),
+		new( PlatformAction.RefreshAll, new[] { MergedKey.Shift, MergedKey.F5 } ),
+		new( PlatformAction.RefreshAll, new[] { MergedKey.Control, MergedKey.Shift, MergedKey.R } ),
+
+		new( PlatformAction.OpenMenu, MergedKey.F10 ),
+		new( PlatformAction.OpenContextMenu, new[] { MergedKey.Shift, MergedKey.F10 } )
 	};
 }

@@ -45,5 +45,13 @@ public enum PlatformAction {
 	ZoomDefault,
 
 	TabForward,
-	TabBackward
+	TabBackward,
+
+	Rename,
+	Search,
+	Refresh,
+	RefreshAll,
+
+	OpenMenu,
+	OpenContextMenu
 }

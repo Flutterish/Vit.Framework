@@ -113,7 +113,7 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( ShaderSet.DescriptorSets.Length != 0 )
-			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets );
+			Buffer.BindDescriptors( pipeline.Layout, ShaderSet.DescriptorSets ); // TODO (to all backends) maybe we should only update uniforms when needed
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
 			Buffer.BindVertexBuffers( vertexBuffers.AsSpan( 0, ShaderSet.VertexBufferCount ) );
