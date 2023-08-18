@@ -86,7 +86,7 @@ public class KeyBindingConverter<TFrom, TTo> where TFrom : struct, Enum where TT
 
 	HashSet<TFrom> persistent = new();
 	void computeChanges () { // TODO currently when multiple bindings to the same thing are activated it only activates once. we could count them instead
-		persistent.Clear();
+		persistent.Clear();  // TODO instead of recomputing the whole thing, we can just try to make do with the yet-unused keys. This would also fix (ctrl+s)+shift being turned into save->saveAll instead of ignoring the saveAll
 		foreach ( var i in CreatePersistent( pressedInputs ) )
 			persistent.Add( i );
 
