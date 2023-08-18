@@ -5,6 +5,14 @@ public abstract class PlatformActionBindings {
 		converter.Bindings = CreatePlatformBindings();
 	}
 
+	public static PlatformActionBindings GetBindingsForCurrentPlatform () {
+		return GetBindingsForPlatform( Environment.OSVersion );
+	}
+
+	public static PlatformActionBindings GetBindingsForPlatform ( OperatingSystem platform ) {
+		return new CommonPlatformActionBindings();
+	}
+
 	Converter converter = new();
 	public abstract IEnumerable<KeyBinding<MergedKey, PlatformAction>> CreatePlatformBindings ();
 	
@@ -68,7 +76,7 @@ public abstract class PlatformActionBindings {
 	}
 }
 
-public class DefaultPlatformActionBindings : PlatformActionBindings {
+public class CommonPlatformActionBindings : PlatformActionBindings {
 	public override IEnumerable<KeyBinding<MergedKey, PlatformAction>> CreatePlatformBindings () => new KeyBinding<MergedKey, PlatformAction>[] {
 		new( PlatformAction.Cut, new[] { MergedKey.Control, MergedKey.X } ),
 		new( PlatformAction.Copy, new[] { MergedKey.Control, MergedKey.C } ),

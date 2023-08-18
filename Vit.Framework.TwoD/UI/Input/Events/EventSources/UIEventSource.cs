@@ -11,7 +11,7 @@ public class UIEventSource {
 
 	CursorEventSource<UIComponent> cursorEvents;
 
-	PlatformActionBindings platformBindings = new DefaultPlatformActionBindings();
+	PlatformActionBindings platformBindings = PlatformActionBindings.GetBindingsForCurrentPlatform();
 	KeyBindingEventSource<PlatformAction, UIComponent> platformActionEvents;
 	KeyBindingEventSource<Key, UIComponent> keyboardEvents;
 
