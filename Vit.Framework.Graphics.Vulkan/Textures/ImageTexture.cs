@@ -13,7 +13,7 @@ public class ImageTexture : DisposableObject, ITexture {
 	public readonly Sampler Sampler;
 
 	public ImageTexture ( Device device, Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format.IsRGBA32 );
+		Debug.Assert( format == PixelFormat.Rgba8 );
 		Size = size;
 		Format = format;
 

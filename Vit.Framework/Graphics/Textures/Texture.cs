@@ -20,7 +20,7 @@ public class Texture : DisposableObject {
 			return;
 
 		if ( Value == null )
-			Value = renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.RGBA32 );
+			Value = renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
 
 		using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
 			data.DangerousTryGetSinglePixelMemory( out var memory );
@@ -36,7 +36,7 @@ public class Texture : DisposableObject {
 			return;
 
 		if ( Value == null )
-			Value = commands.Renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.RGBA32 );
+			Value = commands.Renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
 
 		data.DangerousTryGetSinglePixelMemory( out var memory );
 		commands.UploadTextureData<Rgba32>( Value, memory.Span );

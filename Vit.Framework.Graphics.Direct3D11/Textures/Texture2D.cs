@@ -13,7 +13,7 @@ public class Texture2D : DisposableObject, ITexture {
 	public readonly ID3D11SamplerState Sampler;
 	public readonly ID3D11ShaderResourceView ResourceView;
 	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format.IsRGBA32 );
+		Debug.Assert( format == PixelFormat.Rgba8 );
 		Size = size;
 		Format = format;
 

@@ -13,7 +13,7 @@ public class Texture : DisposableObject, ITexture {
 	public Image<Rgba32> Image { get; }
 	static Configuration configuration = new() { PreferContiguousImageBuffers = true };
 	public Texture ( Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format.IsRGBA32 );
+		Debug.Assert( format == PixelFormat.Rgba8 );
 		Format = format;
 		Image = new( configuration, (int)size.Width, (int)size.Height );
 	}

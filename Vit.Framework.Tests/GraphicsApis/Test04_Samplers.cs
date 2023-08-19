@@ -74,7 +74,7 @@ public class Test04_Samplers : GenericRenderThread {
 		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 		using var image = Image.Load<Rgba32>( "./texture.jpg" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.RGBA32 );
+		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.Rgba8 );
 
 		positions.Allocate( 4, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		indices.Allocate( 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );

@@ -11,7 +11,7 @@ public class Texture2D : DisposableObject, ITexture {
 	public Size2<uint> Size { get; }
 	public Graphics.Rendering.Textures.PixelFormat Format { get; }
 	public Texture2D ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
-		Debug.Assert( format.IsRGBA32 );
+		Debug.Assert( format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
 		Size = size;
 		Format = format;
 
