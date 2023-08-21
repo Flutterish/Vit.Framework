@@ -22,7 +22,8 @@ public interface IUniformSet : IDisposable {
 	/// <summary>
 	/// Binds a sampler for the texture to this uniform set.
 	/// </summary>
-	/// <param name="texture">The texture to create a sampler for.</param>
-	/// <param name="binding">The binding to link the sampler to.</param>
-	void SetSampler ( ITexture2D texture, uint binding );
+	/// <param name="texture">The texture view.</param>
+	/// <param name="texture">The sampler.</param>
+	/// <param name="binding">The binding to link the resources to.</param>
+	void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding );
 }

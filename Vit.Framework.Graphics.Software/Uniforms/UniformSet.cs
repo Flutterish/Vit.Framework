@@ -28,4 +28,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}
+
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
+		throw new NotImplementedException();
+	}
 }

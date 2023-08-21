@@ -235,7 +235,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
-			uniformSet.SetSampler( texture.Value, binding: 1 );
+			uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {

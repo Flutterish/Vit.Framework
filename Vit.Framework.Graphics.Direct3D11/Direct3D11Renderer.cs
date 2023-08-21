@@ -150,4 +150,12 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		Device.Dispose();
 		Context.Dispose();
 	}
+
+	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
+		throw new NotImplementedException();
+	}
+
+	public ISampler CreateSampler () {
+		throw new NotImplementedException();
+	}
 }

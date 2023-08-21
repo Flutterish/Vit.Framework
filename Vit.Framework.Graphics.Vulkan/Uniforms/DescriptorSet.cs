@@ -77,6 +77,10 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 	public void Dispose () {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}
+
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
+		throw new NotImplementedException();
+	}
 }
 
 public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
@@ -94,8 +98,8 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
 	}
 
-	public void SetSampler ( ITexture2D texture, uint binding ) {
-		DescriptorSet.SetSampler( texture, binding );
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
+		DescriptorSet.SetSampler( texture, sampler, binding );
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {

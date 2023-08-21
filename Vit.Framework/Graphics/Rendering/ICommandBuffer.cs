@@ -229,7 +229,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		Invalidations |= PipelineInvalidations.Shaders;
 	}
 
-	bool uniformsInvalidated;
+	bool uniformsInvalidated; // TODO split into "bind" and "update"
 	void ICommandBuffer.UpdateUniforms () {
 		uniformsInvalidated = true;
 	}

@@ -39,6 +39,8 @@ public class Test05_Depth : GenericRenderThread {
 	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture2D texture = null!;
+	ITexture2DView view = null!;
+	ISampler sampler = null!;
 	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
@@ -87,7 +89,7 @@ public class Test05_Depth : GenericRenderThread {
 		uniformSet = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
-		uniformSet.SetSampler( texture, binding: 1 );
+		uniformSet.SetSampler( view, sampler, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, model.Vertices.Select( x => new Vertex {
 				Position = x.Position.XYZ,
@@ -134,6 +136,8 @@ public class Test05_Depth : GenericRenderThread {
 		indices.Dispose();
 		positions.Dispose();
 		uniformBuffer.Dispose();
+		sampler.Dispose();
+		view.Dispose();
 		texture.Dispose();
 		uniformSet.Dispose();
 

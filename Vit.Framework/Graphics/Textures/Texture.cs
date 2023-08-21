@@ -14,13 +14,18 @@ public class Texture : DisposableObject {
 	/// The underlying texture - guaranteed to be set on the draw thread.
 	/// </summary>
 	public ITexture2D Value = null!;
+	public ITexture2DView View = null!;
+	public ISampler Sampler = null!;
 
 	public void Update ( IRenderer renderer ) {
 		if ( data == null )
 			return;
 
-		if ( Value == null )
+		if ( Value == null ) {
 			Value = renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
+			View = Value.CreateView();
+			Sampler = renderer.CreateSampler();
+		}
 
 		using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
 			data.DangerousTryGetSinglePixelMemory( out var memory );
@@ -35,8 +40,11 @@ public class Texture : DisposableObject {
 		if ( data == null )
 			return;
 
-		if ( Value == null )
+		if ( Value == null ) {
 			Value = commands.Renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
+			View = Value.CreateView();
+			Sampler = commands.Renderer.CreateSampler();
+		}
 
 		data.DangerousTryGetSinglePixelMemory( out var memory );
 		commands.UploadTextureData<Rgba32>( Value, memory.Span );
@@ -46,6 +54,8 @@ public class Texture : DisposableObject {
 	}
 
 	protected override void Dispose ( bool disposing ) {
+		Sampler?.Dispose();
+		View?.Dispose();
 		Value?.Dispose();
 	}
 }

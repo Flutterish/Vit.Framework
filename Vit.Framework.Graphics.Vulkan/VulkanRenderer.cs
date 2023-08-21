@@ -112,6 +112,14 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		CopyCommandPool.Dispose();
 		Device.Dispose();
 	}
+
+	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
+		throw new NotImplementedException();
+	}
+
+	public ISampler CreateSampler () {
+		throw new NotImplementedException();
+	}
 }
 
 public struct PipelineArgs {

@@ -182,7 +182,7 @@ public class Sprite : Drawable {
 			var vertices = Source.drawDependencies.Vertices;
 
 			if ( textureUpload.Validate( ref Source.textureInvalidations ) )
-				uniformSet.SetSampler( texture.Value, binding: 1 );
+				uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );
 			shaders.SetUniformSet( uniformSet, set: 1 );
 
 			commands.SetShaders( shaders );

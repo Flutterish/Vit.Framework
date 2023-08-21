@@ -52,4 +52,12 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
 	}
+
+	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
+		throw new NotImplementedException();
+	}
+
+	public ISampler CreateSampler () {
+		throw new NotImplementedException();
+	}
 }

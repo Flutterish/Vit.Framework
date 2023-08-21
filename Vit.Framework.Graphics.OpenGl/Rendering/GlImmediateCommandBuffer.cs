@@ -8,7 +8,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
-public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, Texture2D, ShaderProgram>, IImmediateCommandBuffer {
+public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, Texture2DStorage, ShaderProgram>, IImmediateCommandBuffer {
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
 
 	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
@@ -24,7 +24,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {
+	protected override void UploadTextureData<TPixel> ( Texture2DStorage texture, ReadOnlySpan<TPixel> data ) {
 		texture.Upload( data );
 	}
 

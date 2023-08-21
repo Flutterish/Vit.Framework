@@ -25,4 +25,8 @@ public class Texture : DisposableObject, ITexture2D {
 	protected override void Dispose ( bool disposing ) {
 		Image.Dispose();
 	}
+
+	public ITexture2DView CreateView () {
+		throw new NotImplementedException();
+	}
 }

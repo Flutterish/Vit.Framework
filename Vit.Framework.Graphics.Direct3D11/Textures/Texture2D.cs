@@ -57,4 +57,8 @@ public class Texture2D : DisposableObject, ITexture2D {
 		Sampler.Dispose();
 		Texture.Dispose();
 	}
+
+	public ITexture2DView CreateView () {
+		throw new NotImplementedException();
+	}
 }

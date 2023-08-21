@@ -60,7 +60,11 @@ public class GlRenderer : IRenderer {
 	}
 
 	public ITexture2D CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
-		return new Texture2D( size, format ); // TODO use renderbuffers for depth/stencil
+		return new Texture2DStorage( size, format ); // TODO use renderbuffers for depth/stencil
+	}
+
+	public ISampler CreateSampler () {
+		return new Sampler();
 	}
 
 	GlImmediateCommandBuffer immediateCommandBuffer;

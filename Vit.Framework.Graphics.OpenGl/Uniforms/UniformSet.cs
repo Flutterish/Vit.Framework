@@ -18,6 +18,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 		UboSizes = new nint[layout.UboCount];
 
 		Textures = new int[layout.SamplerCount];
+		Samplers = new int[layout.SamplerCount];
 	}
 
 	int[] UboBuffers;
@@ -35,14 +36,17 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	int[] Textures;
-	public void SetSampler ( ITexture2D texture, uint binding ) {
+	int[] Samplers;
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
 		binding = layout.BindingLookup[binding];
-		Textures[binding] = ((Texture2D)texture).Handle;
+		Textures[binding] = ((Texture2DView)texture).Handle;
+		Samplers[binding] = ((Sampler)sampler).Handle;
 	}
 
 	public void Apply () {
 		GL.BindBuffersRange( BufferRangeTarget.UniformBuffer, layout.FirstUbo, layout.UboCount, UboBuffers, UboOffsets, UboSizes );
 		GL.BindTextures( layout.FirstSampler, layout.SamplerCount, Textures );
+		GL.BindSamplers( layout.FirstSampler, layout.SamplerCount, Samplers );
 	}
 
 	protected override void Dispose ( bool disposing ) {

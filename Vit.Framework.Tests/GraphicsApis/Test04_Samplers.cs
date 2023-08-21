@@ -36,6 +36,8 @@ public class Test04_Samplers : GenericRenderThread {
 	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	ITexture2D texture = null!;
+	ITexture2DView view = null!;
+	ISampler sampler = null!;
 	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
@@ -75,6 +77,8 @@ public class Test04_Samplers : GenericRenderThread {
 		using var image = Image.Load<Rgba32>( "./texture.jpg" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.Rgba8 );
+		view = texture.CreateView();
+		sampler = Renderer.CreateSampler();
 
 		positions.Allocate( 4, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		indices.Allocate( 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
@@ -83,7 +87,7 @@ public class Test04_Samplers : GenericRenderThread {
 		uniformSet = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
-		uniformSet.SetSampler( texture, binding: 1 );
+		uniformSet.SetSampler( view, sampler, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, new Vertex[] {
 				new() { Position = new( -0.5f, 0.5f ), UV = new( 0, 1 ) },
@@ -132,6 +136,8 @@ public class Test04_Samplers : GenericRenderThread {
 		indices.Dispose();
 		positions.Dispose();
 		uniformBuffer.Dispose();
+		sampler.Dispose();
+		view.Dispose();
 		texture.Dispose();
 		uniformSet.Dispose();
 
