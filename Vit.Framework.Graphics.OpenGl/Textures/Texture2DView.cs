@@ -10,7 +10,7 @@ public class Texture2DView : DisposableObject, ITexture2DView {
 		Source = source;
 		Handle = GL.GenTexture();
 
-		GL.TextureView( Handle, TextureTarget.Texture2D, source.Handle, PixelInternalFormat.Rgb8, 0, 1, 0, 1 );
+		GL.TextureView( Handle, TextureTarget.Texture2D, source.Handle, PixelInternalFormat.Rgba8, 0, 1, 0, 1 );
 	}
 
 	protected override void Dispose ( bool disposing ) {

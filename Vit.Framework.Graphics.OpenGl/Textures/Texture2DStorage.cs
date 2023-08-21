@@ -19,7 +19,7 @@ public class Texture2DStorage : DisposableObject, ITexture2D {
 		Handle = GL.GenTexture();
 		GL.BindTexture( TextureTarget.Texture2D, Handle );
 		var mips = uint.Log2( uint.Max( size.Width, size.Height ) ) + 1;
-		GL.TextureStorage2D( Handle, (int)mips, SizedInternalFormat.Rgb8, (int)size.Width, (int)size.Height );
+		GL.TextureStorage2D( Handle, (int)mips, SizedInternalFormat.Rgba8, (int)size.Width, (int)size.Height );
 	}
 
 	public unsafe void Upload<TPixel> ( ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
