@@ -1,4 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Textures;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan;
 
@@ -18,4 +20,13 @@ public class VulkanApi : GraphicsApi {
 	protected override void Dispose ( bool disposing ) {
 		Instance.Dispose();
 	}
+
+	public static Dictionary<PixelFormat, VkFormat> formats = new() {
+		[PixelFormat.Rgb8] = VkFormat.R8g8b8Snorm,
+		[PixelFormat.Rgba8] = VkFormat.R8g8b8a8Snorm,
+		[PixelFormat.D24] = VkFormat.X8D24UnormPack32,
+		[PixelFormat.D32f] = VkFormat.D32Sfloat,
+		[PixelFormat.D24S8ui] = VkFormat.D24UnormS8Uint,
+		[PixelFormat.D32fS8ui] = VkFormat.D32SfloatS8Uint
+	};
 }

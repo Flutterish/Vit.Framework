@@ -44,7 +44,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return new Buffer<T>();
 	}
 
-	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Texture( size, format );
 	}
 

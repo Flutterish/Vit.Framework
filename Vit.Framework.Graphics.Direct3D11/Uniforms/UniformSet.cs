@@ -38,7 +38,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	ID3D11ShaderResourceView[] SamplerResources;
 	ID3D11SamplerState[] SamplerStates;
-	public void SetSampler ( ITexture texture, uint binding ) {
+	public void SetSampler ( ITexture2D texture, uint binding ) {
 		var tx = (Texture2D)texture;
 		binding = layout.BindingLookup[binding];
 

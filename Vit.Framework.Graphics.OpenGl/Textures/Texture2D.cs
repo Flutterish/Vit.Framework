@@ -6,7 +6,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Textures;
 
-public class Texture2D : DisposableObject, ITexture {
+public class Texture2D : DisposableObject, ITexture2D {
 	public readonly int Handle;
 	public Size2<uint> Size { get; }
 	public Graphics.Rendering.Textures.PixelFormat Format { get; }

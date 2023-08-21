@@ -78,7 +78,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new HostBuffer<T>( Device, VkBufferUsageFlags.TransferSrc );
 	}
 
-	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new ImageTexture( Device, size, format );
 	}
 

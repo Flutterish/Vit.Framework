@@ -50,7 +50,7 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 		Vk.vkUpdateDescriptorSets( uniformBuffer.Device, 1, &write, 0, 0 );
 	}
 
-	public unsafe void SetSampler ( ITexture texture, uint binding ) {
+	public unsafe void SetSampler ( ITexture2D texture, uint binding ) {
 		var imageTexture = (ImageTexture)texture;
 		Image image = imageTexture.Image;
 		VkSampler sampler = imageTexture.Sampler;
@@ -94,7 +94,7 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
 	}
 
-	public void SetSampler ( ITexture texture, uint binding ) {
+	public void SetSampler ( ITexture2D texture, uint binding ) {
 		DescriptorSet.SetSampler( texture, binding );
 	}
 

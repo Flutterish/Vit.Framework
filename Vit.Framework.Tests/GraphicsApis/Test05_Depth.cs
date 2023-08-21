@@ -38,7 +38,7 @@ public class Test05_Depth : GenericRenderThread {
 	StagedDeviceBuffer<Vertex> positions = null!;
 	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
-	ITexture texture = null!;
+	ITexture2D texture = null!;
 	IUniformSet uniformSet = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )

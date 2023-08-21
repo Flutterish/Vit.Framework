@@ -74,7 +74,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new StagingBuffer<T>( Device, Context );
 	}
 
-	public ITexture CreateTexture ( Size2<uint> size, PixelFormat format ) {
+	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Texture2D( Device, size, format );
 	}
 

@@ -38,7 +38,7 @@ public interface ICommandBuffer {
 	/// <typeparam name="TPixel">The type of pixel to upload</typeparam>
 	/// <param name="texture">The texture to upload to.</param>
 	/// <param name="data">The image data to upload.</param>
-	void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
+	void UploadTextureData<TPixel> ( ITexture2D texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
 
 	/// <summary>
 	/// Copies data from one buffer to another.
@@ -194,7 +194,7 @@ public static class ICommandBufferExtensions {
 public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TShaderSet> : ICommandBuffer
 	where TRenderer : class, IRenderer
 	where TFramebuffer : class, IFramebuffer
-	where TTexture : class, ITexture
+	where TTexture : class, ITexture2D
 	where TShaderSet : class, IShaderSet 
 {
 	IRenderer ICommandBuffer.Renderer => Renderer;
@@ -211,7 +211,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	public abstract void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 
-	public void UploadTextureData<TPixel> ( ITexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+	public void UploadTextureData<TPixel> ( ITexture2D texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
 		UploadTextureData( (TTexture)texture, data );
 	}
 	protected abstract void UploadTextureData<TPixel> ( TTexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;

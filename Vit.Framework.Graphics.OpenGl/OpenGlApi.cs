@@ -37,4 +37,13 @@ public class OpenGlApi : GraphicsApi {
 	protected override void Dispose ( bool disposing ) {
 		
 	}
+
+	public static Dictionary<Graphics.Rendering.Textures.PixelFormat, PixelInternalFormat> internalFormats = new() {
+		[Graphics.Rendering.Textures.PixelFormat.Rgb8] = PixelInternalFormat.Rgb8,
+		[Graphics.Rendering.Textures.PixelFormat.Rgba8] = PixelInternalFormat.Rgba8,
+		[Graphics.Rendering.Textures.PixelFormat.D24] = PixelInternalFormat.DepthComponent24,
+		[Graphics.Rendering.Textures.PixelFormat.D32f] = PixelInternalFormat.DepthComponent32f,
+		[Graphics.Rendering.Textures.PixelFormat.D24S8ui] = PixelInternalFormat.Depth24Stencil8,
+		[Graphics.Rendering.Textures.PixelFormat.D32fS8ui] = PixelInternalFormat.Depth32fStencil8
+	};
 }

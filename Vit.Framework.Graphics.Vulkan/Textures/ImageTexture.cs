@@ -6,7 +6,7 @@ using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
 
-public class ImageTexture : DisposableObject, ITexture {
+public class ImageTexture : DisposableObject, ITexture2D {
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 	public readonly Image Image;

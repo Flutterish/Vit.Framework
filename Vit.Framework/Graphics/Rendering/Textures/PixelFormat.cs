@@ -67,16 +67,16 @@ public struct PixelFormat {
 		Format = TexelFormat.Vec1_24_Unorm_8_Pad,
 		Channel1 = ChannelName.Depth
 	};
-	public static readonly PixelFormat D24S8 = new() {
+	public static readonly PixelFormat D24S8ui = new() {
 		Format = TexelFormat.Vec2_24_Unorm_8_UInt,
 		Channel1 = ChannelName.Depth,
 		Channel2 = ChannelName.Stencil
 	};
-	public static readonly PixelFormat D32 = new() {
+	public static readonly PixelFormat D32f = new() {
 		Format = TexelFormat.Vec1_32_Fp,
 		Channel1 = ChannelName.Depth
 	};
-	public static readonly PixelFormat D32S8 = new() {
+	public static readonly PixelFormat D32fS8ui = new() {
 		Format = TexelFormat.Vec2_32_Fp_8_UInt_24_Pad,
 		Channel1 = ChannelName.Depth,
 		Channel2 = ChannelName.Stencil

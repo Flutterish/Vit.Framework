@@ -6,7 +6,7 @@ using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Textures;
 
-public class Texture2D : DisposableObject, ITexture {
+public class Texture2D : DisposableObject, ITexture2D {
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 	public readonly ID3D11Texture2D Texture;

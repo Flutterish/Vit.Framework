@@ -59,8 +59,8 @@ public class GlRenderer : IRenderer {
 		return new HostBuffer<T>( BufferTarget.CopyReadBuffer );
 	}
 
-	public ITexture CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
-		return new Texture2D( size, format );
+	public ITexture2D CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
+		return new Texture2D( size, format ); // TODO use renderbuffers for depth/stencil
 	}
 
 	GlImmediateCommandBuffer immediateCommandBuffer;

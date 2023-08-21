@@ -28,7 +28,8 @@ public interface IRenderer : IDisposable {
 	IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged; // TODO also add non-mutable buffers
 
 	/// <param name="format">Specifies how the texture is stored. An implementation may reorder the channels and use a texture swizzle to match the specified format.</param>
-	ITexture CreateTexture ( Size2<uint> size, PixelFormat format );
+	ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format );
+	//IFramebuffer CreateFramebuffer ( MultisampleFormat multisample, params ITexture[] attachments );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
 }

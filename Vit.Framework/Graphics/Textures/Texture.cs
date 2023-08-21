@@ -13,7 +13,7 @@ public class Texture : DisposableObject {
 	/// <summary>
 	/// The underlying texture - guaranteed to be set on the draw thread.
 	/// </summary>
-	public ITexture Value = null!;
+	public ITexture2D Value = null!;
 
 	public void Update ( IRenderer renderer ) {
 		if ( data == null )

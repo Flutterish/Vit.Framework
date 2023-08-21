@@ -35,7 +35,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	int[] Textures;
-	public void SetSampler ( ITexture texture, uint binding ) {
+	public void SetSampler ( ITexture2D texture, uint binding ) {
 		binding = layout.BindingLookup[binding];
 		Textures[binding] = ((Texture2D)texture).Handle;
 	}

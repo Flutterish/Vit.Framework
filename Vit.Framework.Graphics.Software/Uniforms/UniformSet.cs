@@ -16,7 +16,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	public Dictionary<uint, Texture> Samplers = new();
-	public void SetSampler ( ITexture texture, uint binding = 0 ) {
+	public void SetSampler ( ITexture2D texture, uint binding = 0 ) {
 		Samplers[binding] = (Texture)texture;
 	}
 
