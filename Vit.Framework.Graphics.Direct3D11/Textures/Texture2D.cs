@@ -10,8 +10,6 @@ public class Texture2D : DisposableObject, ITexture2D {
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 	public readonly ID3D11Texture2D Texture;
-	public readonly ID3D11SamplerState Sampler;
-	public readonly ID3D11ShaderResourceView ResourceView;
 	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat format ) {
 		Debug.Assert( format == PixelFormat.Rgba8 );
 		Size = size;
@@ -31,19 +29,6 @@ public class Texture2D : DisposableObject, ITexture2D {
 			BindFlags = BindFlags.ShaderResource,
 			CPUAccessFlags = CpuAccessFlags.Write
 		} );
-
-		Sampler = device.CreateSamplerState( new() {
-			Filter = Filter.MinMagMipLinear,
-			AddressU = TextureAddressMode.Clamp,
-			AddressV = TextureAddressMode.Clamp,
-			AddressW = TextureAddressMode.Clamp,
-			ComparisonFunc = ComparisonFunction.Never,
-			MinLOD = 0,
-			MaxLOD = 0,
-			BorderColor = new( 1f, 1f, 1f, 1f )
-		} );
-
-		ResourceView = device.CreateShaderResourceView( Texture );
 	}
 
 	public void Upload<TPixel> ( ReadOnlySpan<TPixel> data, ID3D11DeviceContext context ) where TPixel : unmanaged {
@@ -52,13 +37,11 @@ public class Texture2D : DisposableObject, ITexture2D {
 		context.Unmap( Texture, 0 );
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		ResourceView.Dispose();
-		Sampler.Dispose();
-		Texture.Dispose();
+	public ITexture2DView CreateView () {
+		return new Texture2DView( Texture.Device, this );
 	}
 
-	public ITexture2DView CreateView () {
-		throw new NotImplementedException();
+	protected override void Dispose ( bool disposing ) {
+		Texture.Dispose();
 	}
 }

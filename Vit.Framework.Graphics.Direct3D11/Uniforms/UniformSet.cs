@@ -38,12 +38,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	ID3D11ShaderResourceView[] SamplerResources;
 	ID3D11SamplerState[] SamplerStates;
-	public void SetSampler ( ITexture2D texture, uint binding ) {
-		var tx = (Texture2D)texture;
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
 		binding = layout.BindingLookup[binding];
 
-		SamplerResources[binding] = tx.ResourceView;
-		SamplerStates[binding] = tx.Sampler;
+		SamplerResources[binding] = ((Texture2DView)texture).ResourceView;
+		SamplerStates[binding] = ((SamplerState)sampler).Sampler;
 	}
 
 	public void Apply ( ID3D11DeviceContext ctx ) {
@@ -65,9 +64,5 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
-	}
-
-	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
-		throw new NotImplementedException();
 	}
 }

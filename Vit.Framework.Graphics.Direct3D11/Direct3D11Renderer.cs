@@ -78,6 +78,10 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new Texture2D( Device, size, format );
 	}
 
+	public ISampler CreateSampler () {
+		return new SamplerState( Device );
+	}
+
 	Direct3D11ImmediateCommandBuffer commandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
@@ -149,13 +153,5 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		RasterizerState.Dispose();
 		Device.Dispose();
 		Context.Dispose();
-	}
-
-	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
-		throw new NotImplementedException();
-	}
-
-	public ISampler CreateSampler () {
-		throw new NotImplementedException();
 	}
 }
