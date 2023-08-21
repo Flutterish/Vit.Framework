@@ -48,16 +48,12 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return new Texture( size, format );
 	}
 
+	public ISampler CreateSampler () {
+		return new Sampler();
+	}
+
 	SoftwareImmadiateCommandBuffer commandBuffer;
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
-	}
-
-	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
-		throw new NotImplementedException();
-	}
-
-	public ISampler CreateSampler () {
-		throw new NotImplementedException();
 	}
 }

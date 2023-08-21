@@ -7,7 +7,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Textures;
 
-public class Texture : DisposableObject, ITexture2D {
+public class Texture : DisposableObject, ITexture2D, ITexture2DView {
 	public PixelFormat Format { get; }
 	public Size2<uint> Size => new( (uint)Image.Width, (uint)Image.Height );
 	public Image<Rgba32> Image { get; }
@@ -27,6 +27,8 @@ public class Texture : DisposableObject, ITexture2D {
 	}
 
 	public ITexture2DView CreateView () {
-		throw new NotImplementedException();
+		return this;
 	}
+
+	public ITexture2D Source => this;
 }

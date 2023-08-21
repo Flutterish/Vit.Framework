@@ -16,7 +16,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 	}
 
 	public Dictionary<uint, Texture> Samplers = new();
-	public void SetSampler ( ITexture2D texture, uint binding = 0 ) {
+	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
 		Samplers[binding] = (Texture)texture;
 	}
 
@@ -27,9 +27,5 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
-	}
-
-	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
-		throw new NotImplementedException();
 	}
 }
