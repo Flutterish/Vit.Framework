@@ -79,7 +79,11 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 	}
 
 	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
-		return new ImageTexture( Device, size, format );
+		return new Image( Device, size, format );
+	}
+
+	public ISampler CreateSampler () {
+		return new Sampler( Device, 0 );
 	}
 
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
@@ -111,14 +115,6 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		GraphicsCommandPool.Dispose();
 		CopyCommandPool.Dispose();
 		Device.Dispose();
-	}
-
-	public ITexture2DView CreateTextureView ( ITexture2D texture ) {
-		throw new NotImplementedException();
-	}
-
-	public ISampler CreateSampler () {
-		throw new NotImplementedException();
 	}
 }
 

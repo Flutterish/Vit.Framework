@@ -10,7 +10,7 @@ using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
-public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, FrameBuffer, ImageTexture, ShaderSet>, IDeferredCommandBuffer {
+public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, FrameBuffer, Image, ShaderSet>, IDeferredCommandBuffer {
 	public readonly CommandBuffer Buffer;
 	public VulkanDeferredCommandBuffer ( CommandBuffer buffer, VulkanRenderer renderer ) : base( renderer ) {
 		Buffer = buffer;
@@ -40,8 +40,8 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( ImageTexture texture, ReadOnlySpan<TPixel> data ) {
-		texture.Image.Transfer( data, Buffer );
+	protected override void UploadTextureData<TPixel> ( Image texture, ReadOnlySpan<TPixel> data ) {
+		texture.Transfer( data, Buffer );
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {

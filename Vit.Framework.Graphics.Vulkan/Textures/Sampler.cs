@@ -1,8 +1,9 @@
-﻿using Vulkan;
+﻿using Vit.Framework.Graphics.Rendering.Textures;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
 
-public class Sampler : DisposableVulkanObject<VkSampler> {
+public class Sampler : DisposableVulkanObject<VkSampler>, ISampler {
 	public readonly Device Device;
 	public unsafe Sampler ( Device device, float maxLod ) {
 		Device = device;

@@ -113,6 +113,8 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 	RenderPass renderPass = null!;
 	Image depthAttachment = null!;
 	Image msaaBuffer = null!;
+	ImageView msaaBufferView = null!;
+	ImageView depthAttachmentView = null!;
 	public unsafe void SetRenderPass ( RenderPass pass ) {
 		renderPass = pass;
 		depthAttachment ??= new( pass.Device );
@@ -124,13 +126,16 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 			pass.ColorFormat, samples: pass.Samples
 		);
 
+		depthAttachmentView = new ImageView( depthAttachment, renderPass.AttachmentFormat, VkImageAspectFlags.Depth, 1 );
+		msaaBufferView = new ImageView( msaaBuffer, pass.ColorFormat, VkImageAspectFlags.Color, 1 );
+
 		foreach ( var i in frames ) {
 			i.Dispose();
 		}
 
 		frames = new FrameBuffer[imageViews.Length];
 		for ( int i = 0; i < imageViews.Length; i++ ) {
-			frames[i] = new( new[] { msaaBuffer.View, depthAttachment.View, imageViews[i] }, Size, pass );
+			frames[i] = new( new[] { msaaBufferView, depthAttachmentView, imageViews[i] }, Size, pass );
 		}
 	}
 
@@ -173,7 +178,9 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 		foreach ( var i in imageViews ) {
 			Vk.vkDestroyImageView( Device, i, VulkanExtensions.TODO_Allocator );
 		}
+		depthAttachmentView?.Dispose();
 		depthAttachment?.Dispose();
+		msaaBufferView?.Dispose();
 		msaaBuffer?.Dispose();
 		Vk.vkDestroySwapchainKHR( Device, Instance, VulkanExtensions.TODO_Allocator );
 		Vk.vkDestroySurfaceKHR( Device.PhysicalDevice.VulkanInstance, Surface, VulkanExtensions.TODO_Allocator );

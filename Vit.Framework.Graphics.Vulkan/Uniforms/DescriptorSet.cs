@@ -50,14 +50,13 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 		Vk.vkUpdateDescriptorSets( uniformBuffer.Device, 1, &write, 0, 0 );
 	}
 
-	public unsafe void SetSampler ( ITexture2D texture, uint binding ) {
-		var imageTexture = (ImageTexture)texture;
-		Image image = imageTexture.Image;
-		VkSampler sampler = imageTexture.Sampler;
+	public unsafe void SetSampler ( ITexture2DView texture, ISampler _sampler, uint binding ) {
+		var imageTexture = (ImageView)texture;
+		VkSampler sampler = ((Sampler)_sampler).Handle;
 
 		var imageInfo = new VkDescriptorImageInfo() {
 			imageLayout = VkImageLayout.ShaderReadOnlyOptimal,
-			imageView = image.View,
+			imageView = imageTexture.Handle,
 			sampler = sampler
 		};
 
@@ -71,15 +70,11 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 			pImageInfo = &imageInfo
 		};
 
-		Vk.vkUpdateDescriptorSets( image.Device, 1, &write, 0, 0 );
+		Vk.vkUpdateDescriptorSets( imageTexture.Device, 1, &write, 0, 0 );
 	}
 
 	public void Dispose () {
 		DebugMemoryAlignment.ClearDebugData( this );
-	}
-
-	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
-		throw new NotImplementedException();
 	}
 }
 

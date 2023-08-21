@@ -1,25 +1,45 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Rendering;
+using Vit.Framework.Mathematics;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
 
-public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView> {
+public class Image : DisposableVulkanObject<VkImage>, ITexture2D {
 	public readonly Device Device;
 	HostBuffer<Rgba32> buffer;
 	public VkExtent2D Size;
 	VkDeviceMemory memory;
-	VkImageView view;
-	public VkImageView View => view;
-	VkImageView IVulkanHandle<VkImageView>.Handle => view;
+	bool allocated = false;
 
 	public unsafe Image ( Device device ) {
 		Device = device;
 		buffer = new( device, VkBufferUsageFlags.TransferSrc );
+	}
+
+	Size2<uint> ITexture2D.Size => new( Size.width, Size.height );
+	public PixelFormat Format { get; }
+	public unsafe Image ( Device device, Size2<uint> size, PixelFormat format ) {
+		Debug.Assert( format == PixelFormat.Rgba8 );
+		Format = format;
+
+		Device = device;
+		buffer = new( device, VkBufferUsageFlags.TransferSrc );
+		Allocate(
+			new VkExtent2D { width = size.Width, height = size.Height },
+			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
+			VkFormat.R8g8b8a8Unorm
+		);
+	}
+
+	public ITexture2DView CreateView () {
+		return new ImageView( this, VkFormat.R8g8b8a8Unorm, VkImageAspectFlags.Color, 1 );
 	}
 
 	CommandBuffer Allocate ( Image<Rgba32> source, CommandPool pool ) {
@@ -88,9 +108,10 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal, 
 		bool prepareForMipMaps = false, VkSampleCountFlags samples = VkSampleCountFlags.Count1 ) 
 	{
-		if ( view != VkImageView.Null ) {
+		if ( allocated ) {
 			Free();
 		}
+		allocated = true;
 
 		layout = VkImageLayout.Undefined;
 		Size = size;
@@ -125,22 +146,6 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 		};
 		Vk.vkAllocateMemory( Device, &allocInfo, VulkanExtensions.TODO_Allocator, out memory );
 		Vk.vkBindImageMemory( Device, Instance, memory, 0 );
-
-		var viewInfo = new VkImageViewCreateInfo() {
-			sType = VkStructureType.ImageViewCreateInfo,
-			image = this,
-			viewType = VkImageViewType.Image2D,
-			format = format,
-			subresourceRange = {
-				aspectMask = aspect,
-				baseMipLevel = 0,
-				levelCount = MipMapLevels,
-				baseArrayLayer = 0,
-				layerCount = 1
-			}
-		};
-
-		Vk.vkCreateImageView( Device, &viewInfo, VulkanExtensions.TODO_Allocator, out view ).Validate();
 	}
 
 	public unsafe void TransitionLayout ( VkImageLayout newLayout, VkImageAspectFlags aspect, CommandBuffer commands ) {
@@ -286,7 +291,6 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanHandle<VkImageView>
 	}
 
 	public unsafe void Free () {
-		Vk.vkDestroyImageView( Device, view, VulkanExtensions.TODO_Allocator );
 		Vk.vkDestroyImage( Device, Instance, VulkanExtensions.TODO_Allocator );
 		Vk.vkFreeMemory( Device, memory, VulkanExtensions.TODO_Allocator );
 		FreeStagingBuffer();
