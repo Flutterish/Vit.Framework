@@ -80,6 +80,8 @@ public class Test05_Depth : GenericRenderThread {
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.Rgba8 );
+		view = texture.CreateView();
+		sampler = Renderer.CreateSampler();
 
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
 		positions.Allocate( (uint)model.Vertices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
