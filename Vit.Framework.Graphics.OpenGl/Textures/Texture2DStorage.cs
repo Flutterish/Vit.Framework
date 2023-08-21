@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
+using PixelType = OpenTK.Graphics.OpenGL4.PixelType;
 
 namespace Vit.Framework.Graphics.OpenGl.Textures;
 

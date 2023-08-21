@@ -22,14 +22,11 @@ public enum TexelFormat {
 	Vec2_32_Fp_8_UInt_24_Pad
 }
 
-public enum ChannelName {
-	Undefined,
-	Red,
-	Green,
-	Blue,
-	Alpha,
+public enum PixelType {
+	Color,
 	Depth,
-	Stencil
+	Stencil,
+	DepthStencil
 }
 
 /// <summary>
@@ -37,14 +34,10 @@ public enum ChannelName {
 /// </summary>
 public struct PixelFormat {
 	public TexelFormat Format;
-
-	public ChannelName Channel1;
-	public ChannelName Channel2;
-	public ChannelName Channel3;
-	public ChannelName Channel4;
+	public PixelType Type;
 
 	public static bool operator == ( PixelFormat left, PixelFormat right ) {
-		return left.Format == right.Format && MemoryMarshal.CreateSpan( ref left.Channel1, 4 ).SequenceEqual( MemoryMarshal.CreateSpan( ref right.Channel1, 4 ) );
+		return left.Format == right.Format && left.Type == right.Type;
 	}
 
 	public static bool operator != ( PixelFormat left, PixelFormat right )
@@ -52,33 +45,22 @@ public struct PixelFormat {
 
 	public static readonly PixelFormat Rgba8 = new() {
 		Format = TexelFormat.Vec4_8_8_8_8_Unorm,
-		Channel1 = ChannelName.Red,
-		Channel2 = ChannelName.Green,
-		Channel3 = ChannelName.Blue,
-		Channel4 = ChannelName.Alpha
-	};
-	public static readonly PixelFormat Rgb8 = new() {
-		Format = TexelFormat.Vec3_8_8_8_Unorm,
-		Channel1 = ChannelName.Red,
-		Channel2 = ChannelName.Green,
-		Channel3 = ChannelName.Blue
+		Type = PixelType.Color
 	};
 	public static readonly PixelFormat D24 = new() {
 		Format = TexelFormat.Vec1_24_Unorm_8_Pad,
-		Channel1 = ChannelName.Depth
+		Type = PixelType.Depth
 	};
 	public static readonly PixelFormat D24S8ui = new() {
 		Format = TexelFormat.Vec2_24_Unorm_8_UInt,
-		Channel1 = ChannelName.Depth,
-		Channel2 = ChannelName.Stencil
+		Type = PixelType.DepthStencil
 	};
 	public static readonly PixelFormat D32f = new() {
 		Format = TexelFormat.Vec1_32_Fp,
-		Channel1 = ChannelName.Depth
+		Type = PixelType.Depth
 	};
 	public static readonly PixelFormat D32fS8ui = new() {
 		Format = TexelFormat.Vec2_32_Fp_8_UInt_24_Pad,
-		Channel1 = ChannelName.Depth,
-		Channel2 = ChannelName.Stencil
+		Type = PixelType.DepthStencil
 	};
 }

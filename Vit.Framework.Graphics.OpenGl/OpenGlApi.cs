@@ -39,7 +39,6 @@ public class OpenGlApi : GraphicsApi {
 	}
 
 	public static Dictionary<Graphics.Rendering.Textures.PixelFormat, PixelInternalFormat> internalFormats = new() {
-		[Graphics.Rendering.Textures.PixelFormat.Rgb8] = PixelInternalFormat.Rgb8,
 		[Graphics.Rendering.Textures.PixelFormat.Rgba8] = PixelInternalFormat.Rgba8,
 		[Graphics.Rendering.Textures.PixelFormat.D24] = PixelInternalFormat.DepthComponent24,
 		[Graphics.Rendering.Textures.PixelFormat.D32f] = PixelInternalFormat.DepthComponent32f,

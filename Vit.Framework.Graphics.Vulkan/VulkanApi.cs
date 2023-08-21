@@ -22,7 +22,6 @@ public class VulkanApi : GraphicsApi {
 	}
 
 	public static Dictionary<PixelFormat, VkFormat> formats = new() {
-		[PixelFormat.Rgb8] = VkFormat.R8g8b8Snorm,
 		[PixelFormat.Rgba8] = VkFormat.R8g8b8a8Snorm,
 		[PixelFormat.D24] = VkFormat.X8D24UnormPack32,
 		[PixelFormat.D32f] = VkFormat.D32Sfloat,
