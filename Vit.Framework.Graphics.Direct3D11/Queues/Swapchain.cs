@@ -15,6 +15,9 @@ public class Swapchain : DisposableObject, ISwapchain {
 	public readonly Direct3D11Renderer Renderer;
 	public readonly IWindow Window;
 
+	ID3D11Texture2D framebuffer;
+	ID3D11Texture2D depthStencil;
+
 	TargetView backBuffer;
 	public Swapchain ( IDXGISwapChain handle, Direct3D11Renderer renderer, IWindow window, WindowSurfaceArgs args ) {
 		Handle = handle;
@@ -22,8 +25,8 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Window = window;
 		commandBuffer = new( renderer, renderer.Context );
 
-		D3DExtensions.Validate( Handle.GetBuffer<ID3D11Texture2D>( 0, out var framebuffer ) );
-		var depthStencil = renderer.Device.CreateTexture2D( new Texture2DDescription {
+		D3DExtensions.Validate( Handle.GetBuffer<ID3D11Texture2D>( 0, out framebuffer! ) );
+		depthStencil = renderer.Device.CreateTexture2D( new Texture2DDescription {
 			Width = (int)window.PixelWidth,
 			Height = (int)window.PixelHeight,
 			MipLevels = 1,
@@ -34,8 +37,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 			Format = Format.D24_UNorm_S8_UInt, // TODO use args for depth. idc for now
 			BindFlags = BindFlags.DepthStencil
 		} );
-		var view = renderer.Device.CreateDepthStencilView( depthStencil );
-		backBuffer = new( renderer.Device.CreateRenderTargetView( framebuffer ), (depthStencil, view) );
+		backBuffer = new( new[] { framebuffer }, depthStencil );
 		backBuffer.Size = window.PixelSize.Cast<uint>();
 		framebuffer!.Release();
 	}
@@ -60,6 +62,8 @@ public class Swapchain : DisposableObject, ISwapchain {
 
 	protected override void Dispose ( bool disposing ) {
 		backBuffer.Dispose();
+		depthStencil?.Dispose();
+		framebuffer?.Dispose();
 		Handle.Dispose();
 	}
 }

@@ -55,7 +55,7 @@ public struct PixelFormat {
 		Channel1 = ChannelName.Red,
 		Channel2 = ChannelName.Green,
 		Channel3 = ChannelName.Blue,
-		Channel4 = ChannelName.Alpha,
+		Channel4 = ChannelName.Alpha
 	};
 	public static readonly PixelFormat Rgb8 = new() {
 		Format = TexelFormat.Vec3_8_8_8_Unorm,

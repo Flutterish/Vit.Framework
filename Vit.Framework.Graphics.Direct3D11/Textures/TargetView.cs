@@ -6,21 +6,22 @@ using Vortice.Direct3D11;
 namespace Vit.Framework.Graphics.Direct3D11.Textures;
 
 public class TargetView : DisposableObject, IFramebuffer {
-	public readonly ID3D11RenderTargetView Handle;
-	readonly ID3D11Resource? depthStencilResource;
+	public readonly ID3D11RenderTargetView[] ColorAttachments;
 	public readonly ID3D11DepthStencilView? DepthStencil;
-	public TargetView ( ID3D11RenderTargetView handle, (ID3D11Resource, ID3D11DepthStencilView)? depthStencil = null ) {
-		Handle = handle;
+	public TargetView ( IEnumerable<ID3D11Texture2D> attachments, ID3D11Texture2D? depthStencil = null ) {
+		var device = (depthStencil ?? attachments.First()).Device;
+
 		if ( depthStencil != null )
-			(depthStencilResource, DepthStencil) = depthStencil.Value;
+			DepthStencil = device.CreateDepthStencilView( depthStencil );
+		ColorAttachments = attachments.Select( x => device.CreateRenderTargetView( x ) ).ToArray();
 	}
 
 	public Size2<uint> Size { get; set; }
 
 	protected override void Dispose ( bool disposing ) {
 		DepthStencil?.Dispose();
-		depthStencilResource?.Dispose();
-
-		Handle.Dispose();
+		foreach ( var i in ColorAttachments ) {
+			i.Dispose();
+		}
 	}
 }
