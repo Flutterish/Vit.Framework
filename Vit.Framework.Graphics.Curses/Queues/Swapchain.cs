@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Software.Rendering;
 using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
 
@@ -18,14 +19,16 @@ public class Swapchain : DisposableObject, ISwapchain {
 		commandBuffer = new( renderer );
 	}
 
+	public Size2<uint> BackbufferSize { get; private set; }
 	public void Recreate () {
 		backbuffer.Dispose();
-		backbuffer = new( window.PixelSize );
+		BackbufferSize = window.PixelSize;
+		backbuffer = new( BackbufferSize );
 	}
 
 	TargetImage backbuffer;
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {
-		if ( backbuffer.Size != window.PixelSize )
+		if ( BackbufferSize != window.PixelSize )
 			Recreate();
 
 		frameIndex = 0;
@@ -44,7 +47,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Rgba32 lastColor = default;
 
 		var span = backbuffer.AsSpan2D();
-		for ( int i = 0; i < backbuffer.Size.Height; i++ ) {
+		for ( int i = 0; i < BackbufferSize.Height; i++ ) {
 			foreach ( var px in span.GetRow( i ) ) {
 				if ( lastColor != px ) {
 					sb.Append( $"\u001B[48;2;{px.R};{px.G};{px.B}m" );
@@ -68,7 +71,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 		byte lastDepth = default;
 
 		var span = backbuffer.DepthStencilAsSpan2D();
-		for ( int i = 0; i < backbuffer.Size.Height; i++ ) {
+		for ( int i = 0; i < BackbufferSize.Height; i++ ) {
 			foreach ( var px in span.GetRow( i ) ) {
 				var depth = (byte)((1 - px.Depth) * 255);
 				if ( lastDepth != depth ) {
@@ -93,7 +96,7 @@ public class Swapchain : DisposableObject, ISwapchain {
 		byte lastStencil = default;
 
 		var span = backbuffer.DepthStencilAsSpan2D();
-		for ( int i = 0; i < backbuffer.Size.Height; i++ ) {
+		for ( int i = 0; i < BackbufferSize.Height; i++ ) {
 			foreach ( var px in span.GetRow( i ) ) {
 				var stencil = px.Stencil;
 				if ( lastStencil != stencil ) {

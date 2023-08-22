@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Rendering.Queues;
 
@@ -13,6 +14,8 @@ public interface ISwapchain : IDisposable {
 	/// Recreates the swapchain by disposing old resources and creating new ones, matching current optimal parameters.
 	/// </summary>
 	void Recreate ();
+
+	Size2<uint> BackbufferSize { get; }
 
 	/// <summary>
 	/// Retreives the framebuffer for the next frame, potentially idling until the frame is available.

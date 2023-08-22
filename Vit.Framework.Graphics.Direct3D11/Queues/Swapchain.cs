@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
 using Vortice.Direct3D11;
@@ -25,10 +26,11 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Window = window;
 		commandBuffer = new( renderer, renderer.Context );
 
+		BackbufferSize = window.PixelSize;
 		D3DExtensions.Validate( Handle.GetBuffer<ID3D11Texture2D>( 0, out framebuffer! ) );
 		depthStencil = renderer.Device.CreateTexture2D( new Texture2DDescription {
-			Width = (int)window.PixelWidth,
-			Height = (int)window.PixelHeight,
+			Width = (int)BackbufferSize.Width,
+			Height = (int)BackbufferSize.Height,
 			MipLevels = 1,
 			ArraySize = 1,
 			SampleDescription = {
@@ -38,10 +40,10 @@ public class Swapchain : DisposableObject, ISwapchain {
 			BindFlags = BindFlags.DepthStencil
 		} );
 		backBuffer = new( new[] { framebuffer }, depthStencil );
-		backBuffer.Size = window.PixelSize.Cast<uint>();
 		framebuffer!.Release();
 	}
 
+	public Size2<uint> BackbufferSize { get; }
 	public void Recreate () {
 		throw new NotImplementedException();
 	}

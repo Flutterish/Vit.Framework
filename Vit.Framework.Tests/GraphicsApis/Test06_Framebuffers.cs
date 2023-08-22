@@ -153,8 +153,8 @@ public class Test06_Framebuffers : GenericRenderThread {
 		{
 			shaderSet.SetUniformSet( uniformSet );
 			commands.SetShaders( shaderSet );
-			commands.SetViewport( framebuffer.Size );
-			commands.SetScissors( framebuffer.Size );
+			commands.SetViewport( framebufferTexture.Size );
+			commands.SetScissors( framebufferTexture.Size );
 
 			commands.BindVertexBuffer( positions.DeviceBuffer );
 			commands.BindIndexBuffer( indices.DeviceBuffer );
@@ -179,8 +179,8 @@ public class Test06_Framebuffers : GenericRenderThread {
 		}.ToRgb(), clearDepth: 1 ) ) {
 			shaderSet.SetUniformSet( uniformSet2 );
 			commands.SetShaders( shaderSet );
-			commands.SetViewport( windowFramebuffer.Size );
-			commands.SetScissors( windowFramebuffer.Size );
+			commands.SetViewport( Swapchain.BackbufferSize );
+			commands.SetScissors( Swapchain.BackbufferSize );
 
 			commands.BindVertexBuffer( positions2.DeviceBuffer );
 			commands.BindIndexBuffer( indices2.DeviceBuffer );

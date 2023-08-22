@@ -13,7 +13,6 @@ public class FrameBuffer : DisposableObject, IFramebuffer {
 
 	public readonly RenderPass RenderPass;
 	public readonly VkExtent2D Size;
-	Size2<uint> IFramebuffer.Size => new( Size.width, Size.height );
 
 	public unsafe FrameBuffer ( VkImageView[] attachements, VkExtent2D size, RenderPass pass ) {
 		Size = size;

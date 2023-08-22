@@ -247,7 +247,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag, ShaderMemory memory ) {
-		var resultSize = renderTarget.Size.Cast<float>();
+		var resultSize = new Size2<float>( renderTarget.Image.Size.Width, renderTarget.Image.Size.Height );
 		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
 			var result = vector.XYZ / vector.W;
 			return new Point3<float>() {
@@ -266,8 +266,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 			Y = int.Max( int.Min( int.Min( (int)a.Y, (int)b.Y ), (int)c.Y ), 0 )
 		};
 		var max = new Point2<int> {
-			X = int.Min( int.Max( int.Max( (int)a.X, (int)b.X ), (int)c.X ), (int)renderTarget.Size.Width - 1 ),
-			Y = int.Min( int.Max( int.Max( (int)a.Y, (int)b.Y ), (int)c.Y ), (int)renderTarget.Size.Height - 1 )
+			X = int.Min( int.Max( int.Max( (int)a.X, (int)b.X ), (int)c.X ), renderTarget.Image.Size.Width - 1 ),
+			Y = int.Min( int.Max( int.Max( (int)a.Y, (int)b.Y ), (int)c.Y ), renderTarget.Image.Size.Height - 1 )
 		};
 
 		var batch = new Triangle.BarycentricBatch<float>( a.XY, b.XY, c.XY );

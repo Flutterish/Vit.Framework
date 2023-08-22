@@ -7,7 +7,6 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.Graphics.Software.Textures;
 
 public class TargetImage : DisposableObject, IFramebuffer {
-	public Size2<uint> Size => new( (uint)Image.Width, (uint)Image.Height );
 	public Image<Rgba32> Image { get; }
 	public Image<D24S8> DepthStencil { get; }
 	static Configuration configuration = new() { PreferContiguousImageBuffers = true };

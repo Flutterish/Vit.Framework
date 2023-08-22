@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Synchronisation;
 using Vit.Framework.Graphics.Vulkan.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
 using Vulkan;
@@ -80,9 +81,11 @@ public class WindowSwapchain : DisposableObject, ISwapchain {
 		ToScreenRenderPass.Dispose();
 	}
 
+	public Size2<uint> BackbufferSize { get; private set; }
 	public void Recreate () {
 		swapchain.Device.WaitIdle(); // TODO bad?
-		swapchain.Recreate( Window.PixelSize );
+		BackbufferSize = Window.PixelSize;
+		swapchain.Recreate( BackbufferSize );
 	}
 
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {

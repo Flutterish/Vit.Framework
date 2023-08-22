@@ -16,8 +16,6 @@ public class TargetView : DisposableObject, IFramebuffer {
 		ColorAttachments = attachments.Select( x => device.CreateRenderTargetView( x ) ).ToArray();
 	}
 
-	public Size2<uint> Size { get; set; }
-
 	protected override void Dispose ( bool disposing ) {
 		DepthStencil?.Dispose();
 		foreach ( var i in ColorAttachments ) {

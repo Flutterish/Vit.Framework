@@ -8,7 +8,6 @@ namespace Vit.Framework.Graphics.OpenGl.Textures;
 public class FrameBuffer : DisposableObject, IGlFramebuffer {
 	int IGlFramebuffer.Handle => Handle;
 	public readonly int Handle;
-	public Size2<uint> Size { get; }
 
 	public FrameBuffer ( IEnumerable<ITexture2DView> attachments ) {
 		Handle = GL.GenFramebuffer();
@@ -17,7 +16,6 @@ public class FrameBuffer : DisposableObject, IGlFramebuffer {
 		int colorIndex = 0;
 		foreach ( var i in attachments ) {
 			var view = (Texture2DView)i;
-			Size = view.Source.Size;
 			if ( i.Source.Format.Type == Graphics.Rendering.Textures.PixelType.Color ) {
 				GL.FramebufferTexture2D( FramebufferTarget.ReadFramebuffer, FramebufferAttachment.ColorAttachment0 + colorIndex, TextureTarget.Texture2D, view.Handle, 0 );
 				colorIndex++;

@@ -115,8 +115,8 @@ public class Test05_Depth : GenericRenderThread {
 			V = 1
 		}.ToRgb(), clearDepth: 1 );
 		commands.SetShaders( shaderSet );
-		commands.SetViewport( framebuffer.Size );
-		commands.SetScissors( framebuffer.Size );
+		commands.SetViewport( Swapchain.BackbufferSize );
+		commands.SetScissors( Swapchain.BackbufferSize );
 
 		commands.BindVertexBuffer( positions.DeviceBuffer );
 		commands.BindIndexBuffer( indices.DeviceBuffer );

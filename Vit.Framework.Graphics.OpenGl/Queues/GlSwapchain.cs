@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.OpenGl.Queues;
 
@@ -32,8 +33,9 @@ public class GlSwapchain : ISwapchain {
 		}, 0 );
 	}
 
+	public Size2<uint> BackbufferSize { get; private set; }
 	public void Recreate () {
-		
+
 	}
 
 	DefaultFrameBuffer frameBuffer = new();
@@ -41,7 +43,7 @@ public class GlSwapchain : ISwapchain {
 		window.MakeCurrent( context );
 
 		frameIndex = 0;
-		frameBuffer.Size = window.PixelSize.Cast<uint>();
+		BackbufferSize = window.PixelSize.Cast<uint>();
 		return frameBuffer;
 	}
 
