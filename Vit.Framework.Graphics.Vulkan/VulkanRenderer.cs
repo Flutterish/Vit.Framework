@@ -116,6 +116,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		CopyCommandPool.Dispose();
 		Device.Dispose();
 	}
+
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+		throw new NotImplementedException();
+	}
 }
 
 public struct PipelineArgs {

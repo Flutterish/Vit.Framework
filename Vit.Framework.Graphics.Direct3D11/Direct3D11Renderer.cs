@@ -154,4 +154,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		Device.Dispose();
 		Context.Dispose();
 	}
+
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+		throw new NotImplementedException();
+	}
 }

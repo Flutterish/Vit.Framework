@@ -13,21 +13,22 @@ public class Texture2DStorage : DisposableObject, ITexture2D {
 	public Graphics.Rendering.Textures.PixelFormat Format { get; }
 
 	public Texture2DStorage ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
-		Debug.Assert( format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
+		var internalFormat = OpenGlApi.internalFormats[format];
 		Size = size;
 		Format = format;
 
 		Handle = GL.GenTexture();
 		GL.BindTexture( TextureTarget.Texture2D, Handle );
-		var mips = uint.Log2( uint.Max( size.Width, size.Height ) ) + 1;
-		GL.TextureStorage2D( Handle, (int)mips, SizedInternalFormat.Rgba8, (int)size.Width, (int)size.Height );
+		//var mips = uint.Log2( uint.Max( size.Width, size.Height ) ) + 1;
+		GL.TextureStorage2D( Handle, 1, internalFormat, (int)size.Width, (int)size.Height );
 	}
 
 	public unsafe void Upload<TPixel> ( ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
+		Debug.Assert( Format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
 		GL.TextureSubImage2D( Handle, 0, 0, 0, (int)Size.Width, (int)Size.Height, OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, (nint)data.Data() );
 
 		GL.BindTexture( TextureTarget.Texture2D, Handle );
-		GL.GenerateMipmap( GenerateMipmapTarget.Texture2D );
+		//GL.GenerateMipmap( GenerateMipmapTarget.Texture2D );
 	}
 
 	public ITexture2DView CreateView () {

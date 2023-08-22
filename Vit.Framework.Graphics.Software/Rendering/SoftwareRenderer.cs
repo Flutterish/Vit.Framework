@@ -56,4 +56,8 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
 	}
+
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+		throw new NotImplementedException();
+	}
 }

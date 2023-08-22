@@ -67,6 +67,10 @@ public class GlRenderer : IRenderer {
 		return new Sampler();
 	}
 
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+		return new FrameBuffer( attachments );
+	}
+
 	GlImmediateCommandBuffer immediateCommandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return immediateCommandBuffer;

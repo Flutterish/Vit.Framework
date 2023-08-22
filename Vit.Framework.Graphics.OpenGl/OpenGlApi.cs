@@ -38,11 +38,11 @@ public class OpenGlApi : GraphicsApi {
 		
 	}
 
-	public static Dictionary<Graphics.Rendering.Textures.PixelFormat, PixelInternalFormat> internalFormats = new() {
-		[Graphics.Rendering.Textures.PixelFormat.Rgba8] = PixelInternalFormat.Rgba8,
-		[Graphics.Rendering.Textures.PixelFormat.D24] = PixelInternalFormat.DepthComponent24,
-		[Graphics.Rendering.Textures.PixelFormat.D32f] = PixelInternalFormat.DepthComponent32f,
-		[Graphics.Rendering.Textures.PixelFormat.D24S8ui] = PixelInternalFormat.Depth24Stencil8,
-		[Graphics.Rendering.Textures.PixelFormat.D32fS8ui] = PixelInternalFormat.Depth32fStencil8
+	public static Dictionary<Graphics.Rendering.Textures.PixelFormat, SizedInternalFormat> internalFormats = new() {
+		[Graphics.Rendering.Textures.PixelFormat.Rgba8] = SizedInternalFormat.Rgba8,
+		[Graphics.Rendering.Textures.PixelFormat.D24] = SizedInternalFormat.DepthComponent24,
+		[Graphics.Rendering.Textures.PixelFormat.D32f] = SizedInternalFormat.DepthComponent32f,
+		[Graphics.Rendering.Textures.PixelFormat.D24S8ui] = SizedInternalFormat.Depth24Stencil8,
+		[Graphics.Rendering.Textures.PixelFormat.D32fS8ui] = SizedInternalFormat.Depth32fStencil8
 	};
 }

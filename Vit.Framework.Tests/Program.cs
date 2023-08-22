@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Curses;
+using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
@@ -15,8 +16,8 @@ public partial class Program : App {
 	public Program () : base( "Test App" ) { }
 
 	public static void Main () {
-		var app = new TwoDTestApp( typeof( VisualTestRunner ) );
-		//var app = new Program();
+		//var app = new TwoDTestApp( typeof( VisualTestRunner ) );
+		var app = new Program();
 		app.ThreadRunner.ThreadingMode = ThreadingMode.Multithreaded;
 		app.Run();
 		app = null;
@@ -35,10 +36,10 @@ public partial class Program : App {
 
 	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
-			CursesApi.GraphicsApiType,
+			//CursesApi.GraphicsApiType,
 			//Direct3D11Api.GraphicsApiType,
 			//VulkanApi.GraphicsApiType,
-			//OpenGlApi.GraphicsApiType
+			OpenGlApi.GraphicsApiType
 		};
 
 		using Host host = new SdlHost( this );
@@ -60,7 +61,7 @@ public partial class Program : App {
 
 			window.Title = $"Window {Letters[i]} [{api}]";
 			var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
+			ThreadRunner.RegisterThread( new Test06_Framebuffers( window, windowHost, window.Title, graphicsApi ) );
 			windows.Add( window );
 		}
 

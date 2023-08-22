@@ -12,7 +12,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
 
 	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
-		GL.BindFramebuffer( FramebufferTarget.Framebuffer, framebuffer.Handle );
+		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, framebuffer.Handle );
 
 		GL.ClearColor( clearColor.R, clearColor.G, clearColor.B, clearColor.A );
 		GL.ClearStencil( (int)clearStencil );
@@ -20,7 +20,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		GL.Clear( ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit | ClearBufferMask.ColorBufferBit );
 
 		return new DisposeAction<ICommandBuffer>( this, static self => {
-			GL.BindFramebuffer( FramebufferTarget.Framebuffer, 0 );
+			GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, 0 );
 		} );
 	}
 

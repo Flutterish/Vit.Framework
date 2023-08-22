@@ -6,5 +6,5 @@ namespace Vit.Framework.Graphics.Rendering.Textures;
 /// A rendering target. Might have color, depth or stencil attachments and multisampling.
 /// </summary>
 public interface IFramebuffer : IDisposable {
-	Size2<uint> Size { get; }
+	Size2<uint> Size { get; } // TODO remove this. maybe replace with attachment list
 }
