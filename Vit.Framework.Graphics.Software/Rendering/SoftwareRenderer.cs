@@ -57,7 +57,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return commandBuffer;
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
 		throw new NotImplementedException();
 	}
 }

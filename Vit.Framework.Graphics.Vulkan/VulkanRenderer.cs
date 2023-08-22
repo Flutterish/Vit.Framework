@@ -117,7 +117,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		Device.Dispose();
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
 		throw new NotImplementedException();
 	}
 }

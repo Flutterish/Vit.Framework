@@ -29,7 +29,7 @@ public interface IRenderer : IDisposable {
 
 	ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format );
 	ISampler CreateSampler ();
-	IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments );
+	IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
 }

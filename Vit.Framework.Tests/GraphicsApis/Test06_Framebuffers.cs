@@ -50,7 +50,6 @@ public class Test06_Framebuffers : GenericRenderThread {
 	ITexture2D framebufferTexture = null!;
 	ITexture2DView framebufferTextureView = null!;
 	ITexture2D framebufferDepthTexture = null!;
-	ITexture2DView framebufferDepthTextureView = null!;
 	IFramebuffer framebuffer = null!;
 
 	protected override bool Initialize () {
@@ -134,8 +133,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 		framebufferTexture = Renderer.CreateTexture( (256, 256), PixelFormat.Rgba8 );
 		framebufferTextureView = framebufferTexture.CreateView();
 		framebufferDepthTexture = Renderer.CreateTexture( (256, 256), PixelFormat.D24S8ui );
-		framebufferDepthTextureView = framebufferDepthTexture.CreateView();
-		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTextureView, framebufferDepthTextureView } );
+		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTextureView }, framebufferDepthTexture );
 
 		uniformSet2 = shaderSet.CreateUniformSet();
 		uniformSet2.SetUniformBuffer( uniformBuffer2, binding: 0 );
@@ -210,7 +208,6 @@ public class Test06_Framebuffers : GenericRenderThread {
 		framebuffer.Dispose();
 		framebufferTextureView.Dispose();
 		framebufferTexture.Dispose();
-		framebufferDepthTextureView.Dispose();
 		framebufferDepthTexture.Dispose();
 
 		shaderSet.Dispose();

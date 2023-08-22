@@ -67,8 +67,8 @@ public class GlRenderer : IRenderer {
 		return new Sampler();
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments ) {
-		return new FrameBuffer( attachments );
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+		return new FrameBuffer( attachments, depthStencilAttachment );
 	}
 
 	GlImmediateCommandBuffer immediateCommandBuffer;

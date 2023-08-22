@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace Vit.Framework.Graphics.Direct3D11.Textures;
 
@@ -10,17 +11,17 @@ public class Texture2D : DisposableObject, ITexture2D {
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 	public readonly ID3D11Texture2D Texture;
-	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format == PixelFormat.Rgba8 );
+	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat _format ) {
 		Size = size;
-		Format = format;
+		Format = _format;
+		var format = Direct3D11Api.formats[_format];
 
 		Texture = device.CreateTexture2D( new Texture2DDescription {
 			Width = (int)size.Width,
 			Height = (int)size.Height,
 			MipLevels = 1,
 			ArraySize = 1,
-			Format = Vortice.DXGI.Format.R8G8B8A8_UNorm_SRgb,
+			Format = format,
 			SampleDescription = {
 				Count = 1,
 				Quality = 0
@@ -32,6 +33,7 @@ public class Texture2D : DisposableObject, ITexture2D {
 	}
 
 	public void Upload<TPixel> ( ReadOnlySpan<TPixel> data, ID3D11DeviceContext context ) where TPixel : unmanaged {
+		Debug.Assert( Format == PixelFormat.Rgba8 );
 		var map = context.Map<TPixel>( Texture, 0, 0, MapMode.WriteDiscard );
 		data.CopyTo( map );
 		context.Unmap( Texture, 0 );
