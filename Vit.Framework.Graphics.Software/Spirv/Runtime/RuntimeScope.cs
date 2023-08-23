@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Software.Shaders;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Textures;
 
 namespace Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -10,7 +11,7 @@ public class RuntimeScope {
 }
 
 public class ShaderOpaques {
-	public Dictionary<OpaqueHandle, Texture> Samplers = new();
+	public Dictionary<OpaqueHandle, Texture<Rgba32>> Samplers = new();
 }
 
 

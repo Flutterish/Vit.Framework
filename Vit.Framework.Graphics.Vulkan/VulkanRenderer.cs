@@ -90,6 +90,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new Sampler( Device, 0 );
 	}
 
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+		throw new NotImplementedException();
+	}
+
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		var commands = GraphicsCommandPool.CreateCommandBuffer();
 		commands.Begin();
@@ -119,10 +123,6 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		GraphicsCommandPool.Dispose();
 		CopyCommandPool.Dispose();
 		Device.Dispose();
-	}
-
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
-		throw new NotImplementedException();
 	}
 }
 

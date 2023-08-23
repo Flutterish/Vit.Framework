@@ -14,7 +14,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Rendering;
 
-public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRenderer, TargetImage, Texture, ShaderSet>, IImmediateCommandBuffer {
+public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRenderer, TargetImage, ISoftwareTexture, ShaderSet>, IImmediateCommandBuffer {
 	public SoftwareImmadiateCommandBuffer ( SoftwareRenderer renderer ) : base( renderer ) { }
 
 	TargetImage renderTarget = null!;
@@ -32,8 +32,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		} );
 	}
 
-	protected override void CopyTexture ( Texture source, Texture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
-		((IStagingTexture2D)destination).Upload<Rgba32>( source.Memory.Span, source.Size, sourceRect, destinationOffset );
+	protected override void CopyTexture ( ISoftwareTexture source, ISoftwareTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		source.CopyTo( destination, sourceRect, destinationOffset );
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {

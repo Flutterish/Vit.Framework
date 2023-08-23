@@ -87,7 +87,6 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
-		throw new NotImplementedException();
 		return new TargetView( attachments.Select( x => ((Texture2DView)x).ResourceView.Resource ), ((Texture2D?)depthStencilAttachment)?.Texture );
 	}
 

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using System.Numerics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -9,6 +10,7 @@ using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Textures;
+using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -45,21 +47,28 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {
-		return new Texture( size, format );
+		if ( format == PixelFormat.Rgba8 ) {
+			return new Texture<Rgba32>( size, format );
+		}
+		else if ( format == PixelFormat.D24S8ui ) {
+			return new Texture<D24S8>( size, format );
+		}
+		else {
+			throw new NotImplementedException();
+		}
 	}
 	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format ) {
-		return new Texture( size, format );
+		return (IStagingTexture2D)CreateDeviceTexture( size, format );
 	}
 	public ISampler CreateSampler () {
 		return new Sampler();
+	}
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+		return new TargetImage( attachments, depthStencilAttachment );
 	}
 
 	SoftwareImmadiateCommandBuffer commandBuffer;
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
-	}
-
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
-		throw new NotImplementedException();
 	}
 }

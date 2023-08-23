@@ -19,20 +19,20 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanTexture, IDeviceTex
 
 	Size2<uint> ITexture2D.Size => new( Size.width, Size.height );
 	public PixelFormat Format { get; }
-	public unsafe Image ( Device device, Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format == PixelFormat.Rgba8 );
-		Format = format;
+	public unsafe Image ( Device device, Size2<uint> size, PixelFormat _format ) {
+		var format = VulkanApi.formats[_format];
+		Format = _format;
 
 		Device = device;
 		Allocate(
 			new VkExtent2D { width = size.Width, height = size.Height },
 			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
-			VkFormat.R8g8b8a8Unorm
+			format
 		);
 	}
 
 	public ITexture2DView CreateView () {
-		return new ImageView( this, VkFormat.R8g8b8a8Unorm, VkImageAspectFlags.Color, 1 );
+		return new ImageView( this, VulkanApi.formats[Format], VkImageAspectFlags.Color, 1 );
 	}
 
 	VkImageLayout layout;

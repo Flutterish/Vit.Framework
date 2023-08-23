@@ -8,20 +8,23 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Textures;
 
-public class Texture : DisposableObject, IDeviceTexture2D, IStagingTexture2D, ITexture2DView {
+public interface ISoftwareTexture : ITexture2D, ITexture2DView, IDeviceTexture2D, IStagingTexture2D {
+	void CopyTo ( ISoftwareTexture other, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset );
+}
+
+public class Texture<TPixel> : DisposableObject, ISoftwareTexture where TPixel : unmanaged, IPixel<TPixel> {
 	public PixelFormat Format { get; }
 	public Size2<uint> Size => new( (uint)Image.Width, (uint)Image.Height );
-	public Image<Rgba32> Image { get; }
+	public Image<TPixel> Image { get; }
 	static Configuration configuration = new() { PreferContiguousImageBuffers = true };
 	public Texture ( Size2<uint> size, PixelFormat format ) {
-		Debug.Assert( format == PixelFormat.Rgba8 );
 		Format = format;
 		Image = new( configuration, (int)size.Width, (int)size.Height );
 	}
 
-	public Memory<Rgba32> Memory => Image.DangerousTryGetSinglePixelMemory( out var memory ) ? memory : throw new Exception( "underlying image is not contigious, somehow" );
-	public Span<Rgba32> AsSpan () => Memory.Span;
-	public Span2D<Rgba32> AsSpan2D () => new Span2D<Rgba32>( Memory.Span, Image.Width, Image.Height );
+	public Memory<TPixel> Memory => Image.DangerousTryGetSinglePixelMemory( out var memory ) ? memory : throw new Exception( "underlying image is not contigious, somehow" );
+	public Span<TPixel> AsSpan () => Memory.Span;
+	public Span2D<TPixel> AsSpan2D () => new Span2D<TPixel>( Memory.Span, Image.Width, Image.Height );
 
 	protected override void Dispose ( bool disposing ) {
 		Image.Dispose();
@@ -36,5 +39,9 @@ public class Texture : DisposableObject, IDeviceTexture2D, IStagingTexture2D, IT
 	public unsafe void* GetData () {
 		Image.DangerousTryGetSinglePixelMemory( out var data );
 		return data.Span.Data();
+	}
+
+	public void CopyTo ( ISoftwareTexture other, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		other.Upload<TPixel>( AsSpan(), other.Size, sourceRect, destinationOffset );
 	}
 }

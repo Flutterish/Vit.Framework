@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
@@ -15,9 +16,9 @@ public class UniformSet : DisposableObject, IUniformSet {
 		UniformBuffers[binding] = ((IByteBuffer)buffer, IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
 	}
 
-	public Dictionary<uint, Texture> Samplers = new();
+	public Dictionary<uint, Texture<Rgba32>> Samplers = new();
 	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
-		Samplers[binding] = (Texture)texture;
+		Samplers[binding] = (Texture<Rgba32>)texture;
 	}
 
 	public void Free () {
