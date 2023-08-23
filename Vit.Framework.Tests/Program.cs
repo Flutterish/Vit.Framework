@@ -39,8 +39,8 @@ public partial class Program : App {
 		List<GraphicsApiType> apis = new() {
 			//CursesApi.GraphicsApiType,
 			//Direct3D11Api.GraphicsApiType,
-			//VulkanApi.GraphicsApiType,
-			OpenGlApi.GraphicsApiType
+			VulkanApi.GraphicsApiType,
+			//OpenGlApi.GraphicsApiType
 		};
 
 		using Host host = new SdlHost( this );
@@ -62,7 +62,7 @@ public partial class Program : App {
 
 			window.Title = $"Window {Letters[i]} [{api}]";
 			var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test06_Framebuffers( window, windowHost, window.Title, graphicsApi ) );
+			ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
 			windows.Add( window );
 		}
 

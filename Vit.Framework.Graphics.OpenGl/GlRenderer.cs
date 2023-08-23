@@ -71,7 +71,7 @@ public class GlRenderer : IRenderer {
 		return new Sampler();
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		return new FrameBuffer( attachments, depthStencilAttachment );
 	}
 

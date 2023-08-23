@@ -13,16 +13,20 @@ public class FrameBuffer : DisposableObject, IFramebuffer {
 	public readonly RenderPass RenderPass;
 	public readonly VkExtent2D Size;
 
-	public unsafe FrameBuffer ( VkImageView[] attachements, VkExtent2D size, RenderPass pass ) {
+	bool isOwner;
+	VkImageView[] ownedAttachements;
+	public unsafe FrameBuffer ( VkImageView[] attachements, VkExtent2D size, RenderPass pass, bool isOwner = false ) {
+		this.isOwner = isOwner;
 		Size = size;
 		RenderPass = pass;
+		ownedAttachements = isOwner ? attachements : Array.Empty<VkImageView>();
 
 		var info = new VkFramebufferCreateInfo() {
 			sType = VkStructureType.FramebufferCreateInfo,
 			renderPass = pass,
 			attachmentCount = (uint)attachements.Length,
 			pAttachments = attachements.Data(),
-			width = size.width,
+			width = size.width, // TODO set this to max size
 			height = size.height,
 			layers = 1
 		};
@@ -34,5 +38,12 @@ public class FrameBuffer : DisposableObject, IFramebuffer {
 
 	protected override unsafe void Dispose ( bool disposing ) {
 		Vk.vkDestroyFramebuffer( RenderPass.Device, Instance, VulkanExtensions.TODO_Allocator );
+		if ( isOwner ) {
+			RenderPass.Dispose();
+		}
+
+		foreach ( var i in ownedAttachements ) {
+			Vk.vkDestroyImageView( RenderPass.Device, i, VulkanExtensions.TODO_Allocator );
+		}
 	}
 }

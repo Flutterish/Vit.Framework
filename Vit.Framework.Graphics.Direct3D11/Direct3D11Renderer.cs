@@ -86,8 +86,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new SamplerState( Device );
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
-		return new TargetView( attachments.Select( x => ((Texture2DView)x).ResourceView.Resource ), ((Texture2D?)depthStencilAttachment)?.Texture );
+	public IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+		return new TargetView( attachments.Select( x => ((Texture2D)x).Texture ), ((Texture2D?)depthStencilAttachment)?.Texture );
 	}
 
 	Direct3D11ImmediateCommandBuffer commandBuffer;

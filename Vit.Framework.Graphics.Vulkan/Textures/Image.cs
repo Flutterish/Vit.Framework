@@ -26,7 +26,7 @@ public class Image : DisposableVulkanObject<VkImage>, IVulkanTexture, IDeviceTex
 		Device = device;
 		Allocate(
 			new VkExtent2D { width = size.Width, height = size.Height },
-			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
+			(VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc) | (_format.Type == PixelType.Color ? VkImageUsageFlags.Sampled | VkImageUsageFlags.ColorAttachment : VkImageUsageFlags.DepthStencilAttachment),
 			format
 		);
 	}

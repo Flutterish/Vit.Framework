@@ -15,7 +15,7 @@ public class TargetImage : DisposableObject, IFramebuffer {
 		DepthStencil = new( configuration, (int)size.Width, (int)size.Height );
 	}
 
-	public TargetImage ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment ) {
+	public TargetImage ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment ) {
 		Image = ((Texture<Rgba32>)attachments.Single()).Image;
 		DepthStencil = ((Texture<D24S8>?)depthStencilAttachment)?.Image;
 	}

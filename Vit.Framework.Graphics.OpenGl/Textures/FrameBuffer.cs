@@ -8,7 +8,7 @@ public class FrameBuffer : DisposableObject, IGlFramebuffer {
 	int IGlFramebuffer.Handle => Handle;
 	public readonly int Handle;
 
-	public FrameBuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+	public FrameBuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		Handle = GL.GenFramebuffer();
 		GL.BindFramebuffer( FramebufferTarget.ReadFramebuffer, Handle );
 
@@ -27,7 +27,7 @@ public class FrameBuffer : DisposableObject, IGlFramebuffer {
 
 		int colorIndex = 0;
 		foreach ( var i in attachments ) {
-			var view = (Texture2DView)i;
+			var view = (Texture2DStorage)i;
 			var handle = view.Handle;
 			GL.FramebufferTexture2D( FramebufferTarget.ReadFramebuffer, FramebufferAttachment.ColorAttachment0 + colorIndex, TextureTarget.Texture2D, handle, 0 );
 			colorIndex++;

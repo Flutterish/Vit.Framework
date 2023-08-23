@@ -90,8 +90,46 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new Sampler( Device, 0 );
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
-		throw new NotImplementedException();
+	public unsafe IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
+		var renderPass = new RenderPass( Device, attachments, depthStencilAttachment );
+		var imageViews = new VkImageView[attachments.Count() + (depthStencilAttachment == null ? 0 : 1)];
+		uint i = 0;
+		foreach ( var color in attachments ) {
+			var info = new VkImageViewCreateInfo() {
+				sType = VkStructureType.ImageViewCreateInfo,
+				image = (Image)color,
+				viewType = VkImageViewType.Image2D,
+				format = VulkanApi.formats[color.Format],
+				subresourceRange = {
+					aspectMask = VkImageAspectFlags.Color,
+					baseMipLevel = 0,
+					levelCount = 1,
+					baseArrayLayer = 0,
+					layerCount = 1
+				}
+			};
+			Vk.vkCreateImageView( Device, &info, VulkanExtensions.TODO_Allocator, out imageViews[i] );
+			i++;
+		}
+		if ( depthStencilAttachment != null ) {
+			var info = new VkImageViewCreateInfo() {
+				sType = VkStructureType.ImageViewCreateInfo,
+				image = (Image)depthStencilAttachment,
+				viewType = VkImageViewType.Image2D,
+				format = VulkanApi.formats[depthStencilAttachment.Format],
+				subresourceRange = {
+					aspectMask = VkImageAspectFlags.Depth,
+					baseMipLevel = 0,
+					levelCount = 1,
+					baseArrayLayer = 0,
+					layerCount = 1
+				}
+			};
+			Vk.vkCreateImageView( Device, &info, VulkanExtensions.TODO_Allocator, out imageViews[i] );
+		}
+
+		var single = depthStencilAttachment ?? attachments.Single();
+		return new FrameBuffer( imageViews, new VkExtent2D { width = single.Size.Width, height = single.Size.Height }, renderPass, isOwner: true );
 	}
 
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
@@ -105,7 +143,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		} );
 	}
 
-	Dictionary<PipelineArgs, Pipeline> pipelines = new();
+	Dictionary<PipelineArgs, Pipeline> pipelines = new(); // TODO move this into render pass?
 	public Pipeline GetPipeline ( PipelineArgs args ) {
 		if ( pipelines.TryGetValue( args, out var pipeline ) )
 			return pipeline;

@@ -30,7 +30,7 @@ public interface IRenderer : IDisposable {
 	IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format );
 	IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format );
 	ISampler CreateSampler ();
-	IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null );
+	IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
 }

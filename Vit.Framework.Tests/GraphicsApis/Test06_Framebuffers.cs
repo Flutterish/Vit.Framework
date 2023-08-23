@@ -128,7 +128,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 		framebufferTexture = Renderer.CreateDeviceTexture( (256, 256), PixelFormat.Rgba8 );
 		framebufferTextureView = framebufferTexture.CreateView();
 		framebufferDepthTexture = Renderer.CreateDeviceTexture( (256, 256), PixelFormat.D24S8ui );
-		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTextureView }, framebufferDepthTexture );
+		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTexture }, framebufferDepthTexture );
 
 		uniformSet2 = shaderSet.CreateUniformSet();
 		uniformSet2.SetUniformBuffer( uniformBuffer2, binding: 0 );
