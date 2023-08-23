@@ -1,5 +1,4 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
-using System.Text;
+﻿using System.Text;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -44,11 +43,13 @@ public class Swapchain : DisposableObject, ISwapchain {
 		sb.Append( "\u001B[1;1H" );
 		sb.Append( "\u001B[?25l" );
 
-		Rgba32 lastColor = default;
+		ColorRgb<byte> lastColor = default;
 
 		var span = backbuffer.AsSpan2D();
 		for ( int i = 0; i < BackbufferSize.Height; i++ ) {
-			foreach ( var px in span.GetRow( i ) ) {
+			foreach ( var srgbPx in span.GetRow( i ) ) {
+				var px = new ColorSRgb<byte>( srgbPx.R, srgbPx.G, srgbPx.B ).ToFloat<float>().ToLinear().ToByte();
+
 				if ( lastColor != px ) {
 					sb.Append( $"\u001B[48;2;{px.R};{px.G};{px.B}m" );
 					lastColor = px;
