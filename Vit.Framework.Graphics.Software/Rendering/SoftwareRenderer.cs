@@ -10,7 +10,6 @@ using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv;
 using Vit.Framework.Graphics.Software.Spirv.Metadata;
 using Vit.Framework.Graphics.Software.Textures;
-using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
@@ -25,7 +24,11 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	}
 
 	public virtual void WaitIdle () { }
-	public abstract Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T>;
+	public abstract Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T>;
+	public Matrix4<T> CreateUvCorrectionMatrix<T> () where T : INumber<T> {
+		return Matrix4<T>.Identity;
+	}
+
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {
 		return new SpirvCompiler( spirv ).Specialise( spirv.Type switch {
 			ShaderPartType.Vertex => ExecutionModel.Vertex,

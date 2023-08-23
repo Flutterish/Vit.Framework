@@ -25,7 +25,10 @@ public class GlRenderer : IRenderer {
 		GL.Finish();
 	}
 
-	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
+	public Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T> {
+		return Matrix4<T>.Identity;
+	}
+	public Matrix4<T> CreateUvCorrectionMatrix<T> () where T : INumber<T> {
 		return Matrix4<T>.Identity;
 	}
 

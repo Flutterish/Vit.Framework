@@ -1,5 +1,4 @@
-﻿using System.Net.Mail;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Interop;
 using Vulkan;

@@ -18,7 +18,15 @@ public interface IRenderer : IDisposable {
 	GraphicsApi GraphicsApi { get; }
 
 	void WaitIdle ();
-	Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T>;
+	/// <summary>
+	/// Creates a matrix such that (-1, -1) is mapped to bottom-left of the screen, (1, 1) to top-right.
+	/// </summary>
+	Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T>;
+
+	/// <summary>
+	/// Creates a matrix such that (-1, -1) is mapped to (0, 0) of a texture, (1, 1) to (1, 1) of a texture.
+	/// </summary>
+	Matrix4<T> CreateUvCorrectionMatrix<T> () where T : INumber<T>;
 
 	IShaderPart CompileShaderPart ( SpirvBytecode spirv );
 	IShaderSet CreateShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput );

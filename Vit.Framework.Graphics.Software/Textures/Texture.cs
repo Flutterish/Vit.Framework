@@ -1,6 +1,5 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;

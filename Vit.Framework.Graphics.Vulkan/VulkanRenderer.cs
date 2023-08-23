@@ -39,13 +39,16 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		Device.WaitIdle();
 	}
 
-	public Matrix4<T> CreateLeftHandCorrectionMatrix<T> () where T : INumber<T> {
+	public Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T> {
 		return new Matrix4<T> {
 			M00 = T.MultiplicativeIdentity,
 			M11 = -T.MultiplicativeIdentity,
 			M22 = T.MultiplicativeIdentity,
 			M33 = T.MultiplicativeIdentity
 		};
+	}
+	public Matrix4<T> CreateUvCorrectionMatrix<T> () where T : INumber<T> {
+		return Matrix4<T>.Identity;
 	}
 
 	public IShaderPart CompileShaderPart ( SpirvBytecode spirv ) {

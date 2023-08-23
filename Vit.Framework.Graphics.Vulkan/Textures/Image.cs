@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Vit.Framework.Graphics.Rendering.Textures;
+﻿using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Mathematics;
 using Vulkan;

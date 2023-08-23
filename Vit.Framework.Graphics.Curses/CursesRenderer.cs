@@ -6,7 +6,7 @@ namespace Vit.Framework.Graphics.Curses;
 public class CursesRenderer : SoftwareRenderer {
 	public CursesRenderer ( CursesApi graphicsApi ) : base( graphicsApi ) { }
 
-	public override Matrix4<T> CreateLeftHandCorrectionMatrix<T> () {
+	public override Matrix4<T> CreateNdcCorrectionMatrix<T> () {
 		return new Matrix4<T> {
 			M00 = T.MultiplicativeIdentity,
 			M11 = -T.MultiplicativeIdentity,

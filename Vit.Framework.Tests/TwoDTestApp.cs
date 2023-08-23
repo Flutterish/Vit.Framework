@@ -217,7 +217,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override void BeforeRender () {
-			var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( Renderer.CreateLeftHandCorrectionMatrix<float>() );
+			var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( Renderer.CreateNdcCorrectionMatrix<float>() );
 			globalUniformBuffer.UploadUniform( new GlobalUniforms {
 				Matrix = new( mat )
 			} );

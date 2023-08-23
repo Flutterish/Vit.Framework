@@ -119,7 +119,7 @@ public class Test04_Samplers : GenericRenderThread {
 		uniformBuffer.UploadUniform( new Uniforms {
 			ModelMatrix = Matrix4<float>.FromAxisAngle( Vector3<float>.UnitY, ((float)(DateTime.Now - start).TotalSeconds * 50).Degrees() )
 				* Matrix4<float>.CreateTranslation( 0, 0, 1.2f )
-				* Renderer.CreateLeftHandCorrectionMatrix<float>()
+				* Renderer.CreateNdcCorrectionMatrix<float>()
 				* Matrix4<float>.CreatePerspective( 1, 1, 0.01f, 100f )
 		} );
 
