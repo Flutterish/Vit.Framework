@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Reflection.Metadata;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Textures;
@@ -10,7 +8,7 @@ public class FrameBuffer : DisposableObject, IGlFramebuffer {
 	int IGlFramebuffer.Handle => Handle;
 	public readonly int Handle;
 
-	public FrameBuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+	public FrameBuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		Handle = GL.GenFramebuffer();
 		GL.BindFramebuffer( FramebufferTarget.ReadFramebuffer, Handle );
 

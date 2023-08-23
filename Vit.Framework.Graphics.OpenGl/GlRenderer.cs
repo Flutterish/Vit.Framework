@@ -59,15 +59,19 @@ public class GlRenderer : IRenderer {
 		return new HostBuffer<T>( BufferTarget.CopyReadBuffer );
 	}
 
-	public ITexture2D CreateTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
+	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
 		return new Texture2DStorage( size, format ); // TODO use renderbuffers for depth/stencil
+	}
+
+	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {
+		return new PixelBuffer( size, format );
 	}
 
 	public ISampler CreateSampler () {
 		return new Sampler();
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		return new FrameBuffer( attachments, depthStencilAttachment );
 	}
 

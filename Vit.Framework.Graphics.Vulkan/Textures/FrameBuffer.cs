@@ -1,7 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Interop;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vulkan;
 

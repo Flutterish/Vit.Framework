@@ -1,26 +1,20 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Mathematics;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Textures;
 
-public class Image : DisposableVulkanObject<VkImage>, ITexture2D {
+public class Image : DisposableVulkanObject<VkImage>, IVulkanTexture, IDeviceTexture2D {
+	public VulkanTextureType Type => VulkanTextureType.Image;
 	public readonly Device Device;
-	HostBuffer<Rgba32> buffer;
 	public VkExtent2D Size;
 	VkDeviceMemory memory;
 	bool allocated = false;
 
 	public unsafe Image ( Device device ) {
 		Device = device;
-		buffer = new( device, VkBufferUsageFlags.TransferSrc );
 	}
 
 	Size2<uint> ITexture2D.Size => new( Size.width, Size.height );
@@ -30,7 +24,6 @@ public class Image : DisposableVulkanObject<VkImage>, ITexture2D {
 		Format = format;
 
 		Device = device;
-		buffer = new( device, VkBufferUsageFlags.TransferSrc );
 		Allocate(
 			new VkExtent2D { width = size.Width, height = size.Height },
 			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
@@ -42,67 +35,9 @@ public class Image : DisposableVulkanObject<VkImage>, ITexture2D {
 		return new ImageView( this, VkFormat.R8g8b8a8Unorm, VkImageAspectFlags.Color, 1 );
 	}
 
-	CommandBuffer Allocate ( Image<Rgba32> source, CommandPool pool ) {
-		var commands = pool.CreateCommandBuffer();
-		commands.Begin( VkCommandBufferUsageFlags.OneTimeSubmit );
-		Allocate( source, commands );
-		commands.Finish();
-
-		return commands;
-	}
-	public void AllocateAndTransfer ( Image<Rgba32> source, CommandPool pool, VkQueue queue ) {
-		var copy = Allocate( source, pool );
-		copy.Submit( queue );
-		Vk.vkQueueWaitIdle( queue );
-		pool.FreeCommandBuffer( copy );
-		FreeStagingBuffer();
-	}
-
 	VkImageLayout layout;
 	public uint MipMapLevels { get; private set; } = 0;
 	public VkSampleCountFlags Samples { get; private set; } = VkSampleCountFlags.None;
-	public unsafe void Allocate ( Image<Rgba32> source, CommandBuffer commands ) {
-		var format = VkFormat.R8g8b8a8Srgb;
-		var aspect = VkImageAspectFlags.Color;
-		var extent = new VkExtent2D( source.Width, source.Height );
-		Allocate(
-			extent, 
-			VkImageUsageFlags.TransferDst | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.Sampled,
-			format,
-			prepareForMipMaps: true
-		);
-
-		var length = (uint)source.Width * (uint)source.Height;
-		buffer.Allocate( length );
-
-		TransitionLayout( VkImageLayout.TransferDstOptimal, aspect, commands );
-
-		source.CopyPixelDataTo( buffer.GetDataSpan( source.Width * source.Height ) );
-		buffer.Unmap();
-		commands.Copy( buffer, Handle, new VkExtent3D {
-			width = extent.width,
-			height = extent.height,
-			depth = 1
-		} );
-
-		GenerateMipMaps( commands, aspect );
-	}
-	public unsafe void Transfer<TPixel> ( ReadOnlySpan<TPixel> data, CommandBuffer commands ) where TPixel : unmanaged {
-		var length = Size.width * Size.height;
-		buffer.Allocate( length * IBuffer<TPixel>.Stride );
-
-		TransitionLayout( VkImageLayout.TransferDstOptimal, VkImageAspectFlags.Color, commands ); // TODO also bad! (aspect)
-
-		data.CopyTo( MemoryMarshal.Cast<Rgba32, TPixel>( buffer.GetDataSpan( (int)length ) ) ); // TODO bad!
-		buffer.Unmap();
-		commands.Copy( buffer, Handle, new VkExtent3D {
-			width = Size.width,
-			height = Size.height,
-			depth = 1
-		} );
-
-		GenerateMipMaps( commands, VkImageAspectFlags.Color );
-	}
 	public unsafe void Allocate ( 
 		VkExtent2D size, VkImageUsageFlags usage, VkFormat format, 
 		VkImageAspectFlags aspect = VkImageAspectFlags.Color, VkImageTiling tiling = VkImageTiling.Optimal, 
@@ -293,11 +228,6 @@ public class Image : DisposableVulkanObject<VkImage>, ITexture2D {
 	public unsafe void Free () {
 		Vk.vkDestroyImage( Device, Instance, VulkanExtensions.TODO_Allocator );
 		Vk.vkFreeMemory( Device, memory, VulkanExtensions.TODO_Allocator );
-		FreeStagingBuffer();
-	}
-
-	public void FreeStagingBuffer () {
-		buffer.Dispose();
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {

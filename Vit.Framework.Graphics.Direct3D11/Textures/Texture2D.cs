@@ -1,17 +1,16 @@
-﻿using System.Diagnostics;
-using Vit.Framework.Graphics.Rendering.Textures;
+﻿using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
-using Vortice.DXGI;
 
 namespace Vit.Framework.Graphics.Direct3D11.Textures;
 
-public class Texture2D : DisposableObject, ITexture2D {
+public unsafe class Texture2D : DisposableObject, IDeviceTexture2D, IStagingTexture2D {
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 	public readonly ID3D11Texture2D Texture;
-	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat _format ) {
+	public Texture2D ( ID3D11Device device, Size2<uint> size, PixelFormat _format, bool isStaging ) {
 		Size = size;
 		Format = _format;
 		var format = Direct3D11Api.formats[_format];
@@ -26,17 +25,15 @@ public class Texture2D : DisposableObject, ITexture2D {
 				Count = 1,
 				Quality = 0
 			},
-			Usage = ResourceUsage.Dynamic,
-			BindFlags = BindFlags.ShaderResource,
-			CPUAccessFlags = CpuAccessFlags.Write
+			Usage = isStaging ? ResourceUsage.Staging : ResourceUsage.Default,
+			BindFlags = isStaging ? BindFlags.None : _format.Type == PixelType.Color ? BindFlags.ShaderResource | BindFlags.RenderTarget : BindFlags.DepthStencil,
+			CPUAccessFlags = isStaging ? CpuAccessFlags.Write : CpuAccessFlags.None
 		} );
-	}
 
-	public void Upload<TPixel> ( ReadOnlySpan<TPixel> data, ID3D11DeviceContext context ) where TPixel : unmanaged {
-		Debug.Assert( Format == PixelFormat.Rgba8 );
-		var map = context.Map<TPixel>( Texture, 0, 0, MapMode.WriteDiscard );
-		data.CopyTo( map );
-		context.Unmap( Texture, 0 );
+		if ( isStaging ) {
+			var map = device.ImmediateContext.Map<byte>( Texture, 0, 0, MapMode.Write );
+			data = map.Data();
+		}
 	}
 
 	public ITexture2DView CreateView () {
@@ -45,5 +42,10 @@ public class Texture2D : DisposableObject, ITexture2D {
 
 	protected override void Dispose ( bool disposing ) {
 		Texture.Dispose();
+	}
+
+	void* data;
+	public unsafe void* GetData () {
+		return data;
 	}
 }

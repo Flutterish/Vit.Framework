@@ -78,8 +78,12 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new HostBuffer<T>( Device, VkBufferUsageFlags.TransferSrc );
 	}
 
-	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
+	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Image( Device, size, format );
+	}
+
+	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format ) {
+		return new StagingImage( Device, size, format );
 	}
 
 	public ISampler CreateSampler () {
@@ -117,7 +121,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		Device.Dispose();
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		throw new NotImplementedException();
 	}
 }

@@ -2,12 +2,13 @@
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Textures;
 
-public class Texture : DisposableObject, ITexture2D, ITexture2DView {
+public class Texture : DisposableObject, IDeviceTexture2D, IStagingTexture2D, ITexture2DView {
 	public PixelFormat Format { get; }
 	public Size2<uint> Size => new( (uint)Image.Width, (uint)Image.Height );
 	public Image<Rgba32> Image { get; }
@@ -30,5 +31,10 @@ public class Texture : DisposableObject, ITexture2D, ITexture2DView {
 		return this;
 	}
 
-	public ITexture2D Source => this;
+	public IDeviceTexture2D Source => this;
+
+	public unsafe void* GetData () {
+		Image.DangerousTryGetSinglePixelMemory( out var data );
+		return data.Span.Data();
+	}
 }

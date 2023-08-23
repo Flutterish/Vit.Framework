@@ -33,12 +33,13 @@ public interface ICommandBuffer {
 	}
 
 	/// <summary>
-	/// Uploads data to a texture.
+	/// Copies data from one texture to another.
 	/// </summary>
-	/// <typeparam name="TPixel">The type of pixel to upload</typeparam>
-	/// <param name="texture">The texture to upload to.</param>
-	/// <param name="data">The image data to upload.</param>
-	void UploadTextureData<TPixel> ( ITexture2D texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
+	/// <param name="source">The source texture.</param>
+	/// <param name="destination">The destination texture.</param>
+	/// <param name="sourceRect">The rectangle to copy from source in pixels.</param>
+	/// <param name="destinationOffset">The offset into the destination in pixels.</param>
+	void CopyTexture ( ITexture2D source, ITexture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset );
 
 	/// <summary>
 	/// Copies data from one buffer to another.
@@ -211,10 +212,10 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	public abstract void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 
-	public void UploadTextureData<TPixel> ( ITexture2D texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged {
-		UploadTextureData( (TTexture)texture, data );
+	protected abstract void CopyTexture ( TTexture source, TTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset );
+	public void CopyTexture ( ITexture2D source, ITexture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		CopyTexture( (TTexture)source, (TTexture)destination, sourceRect, destinationOffset );
 	}
-	protected abstract void UploadTextureData<TPixel> ( TTexture texture, ReadOnlySpan<TPixel> data ) where TPixel : unmanaged;
 
 	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;
 

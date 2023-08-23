@@ -5,7 +5,7 @@ namespace Vit.Framework.Graphics.OpenGl.Textures;
 
 public class Texture2DView : DisposableObject, ITexture2DView {
 	public readonly int Handle;
-	public ITexture2D Source { get; }
+	public IDeviceTexture2D Source { get; }
 	public Texture2DView ( Texture2DStorage source ) {
 		var format = OpenGlApi.internalFormats[source.Format];
 		Source = source;

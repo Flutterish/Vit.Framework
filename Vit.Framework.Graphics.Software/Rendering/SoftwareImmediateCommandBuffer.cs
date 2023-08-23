@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
@@ -31,8 +32,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( Texture texture, ReadOnlySpan<TPixel> data ) {
-		MemoryMarshal.Cast<TPixel,byte>( data ).CopyTo( MemoryMarshal.Cast<Rgba32, byte>( texture.AsSpan() ) );
+	protected override void CopyTexture ( Texture source, Texture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		((IStagingTexture2D)destination).Upload<Rgba32>( source.Memory.Span, source.Size, sourceRect, destinationOffset );
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {

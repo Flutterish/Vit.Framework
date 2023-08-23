@@ -44,10 +44,12 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return new Buffer<T>();
 	}
 
-	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
+	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {
 		return new Texture( size, format );
 	}
-
+	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format ) {
+		return new Texture( size, format );
+	}
 	public ISampler CreateSampler () {
 		return new Sampler();
 	}
@@ -57,7 +59,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 		return commandBuffer;
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		throw new NotImplementedException();
 	}
 }

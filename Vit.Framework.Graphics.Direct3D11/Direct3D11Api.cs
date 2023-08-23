@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vortice.Direct3D11;
 using Vortice.DXGI;
 
 namespace Vit.Framework.Graphics.Direct3D11;

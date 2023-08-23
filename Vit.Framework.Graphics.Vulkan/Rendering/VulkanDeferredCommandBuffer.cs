@@ -1,16 +1,18 @@
 ﻿using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Shaders;
 using Vit.Framework.Graphics.Vulkan.Textures;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vulkan;
 using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
 
-public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, FrameBuffer, Image, ShaderSet>, IDeferredCommandBuffer {
+public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, FrameBuffer, IVulkanTexture, ShaderSet>, IDeferredCommandBuffer {
 	public readonly CommandBuffer Buffer;
 	public VulkanDeferredCommandBuffer ( CommandBuffer buffer, VulkanRenderer renderer ) : base( renderer ) {
 		Buffer = buffer;
@@ -40,8 +42,44 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( Image texture, ReadOnlySpan<TPixel> data ) {
-		texture.Transfer( data, Buffer );
+	protected override unsafe void CopyTexture ( IVulkanTexture source, IVulkanTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		Debug.Assert( source.Format == PixelFormat.Rgba8 );
+		Debug.Assert( destination.Format == PixelFormat.Rgba8 );
+
+		switch ((source.Type, destination.Type)) {
+			case (VulkanTextureType.Buffer, VulkanTextureType.Image):
+				var src = (StagingImage)source;
+				var dst = (Image)destination;
+
+				dst.TransitionLayout( VkImageLayout.TransferDstOptimal, VkImageAspectFlags.Color, Buffer ); // TODO also bad! (aspect)
+				var region = new VkBufferImageCopy() {
+					bufferOffset = sizeof(byte) * 4 * (sourceRect.MinX + sourceRect.MinY * source.Size.Width),
+					bufferRowLength = source.Size.Width,
+					bufferImageHeight = source.Size.Height,
+					imageSubresource = {
+						aspectMask = VkImageAspectFlags.Color,
+						mipLevel = 0,
+						baseArrayLayer = 0,
+						layerCount = 1
+					},
+					imageOffset = {
+						x = (int)destinationOffset.X,
+						y = (int)destinationOffset.Y
+					},
+					imageExtent = {
+						width = sourceRect.Width,
+						height = sourceRect.Height,
+						depth = 1
+					}
+				};
+
+				Vk.vkCmdCopyBufferToImage( Buffer, src, dst, VkImageLayout.TransferDstOptimal, 1, &region );
+				dst.TransitionLayout( VkImageLayout.ShaderReadOnlyOptimal, VkImageAspectFlags.Color, Buffer );
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {

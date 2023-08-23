@@ -81,11 +81,10 @@ public class WindowSwapchain : DisposableObject, ISwapchain {
 		ToScreenRenderPass.Dispose();
 	}
 
-	public Size2<uint> BackbufferSize { get; private set; }
+	public Size2<uint> BackbufferSize => (swapchain.Size.width, swapchain.Size.height);
 	public void Recreate () {
 		swapchain.Device.WaitIdle(); // TODO bad?
-		BackbufferSize = Window.PixelSize;
-		swapchain.Recreate( BackbufferSize );
+		swapchain.Recreate( Window.PixelSize );
 	}
 
 	public IFramebuffer? GetNextFrame ( out int frameIndex ) {

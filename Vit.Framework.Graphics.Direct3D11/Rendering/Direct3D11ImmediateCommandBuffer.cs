@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -29,8 +30,14 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( Texture2D texture, ReadOnlySpan<TPixel> data ) {
-		texture.Upload( data, Context );
+	protected override void CopyTexture ( Texture2D source, Texture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		Context.CopySubresourceRegion( destination.Texture, 0, (int)destinationOffset.X, (int)destinationOffset.Y, 0, source.Texture, 0, new() {
+			Left = (int)sourceRect.MinX,
+			Right = (int)sourceRect.MaxX,
+			Top = (int)sourceRect.MinY,
+			Bottom = (int)sourceRect.MaxY,
+			Back = 1
+		} );
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {
@@ -40,8 +47,8 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		Context.CopySubresourceRegion( dst.Handle, 0, (int)destinationOffset, 0, 0, src.Handle, 0, new() {
 			Left = (int)sourceOffset,
 			Right = (int)(sourceOffset + length),
-			Back = 1,
-			Bottom = 1
+			Bottom = 1,
+			Back = 1
 		} );
 	}
 

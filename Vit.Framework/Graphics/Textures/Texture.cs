@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Textures;
@@ -13,7 +14,8 @@ public class Texture : DisposableObject {
 	/// <summary>
 	/// The underlying texture - guaranteed to be set on the draw thread.
 	/// </summary>
-	public ITexture2D Value = null!;
+	public IDeviceTexture2D Value = null!;
+	IStagingTexture2D stagingTexture = null!;
 	public ITexture2DView View = null!;
 	public ISampler Sampler = null!;
 
@@ -21,19 +23,9 @@ public class Texture : DisposableObject {
 		if ( data == null )
 			return;
 
-		if ( Value == null ) {
-			Value = renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
-			View = Value.CreateView();
-			Sampler = renderer.CreateSampler();
-		}
-
 		using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
-			data.DangerousTryGetSinglePixelMemory( out var memory );
-			copy.UploadTextureData<Rgba32>( Value, memory.Span );
+			Update( copy );
 		}
-
-		data.Dispose();
-		data = null;
 	}
 
 	public void Update ( ICommandBuffer commands ) {
@@ -41,19 +33,24 @@ public class Texture : DisposableObject {
 			return;
 
 		if ( Value == null ) {
-			Value = commands.Renderer.CreateTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
+			Value = commands.Renderer.CreateDeviceTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
 			View = Value.CreateView();
 			Sampler = commands.Renderer.CreateSampler();
 		}
 
 		data.DangerousTryGetSinglePixelMemory( out var memory );
-		commands.UploadTextureData<Rgba32>( Value, memory.Span );
+		stagingTexture?.Dispose(); // TODO delete this buffer after upload is complete
+		stagingTexture = commands.Renderer.CreateStagingTexture( Value.Size, Value.Format );
+		stagingTexture.Upload<Rgba32>( memory.Span );
+		Size2<uint> size = ((uint)data.Width, (uint)data.Height);
+		commands.CopyTexture( stagingTexture, Value, size, (0,0) );
 
 		data.Dispose();
 		data = null;
 	}
 
 	protected override void Dispose ( bool disposing ) {
+		stagingTexture?.Dispose();
 		Sampler?.Dispose();
 		View?.Dispose();
 		Value?.Dispose();

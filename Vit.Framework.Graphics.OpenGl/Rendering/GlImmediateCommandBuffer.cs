@@ -4,11 +4,12 @@ using Vit.Framework.Graphics.OpenGl.Shaders;
 using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
-public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, Texture2DStorage, ShaderProgram>, IImmediateCommandBuffer {
+public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, IGlTexture2D, ShaderProgram>, IImmediateCommandBuffer {
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
 
 	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
@@ -24,8 +25,25 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		} );
 	}
 
-	protected override void UploadTextureData<TPixel> ( Texture2DStorage texture, ReadOnlySpan<TPixel> data ) {
-		texture.Upload( data );
+	protected override void CopyTexture ( IGlTexture2D source, IGlTexture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
+		Debug.Assert( source.Format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
+		Debug.Assert( destination.Format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
+
+		switch ( (source.Type, destination.Type) ) {
+			case (GlTextureType.PixelBuffer, GlTextureType.Storage):
+				var src = (PixelBuffer)source;
+				var dst = (Texture2DStorage)destination;
+
+				GL.BindBuffer( BufferTarget.PixelUnpackBuffer, src.Handle );
+				GL.PixelStore( PixelStoreParameter.UnpackRowLength, (int)src.Size.Width );
+				nint offset = (nint)(sizeof( byte ) * 4 * ( sourceRect.MinX + sourceRect.MinY * source.Size.Width ));
+				GL.TextureSubImage2D( dst.Handle, 0, (int)destinationOffset.X, (int)destinationOffset.Y, (int)sourceRect.Width, (int)sourceRect.Height, PixelFormat.Rgba, PixelType.UnsignedByte, offset );
+				GL.BindBuffer( BufferTarget.PixelUnpackBuffer, 0 );
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
 	}
 
 	public override void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 ) {

@@ -27,9 +27,10 @@ public interface IRenderer : IDisposable {
 	IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged;
 	IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged; // TODO also add non-mutable buffers
 
-	ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format );
+	IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format );
+	IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format );
 	ISampler CreateSampler ();
-	IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null );
+	IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
 }

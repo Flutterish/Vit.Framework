@@ -9,6 +9,7 @@ using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
+using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -41,15 +42,13 @@ public class Test06_Framebuffers : GenericRenderThread {
 	StagedDeviceBuffer<uint> indices2 = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	IHostBuffer<Uniforms> uniformBuffer2 = null!;
-	ITexture2D texture = null!;
-	ITexture2DView view = null!;
-	ISampler sampler = null!;
+	Texture texture = null!;
 	IUniformSet uniformSet = null!;
 	IUniformSet uniformSet2 = null!;
 
-	ITexture2D framebufferTexture = null!;
+	IDeviceTexture2D framebufferTexture = null!;
 	ITexture2DView framebufferTextureView = null!;
-	ITexture2D framebufferDepthTexture = null!;
+	IDeviceTexture2D framebufferDepthTexture = null!;
 	IFramebuffer framebuffer = null!;
 
 	protected override bool Initialize () {
@@ -92,9 +91,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 		uniformBuffer2 = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
-		texture = Renderer.CreateTexture( new( (uint)image.Size.Width, (uint)image.Size.Height ), PixelFormat.Rgba8 );
-		view = texture.CreateView();
-		sampler = Renderer.CreateSampler();
+		texture = new( image );
 
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
 		positions.Allocate( (uint)model.Vertices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
@@ -106,7 +103,6 @@ public class Test06_Framebuffers : GenericRenderThread {
 
 		uniformSet = shaderSet.CreateUniformSet();
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
-		uniformSet.SetSampler( view, sampler, binding: 1 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, model.Vertices.Select( x => new Vertex {
 				Position = x.Position.XYZ,
@@ -114,9 +110,8 @@ public class Test06_Framebuffers : GenericRenderThread {
 			} ).ToArray() );
 			indices.Upload( commands, model.Indices.AsSpan() );
 
-			if ( !image.DangerousTryGetSinglePixelMemory( out var memory ) )
-				throw new Exception( "Oops, cant load image" );
-			commands.UploadTextureData<Rgba32>( texture, memory.Span );
+			texture.Update( commands );
+			uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );
 
 			positions2.Upload( commands, new Vertex[] {
 				new() { Position = (-0.9f, -0.9f, 0), UV = (0, 0) },
@@ -130,14 +125,14 @@ public class Test06_Framebuffers : GenericRenderThread {
 			} );
 		}
 
-		framebufferTexture = Renderer.CreateTexture( (256, 256), PixelFormat.Rgba8 );
+		framebufferTexture = Renderer.CreateDeviceTexture( (256, 256), PixelFormat.Rgba8 );
 		framebufferTextureView = framebufferTexture.CreateView();
-		framebufferDepthTexture = Renderer.CreateTexture( (256, 256), PixelFormat.D24S8ui );
+		framebufferDepthTexture = Renderer.CreateDeviceTexture( (256, 256), PixelFormat.D24S8ui );
 		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTextureView }, framebufferDepthTexture );
 
 		uniformSet2 = shaderSet.CreateUniformSet();
 		uniformSet2.SetUniformBuffer( uniformBuffer2, binding: 0 );
-		uniformSet2.SetSampler( framebufferTextureView, sampler, binding: 1 );
+		uniformSet2.SetSampler( framebufferTextureView, texture.Sampler, binding: 1 );
 		return true;
 	}
 
@@ -199,8 +194,6 @@ public class Test06_Framebuffers : GenericRenderThread {
 		positions2.Dispose();
 		uniformBuffer.Dispose();
 		uniformBuffer2.Dispose();
-		sampler.Dispose();
-		view.Dispose();
 		texture.Dispose();
 		uniformSet.Dispose();
 		uniformSet2.Dispose();

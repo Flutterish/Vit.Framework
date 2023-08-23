@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Vit.Framework.Graphics.Rendering.Textures;
+﻿namespace Vit.Framework.Graphics.Rendering.Textures;
 
 /// <summary>
 /// Specifies how texels are stored. It does not, however, specify how they are interpreted by a shader or displayed.

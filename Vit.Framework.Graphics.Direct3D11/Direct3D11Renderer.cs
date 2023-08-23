@@ -74,15 +74,19 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new StagingBuffer<T>( Device, Context );
 	}
 
-	public ITexture2D CreateTexture ( Size2<uint> size, PixelFormat format ) {
-		return new Texture2D( Device, size, format );
+	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {
+		return new Texture2D( Device, size, format, isStaging: false );
+	}
+
+	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format ) {
+		return new Texture2D( Device, size, format, isStaging: true );
 	}
 
 	public ISampler CreateSampler () {
 		return new SamplerState( Device );
 	}
 
-	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, ITexture2D? depthStencilAttachment = null ) {
+	public IFramebuffer CreateFramebuffer ( IEnumerable<ITexture2DView> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
 		throw new NotImplementedException();
 		return new TargetView( attachments.Select( x => ((Texture2DView)x).ResourceView.Resource ), ((Texture2D?)depthStencilAttachment)?.Texture );
 	}

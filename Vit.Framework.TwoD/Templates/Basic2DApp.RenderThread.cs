@@ -6,7 +6,6 @@ using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.TwoD.Rendering;

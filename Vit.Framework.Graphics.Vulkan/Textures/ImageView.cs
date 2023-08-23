@@ -5,7 +5,7 @@ namespace Vit.Framework.Graphics.Vulkan.Textures;
 
 public class ImageView : DisposableVulkanObject<VkImageView>, ITexture2DView {
 	public Device Device => ((Image)Source).Device;
-	public ITexture2D Source { get; }
+	public IDeviceTexture2D Source { get; }
 	public unsafe ImageView ( Image source, VkFormat format, VkImageAspectFlags aspect, uint mipMapLevels ) {
 		Source = source;
 

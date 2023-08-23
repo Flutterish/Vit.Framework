@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 

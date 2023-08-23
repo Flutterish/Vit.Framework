@@ -1,11 +1,9 @@
 ﻿using Vit.Framework.Graphics.Curses;
-using Vit.Framework.Graphics.Direct3D11;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
-using Vit.Framework.Tests.VisualTests;
 using Vit.Framework.Threading;
 using Vit.Framework.Windowing;
 using Vit.Framework.Windowing.Console;
@@ -38,9 +36,9 @@ public partial class Program : App {
 	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
 			//CursesApi.GraphicsApiType,
-			Direct3D11Api.GraphicsApiType,
+			//Direct3D11Api.GraphicsApiType,
 			//VulkanApi.GraphicsApiType,
-			//OpenGlApi.GraphicsApiType
+			OpenGlApi.GraphicsApiType
 		};
 
 		using Host host = new SdlHost( this );
@@ -62,7 +60,7 @@ public partial class Program : App {
 
 			window.Title = $"Window {Letters[i]} [{api}]";
 			var graphicsApi = windowHost.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
-			ThreadRunner.RegisterThread( new Test06_Framebuffers( window, windowHost, window.Title, graphicsApi ) );
+			ThreadRunner.RegisterThread( new Test05_Depth( window, windowHost, window.Title, graphicsApi ) );
 			windows.Add( window );
 		}
 
