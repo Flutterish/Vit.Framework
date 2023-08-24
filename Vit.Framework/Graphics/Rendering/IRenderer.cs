@@ -24,7 +24,7 @@ public interface IRenderer : IDisposable {
 	Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T>;
 
 	/// <summary>
-	/// Creates a matrix such that (-1, -1) is mapped to (0, 0) of a texture, (1, 1) to (1, 1) of a texture.
+	/// Creates a matrix such that (-1, -1) is mapped to (0, 0) of a framebuffer texture, (1, 1) to (1, 1) of a framebuffer texture.
 	/// </summary>
 	Matrix4<T> CreateUvCorrectionMatrix<T> () where T : INumber<T>;
 
