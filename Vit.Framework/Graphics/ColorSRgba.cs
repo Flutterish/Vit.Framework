@@ -6,6 +6,7 @@ namespace Vit.Framework.Graphics;
 /// A color represented in the standard RGB model (sRGB, gamma = 2.2) with a <b>premultiplied alpha</b> component.
 /// </summary>
 /// <remarks>
+/// Note that this type should not be used with floationg-point numbers for storage, as they negate the benefits of this format.<br/>
 /// The RBG values are linear in perceived brightness. <br/>
 /// See: <see href="https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients"/>
 /// </remarks>
