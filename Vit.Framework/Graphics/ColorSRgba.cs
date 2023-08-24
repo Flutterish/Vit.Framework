@@ -225,6 +225,16 @@ public static class ColorSRgba {
 		=> color.ToLinear().WithOpacity( alpha ).ToSRgb();
 
 	const decimal Gamma = 2.2m;
+	internal static readonly byte[] toLinearGammaLookup;
+	internal static readonly byte[] toSRgbGammaLookup;
+	static ColorSRgba () {
+		toLinearGammaLookup = new byte[256];
+		toSRgbGammaLookup = new byte[256];
+		for ( int i = 0; i < 256; i++ ) {
+			toLinearGammaLookup[i] = (byte)(double.Pow( ((double)i) / 255, 1 / (double)Gamma ) * 255);
+			toSRgbGammaLookup[i] = (byte)(double.Pow( ((double)i) / 255, (double)Gamma ) * 255);
+		}
+	}
 	public static ColorRgba<T> ToLinear<T> ( this ColorSRgba<T> color ) where T : IFloatingPointIeee754<T> {
 		T gamma = T.CreateSaturating( 1 / Gamma );
 		return new() {
@@ -240,6 +250,23 @@ public static class ColorSRgba {
 			R = T.Pow( color.R, gamma ),
 			G = T.Pow( color.G, gamma ),
 			B = T.Pow( color.B, gamma ),
+			A = color.A
+		};
+	}
+
+	public static ColorRgba<byte> ToLinear ( this ColorSRgba<byte> color ) {
+		return new() {
+			R = toLinearGammaLookup[color.R],
+			G = toLinearGammaLookup[color.G],
+			B = toLinearGammaLookup[color.B],
+			A = color.A
+		};
+	}
+	public static ColorSRgba<byte> ToSRgb ( this ColorRgba<byte> color ) {
+		return new() {
+			R = toSRgbGammaLookup[color.R],
+			G = toSRgbGammaLookup[color.G],
+			B = toSRgbGammaLookup[color.B],
 			A = color.A
 		};
 	}

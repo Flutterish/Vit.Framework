@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
@@ -39,8 +40,13 @@ public class Texture : DisposableObject {
 		}
 
 		data.DangerousTryGetSinglePixelMemory( out var memory );
+		// TODO detect if image is premultiplied
+		// TODO detect image gamma
 		stagingTexture?.Dispose(); // TODO delete this buffer after upload is complete
 		stagingTexture = commands.Renderer.CreateStagingTexture( Value.Size, Value.Format );
+		foreach ( ref var i in memory.Span ) {
+			i = i.BitCast<Rgba32, ColorRgba<byte>>().ToSRgb().BitCast<ColorSRgba<byte>, Rgba32>();
+		}
 		stagingTexture.Upload<Rgba32>( memory.Span );
 		Size2<uint> size = ((uint)data.Width, (uint)data.Height);
 		commands.CopyTexture( stagingTexture, Value, size, (0,0) );

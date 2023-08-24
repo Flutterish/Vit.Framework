@@ -227,6 +227,20 @@ public static class ColorSRgb {
 			B = T.Pow( color.B, gamma )
 		};
 	}
+	public static ColorRgb<byte> ToLinear ( this ColorSRgb<byte> color ) {
+		return new() {
+			R = ColorSRgba.toLinearGammaLookup[color.R],
+			G = ColorSRgba.toLinearGammaLookup[color.G],
+			B = ColorSRgba.toLinearGammaLookup[color.B]
+		};
+	}
+	public static ColorSRgb<byte> ToSRgb ( this ColorRgb<byte> color ) {
+		return new() {
+			R = ColorSRgba.toSRgbGammaLookup[color.R],
+			G = ColorSRgba.toSRgbGammaLookup[color.G],
+			B = ColorSRgba.toSRgbGammaLookup[color.B]
+		};
+	}
 
 	public static ColorSRgb<T> Interpolate<T, TTime> ( this ColorSRgb<T> from, ColorSRgb<T> to, TTime time ) where T : INumber<T>, IFloatingPointIeee754<T> where TTime : INumber<TTime>, IMultiplyOperators<TTime, T, T> {
 		return from.ToLinear().Interpolate( to.ToLinear(), time ).ToSRgb();
