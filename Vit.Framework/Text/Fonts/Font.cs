@@ -18,6 +18,17 @@ public abstract class Font {
 		return glyph;
 	}
 
+	public Glyph GetGlyph ( ReadOnlyMemory<char> glyphVector ) { // TODO this should be the actual selector, not rune
+		if ( glyphVector.Length == 1 ) {
+			return GetGlyph( glyphVector.Span[0] );
+		}
+		else if ( glyphVector.Length == 2 ) {
+			return GetGlyph( new Rune( glyphVector.Span[0], glyphVector.Span[1] ) );
+		}
+		else {
+			return GetGlyph( '\0' );
+		}
+	}
 	public Glyph GetGlyph ( char character ) => GetGlyph( new Rune(character) );
 	public Glyph GetGlyph ( Rune rune ) {
 		if ( !GlyphsByRune.TryGetValue( rune, out var set ) ) {

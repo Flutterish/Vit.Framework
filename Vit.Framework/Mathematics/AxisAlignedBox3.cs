@@ -58,6 +58,24 @@ public struct AxisAlignedBox3<T> where T : INumber<T> {
 	
 	public static implicit operator AxisAlignedBox3<T> ( Size3<T> size ) => new( size );
 	
+	public static AxisAlignedBox3<T> operator + ( AxisAlignedBox3<T> left, Vector3<T> right ) => new() {
+		MinX = left.MinX + right.X,
+		MinY = left.MinY + right.Y,
+		MinZ = left.MinZ + right.Z,
+		MaxX = left.MaxX + right.X,
+		MaxY = left.MaxY + right.Y,
+		MaxZ = left.MaxZ + right.Z
+	};
+	
+	public static AxisAlignedBox3<T> operator - ( AxisAlignedBox3<T> left, Vector3<T> right ) => new() {
+		MinX = left.MinX - right.X,
+		MinY = left.MinY - right.Y,
+		MinZ = left.MinZ - right.Z,
+		MaxX = left.MaxX - right.X,
+		MaxY = left.MaxY - right.Y,
+		MaxZ = left.MaxZ - right.Z
+	};
+	
 	public override string ToString () {
 		return $"{Size} at {Position}";
 	}

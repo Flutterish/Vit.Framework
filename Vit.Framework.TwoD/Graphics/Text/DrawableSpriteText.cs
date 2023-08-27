@@ -8,36 +8,14 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
+using Vit.Framework.Text.Layout;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public class DrawableSpriteText : Drawable { // TODO this is a scam and is actually just a bunch of vertices
-	Font font = null!;
-	public Font Font {
-		get => font;
-		set {
-			if ( value.TrySet( ref font ) )
-				invalidateFontMesh();
-		}
-	}
-	float fontSize = 16;
-	public float FontSize {
-		get => fontSize;
-		set {
-			if ( value.TrySet( ref fontSize ) )
-				InvalidateDrawNodes();
-		}
-	}
-	string text = string.Empty;
-	public string Text {
-		get => text;
-		set {
-			if ( value.TrySet( ref text ) )
-				invalidateFontMesh();
-		}
-	}
+public class DrawableSpriteText : DrawableText { // TODO this is a scam and is actually just a bunch of vertices
 	ColorRgba<float> tint = ColorRgba.Black;
 	public ColorRgba<float> Tint {
 		get => tint;
@@ -49,14 +27,14 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 	public AxisAlignedBox2<float> CalculateBoundingBox () {
 		var advance = Vector2<float>.Zero; // in font units
-		foreach ( var rune in text.EnumerateRunes() ) {
-			var glyph = font.GetGlyph( rune );
+		foreach ( var rune in Text.EnumerateRunes() ) {
+			var glyph = Font.GetGlyph( rune );
 			advance.X += (float)glyph.HorizontalAdvance;
 		}
 
-		advance = advance * fontSize / (float)font.UnitsPerEm;
+		advance = advance * FontSize / (float)Font.UnitsPerEm;
 
-		return new Size2<float>( advance.X, fontSize );
+		return new Size2<float>( advance.X, FontSize );
 	}
 
 	public AxisAlignedBox2<float> CalculateBoundingBox ( int startIndex, int length ) {
@@ -65,7 +43,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 		var advance = Vector2<float>.Zero; // in font units
 		int index = 0;
-		foreach ( var rune in text.EnumerateRunes() ) {
+		foreach ( var rune in Text.EnumerateRunes() ) {
 			if ( index == startIndex ) {
 				start = advance;
 			}
@@ -74,7 +52,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 				goto end;
 			}
 
-			var glyph = font.GetGlyph( rune );
+			var glyph = Font.GetGlyph( rune );
 			advance.X += (float)glyph.HorizontalAdvance;
 			index++;
 		}
@@ -87,12 +65,12 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			end = advance;
 		}
 
-		var startValue = start.Value * fontSize / (float)font.UnitsPerEm;
-		var endValue = end.Value * fontSize / (float)font.UnitsPerEm;
+		var startValue = start.Value * FontSize / (float)Font.UnitsPerEm;
+		var endValue = end.Value * FontSize / (float)Font.UnitsPerEm;
 
 		return new AxisAlignedBox2<float> {
 			MinY = 0,
-			MaxY = fontSize,
+			MaxY = FontSize,
 			MinX = float.Min( startValue.X, endValue.X ),
 			MaxX = float.Max( startValue.X, endValue.X )
 		};
@@ -111,7 +89,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			Fragment = BasicFragmentShader.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
-		font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
+		Font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
 	}
 
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
@@ -131,12 +109,6 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		public ColorSRgba<float> Tint;
 	}
 
-	void invalidateFontMesh () {
-		textMesh.Invalidate();
-		InvalidateDrawNodes();
-	}
-	SharedResourceInvalidations textMesh;
-
 	IUniformSet? uniformSet;
 	StagedDeviceBuffer<uint>? indices;
 	StagedDeviceBuffer<Vertex>? vertices;
@@ -152,25 +124,17 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		uniforms?.Dispose();
 	}
 
-	public class DrawNode : DrawableDrawNode<DrawableSpriteText> {
+	public class DrawNode : TextDrawNode<DrawableSpriteText> {
 		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		SharedResourceUpload textMeshUpload;
 		Shader shader = null!;
 		Texture texture = null!;
-		Font font = null!;
-		string text = null!;
-		float size;
 		ColorSRgba<float> tint;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
-			font = Source.Font;
-			text = Source.Text;
-			size = Source.FontSize / (float)font.UnitsPerEm;
 			tint = Source.Tint.ToSRgb();
-			textMeshUpload = Source.textMesh.GetUpload();
 		}
 
 		void updateTextMesh ( IRenderer renderer ) {
@@ -191,9 +155,13 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			List<Vertex> verticesList = new();
 			List<uint> indicesList = new();
 
-			var advance = Vector2<float>.Zero;
-			foreach ( var rune in text.EnumerateRunes() ) {
-				var glyph = font.GetGlyph( rune );
+			using var layout = new RentedArray<GlyphMetric>( SingleLineTextLayoutEngine.GetBufferLengthFor( Text ) );
+			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var bounds );
+
+			foreach ( var i in layout.AsSpan( 0, glyphCount ) ) {
+				var glyph = Font.GetGlyph( i.GlyphVector );
+				var advance = i.Anchor.Cast<float>().FromOrigin();
+
 				foreach ( var spline in glyph.Outline.Splines ) {
 					uint? _anchor = null;
 					uint? _last = null;
@@ -215,8 +183,6 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 						_last = index;
 					}
 				}
-
-				advance.X += (float)glyph.HorizontalAdvance;
 			}
 
 			Source.indexCount = indicesList.Count;
@@ -247,7 +213,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 
 			var renderer = commands.Renderer;
 
-			if ( textMeshUpload.Validate( ref Source.textMesh ) )
+			if ( ValidateLayout() )
 				updateTextMesh( renderer );
 			if ( Source.indexCount == 0 )
 				return;
@@ -258,7 +224,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 			commands.BindVertexBuffer( vertices!.DeviceBuffer );
 			commands.BindIndexBuffer( indices!.DeviceBuffer );
 			uniforms!.UploadUniform( new Uniforms {
-				Matrix = new( Matrix3<float>.CreateScale( size, size ) * UnitToGlobalMatrix ),
+				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix ),
 				Tint = tint
 			} );
 

@@ -4,6 +4,7 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 	protected override string Namespace => "Vit.Framework.Mathematics";
 
 	PointTemplate pointType = new() { Path = string.Empty };
+	VectorTemplate vectorType = new() { Path = string.Empty };
 	SizeTemplate sizeType = new() { Path = string.Empty };
 
 	public override string GetTypeName ( int size ) {
@@ -97,6 +98,27 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 
 		sb.AppendLine();
 		sb.AppendLine( $"public static implicit operator {type} ( {sizeType.GetFullTypeName( size )} size ) => new( size );" );
+
+		var vectorTypeName = vectorType.GetFullTypeName( size );
+		sb.AppendLine();
+		sb.AppendLine( $"public static {type} operator + ( {type} left, {vectorTypeName} right ) => new() {{" );
+		using ( sb.Indent() )
+			sb.AppendLinePostJoin( ",", elements.Select( x => $"Min{pointType.AxisNames[x]} = left.Min{pointType.AxisNames[x]} + right.{vectorType.AxisNames[x]}" ) );
+		sb.AppendLine( "," );
+		using ( sb.Indent() )
+			sb.AppendLinePostJoin( ",", elements.Select( x => $"Max{pointType.AxisNames[x]} = left.Max{pointType.AxisNames[x]} + right.{vectorType.AxisNames[x]}" ) );
+		sb.AppendLine();
+		sb.AppendLine( "};" );
+
+		sb.AppendLine();
+		sb.AppendLine( $"public static {type} operator - ( {type} left, {vectorTypeName} right ) => new() {{" );
+		using ( sb.Indent() )
+			sb.AppendLinePostJoin( ",", elements.Select( x => $"Min{pointType.AxisNames[x]} = left.Min{pointType.AxisNames[x]} - right.{vectorType.AxisNames[x]}" ) );
+		sb.AppendLine( "," );
+		using ( sb.Indent() )
+			sb.AppendLinePostJoin( ",", elements.Select( x => $"Max{pointType.AxisNames[x]} = left.Max{pointType.AxisNames[x]} - right.{vectorType.AxisNames[x]}" ) );
+		sb.AppendLine();
+		sb.AppendLine( "};" );
 
 		sb.AppendLine();
 		sb.AppendLine( "public override string ToString () {" );
