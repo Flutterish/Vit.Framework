@@ -60,6 +60,11 @@ public abstract partial class Basic2DApp<TRoot> {
 			ShaderStore.CompileNew( Renderer );
 			TextureStore.UploadNew( Renderer );
 
+			var updateThread = Dependencies.Resolve<UpdateThread>();
+			updateThread.Scheduler.Enqueue( () => {
+				updateThread.Renderer = Renderer;
+			} );
+
 			return true;
 		}
 

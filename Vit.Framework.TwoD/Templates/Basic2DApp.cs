@@ -76,6 +76,8 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		MainUpdateThread = CreateUpdateThread();
 		MainRenderThread = CreateRenderThread();
+		Dependencies.Cache<UpdateThread>( MainUpdateThread );
+		Dependencies.Cache<RenderThread>( MainRenderThread );
 
 		Dependencies.Cache( new FpsCounter.FpsCounterData(
 			("TPS", MainUpdateThread.UpdateCounter),

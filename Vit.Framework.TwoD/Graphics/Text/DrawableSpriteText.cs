@@ -114,7 +114,7 @@ public class DrawableSpriteText : Drawable { // TODO this is a scam and is actua
 		font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
 	}
 
-	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
+	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 

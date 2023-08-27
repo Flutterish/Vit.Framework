@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Rendering;
@@ -194,13 +195,13 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
-	public override Rendering.DrawNode GetDrawNode ( int subtreeIndex ) {
+	public override Rendering.DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) {
 		if ( internalChildren.Count == 1 ) {
 			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
-			return internalChildren[0].GetDrawNode( subtreeIndex );
+			return internalChildren[0].GetDrawNode<TRenderer>( subtreeIndex );
 		}
 
-		var node = drawNodes[subtreeIndex] ??= new DrawNode( this, subtreeIndex );
+		var node = drawNodes[subtreeIndex] ??= new DrawNode<TRenderer>( this, subtreeIndex );
 		node.Update();
 		return node;
 	}
@@ -211,7 +212,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
-	public class DrawNode : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode> {
+	public class DrawNode<TRenderer> : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode, TRenderer> where TRenderer : IRenderer {
 		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override bool ValidateChildList () {

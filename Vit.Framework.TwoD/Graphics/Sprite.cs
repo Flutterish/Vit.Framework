@@ -138,7 +138,7 @@ public class Sprite : Drawable {
 		drawDependencies.UniformAllocator.Free( uniforms );
 	}
 
-	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
+	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 

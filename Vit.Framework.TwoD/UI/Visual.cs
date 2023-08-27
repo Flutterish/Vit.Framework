@@ -41,8 +41,8 @@ public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
 		Displayed.Dispose();
 	}
 
-	public override DrawNode GetDrawNode ( int subtreeIndex ) {
-		return Displayed.GetDrawNode( subtreeIndex );
+	public override DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) {
+		return Displayed.GetDrawNode<TRenderer>( subtreeIndex );
 	}
 
 	public override void DisposeDrawNodes () { }

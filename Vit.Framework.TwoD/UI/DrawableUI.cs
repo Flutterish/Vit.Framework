@@ -36,8 +36,8 @@ public class DrawableUI : Drawable {
 		root.Dispose();
 	}
 
-	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
-		return root.GetDrawNode( subtreeIndex );
+	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+		return root.GetDrawNode<TRenderer>( subtreeIndex );
 	}
 
 	class RootUIComponent : CompositeUIComponent<UIComponent> {

@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
@@ -84,11 +85,11 @@ public class DrawableBatch<T> : Drawable, IHasCompositeDrawNodes<DrawNode> where
 	}
 
 	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => internalChildren;
-	protected override DrawNode CreateDrawNode ( int subtreeIndex ) {
-		return new DrawNode( this, subtreeIndex );
+	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+		return new DrawNode<TRenderer>( this, subtreeIndex );
 	}
 
-	public class DrawNode : CompositeDrawNode<DrawableBatch<T>, Rendering.DrawNode> {
+	public class DrawNode<TRenderer> : CompositeDrawNode<DrawableBatch<T>, Rendering.DrawNode, TRenderer> where TRenderer : IRenderer {
 		public DrawNode ( DrawableBatch<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override bool ValidateChildList () {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Threading;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Rendering;
@@ -21,6 +22,17 @@ public abstract partial class Basic2DApp<TRoot> {
 			clock = dependencies.Resolve<StopwatchClock>();
 		}
 
+		IRenderer? renderer;
+		public IRenderer? Renderer {
+			get => renderer;
+			set {
+				if ( renderer != null )
+					throw new NotImplementedException( "Can not swith renderer at runtime yet" );
+
+				renderer = value;
+			}
+		}
+
 		protected sealed override void Loop () {
 			while ( Scheduler.TryDequeue( out var action ) ) {
 				action();
@@ -28,7 +40,11 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			clock.Update();
 			OnUpdate();
-			drawNodeRenderer.CollectDrawData( disposeScheduler.Swap );
+
+			if ( renderer == null )
+				return;
+
+			drawNodeRenderer.CollectDrawData( renderer, disposeScheduler.Swap );
 		}
 
 		protected abstract void OnUpdate ();
