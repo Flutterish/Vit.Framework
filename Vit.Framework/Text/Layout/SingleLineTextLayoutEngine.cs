@@ -30,7 +30,7 @@ public static class SingleLineTextLayoutEngine {
 			metric.StartIndex = enumerator.ElementIndex;
 			metric.EndIndex = enumerator.ElementIndex + glyphVector.Length;
 
-			var glyph = font.GetGlyph( glyphVector );
+			var glyph = font.GetGlyph( glyphVector.Span );
 			metric.Glyph = glyph;
 			metric.Anchor = current;
 

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -24,7 +23,7 @@ public struct GlyphId {
 public class Glyph {
 	public readonly GlyphId Id;
 	public readonly HashSet<string> Names = new();
-	public readonly HashSet<Rune> AssignedRunes = new();
+	public readonly HashSet<string> AssignedVectors = new();
 	public readonly Outline<double> Outline = new();
 
 	public double MinX;
@@ -61,6 +60,6 @@ public class Glyph {
 
 	public override string ToString () {
 		var name = Names.Count == 1 ? $"`{Names.Single()}` " : $"";
-		return $"Glyph {Id.Value} {name}({AssignedRunes.Count} Rune{(AssignedRunes.Count == 1 ? "" : "s")}) `{string.Join("", AssignedRunes)}`";
+		return $"Glyph {Id.Value} {name}({AssignedVectors.Count} Rune{(AssignedVectors.Count == 1 ? "" : "s")}) `{string.Join("", AssignedVectors)}`";
 	}
 }

@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Vit.Framework.Exceptions;
 
 namespace Vit.Framework.Text.Fonts;
 
 public abstract class Font {
-	protected Dictionary<GlyphId, Glyph> GlyphsById = new();
-	protected Dictionary<Rune, HashSet<Glyph>> GlyphsByRune = new();
+	protected readonly Dictionary<GlyphId, Glyph> GlyphsById = new();
+	protected readonly ByteCharPrefixTree<HashSet<Glyph>> GlyphsByVector = new();
 
 	public string Name { get; protected set; } = string.Empty;
 	public double UnitsPerEm { get; protected set; } = double.NaN;
@@ -18,29 +19,27 @@ public abstract class Font {
 		return glyph;
 	}
 
-	public Glyph GetGlyph ( ReadOnlyMemory<char> glyphVector ) { // TODO this should be the actual selector, not rune
-		if ( glyphVector.Length == 1 ) {
-			return GetGlyph( glyphVector.Span[0] );
-		}
-		else if ( glyphVector.Length == 2 ) {
-			return GetGlyph( new Rune( glyphVector.Span[0], glyphVector.Span[1] ) );
-		}
-		else {
-			return GetGlyph( '\0' );
-		}
-	}
-	public Glyph GetGlyph ( char character ) => GetGlyph( new Rune(character) );
-	public Glyph GetGlyph ( Rune rune ) {
-		if ( !GlyphsByRune.TryGetValue( rune, out var set ) ) {
-			TryLoadGlyphFor( rune );
-			if ( !GlyphsByRune.TryGetValue( rune, out set ) ) {
-				AddGlyphMapping( rune, 0 );
-				set = GlyphsByRune[rune];
+	public Glyph GetGlyph ( ReadOnlySpan<byte> glyphVector ) {
+		if ( !GlyphsByVector.TryGetValue( glyphVector, out var set ) ) {
+			TryLoadGlyphFor( glyphVector );
+			if ( !GlyphsByVector.TryGetValue( glyphVector, out set ) ) {
+				AddGlyphMapping( glyphVector, 0 );
+				set = GlyphsByVector[glyphVector];
 			}
 		}
 
 		Debug.Assert( set.Any() );
 		return set.First();
+	}
+	public Glyph GetGlyph ( ReadOnlySpan<char> glyphVector ) {
+		Span<byte> bytes = stackalloc byte[glyphVector.Length * 2 + 1];
+		var length = Encoding.UTF8.GetBytes( glyphVector, bytes );
+		return GetGlyph( bytes.Slice( 0, length ) );
+	}
+	public unsafe Glyph GetGlyph ( char character ) => GetGlyph( new Rune( character ) );
+	public unsafe Glyph GetGlyph ( Rune rune ) {
+		var value = rune.Value;
+		return GetGlyph( new ReadOnlySpan<byte>( &value, rune.Utf8SequenceLength ) );
 	}
 	public Glyph? TryGetGlyph ( GlyphId id ) {
 		if ( !GlyphsById.TryGetValue( id, out var glyph ) )
@@ -49,23 +48,91 @@ public abstract class Font {
 		return glyph;
 	}
 
-	protected void AddGlyphMapping ( Rune rune, GlyphId id ) {
+	protected void AddGlyphMapping ( ReadOnlySpan<byte> glyphVector, GlyphId id ) {
 		var glyph = GetGlyph( id );
 
-		if ( !GlyphsByRune.TryGetValue( rune, out var set ) )
-			GlyphsByRune.Add( rune, set = new() );
+		if ( !GlyphsByVector.TryGetValue( glyphVector, out var set ) )
+			GlyphsByVector.Add( glyphVector, set = new() );
 
 		if ( set.Add( glyph ) ) {
-			glyph.AssignedRunes.Add( rune );
+			glyph.AssignedVectors.Add( Encoding.UTF8.GetString( glyphVector ) );
 		}
 	}
-	protected bool IsRuneRegistered ( Rune rune )
-		=> GlyphsByRune.ContainsKey( rune );
+	protected bool IsGlyphRegistered ( ReadOnlySpan<byte> glyphVector )
+		=> GlyphsByVector.ContainsKey( glyphVector );
 
-	protected abstract void TryLoadGlyphFor ( Rune rune );
+	protected abstract void TryLoadGlyphFor ( ReadOnlySpan<byte> glyphVector );
 
 	public void Validate () {
 		if ( double.IsNaN( UnitsPerEm ) )
 			throw new InvalidStateException( "Font does not have `units per em` set" );
+	}
+}
+
+public class ByteCharPrefixTree<TValue> {
+	bool hasValue;
+	TValue value = default!;
+	ByteCharPrefixTree<TValue>?[]? children;
+
+	public void Add ( ReadOnlySpan<byte> key, TValue value ) {
+		var self = this;
+
+		ref var node = ref self;
+		foreach ( var i in key ) {
+			if ( node.children == null )
+				node.children = new ByteCharPrefixTree<TValue>[256];
+			node = ref node.children[i];
+			node ??= new();
+		}
+
+		node.hasValue = true;
+		node.value = value;
+	}
+
+	public bool ContainsKey ( ReadOnlySpan<byte> key ) {
+		var node = this;
+		foreach ( var i in key ) {
+			if ( node.children == null )
+				return false;
+			node = node.children[i];
+			if ( node == null )
+				return false;
+		}
+
+		return node.hasValue;
+	}
+
+	public bool TryGetValue ( ReadOnlySpan<byte> key, [NotNullWhen(true)] out TValue? value ) {
+		var node = this;
+		foreach ( var i in key ) {
+			if ( node.children == null ) {
+				value = default;
+				return false;
+			}
+
+			node = node.children[i];
+			if ( node == null ) {
+				value = default;
+				return false;
+			}
+		}
+
+		value = node.value;
+		return node.hasValue;
+	}
+
+	public TValue GetValue ( ReadOnlySpan<byte> key ) {
+		var node = this;
+		foreach ( var i in key ) {
+			node = node.children![i]!;
+		}
+
+		return node.value;
+	}
+
+	public TValue this[ReadOnlySpan<byte> key] => GetValue( key );
+
+	public override string ToString () {
+		return $"{(hasValue ? (value is HashSet<Glyph> h ? h.FirstOrDefault() : value) : "")}{(children == null ? "" : "+")}";
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Vit.Framework.Memory;
+﻿using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
@@ -47,30 +46,31 @@ public class OpenTypeFont : Font {
 		loadGlyphId( 0, header.GetTable<HorizontalMetricsTable>( "hmtx" )! );
 	}
 
-	protected override void TryLoadGlyphFor ( Rune rune ) {
+	protected override void TryLoadGlyphFor ( ReadOnlySpan<byte> glyphVector ) {
 		using var _ = open();
-		const int lookupRange = 32;
 
-		var rangeStart = checked( rune.Value - lookupRange );
-		var rangeEnd = checked( rune.Value + lookupRange);
-
-		var startChar = new Rune( rangeStart );
-		var endChar = new Rune( rangeEnd - 1 );
+		Span<byte> key = stackalloc byte[glyphVector.Length];
+		glyphVector.CopyTo( key );
 
 		var cmap = header.GetTable<CharacterToGlyphIdTable>( "cmap" )!;
 		var hmtx = header.GetTable<HorizontalMetricsTable>( "hmtx" )!;
 		foreach ( var i in cmap.EncodingRecords ) {
 			var sub = i.Subtable.Value;
 			var encoding = EncodingTypeExtensions.GetEncodingType( i.PlatformID, i.EncodingID );
-			foreach ( var (rune2, id) in sub.Enumerate( encoding, rangeStart, rangeEnd ) ) {
+			if ( encoding != EncodingType.Unicode )
+				continue;
+
+			foreach ( var (lastByte, id) in sub.EnumeratePage( encoding, glyphVector ) ) {
+				key[^1] = lastByte;
 				loadGlyphId( id, hmtx );
-				AddGlyphMapping( rune2, id );
+				AddGlyphMapping( key, id );
 			}
 		}
 
-		for ( int i = rangeStart; i < rangeEnd; i++ ) {
-			if ( !IsRuneRegistered( new Rune( i ) ) )
-				AddGlyphMapping( new Rune( i ), new GlyphId( 0 ) );
+		for ( int i = 0; i < 256; i++ ) {
+			key[^1] = (byte)i;
+			if ( !IsGlyphRegistered( key ) )
+				AddGlyphMapping( key, 0 );
 		}
 	}
 

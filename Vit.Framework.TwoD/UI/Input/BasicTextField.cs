@@ -98,7 +98,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 	public bool OnTextInput ( UITextInputEvent @event ) {
 		var oldLength = Text.Length;
 		Text = Text.Substring( 0, selectionStart ) + @event.Text + Text.Substring( selectionEnd );
-		var index = selectionStart + Text.Length - oldLength;
+		var index = selectionStart + int.Max( 0, Text.Length - oldLength );
 		Selection = (index, index);
 
 		if ( @event.Text.Any( x => !char.IsWhiteSpace( x ) ) )
@@ -134,7 +134,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		var pasted = new string( @event.Text.Where( x => !char.IsControl( x ) ).ToArray() );
 		var oldLength = Text.Length;
 		Text = Text.Substring( 0, selectionStart ) + pasted + Text.Substring( selectionEnd );
-		var index = selectionStart + Text.Length - oldLength;
+		var index = selectionStart + int.Max( 0, Text.Length - oldLength );
 		Selection = (index, index);
 
 		pushHistoryStack();
