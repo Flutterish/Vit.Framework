@@ -38,7 +38,7 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 			Fragment = BasicFragmentShader.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
-		Font ??= deps.Resolve<FontStore>().GetFont( FontStore.DefaultFont );
+		Font ??= deps.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
 	}
 
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {

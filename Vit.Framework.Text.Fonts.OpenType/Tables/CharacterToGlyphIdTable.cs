@@ -41,20 +41,20 @@ public class CharacterToGlyphIdTable : Table {
 		}
 
 		/// <summary>
-		/// Enumerates all glyphs in this table which match the key and may differ in the last byte.
+		/// Enumerates all glyphs in this table which match the key and may differ in the first byte of the last codepoint (last byte in big-endian).
 		/// </summary>
-		public abstract IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( EncodingType encoding, ReadOnlySpan<byte> key );
+		public abstract IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( UnicodeExtendedGraphemeCluster cluster );
 		/// <summary>
 		/// Enumerates all glyphs in this table.
 		/// </summary>
-		public abstract GlyphEnumerator EnumerateAll ( EncodingType encoding );
+		public abstract GlyphEnumerator EnumerateAll ();
 	}
 
 	public class Subtable0 : Subtable {
 		[Size( 256 )]
 		public BinaryArrayView<byte> GlyphIdArray;
 
-		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( EncodingType encoding, ReadOnlySpan<byte> key ) {
+		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( UnicodeExtendedGraphemeCluster cluster ) {
 			throw new NotImplementedException();
 			//if ( encoding == EncodingType.Unicode ) {
 			//	rangeEnd = int.Min( rangeEnd, 256 );
@@ -76,7 +76,7 @@ public class CharacterToGlyphIdTable : Table {
 			//}
 		}
 
-		public override GlyphEnumerator EnumerateAll ( EncodingType encoding ) {
+		public override GlyphEnumerator EnumerateAll () {
 			throw new NotImplementedException();
 		}
 	}
@@ -107,16 +107,15 @@ public class CharacterToGlyphIdTable : Table {
 			return total;
 		}
 
-		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( EncodingType encoding, ReadOnlySpan<byte> key ) {
-			Debug.Assert( encoding == EncodingType.Unicode );
-			if ( key.Length > 2 )
-				return Enumerable.Empty<(byte lastByte, GlyphId id)>();
+		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( UnicodeExtendedGraphemeCluster cluster ) {
+			if ( cluster.CodepointLength != 1 )
+				yield break;
 
-			ushort c = key.Length == 1 ? key[0] : (ushort)(key[0] << 8 | key[1]);
-			return EnumeratePage( c );
-		}
-		public IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( ushort _c ) {
-			var pageStart = _c / 256 * 256;
+			uint codepoint = cluster[0];
+			if ( codepoint > 0xffff )
+				yield break;
+
+			var pageStart = codepoint / 256 * 256;
 			var pageEnd = pageStart + 256;
 
 			for ( int i = 0; i < StartCodes.Length; i++ ) { // TODO binary search the first segment
@@ -130,7 +129,7 @@ public class CharacterToGlyphIdTable : Table {
 				var idDelta = IdDeltas[i];
 				var idRangeOffset = IdRangeOffsets[i];
 
-				for ( ushort c = start; c < end; c++ ) {
+				for ( int c = start; c < end; c++ ) {
 					if ( c < pageStart || c >= pageEnd )
 						continue;
 
@@ -142,41 +141,13 @@ public class CharacterToGlyphIdTable : Table {
 						id = GlyphIdArray[i - StartCodes.Length + idRangeOffset / 2 + c - start];
 					}
 
-					Debug.Assert( (c & 0xff00) == (_c & 0xff00) );
+					Debug.Assert( (c & 0xff00) == (codepoint & 0xff00) );
 					yield return ((byte)(c & 0x00ff), new GlyphId( id ));
 				}
 			}
-
-			//if ( encoding == EncodingType.Unicode ) {
-			//	// TODO implement optimized
-
-			//	//yield break;
-			//}
-
-			//for ( var i = 0; i < StartCodes.Length; i++ ) {
-			//	var start = StartCodes[i];
-			//	var end = EndCodes[i];
-			//	var idDelta = IdDeltas[i];
-			//	var idRangeOffset = IdRangeOffsets[i];
-
-			//	for ( ushort c = start; c < end; c++ ) {
-			//		var rune = encoding.Decode( c );
-			//		if ( rune.Value < rangeStart || rune.Value >= rangeEnd )
-			//			continue;
-
-			//		ushort id;
-			//		if ( idRangeOffset == 0 )
-			//			id = (ushort)( idDelta + c );
-			//		else {
-			//			id = GlyphIdArray[i - StartCodes.Length + idRangeOffset / 2 + c - start];
-			//		}
-
-			//		yield return (rune, new GlyphId(id));
-			//	}
-			//}
 		}
 
-		public override GlyphEnumerator EnumerateAll ( EncodingType encoding ) {
+		public override GlyphEnumerator EnumerateAll () {
 			throw new NotImplementedException();
 			//for ( var i = 0; i < StartCodes.Length; i++ ) {
 			//	var start = StartCodes[i];
@@ -205,7 +176,7 @@ public class CharacterToGlyphIdTable : Table {
 		[Size( nameof( EntryCount ) )]
 		public BinaryArrayView<ushort> GlyphIdArray;
 
-		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( EncodingType encoding, ReadOnlySpan<byte> key ) {
+		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( UnicodeExtendedGraphemeCluster cluster ) {
 			throw new NotImplementedException();
 			//rangeStart -= FirstCode;
 			//rangeEnd -= FirstCode;
@@ -231,7 +202,7 @@ public class CharacterToGlyphIdTable : Table {
 			//}
 		}
 
-		public override GlyphEnumerator EnumerateAll ( EncodingType encoding ) {
+		public override GlyphEnumerator EnumerateAll () {
 			throw new NotImplementedException();
 			//for ( int i = 0; i < EntryCount; i++ ) {
 			//	if ( GlyphIdArray[i] == 0 )

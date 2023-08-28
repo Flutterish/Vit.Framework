@@ -46,11 +46,13 @@ public class OpenTypeFont : Font {
 		loadGlyphId( 0, header.GetTable<HorizontalMetricsTable>( "hmtx" )! );
 	}
 
-	protected override void TryLoadGlyphFor ( ReadOnlySpan<byte> glyphVector ) {
+	protected override void TryLoadGlyphFor ( UnicodeExtendedGraphemeCluster cluster ) {
 		using var _ = open();
 
-		Span<byte> key = stackalloc byte[glyphVector.Length];
-		glyphVector.CopyTo( key );
+		Span<byte> keyBytes = stackalloc byte[cluster.ByteLength];
+		cluster.Bytes.CopyTo( keyBytes );
+		var pageByteIndex = keyBytes.Length - 4;
+		var key = new UnicodeExtendedGraphemeCluster( keyBytes );
 
 		var cmap = header.GetTable<CharacterToGlyphIdTable>( "cmap" )!;
 		var hmtx = header.GetTable<HorizontalMetricsTable>( "hmtx" )!;
@@ -60,15 +62,15 @@ public class OpenTypeFont : Font {
 			if ( encoding != EncodingType.Unicode )
 				continue;
 
-			foreach ( var (lastByte, id) in sub.EnumeratePage( encoding, glyphVector ) ) {
-				key[^1] = lastByte;
+			foreach ( var (lastByte, id) in sub.EnumeratePage( cluster ) ) {
+				keyBytes[pageByteIndex] = lastByte;
 				loadGlyphId( id, hmtx );
 				AddGlyphMapping( key, id );
 			}
 		}
 
 		for ( int i = 0; i < 256; i++ ) {
-			key[^1] = (byte)i;
+			keyBytes[pageByteIndex] = (byte)i;
 			if ( !IsGlyphRegistered( key ) )
 				AddGlyphMapping( key, 0 );
 		}

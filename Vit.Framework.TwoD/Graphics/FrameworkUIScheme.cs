@@ -10,4 +10,5 @@ public static class FrameworkUIScheme {
 	public static readonly ColorRgba<float> ElementFlash = ColorRgba.White;
 
 	public static readonly FontIdentifier Font = new() { Name = "Framework Default (Consolas)" };
+	public static readonly FontCollectionIdentifier FontCollection = new( Font );
 }

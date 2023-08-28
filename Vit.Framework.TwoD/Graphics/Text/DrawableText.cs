@@ -7,8 +7,8 @@ using Vit.Framework.TwoD.Rendering;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public abstract class DrawableText : Drawable {
-	Font font = null!;
-	public Font Font {
+	FontCollection font = null!;
+	public FontCollection Font {
 		get => font;
 		set {
 			if ( value.TrySet( ref font ) )
@@ -71,7 +71,7 @@ public abstract class DrawableText : Drawable {
 			if ( !isLayoutComputed )
 				recomputeLayout();
 
-			return boundingBox with { MinY = 0, MaxY = Font.UnitsPerEm };
+			return boundingBox with { MinY = 0, MaxY = Font.PrimaryUnitsPerEm };
 		}
 	}
 
@@ -80,7 +80,7 @@ public abstract class DrawableText : Drawable {
 			if ( TextLayout.Length == 0 ) {
 				return new AxisAlignedBox2<double> {
 					MinY = 0,
-					MaxY = Font.UnitsPerEm
+					MaxY = Font.PrimaryUnitsPerEm
 				};
 			}
 
@@ -88,9 +88,9 @@ public abstract class DrawableText : Drawable {
 
 			return new AxisAlignedBox2<double> {
 				MinY = 0,
-				MaxY = Font.UnitsPerEm,
-				MinX = _right.Glyph.DefinedBoundingBox.MaxX + _right.Anchor.X,
-				MaxX = _right.Glyph.DefinedBoundingBox.MaxX + _right.Anchor.X
+				MaxY = Font.PrimaryUnitsPerEm,
+				MinX = _right.Glyph.DefinedBoundingBox.MaxX * _right.SizeMultiplier + _right.Anchor.X,
+				MaxX = _right.Glyph.DefinedBoundingBox.MaxX * _right.SizeMultiplier + _right.Anchor.X
 			};
 		}
 
@@ -98,10 +98,10 @@ public abstract class DrawableText : Drawable {
 
 		if ( length == 0 ) {
 			return new AxisAlignedBox2<double> {
-				MinX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
-				MaxX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
+				MinX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
+				MaxX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
 				MinY = 0,
-				MaxY = Font.UnitsPerEm
+				MaxY = Font.PrimaryUnitsPerEm
 			};
 		}
 
@@ -109,13 +109,13 @@ public abstract class DrawableText : Drawable {
 
 		return new AxisAlignedBox2<double> {
 			MinY = 0,
-			MaxY = Font.UnitsPerEm,
-			MinX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
-			MaxX = right.Glyph.DefinedBoundingBox.MaxX + right.Anchor.X
+			MaxY = Font.PrimaryUnitsPerEm,
+			MinX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
+			MaxX = right.Glyph.DefinedBoundingBox.MaxX * right.SizeMultiplier + right.Anchor.X
 		};
 	}
 
-	public double MetricMultiplier => FontSize / Font.UnitsPerEm;
+	public double MetricMultiplier => FontSize / Font.PrimaryUnitsPerEm;
 
 	void recomputeLayout () {
 		var minSize = SingleLineTextLayoutEngine.GetBufferLengthFor( Text );
@@ -134,7 +134,7 @@ public abstract class DrawableText : Drawable {
 
 		SharedResourceUpload textLayoutUpload;
 		protected double FontSize;
-		protected Font Font = null!;
+		protected FontCollection Font = null!;
 		protected string Text = null!;
 		protected override void UpdateState () {
 			base.UpdateState();

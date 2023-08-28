@@ -16,7 +16,7 @@ public static class SingleLineTextLayoutEngine {
 	/// <param name="metrics">A buffer that will hold glyph metrics. Must be at least the size given by <see cref="GetBufferLengthFor(string)"/>.</param>
 	/// <param name="usedBounds">The bounding box of the generated layout.</param>
 	/// <returns>The amount of metrics generated.</returns>
-	public static int ComputeLayout ( string text, Font font, Span<GlyphMetric> metrics, out AxisAlignedBox2<double> usedBounds ) {
+	public static int ComputeLayout ( string text, FontCollection font, Span<GlyphMetric> metrics, out AxisAlignedBox2<double> usedBounds ) {
 		var enumerator = StringInfo.GetTextElementEnumerator( text );
 
 		usedBounds = Size2<double>.Zero;
@@ -33,10 +33,16 @@ public static class SingleLineTextLayoutEngine {
 			var glyph = font.GetGlyph( glyphVector.Span );
 			metric.Glyph = glyph;
 			metric.Anchor = current;
+			metric.SizeMultiplier = font.PrimaryUnitsPerEm / glyph.Font.UnitsPerEm;
 
-			usedBounds = usedBounds.Contain( metric.Glyph.DefinedBoundingBox + current.FromOrigin() );
-			current.X += glyph.HorizontalAdvance;
-			current.Y += glyph.VerticalAdvance;
+			usedBounds = usedBounds.Contain( new AxisAlignedBox2<double>() { 
+				MinX = metric.Glyph.DefinedBoundingBox.MinX * metric.SizeMultiplier,
+				MinY = metric.Glyph.DefinedBoundingBox.MinY * metric.SizeMultiplier,
+				MaxX = metric.Glyph.DefinedBoundingBox.MaxX * metric.SizeMultiplier,
+				MaxY = metric.Glyph.DefinedBoundingBox.MaxY * metric.SizeMultiplier
+			} + current.FromOrigin() );
+			current.X += glyph.HorizontalAdvance * metric.SizeMultiplier;
+			current.Y += glyph.VerticalAdvance * metric.SizeMultiplier;
 			usedBounds = usedBounds.Contain( new Size2<double>( current.X, current.Y ) );
 
 			count++;
@@ -53,12 +59,14 @@ public struct GlyphMetric {
 	public int StartIndex;
 	public int EndIndex;
 
+	public double SizeMultiplier;
+
 	public int Length => EndIndex - StartIndex;
 
 	public static bool IsWhiteSpace ( GlyphMetric metric ) {
 		if ( metric.GlyphVector.Length != 1 )
 			return false;
 
-		return char.IsWhiteSpace( metric.GlyphVector.Span[0] );
+		return string.IsNullOrWhiteSpace( new string( metric.GlyphVector.Span ) );
 	}
 }

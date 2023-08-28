@@ -21,6 +21,7 @@ public struct GlyphId {
 }
 
 public class Glyph {
+	public Font Font;
 	public readonly GlyphId Id;
 	public readonly HashSet<string> Names = new();
 	public readonly HashSet<string> AssignedVectors = new();
@@ -54,12 +55,14 @@ public class Glyph {
 		MaxY = MaxY
 	};
 
-	public Glyph ( GlyphId id ) {
+	public Glyph ( GlyphId id, Font font ) {
 		Id = id;
+		Font = font;
 	}
 
 	public override string ToString () {
-		var name = Names.Count == 1 ? $"`{Names.Single()}` " : $"";
-		return $"Glyph {Id.Value} {name}({AssignedVectors.Count} Rune{(AssignedVectors.Count == 1 ? "" : "s")}) `{string.Join("", AssignedVectors)}`";
+		var name = Names.Count == 1 ? $"`{Names.Single()}` " : Id.Value == 0 ? "`Null` " : "";
+		var runes = Id.Value == 0 ? "" : $"`{string.Join( "", AssignedVectors.Select( x => x.Length == 1 ? char.IsControl( x[0] ) ? $"U+{(uint)x[0]:X4}" : x : x ) )}` ";
+		return $"Glyph {Id.Value} {name}({AssignedVectors.Count} Grapheme{(AssignedVectors.Count == 1 ? "" : "s")}) {runes}in {Font.Name}";
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Vit.Framework.Collections;
 
@@ -99,5 +100,92 @@ public class EnumerablePrefixTree<TKey, TValue> : PrefixTree<IEnumerable<TKey>, 
 
 	protected override IEnumerable<TKey> GetChunks ( IEnumerable<TKey> key ) {
 		return key;
+	}
+}
+
+[DebuggerTypeProxy( typeof( ByteCharPrefixTree<>.DebugDisplay ) )]
+public class ByteCharPrefixTree<TValue> {
+	bool hasValue;
+	TValue value = default!;
+	ByteCharPrefixTree<TValue>?[]? children;
+
+	public void Add ( ReadOnlySpan<byte> key, TValue value ) {
+		var self = this;
+
+		ref var node = ref self;
+		foreach ( var i in key ) {
+			if ( node.children == null )
+				node.children = new ByteCharPrefixTree<TValue>[256];
+			node = ref node.children[i];
+			node ??= new();
+		}
+
+		node.hasValue = true;
+		node.value = value;
+	}
+
+	public bool ContainsKey ( ReadOnlySpan<byte> key ) {
+		var node = this;
+		foreach ( var i in key ) {
+			if ( node.children == null )
+				return false;
+			node = node.children[i];
+			if ( node == null )
+				return false;
+		}
+
+		return node.hasValue;
+	}
+
+	public bool TryGetValue ( ReadOnlySpan<byte> key, [NotNullWhen( true )] out TValue? value ) {
+		var node = this;
+		foreach ( var i in key ) {
+			if ( node.children == null ) {
+				value = default;
+				return false;
+			}
+
+			node = node.children[i];
+			if ( node == null ) {
+				value = default;
+				return false;
+			}
+		}
+
+		value = node.value;
+		return node.hasValue;
+	}
+
+	public TValue GetValue ( ReadOnlySpan<byte> key ) {
+		var node = this;
+		foreach ( var i in key ) {
+			node = node.children![i]!;
+		}
+
+		return node.value;
+	}
+
+	public TValue this[ReadOnlySpan<byte> key] => GetValue( key );
+
+	public override string ToString () {
+		return $"{(hasValue ? value : "")}{(children == null ? "" : "+")}";
+	}
+
+	internal class DebugDisplay {
+		public bool HasValue;
+		public TValue Value;
+		public Dictionary<string, ByteCharPrefixTree<TValue>?>? Children;
+
+		public DebugDisplay ( ByteCharPrefixTree<TValue> tree ) {
+			HasValue = tree.hasValue;
+			Value = tree.value;
+			if ( tree.children == null )
+				return;
+
+			Children = new( 256 );
+			for ( int i = 0; i < 256; i++ ) {
+				Children.Add( $"0x{i:X2}", tree.children[i] );
+			}
+		}
 	}
 }

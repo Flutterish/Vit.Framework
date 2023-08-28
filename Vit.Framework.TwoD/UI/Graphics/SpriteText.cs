@@ -35,7 +35,7 @@ public class SpriteText : Visual<DrawableSpriteText> {
 		base.OnLoad( dependencies );
 	}
 
-	public Font Font {
+	public FontCollection Font {
 		get => Displayed.Font;
 		set {
 			Displayed.Font = value;
@@ -43,15 +43,15 @@ public class SpriteText : Visual<DrawableSpriteText> {
 			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}
-	FontIdentifier? fontIdentifier = FontStore.DefaultFont;
+	FontCollectionIdentifier? fontIdentifier = FontStore.DefaultFontCollection;
 	[MaybeNull]
-	public FontIdentifier FontIdentifier {
+	public FontCollectionIdentifier FontIdentifier {
 		get => fontIdentifier;
 		set {
 			if ( !value.TrySet( ref fontIdentifier ) || !IsLoaded )
 				return;
 
-			Displayed.Font = fontStore.GetFont( value );
+			Displayed.Font = fontStore.GetFontCollection( value );
 			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 		}
 	}

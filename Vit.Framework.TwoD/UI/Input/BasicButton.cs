@@ -60,7 +60,7 @@ public class BasicButton : Button {
 		AddChild( background = new Box { Tint = BackgroundColour }, new() {
 			Size = new( 1f.Relative() )
 		} );
-		AddChild( SpriteText = new() { FontIdentifier = FrameworkUIScheme.Font, FontSize = 32 }, new() {
+		AddChild( SpriteText = new() { FontIdentifier = FrameworkUIScheme.FontCollection, FontSize = 32 }, new() {
 			Anchor = Anchor.CentreLeft,
 			Origin = Anchor.CentreLeft
 		} );
