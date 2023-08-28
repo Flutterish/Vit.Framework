@@ -56,8 +56,20 @@ public class SpriteText : Visual<DrawableSpriteText> {
 		}
 	}
 
+	bool useFullGlyphSize = true;
+	public bool UseFullGlyphSize {
+		get => useFullGlyphSize;
+		set {
+			if ( value == useFullGlyphSize )
+				return;
+
+			useFullGlyphSize = value;
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+		}
+	}
+
 	protected override Size2<float> ComputeRequiredSize () {
-		return Displayed.CalculateBoundingBox().Size;
+		return ((useFullGlyphSize ? Displayed.BoundingBox : Displayed.TextBoundingBox).Size * Displayed.MetricMultiplier).Cast<float>();
 	}
 
 	protected override void PerformLayout () {

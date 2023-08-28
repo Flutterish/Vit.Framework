@@ -25,57 +25,6 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 		}
 	}
 
-	public AxisAlignedBox2<float> CalculateBoundingBox () {
-		var advance = Vector2<float>.Zero; // in font units
-		foreach ( var rune in Text.EnumerateRunes() ) {
-			var glyph = Font.GetGlyph( rune );
-			advance.X += (float)glyph.HorizontalAdvance;
-		}
-
-		advance = advance * FontSize / (float)Font.UnitsPerEm;
-
-		return new Size2<float>( advance.X, FontSize );
-	}
-
-	public AxisAlignedBox2<float> CalculateBoundingBox ( int startIndex, int length ) {
-		Vector2<float>? start = null;
-		Vector2<float>? end = null;
-
-		var advance = Vector2<float>.Zero; // in font units
-		int index = 0;
-		foreach ( var rune in Text.EnumerateRunes() ) {
-			if ( index == startIndex ) {
-				start = advance;
-			}
-			if ( index - startIndex == length ) {
-				end = advance;
-				goto end;
-			}
-
-			var glyph = Font.GetGlyph( rune );
-			advance.X += (float)glyph.HorizontalAdvance;
-			index++;
-		}
-
-		end:
-		if ( start == null ) {
-			start = advance;
-		}
-		if ( end == null ) {
-			end = advance;
-		}
-
-		var startValue = start.Value * FontSize / (float)Font.UnitsPerEm;
-		var endValue = end.Value * FontSize / (float)Font.UnitsPerEm;
-
-		return new AxisAlignedBox2<float> {
-			MinY = 0,
-			MaxY = FontSize,
-			MinX = float.Min( startValue.X, endValue.X ),
-			MaxX = float.Max( startValue.X, endValue.X )
-		};
-	}
-
 	Shader shader = null!;
 	Texture texture = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
@@ -159,7 +108,7 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var bounds );
 
 			foreach ( var i in layout.AsSpan( 0, glyphCount ) ) {
-				var glyph = Font.GetGlyph( i.GlyphVector );
+				var glyph = i.Glyph;
 				var advance = i.Anchor.Cast<float>().FromOrigin();
 
 				foreach ( var spline in glyph.Outline.Splines ) {

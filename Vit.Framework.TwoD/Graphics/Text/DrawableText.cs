@@ -66,40 +66,52 @@ public abstract class DrawableText : Drawable {
 		}
 	}
 
+	public AxisAlignedBox2<double> BoundingBox {
+		get {
+			if ( !isLayoutComputed )
+				recomputeLayout();
+
+			return boundingBox with { MinY = 0, MaxY = Font.UnitsPerEm };
+		}
+	}
+
 	public AxisAlignedBox2<double> ComputeBoundingBoxByGlyphIndex ( int startIndex, int length ) {
-		Vector2<double>? start = null;
-		Vector2<double>? end = null;
-
-		var advance = Vector2<double>.Zero;
-		int index = 0;
-		foreach ( var metric in TextLayout ) {
-			if ( index == startIndex ) {
-				start = advance;
-			}
-			if ( index - startIndex == length ) {
-				end = advance;
-				goto end;
+		if ( startIndex >= TextLayout.Length ) {
+			if ( TextLayout.Length == 0 ) {
+				return new AxisAlignedBox2<double> {
+					MinY = 0,
+					MaxY = Font.UnitsPerEm
+				};
 			}
 
-			var glyph = Font.GetGlyph( metric.GlyphVector );
-			advance.X += glyph.HorizontalAdvance;
+			var _right = TextLayout[^1];
 
-			index++;
+			return new AxisAlignedBox2<double> {
+				MinY = 0,
+				MaxY = Font.UnitsPerEm,
+				MinX = _right.Glyph.DefinedBoundingBox.MaxX + _right.Anchor.X,
+				MaxX = _right.Glyph.DefinedBoundingBox.MaxX + _right.Anchor.X
+			};
 		}
 
-		end:
-		if ( start == null ) {
-			start = advance;
+		var left = TextLayout[startIndex];
+
+		if ( length == 0 ) {
+			return new AxisAlignedBox2<double> {
+				MinX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
+				MaxX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
+				MinY = 0,
+				MaxY = Font.UnitsPerEm
+			};
 		}
-		if ( end == null ) {
-			end = advance;
-		}
+
+		var right = TextLayout[startIndex + length - 1];
 
 		return new AxisAlignedBox2<double> {
 			MinY = 0,
 			MaxY = Font.UnitsPerEm,
-			MinX = double.Min( start.Value.X, end.Value.X ),
-			MaxX = double.Max( start.Value.X, end.Value.X )
+			MinX = left.Glyph.DefinedBoundingBox.MinX + left.Anchor.X,
+			MaxX = right.Glyph.DefinedBoundingBox.MaxX + right.Anchor.X
 		};
 	}
 
@@ -109,7 +121,7 @@ public abstract class DrawableText : Drawable {
 		var minSize = SingleLineTextLayoutEngine.GetBufferLengthFor( Text );
 		layout.ReallocateStorage( minSize );
 
-		SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
+		layout.Length = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
 	}
 
 	protected override void Dispose ( bool disposing ) {
@@ -127,9 +139,9 @@ public abstract class DrawableText : Drawable {
 		protected override void UpdateState () {
 			base.UpdateState();
 			textLayoutUpload = Source.textLayoutInvalidations.GetUpload();
-			Font = Source.Font;
 			Text = Source.Text;
-			FontSize = Source.FontSize / Font.UnitsPerEm;
+			Font = Source.Font;
+			FontSize = Source.MetricMultiplier;
 		}
 
 		protected bool ValidateLayout () {

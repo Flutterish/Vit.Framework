@@ -6,7 +6,7 @@ namespace Vit.Framework.Text.Layout;
 
 public static class SingleLineTextLayoutEngine {
 	public static int GetBufferLengthFor ( string text )
-		=> text.Length + 1;
+		=> text.Length;
 
 	/// <summary>
 	/// Computes text layout in a single line.
@@ -20,7 +20,6 @@ public static class SingleLineTextLayoutEngine {
 		var enumerator = StringInfo.GetTextElementEnumerator( text );
 
 		usedBounds = Size2<double>.Zero;
-		metrics[0].StartIndex = 0;
 		int count = 0;
 
 		Point2<double> current = Point2<double>.Zero;
@@ -28,15 +27,17 @@ public static class SingleLineTextLayoutEngine {
 			ref var metric = ref metrics[count];
 
 			var glyphVector = metric.GlyphVector = enumerator.GetTextElement().AsMemory();
-			metric.EndIndex = metrics[count + 1].StartIndex = enumerator.ElementIndex;
+			metric.StartIndex = enumerator.ElementIndex;
+			metric.EndIndex = enumerator.ElementIndex + glyphVector.Length;
 
 			var glyph = font.GetGlyph( glyphVector );
-			metric.Bounds = glyph.DefinedBoundingBox + current.FromOrigin();
+			metric.Glyph = glyph;
 			metric.Anchor = current;
 
-			usedBounds = usedBounds.Contain( metric.Bounds );
+			usedBounds = usedBounds.Contain( metric.Glyph.DefinedBoundingBox + current.FromOrigin() );
 			current.X += glyph.HorizontalAdvance;
 			current.Y += glyph.VerticalAdvance;
+			usedBounds = usedBounds.Contain( new Size2<double>( current.X, current.Y ) );
 
 			count++;
 		}
@@ -47,10 +48,17 @@ public static class SingleLineTextLayoutEngine {
 
 public struct GlyphMetric {
 	public Point2<double> Anchor;
-	public AxisAlignedBox2<double> Bounds;
+	public Glyph Glyph;
 	public ReadOnlyMemory<char> GlyphVector;
 	public int StartIndex;
 	public int EndIndex;
 
 	public int Length => EndIndex - StartIndex;
+
+	public static bool IsWhiteSpace ( GlyphMetric metric ) {
+		if ( metric.GlyphVector.Length != 1 )
+			return false;
+
+		return char.IsWhiteSpace( metric.GlyphVector.Span[0] );
+	}
 }

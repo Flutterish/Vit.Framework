@@ -1,9 +1,12 @@
-﻿using Vit.Framework.Collections;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.Collections;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Input;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Text.Layout;
+using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Input.Events;
@@ -31,23 +34,28 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 	}
 
 	void updateSelection () {
-		var boundingBox = spriteText.Displayed.CalculateBoundingBox( selectionStart, selectionLength );
+		var boundingBox = spriteText.Displayed.ComputeBoundingBoxByGlyphIndex( selectionStart, selectionLength );
+		boundingBox.MaxX *= spriteText.Displayed.MetricMultiplier;
+		boundingBox.MaxY *= spriteText.Displayed.MetricMultiplier;
+		boundingBox.MinX *= spriteText.Displayed.MetricMultiplier;
+		boundingBox.MinY *= spriteText.Displayed.MetricMultiplier;
+
 		if ( selection.start == selection.end ) {
 			boundingBox.MinX -= 4;
 			boundingBox.MaxX += 4;
 		}
 		this.Animate().ChangeLayoutParameters( selectionBox, ( LayoutParams v ) => v with {
-			Anchor = Anchor<float>.BottomLeft + boundingBox.Position,
-			Size = boundingBox.Size
+			Anchor = Anchor<float>.BottomLeft + boundingBox.Position.Cast<float>(),
+			Size = boundingBox.Size.Cast<float>()
 		}, 50.Millis(), Easing.Out );
 	}
 
 	int historyIndex;
 	RingBuffer<(string text, (int start, int end) selection)> history = new( 64 );
-	string Text {
-		get => spriteText.Text;
+	GlyphString Text {
+		get => new() { Source = spriteText.Displayed, StartIndex = 0, Length = spriteText.Displayed.TextLayout.Length };
 		set {
-			spriteText.Text = value;
+			spriteText.Text = value.Result;
 			changesPending = true;
 		}
 	}
@@ -57,7 +65,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		if ( historyIndex != history.Length - 1 ) {
 			history.Pop( history.Length - 1 - historyIndex );
 		}
-		history.Push( (Text, selection) );
+		history.Push( (Text.Result, selection) );
 		historyIndex++;
 		changesPending = false;
 		typedWords = false;
@@ -88,8 +96,9 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 
 	bool typedWords;
 	public bool OnTextInput ( UITextInputEvent @event ) {
+		var oldLength = Text.Length;
 		Text = Text.Substring( 0, selectionStart ) + @event.Text + Text.Substring( selectionEnd );
-		var index = selectionStart + @event.Text.Length;
+		var index = selectionStart + Text.Length - oldLength;
 		Selection = (index, index);
 
 		if ( @event.Text.Any( x => !char.IsWhiteSpace( x ) ) )
@@ -105,7 +114,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		if ( changesPending )
 			pushHistoryStack();
 
-		@event.Clipboard.CopyText( selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength ) );
+		@event.Clipboard.CopyText( (selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength )).Result );
 		tryDeleteSelection();
 		return true;
 	}
@@ -114,7 +123,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		if ( changesPending )
 			pushHistoryStack();
 
-		@event.Clipboard.CopyText( selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength ) );
+		@event.Clipboard.CopyText( (selectionLength == 0 ? Text : Text.Substring( selectionStart, selectionLength )).Result );
 		return true;
 	}
 
@@ -123,8 +132,9 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 			pushHistoryStack();
 
 		var pasted = new string( @event.Text.Where( x => !char.IsControl( x ) ).ToArray() );
+		var oldLength = Text.Length;
 		Text = Text.Substring( 0, selectionStart ) + pasted + Text.Substring( selectionEnd );
-		var index = selectionStart + pasted.Length;
+		var index = selectionStart + Text.Length - oldLength;
 		Selection = (index, index);
 
 		pushHistoryStack();
@@ -188,7 +198,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 				bool seenNonWhitespace = false;
 				while ( selection.end != 0 ) {
 					selection.end--;
-					var isWhitespace = char.IsWhiteSpace( Text[selection.end] );
+					var isWhitespace = GlyphMetric.IsWhiteSpace( Text[selection.end] );
 					if ( !seenNonWhitespace ) {
 						seenNonWhitespace = !isWhitespace;
 					}
@@ -217,7 +227,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 
 				seenNonWhitespace = false;
 				while ( selection.end != Text.Length ) {
-					var isWhitespace = char.IsWhiteSpace( Text[selection.end] );
+					var isWhitespace = GlyphMetric.IsWhiteSpace( Text[selection.end] );
 					if ( !seenNonWhitespace ) {
 						seenNonWhitespace = !isWhitespace;
 					}
@@ -304,7 +314,6 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 				Selection = stack.selection;
 				break;
 
-				// TODO also use glyph-size rather than amounf of utf-16 codepoints
 				// TODO also use IME
 
 			default:
@@ -352,5 +361,72 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 	protected override void OnUnload () {
 		base.OnUnload();
 		focus?.Release();
+	}
+
+	struct GlyphString {
+		public DrawableText? Source;
+		public int StartIndex;
+		int length;
+		public int Length {
+			get {
+				if ( OwnValue != null )
+					throwNotImplemented();
+
+				return length;
+			}
+
+			set {
+				length = value;
+			}
+		}
+
+		public string? OwnValue;
+
+		public string Result => OwnValue ?? (Length == 0 ? string.Empty : Source!.Text[Source.TextLayout[StartIndex].StartIndex..Source.TextLayout[StartIndex + Length - 1].EndIndex]);
+
+		public GlyphString Substring ( int start ) {
+			if ( OwnValue != null )
+				throwNotImplemented();
+
+			return new() {
+				Source = Source,
+				StartIndex = StartIndex + start,
+				Length = Length - start
+			};
+		}
+
+		public GlyphString Substring ( int start, int length ) {
+			if ( OwnValue != null )
+				throwNotImplemented();
+
+			return new() {
+				Source = Source,
+				StartIndex = StartIndex + start,
+				Length = length
+			};
+		}
+
+		public static GlyphString operator + ( GlyphString left, GlyphString right ) {
+			return new() {
+				OwnValue = left.Result + right.Result
+			};
+		}
+
+		public GlyphMetric this[int i] {
+			get {
+				if ( OwnValue != null )
+					throwNotImplemented();
+
+				return Source!.TextLayout[StartIndex + i];
+			}
+		}
+
+		[DoesNotReturn]
+		void throwNotImplemented () {
+			throw new NotImplementedException( "Operations on raw strings not suported" );
+		}
+
+		public static implicit operator GlyphString ( string value )
+			=> new() { OwnValue = value };
 	}
 }
