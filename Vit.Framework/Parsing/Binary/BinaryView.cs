@@ -27,6 +27,8 @@ public struct BinaryArrayView<T> : IEnumerable<T> {
 		}
 	}
 
+	public T this[Index index] => this[index.GetOffset(Length)];
+
 	public BinaryArrayView<T> this[Range range] => Slice( range );
 	public BinaryArrayView<T> Slice ( Range range ) {
 		var (offset, length) = range.GetOffsetAndLength( Length );

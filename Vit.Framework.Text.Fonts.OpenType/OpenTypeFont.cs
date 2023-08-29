@@ -87,6 +87,7 @@ public class OpenTypeFont : Font {
 			glyph.MinX = metric.LeftSideBearing;
 		}
 		else {
+			glyph.HorizontalAdvance = hmtx.HorizontalMetrics[^1].AdvanceWidth;
 			glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
 		}
 

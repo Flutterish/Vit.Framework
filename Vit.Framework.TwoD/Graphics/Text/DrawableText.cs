@@ -120,6 +120,7 @@ public abstract class DrawableText : Drawable {
 	void recomputeLayout () {
 		var minSize = SingleLineTextLayoutEngine.GetBufferLengthFor( Text );
 		layout.ReallocateStorage( minSize );
+		layout.Length = minSize;
 
 		layout.Length = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
 	}
