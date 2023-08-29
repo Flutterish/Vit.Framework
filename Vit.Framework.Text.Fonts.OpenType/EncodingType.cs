@@ -34,17 +34,12 @@ public static class EncodingTypeExtensions {
 	}
 
 	public static EncodingType GetEncodingType ( int platform, int encoding ) {
-		if ( platform == 0 && encoding == 3 ) {
-			return EncodingType.Unicode;
-		}
-		else if ( platform == 1 && encoding == 0 ) {
-			return EncodingType.MacintoshRoman;
-		}
-		else if ( platform == 3 && encoding == 1 ) {
-			return EncodingType.Unicode;
-		}
-		else {
-			throw new Exception( "Unsupported encoding" );
-		}
+		return (platform, encoding) switch {
+			(0, _) => EncodingType.Unicode,
+			(1, 0) => EncodingType.MacintoshRoman,
+			(3, 1) => EncodingType.Unicode,
+			(3, 10) => EncodingType.Unicode,
+			_ => throw new Exception( "Unsupported encoding" )
+		};
 	}
 }

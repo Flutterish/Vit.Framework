@@ -5,7 +5,8 @@ namespace Vit.Framework.Text.Fonts;
 
 public class FontStore {
 	public static readonly FontIdentifier DefaultFont = new() { Name = "Default Font" };
-	public static readonly FontCollectionIdentifier DefaultFontCollection = new( DefaultFont );
+	public static readonly FontIdentifier DefaultEmojiFont = new() { Name = "Default Emoji Font" };
+	public static readonly FontCollectionIdentifier DefaultFontCollection = new( DefaultFont, DefaultEmojiFont );
 
 	Dictionary<FontIdentifier, Font> fonts = new();
 	public void AddFont ( FontIdentifier identifier, Font font ) {

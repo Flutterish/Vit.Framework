@@ -22,15 +22,14 @@ public class CharacterToGlyphIdTable : Table {
 	[TypeSelector( nameof( selectType ) )]
 	public abstract class Subtable {
 		public ushort Format;
-		public ushort Length;
-		public ushort Language;
 
 		static Type? selectType ( ushort format ) {
 			return format switch {
 				0 => typeof( Subtable0 ),
 				4 => typeof( Subtable4 ),
 				6 => typeof( Subtable6 ),
-				_ => null
+				12  => typeof( Subtable12 ),
+				_ => throw new NotImplementedException()
 			};
 		}
 
@@ -51,6 +50,9 @@ public class CharacterToGlyphIdTable : Table {
 	}
 
 	public class Subtable0 : Subtable {
+		public ushort Length;
+		public ushort Language;
+
 		[Size( 256 )]
 		public BinaryArrayView<byte> GlyphIdArray;
 
@@ -82,6 +84,9 @@ public class CharacterToGlyphIdTable : Table {
 	}
 
 	public class Subtable4 : Subtable {
+		public ushort Length;
+		public ushort Language;
+
 		public ushort SegCountX2;
 		public ushort SearchRange;
 		public ushort EntrySelector;
@@ -119,13 +124,14 @@ public class CharacterToGlyphIdTable : Table {
 			var pageEnd = pageStart + 256;
 
 			for ( int i = 0; i < StartCodes.Length; i++ ) { // TODO binary search the first segment
-				var start = StartCodes[i];
-				if ( start < pageStart )
+				var end = EndCodes[i];
+				if ( end < pageStart )
 					continue;
+
+				var start = StartCodes[i];
 				if ( start >= pageEnd )
 					yield break;
 
-				var end = EndCodes[i];
 				var idDelta = IdDeltas[i];
 				var idRangeOffset = IdRangeOffsets[i];
 
@@ -171,6 +177,9 @@ public class CharacterToGlyphIdTable : Table {
 	}
 
 	public class Subtable6 : Subtable {
+		public ushort Length;
+		public ushort Language;
+
 		public ushort FirstCode;
 		public ushort EntryCount;
 		[Size( nameof( EntryCount ) )]
@@ -211,6 +220,48 @@ public class CharacterToGlyphIdTable : Table {
 			//	var rune = encoding.Decode( i + FirstCode );
 			//	yield return (rune, new GlyphId( GlyphIdArray[i] ));
 			//}
+		}
+	}
+
+	public class Subtable12 : Subtable {
+		public ushort Reserved;
+		public uint Length;
+		public uint Language;
+		public uint NumGroups;
+		[Size(nameof(NumGroups))]
+		public BinaryArrayView<SequentialMapGroup> Groups;
+
+		public override IEnumerable<(byte lastByte, GlyphId id)> EnumeratePage ( UnicodeExtendedGraphemeCluster cluster ) {
+			if ( cluster.CodepointLength != 1 )
+				yield break;
+
+			uint codepoint = cluster[0];
+			var pageStart = codepoint / 256 * 256;
+			var pageEnd = pageStart + 256;
+
+			for ( int i = 0; i < NumGroups; i++ ) {
+				var group = Groups[i];
+				if ( group.EndCharCode < pageStart )
+					continue;
+
+				if ( group.StartCharCode >= pageEnd ) // TODO fuck knows if the end code is inclusive or not
+					yield break;
+
+				var limit = uint.Min( pageEnd, group.EndCharCode );
+				for ( uint c = uint.Max( group.StartCharCode, pageStart ); c < limit; c++ ) {
+					yield return ((byte)(c & 0x000000ff), new( group.StartGlyphId + (c - group.StartCharCode) ));
+				}
+			}
+		}
+
+		public override GlyphEnumerator EnumerateAll () {
+			throw new NotImplementedException();
+		}
+
+		public struct SequentialMapGroup {
+			public uint StartCharCode;
+			public uint EndCharCode;
+			public uint StartGlyphId;
 		}
 	}
 }

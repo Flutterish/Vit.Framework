@@ -10,5 +10,6 @@ public static class FrameworkUIScheme {
 	public static readonly ColorRgba<float> ElementFlash = ColorRgba.White;
 
 	public static readonly FontIdentifier Font = new() { Name = "Framework Default (Consolas)" };
-	public static readonly FontCollectionIdentifier FontCollection = new( Font );
+	public static readonly FontIdentifier EmojiFont = new() { Name = "Framework Default Emojis (Twemoji)" };
+	public static readonly FontCollectionIdentifier FontCollection = new( Font, EmojiFont );
 }

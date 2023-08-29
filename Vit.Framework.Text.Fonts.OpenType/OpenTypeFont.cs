@@ -59,7 +59,7 @@ public class OpenTypeFont : Font {
 		foreach ( var i in cmap.EncodingRecords ) {
 			var sub = i.Subtable.Value;
 			var encoding = EncodingTypeExtensions.GetEncodingType( i.PlatformID, i.EncodingID );
-			if ( encoding != EncodingType.Unicode )
+			if ( encoding != EncodingType.Unicode ) // TODO we dont need to use all subtables, only the "best" one
 				continue;
 
 			foreach ( var (lastByte, id) in sub.EnumeratePage( cluster ) ) {

@@ -35,4 +35,23 @@ public unsafe readonly struct UnicodeExtendedGraphemeCluster {
 	public override string ToString () {
 		return Encoding.UTF32.GetString( Bytes );
 	}
+
+	public CodepointEnumerator GetEnumerator () => new( this );
+
+	public struct CodepointEnumerator {
+		UnicodeExtendedGraphemeCluster source;
+		int index;
+
+		public CodepointEnumerator ( UnicodeExtendedGraphemeCluster source ) {
+			this.source = source;
+			this.index = -1;
+		}
+
+		public bool MoveNext () {
+			index++;
+			return index < source.CodepointLength;
+		}
+
+		public uint Current => source.GetCodepoint( index );
+	}
 }

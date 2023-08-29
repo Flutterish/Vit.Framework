@@ -1,23 +1,23 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Vit.Framework.Text.Fonts;
 
 [DebuggerTypeProxy( typeof( CodepointPrefixTree<>.DebugDisplay ) )]
-public class CodepointPrefixTree<TValue> { // TODO optimise storage for the leading zeros
+public class CodepointPrefixTree<TValue> {
 	bool hasValue;
 	TValue value = default!;
-	CodepointPrefixTree<TValue>?[]? children;
+	Dictionary<uint, CodepointPrefixTree<TValue>>? children;
 
 	public void Add ( UnicodeExtendedGraphemeCluster key, TValue value ) {
-		var self = this;
-
-		ref var node = ref self;
-		foreach ( var i in key.Bytes ) {
+		var node = this;
+		foreach ( var i in key ) {
 			if ( node.children == null )
-				node.children = new CodepointPrefixTree<TValue>?[256];
-			node = ref node.children[i];
-			node ??= new();
+				node.children = new( 256 );
+			if ( !node.children.TryGetValue( i, out var next ) )
+				node.children.Add( i, next = new() );
+			node = next;
 		}
 
 		node.hasValue = true;
@@ -26,11 +26,10 @@ public class CodepointPrefixTree<TValue> { // TODO optimise storage for the lead
 
 	public bool ContainsKey ( UnicodeExtendedGraphemeCluster key ) {
 		var node = this;
-		foreach ( var i in key.Bytes ) {
+		foreach ( var i in key ) {
 			if ( node.children == null )
 				return false;
-			node = node.children[i];
-			if ( node == null )
+			if ( !node.children.TryGetValue( i, out node ) )
 				return false;
 		}
 
@@ -39,14 +38,13 @@ public class CodepointPrefixTree<TValue> { // TODO optimise storage for the lead
 
 	public bool TryGetValue ( UnicodeExtendedGraphemeCluster key, [NotNullWhen( true )] out TValue? value ) {
 		var node = this;
-		foreach ( var i in key.Bytes ) {
+		foreach ( var i in key ) {
 			if ( node.children == null ) {
 				value = default;
 				return false;
 			}
 
-			node = node.children[i];
-			if ( node == null ) {
+			if ( !node.children.TryGetValue( i, out node ) ) {
 				value = default;
 				return false;
 			}
@@ -58,7 +56,7 @@ public class CodepointPrefixTree<TValue> { // TODO optimise storage for the lead
 
 	public TValue GetValue ( UnicodeExtendedGraphemeCluster key ) {
 		var node = this;
-		foreach ( var i in key.Bytes ) {
+		foreach ( var i in key ) {
 			node = node.children![i]!;
 		}
 
@@ -80,31 +78,15 @@ public class CodepointPrefixTree<TValue> { // TODO optimise storage for the lead
 			HasValue = tree.hasValue;
 			Value = tree.value;
 
+			if ( tree.children == null )
+				return;
+
 			Children = new();
-			var codepointBytes = new int[4];
-			void visit ( CodepointPrefixTree<TValue> tree, int index, Action<CodepointPrefixTree<TValue>> action ) {
-				if ( tree.children == null )
-					return;
-
-				for ( int i = 0; i < 256; i++ ) {
-					var child = tree.children[i];
-					if ( child == null )
-						continue;
-
-					codepointBytes[index] = i;
-					if ( index == 3 ) {
-						action( child );
-					}
-					else {
-						visit( child, index + 1, action );
-					}
-				}
+			foreach ( var (i, node) in tree.children ) {
+				var rune = new Rune(i);
+				var asText = Rune.IsControl( rune ) ? "" : $" ({rune})";
+				Children.Add( $"U+{i:X8}{asText}", node );
 			}
-
-			visit( tree, 0, child => {
-				var codepoint = ((uint)codepointBytes[3] << 24) | ((uint)codepointBytes[2] << 16) | ((uint)codepointBytes[1] << 8) | ((uint)codepointBytes[0] << 0);
-				Children.Add( $"U+{codepoint:X8}", child );
-			} );
 		}
 	}
 }

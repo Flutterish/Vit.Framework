@@ -116,7 +116,7 @@ public class GlyphDataTable : Table {
 				}
 				translate( first );
 
-				Debug.Assert( first.IsOnCurve );
+				Debug.Assert( first.IsOnCurve ); // TODO this isnt true
 				var wasLastOnCurve = true;
 				var control = new Point2<double>();
 				var spline = new Spline2<double>( point );

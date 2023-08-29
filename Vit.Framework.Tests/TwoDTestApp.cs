@@ -56,8 +56,11 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 	protected override void PopulateFontStore ( FontStore fonts ) {
 		var consolas = new OpenTypeFont( new ReopenableFileStream( "./CONSOLA.TTF" ) );
+		var twemoji = new OpenTypeFont( new ReopenableFileStream( "./Twemoji.ttf" ) );
 		fonts.AddFont( FontStore.DefaultFont, consolas );
+		fonts.AddFont( FontStore.DefaultEmojiFont, twemoji );
 		fonts.AddFont( FrameworkUIScheme.Font, consolas );
+		fonts.AddFont( FrameworkUIScheme.EmojiFont, twemoji );
 	}
 
 	protected override void OnInitialized () {
