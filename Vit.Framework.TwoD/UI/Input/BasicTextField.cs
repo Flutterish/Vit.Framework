@@ -33,6 +33,11 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		}
 	}
 
+	public float FontSize {
+		get => spriteText.FontSize;
+		set => spriteText.FontSize = value;
+	}
+
 	void updateSelection () {
 		var boundingBox = spriteText.Displayed.ComputeBoundingBoxByGlyphIndex( selectionStart, selectionLength );
 		boundingBox.MaxX *= spriteText.Displayed.MetricMultiplier;
