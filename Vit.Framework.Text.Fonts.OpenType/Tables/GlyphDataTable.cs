@@ -4,6 +4,7 @@ using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Tables;
 
@@ -38,7 +39,7 @@ public class GlyphDataTable : Table {
 			};
 		}
 
-		public abstract void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs );
+		public abstract void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs );
 	}
 
 	public class SimpleGlyphData : GlyphData {
@@ -102,7 +103,7 @@ public class GlyphDataTable : Table {
 			return points;
 		}
 
-		public override void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs ) {
+		public override void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs ) {
 			if ( !Points.Any() )
 				return;
 
@@ -119,7 +120,7 @@ public class GlyphDataTable : Table {
 				// TODO Debug.Assert( first.IsOnCurve );
 				var wasLastOnCurve = true;
 				var control = new Point2<double>();
-				var spline = new GlyphSpline<double>( point );
+				var spline = new Spline2<double>( point );
 
 				void addPoint ( Point2<double> next, bool onCurve ) {
 					if ( wasLastOnCurve && onCurve ) {
@@ -238,7 +239,7 @@ public class GlyphDataTable : Table {
 			return data.ToArray();
 		}
 
-		public override void CopyOutline ( Outline<double> outline, GlyphDataTable glyphs ) {
+		public override void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs ) {
 			foreach ( var i in Components ) {
 				Debug.Assert( i.Flags.HasFlag( Flags.ArgsAreXyValues ) );
 				//Debug.Assert( i.Flags.HasFlag( Flags.ArgsAre16Bit ) || (i.Arg1 == 0 && i.Arg2 == 0) );

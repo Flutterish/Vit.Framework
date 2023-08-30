@@ -3,7 +3,6 @@ using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
-using static Vit.Framework.Text.Fonts.OpenType.Tables.GlyphDataTable;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 

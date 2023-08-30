@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Svg;
 

@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;

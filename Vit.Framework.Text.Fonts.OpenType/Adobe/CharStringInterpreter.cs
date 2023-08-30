@@ -2,16 +2,17 @@
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Parsing.Binary;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Adobe;
 
 public class CharStringInterpreter {
-	Outline<double> outline;
+	SplineOutline<double> outline;
 	Index<CharString> globalSubrs;
 	int globalBias;
 	Index<CharString> localSubrs;
 	int localBias;
-	private CharStringInterpreter ( Outline<double> outline, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
+	private CharStringInterpreter ( SplineOutline<double> outline, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
 		this.outline = outline;
 		this.globalSubrs = globalSubrs;
 		this.localSubrs = localSubrs;
@@ -39,7 +40,7 @@ public class CharStringInterpreter {
 	public bool IsWidthPending = true;
 	public string? LastHintType;
 	public bool AreHintsSet;
-	public GlyphSpline<double>? Spline;
+	public Spline2<double>? Spline;
 	public void Execute ( CharString charString ) {
 		var data = charString.Data;
 		execute( ref data );

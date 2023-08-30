@@ -1,15 +1,6 @@
-﻿using SixLabors.ImageSharp.Processing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics;
-using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;
 
@@ -74,8 +65,14 @@ public static class Transform {
 
 	static bool translate ( ref ByteString data, out Matrix3<double> value ) {
 		var checkpoint = data;
-		if ( !function( ref data, "translate", 2, out var args ) || args.Length == 0 ) {
+		if ( !function( ref data, "translate", 2, out var args ) ) {
+			value = Matrix3<double>.Identity;
+			return false;
+		}
+
+		if ( args.Length == 0 ) {
 			data = checkpoint;
+			args.Dispose();
 			value = Matrix3<double>.Identity;
 			return false;
 		}
@@ -88,8 +85,14 @@ public static class Transform {
 
 	static bool scale ( ref ByteString data, out Matrix3<double> value ) {
 		var checkpoint = data;
-		if ( !function( ref data, "scale", 2, out var args ) || args.Length == 0 ) {
+		if ( !function( ref data, "scale", 2, out var args ) ) {
+			value = Matrix3<double>.Identity;
+			return false;
+		}
+
+		if ( args.Length == 0 ) {
 			data = checkpoint;
+			args.Dispose();
 			value = Matrix3<double>.Identity;
 			return false;
 		}
@@ -101,8 +104,14 @@ public static class Transform {
 
 	static bool rotate ( ref ByteString data, out Matrix3<double> value ) {
 		var checkpoint = data;
-		if ( !function( ref data, "rotate", 3, out var args ) || (args.Length != 1 && args.Length != 3) ) {
+		if ( !function( ref data, "rotate", 3, out var args ) ) {
+			value = Matrix3<double>.Identity;
+			return false;
+		}
+
+		if ( args.Length != 1 && args.Length != 3 ) {
 			data = checkpoint;
+			args.Dispose();
 			value = Matrix3<double>.Identity;
 			return false;
 		}
@@ -121,8 +130,14 @@ public static class Transform {
 
 	static bool skewX ( ref ByteString data, out Matrix3<double> value ) {
 		var checkpoint = data;
-		if ( !function( ref data, "skewX", 1, out var args ) || args.Length == 0 ) {
+		if ( !function( ref data, "skewX", 1, out var args ) ) {
+			value = Matrix3<double>.Identity;
+			return false;
+		}
+
+		if ( args.Length == 0 ) {
 			data = checkpoint;
+			args.Dispose();
 			value = Matrix3<double>.Identity;
 			return false;
 		}
@@ -134,8 +149,14 @@ public static class Transform {
 
 	static bool skewY ( ref ByteString data, out Matrix3<double> value ) {
 		var checkpoint = data;
-		if ( !function( ref data, "skewY", 1, out var args ) || args.Length != 1 ) {
+		if ( !function( ref data, "skewY", 1, out var args ) ) {
+			value = Matrix3<double>.Identity;
+			return false;
+		}
+
+		if ( args.Length == 0 ) {
 			data = checkpoint;
+			args.Dispose();
 			value = Matrix3<double>.Identity;
 			return false;
 		}

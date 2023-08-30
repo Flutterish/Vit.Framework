@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.Curves;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;
 
@@ -55,8 +56,8 @@ public class Ellipse : SvgElement {
 		const double c = 0.99873585;
 		Vector2<double> offset = (cxValue, cyValue);
 
-		var spline = new GlyphSpline<double>( context.Matrix.Apply( new Point2<double>( 0, a ) + offset ) );
-		spline.Color = fillValue;
+		var spline = new Spline2<double>( context.Matrix.Apply( new Point2<double>( 0, a ) + offset ) );
+		//spline.Color = fillValue;
 		context.Glyph.Outline.Splines.Add( spline );
 		void add ( ref SvgOutline.Context context, Point2<double> a, Point2<double> b, Point2<double> c ) {
 			a.X *= rxValue;

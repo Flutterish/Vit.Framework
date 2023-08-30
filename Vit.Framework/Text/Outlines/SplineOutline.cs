@@ -1,13 +1,12 @@
 ﻿using System.Numerics;
 using System.Text;
-using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 
-namespace Vit.Framework.Text.Fonts;
+namespace Vit.Framework.Text.Outlines;
 
-public class Outline<T> where T : INumber<T> {
-	public readonly List<GlyphSpline<T>> Splines = new();
+public class SplineOutline<T> : IGlyphOutline where T : INumber<T> {
+	public readonly List<Spline2<T>> Splines = new();
 
 	public override string ToString () {
 		return ToSvg();
@@ -52,13 +51,8 @@ public class Outline<T> where T : INumber<T> {
 	}
 }
 
-public class GlyphSpline<T> : Spline2<T> where T : INumber<T> {
-	public ColorSRgb<byte>? Color;
-	public GlyphSpline ( Point2<T> startPoint ) : base( startPoint ) { }
-}
-
 public static class OutlineExtensions {
-	public static AxisAlignedBox2<T> CalculateBoundingBox<T> ( this Outline<T> outline ) where T : INumber<T>, IFloatingPointIeee754<T> {
-		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<T>.Undefined, (a,b) => a.Contain(b) );
+	public static AxisAlignedBox2<T> CalculateBoundingBox<T> ( this SplineOutline<T> outline ) where T : INumber<T>, IFloatingPointIeee754<T> {
+		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<T>.Undefined, ( a, b ) => a.Contain( b ) );
 	}
 }

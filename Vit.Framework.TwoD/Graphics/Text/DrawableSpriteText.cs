@@ -112,7 +112,7 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 				var advance = i.Anchor.Cast<float>().FromOrigin();
 
 				foreach ( var spline in glyph.Outline.Splines ) {
-					var tint = spline.Color?.ToFloat<float>() ?? this.tint;
+					var tint = this.tint;
 					uint? _anchor = null;
 					uint? _last = null;
 					foreach ( var p in spline.GetPoints() ) {

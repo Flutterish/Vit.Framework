@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Mathematics;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -21,11 +22,11 @@ public struct GlyphId {
 }
 
 public class Glyph {
-	public Font Font;
+	public readonly Font Font;
 	public readonly GlyphId Id;
 	public readonly HashSet<string> Names = new();
 	public readonly HashSet<string> AssignedVectors = new();
-	public readonly Outline<double> Outline = new(); // TODO 1. an outline should be loaded on demand and cached only when requested. 2. the outline type should be an abstract class, and the type should be given when requested
+	public readonly SplineOutline<double> Outline = new(); // TODO 1. an outline should be loaded on demand and cached only when requested. 2. the outline type should be an abstract class, and the type should be given when requested
 
 	public double MinX;
 	public double MaxX;
