@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Vit.Framework.Exceptions;
 using Vit.Framework.Text.Outlines;
@@ -62,7 +63,20 @@ public abstract class Font {
 		=> GlyphsByCluster.ContainsKey( cluster );
 
 	protected abstract void TryLoadGlyphFor ( UnicodeExtendedGraphemeCluster cluster );
-	public abstract bool TryFetchOutline<TOutline> ( GlyphId id, [NotNullWhen(true)] out TOutline? outline ) where TOutline : IGlyphOutline;
+	public bool TryFetchOutline<TOutline> ( GlyphId id, [NotNullWhen(true)] out TOutline? outline ) where TOutline : IGlyphOutline {
+		var outlines = FetchOutlines<TOutline>( id, 1 );
+		if ( !outlines.Any() ) {
+			outline = default;
+			return false;
+		}
+
+		outline = outlines.Single().outline;
+		return true;
+	}
+	public IEnumerable<(GlyphId id, TOutline outline)> FetchOutlines<TOutline> ( GlyphId firstId, int count ) where TOutline : IGlyphOutline {
+		return FetchOutlines<TOutline>( Enumerable.Range( 0, count ).Select( x => new GlyphId( firstId.Value + (uint)x ) ) );
+	}
+	public abstract IEnumerable<(GlyphId id, TOutline outline)> FetchOutlines<TOutline> ( IEnumerable<GlyphId> ids ) where TOutline : IGlyphOutline;
 
 	public void Validate () {
 		if ( double.IsNaN( UnitsPerEm ) )

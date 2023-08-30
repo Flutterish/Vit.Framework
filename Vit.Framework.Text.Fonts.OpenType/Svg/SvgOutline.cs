@@ -1,11 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;
 
 public static class SvgOutline {
-	public static void Parse ( ReadOnlySpan<byte> data, Glyph glyph ) {
+	public static Outlines.SvgOutline Parse ( ReadOnlySpan<byte> data ) {
 		elements ??= new() {
 			["svg"] = new SvgRoot(),
 			["g"] = new Group(),
@@ -14,8 +15,10 @@ public static class SvgOutline {
 			["path"] = new Path()
 		};
 
+		Outlines.SvgOutline outline = new();
 		ByteString byteData = new() { Bytes = data };
-		parse( ref byteData, new Context { Glyph = glyph, Depth = 0, Matrix = Matrix3<double>.Identity } );
+		parse( ref byteData, new Context { Outline = outline, Depth = 0, Matrix = Matrix3<double>.Identity } );
+		return outline;
 	}
 
 	static void parse ( ref ByteString data, Context context ) {
@@ -175,7 +178,7 @@ public static class SvgOutline {
 	}
 
 	public ref struct Context {
-		public required Glyph Glyph;
+		public required Outlines.SvgOutline Outline;
 		public required int Depth;
 		public required Matrix3<double> Matrix;
 	}

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Security;
 using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
@@ -6,6 +7,7 @@ using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
 using Vit.Framework.Text.Outlines;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 
@@ -151,32 +153,40 @@ public class OpenTypeFont : Font {
 		} );
 	}
 
-	public override bool TryFetchOutline<TOutline> ( GlyphId id, [NotNullWhen( true )] out TOutline? outline ) where TOutline : default {
-		using var _ = open(); // TODO open for longer
-		//if ( hasSvgOutlines ) {
-		//	var svg = header.GetTable<SvgTable>( "SVG " )!;
-		//	if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
-		//		var calculated = glyph.CalculatedBoundingBox;
-		//		glyph.MinX = calculated.MinX;
-		//		glyph.MinY = calculated.MinY;
-		//		glyph.MaxX = calculated.MaxX;
-		//		glyph.MaxY = calculated.MaxY;
-		//		return;
-		//	}
-		//}
+	public override IEnumerable<(GlyphId id, TOutline outline)> FetchOutlines<TOutline> ( IEnumerable<GlyphId> ids ) {
+		bool wasOpen = source.IsOpen;
+		var reader = new EndianCorrectingBinaryReader( source.Open(), isLitteEndian: false );
+		readerRef.Value = reader;
 
-		if ( typeof(SplineOutline).IsAssignableTo( typeof(TOutline) ) ) {
-			if ( header.SfntVersion == "OTTO" ) {
-				outline = (TOutline)(object)loadCharstringOutline( id );
-				return true;
+		try {
+			if ( typeof( SvgOutline ).IsAssignableTo( typeof( TOutline ) ) && hasSvgOutlines ) {
+				var svg = header.GetTable<SvgTable>( "SVG " )!;
+
+				foreach ( var id in ids ) {
+					if ( svg.TryLoadGlyphOutline( id, out var svgOutline ) ) {
+						yield return (id, (TOutline)(object)svgOutline);
+					}
+				}
 			}
-			else {
-				outline = (TOutline?)(object?)loadGlyphDataOutline( id );
-				return outline != null;
+			else if ( typeof( SplineOutline ).IsAssignableTo( typeof( TOutline ) ) ) {
+				if ( header.SfntVersion == "OTTO" ) {
+					foreach ( var id in ids ) {
+						yield return (id, (TOutline)(object)loadCharstringOutline( id ));
+					}
+				}
+				else {
+					foreach ( var id in ids ) {
+						var outline = (TOutline?)(object?)loadGlyphDataOutline( id );
+						if ( outline != null )
+							yield return (id, outline);
+					}
+				}
 			}
 		}
-
-		outline = default;
-		return false;
+		finally {
+			readerRef.Value = null;
+			if ( !wasOpen )
+				source.Close();
+		}
 	}
 }
