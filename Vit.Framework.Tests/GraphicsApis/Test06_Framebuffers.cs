@@ -138,12 +138,14 @@ public class Test06_Framebuffers : GenericRenderThread {
 
 	DateTime start = DateTime.Now;
 	protected override void Render ( IFramebuffer windowFramebuffer, ICommandBuffer commands ) {
-		using ( commands.RenderTo( framebuffer, clearColor: new ColorHsv<Radians<float>, float> {
-			H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
-			S = 1,
-			V = 1
-		}.ToRgb(), clearDepth: 1 ) ) 
-		{
+		using ( commands.RenderTo( framebuffer ) ) {
+			commands.ClearColor( new ColorHsv<Radians<float>, float> {
+				H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
+				S = 1,
+				V = 1
+			}.ToRgb().ToSRgb() );
+			commands.ClearDepth( 1 );
+
 			shaderSet.SetUniformSet( uniformSet );
 			commands.SetShaders( shaderSet );
 			commands.SetViewport( framebufferTexture.Size );
@@ -165,11 +167,14 @@ public class Test06_Framebuffers : GenericRenderThread {
 			commands.DrawIndexed( indexCount );
 		}
 
-		using ( commands.RenderTo( windowFramebuffer, clearColor: new ColorHsv<Radians<float>, float> {
-			H = ((float)(DateTime.Now - start).TotalSeconds * 2).Radians(),
-			S = 1,
-			V = 1
-		}.ToRgb(), clearDepth: 1 ) ) {
+		using ( commands.RenderTo( windowFramebuffer ) ) {
+			commands.ClearColor( new ColorHsv<Radians<float>, float> {
+				H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
+				S = 1,
+				V = 1
+			}.ToRgb().ToSRgb() );
+			commands.ClearDepth( 1 );
+
 			shaderSet.SetUniformSet( uniformSet2 );
 			commands.SetShaders( shaderSet );
 			commands.SetViewport( Swapchain.BackbufferSize );

@@ -93,7 +93,11 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			BeforeRender();
 			using ( var commands = Swapchain.CreateImmediateCommandBufferForPresentation() ) {
-				using var _ = commands.RenderTo( frame, ColorSRgba.Blue );
+				using var _ = commands.RenderTo( frame );
+				commands.ClearColor( ColorSRgba.Blue );
+				commands.ClearDepth( 1 );
+				commands.ClearStencil( 0 );
+
 				commands.SetTopology( Topology.Triangles );
 				var size = Window.Size;
 				commands.SetViewport( Swapchain.BackbufferSize );

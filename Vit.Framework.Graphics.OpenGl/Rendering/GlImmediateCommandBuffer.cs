@@ -12,17 +12,33 @@ namespace Vit.Framework.Graphics.OpenGl.Rendering;
 public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, IGlTexture2D, ShaderProgram>, IImmediateCommandBuffer {
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
 
-	protected override DisposeAction<ICommandBuffer> RenderTo ( IGlFramebuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override void RenderTo ( IGlFramebuffer framebuffer ) {
 		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, framebuffer.Handle );
+	}
 
-		GL.ClearColor( clearColor.R, clearColor.G, clearColor.B, clearColor.A );
-		GL.ClearStencil( (int)clearStencil );
-		GL.ClearDepth( clearDepth );
-		GL.Clear( ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit | ClearBufferMask.ColorBufferBit );
+	protected override void FinishRendering () {
+		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, 0 );
+	}
 
-		return new DisposeAction<ICommandBuffer>( this, static self => {
-			GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, 0 );
-		} );
+	public override void ClearColor<T> ( T color ) {
+		var span = color.AsSpan();
+		GL.ClearColor(
+			span.Length >= 1 ? span[0] : 0,
+			span.Length >= 2 ? span[1] : 0,
+			span.Length >= 3 ? span[2] : 0,
+			span.Length >= 4 ? span[3] : 1
+		);
+		GL.Clear( ClearBufferMask.ColorBufferBit );
+	}
+
+	public override void ClearDepth ( float depth ) {
+		GL.ClearDepth( depth );
+		GL.Clear( ClearBufferMask.DepthBufferBit );
+	}
+
+	public override void ClearStencil ( uint stencil ) {
+		GL.ClearStencil( (int)stencil );
+		GL.Clear( ClearBufferMask.StencilBufferBit );
 	}
 
 	protected override void CopyTexture ( IGlTexture2D source, IGlTexture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

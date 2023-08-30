@@ -8,6 +8,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.Mathematics;
 
 namespace Vit.Framework.Graphics.Direct3D11.Rendering;
 
@@ -17,17 +18,39 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		Context = context;
 	}
 
-	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetView framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
+	protected override void RenderTo ( TargetView framebuffer ) {
 		Context.OMSetRenderTargets( framebuffer.ColorAttachments, framebuffer.DepthStencil );
-		foreach ( var i in framebuffer.ColorAttachments ) {
-			Context.ClearRenderTargetView( i, new( clearColor.R, clearColor.G, clearColor.B, clearColor.A ) );
-		}
-		if ( framebuffer.DepthStencil is ID3D11DepthStencilView depthStencil )
-			Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, clearDepth, (byte)clearStencil );
+	}
+	protected override void FinishRendering () {
+		// TODO set to null?
+	}
 
-		return new DisposeAction<ICommandBuffer>( this, static self => {
-			// TODO set to null?
-		} );
+	public override void ClearColor<T> ( T color ) {
+		var span = color.AsSpan();
+		Color4 _color = new(
+			red: span.Length >= 1 ? span[0] : 0,
+			green: span.Length >= 2 ? span[1] : 0,
+			blue: span.Length >= 3 ? span[2] : 0,
+			alpha: span.Length >= 4 ? span[3] : 1
+		);
+
+		foreach ( var i in Framebuffer!.ColorAttachments ) {
+			Context.ClearRenderTargetView( i, _color );
+		}
+	}
+
+	public override void ClearDepth ( float depth ) {
+		if ( Framebuffer!.DepthStencil is not ID3D11DepthStencilView depthStencil )
+			return;
+
+		Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Depth, depth, 0 );
+	}
+
+	public override void ClearStencil ( uint stencil ) {
+		if ( Framebuffer!.DepthStencil is not ID3D11DepthStencilView depthStencil )
+			return;
+
+		Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Stencil, 0, (byte)stencil );
 	}
 
 	protected override void CopyTexture ( Texture2D source, Texture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

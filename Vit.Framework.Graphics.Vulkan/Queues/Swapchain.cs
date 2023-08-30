@@ -126,7 +126,7 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 			pass.ColorFormat, samples: pass.Samples
 		);
 
-		depthAttachmentView = new ImageView( depthAttachment, renderPass.AttachmentFormat, VkImageAspectFlags.Depth, 1 );
+		depthAttachmentView = new ImageView( depthAttachment, renderPass.AttachmentFormat, VkImageAspectFlags.Depth | VkImageAspectFlags.Stencil, 1 );
 		msaaBufferView = new ImageView( msaaBuffer, pass.ColorFormat, VkImageAspectFlags.Color, 1 );
 
 		foreach ( var i in frames ) {

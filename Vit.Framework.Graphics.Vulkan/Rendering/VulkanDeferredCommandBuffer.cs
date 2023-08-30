@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -29,17 +30,70 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		Buffer.Reset();
 	}
 
-	FrameBuffer frameBuffer = null!;
-	protected override DisposeAction<ICommandBuffer> RenderTo ( FrameBuffer framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
-		VkClearColorValue color = clearColor.BitCast<ColorSRgba<float>, VkClearColorValue>();
-		VkClearDepthStencilValue depthStencil = new VkClearDepthStencilValue( clearDepth, clearStencil );
-		Buffer.BeginRenderPass( this.frameBuffer = framebuffer, new VkClearValue { color = color }, new VkClearValue { depthStencil = depthStencil } );
-		// TODO instead have separate clear commands
+	protected override void RenderTo ( FrameBuffer framebuffer ) {
+		Buffer.BeginRenderPass( framebuffer );
+	}
 
-		return new DisposeAction<ICommandBuffer>( this, static self => {
-			((VulkanDeferredCommandBuffer)self).Buffer.FinishRenderPass();
-			((VulkanDeferredCommandBuffer)self).frameBuffer = null!;
-		} );
+	protected override void FinishRendering () {
+		Buffer.FinishRenderPass();
+	}
+
+	public unsafe override void ClearColor<T> ( T _color ) {
+		var span = _color.AsSpan();
+		var value = new VkClearValue() {
+			color = new(
+				span.Length >= 1 ? span[0] : 0,
+				span.Length >= 2 ? span[1] : 0,
+				span.Length >= 3 ? span[2] : 0,
+				span.Length >= 4 ? span[3] : 1
+			)
+		};
+
+		VkClearAttachment attachment = new() {
+			aspectMask = VkImageAspectFlags.Color,
+			clearValue = value,
+			colorAttachment = 0
+		};
+		VkClearRect rect = new() {
+			baseArrayLayer = 0,
+			layerCount = 1,
+			rect = { extent = Framebuffer!.Size }
+		};
+		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
+	}
+
+	public unsafe override void ClearDepth ( float depth ) {
+		var value = new VkClearValue() {
+			depthStencil = new( depth, 0 )
+		};
+
+		VkClearAttachment attachment = new() {
+			aspectMask = VkImageAspectFlags.Depth,
+			clearValue = value
+		};
+		VkClearRect rect = new() {
+			baseArrayLayer = 0,
+			layerCount = 1,
+			rect = { extent = Framebuffer!.Size }
+		};
+		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
+	}
+
+	public unsafe override void ClearStencil ( uint stencil ) {
+		var value = new VkClearValue() {
+			depthStencil = new( 0, stencil )
+		};
+
+		VkClearAttachment attachment = new() {
+			aspectMask = VkImageAspectFlags.Stencil,
+			clearValue = value
+		};
+		VkClearRect rect = new() {
+			baseArrayLayer = 0,
+			layerCount = 1,
+			rect = { extent = Framebuffer!.Size }
+		};
+		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
 	}
 
 	protected override unsafe void CopyTexture ( IVulkanTexture source, IVulkanTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
@@ -98,7 +152,7 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 			Debug.Assert( Topology == Topology.Triangles ); // TODO topology
 			pipeline = Renderer.GetPipeline( new() { 
 				Shaders = ShaderSet,
-				RenderPass = frameBuffer.RenderPass,
+				RenderPass = Framebuffer!.RenderPass,
 				DepthTest = DepthTest.IsEnabled ? DepthTest : new BufferTest() { IsEnabled = false },
 				DepthState = DepthTest.IsEnabled ? DepthState : new DepthState { WriteOnPass = false },
 				StencilTest = StencilTest.IsEnabled ? StencilTest : new BufferTest() { IsEnabled = false },

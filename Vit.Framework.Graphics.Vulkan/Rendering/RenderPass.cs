@@ -19,7 +19,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 		var color = new VkAttachmentDescription() {
 			format = colorFormat,
 			samples = samples,
-			loadOp = VkAttachmentLoadOp.Clear,
+			loadOp = VkAttachmentLoadOp.DontCare,
 			storeOp = VkAttachmentStoreOp.Store,
 			stencilLoadOp = VkAttachmentLoadOp.DontCare,
 			stencilStoreOp = VkAttachmentStoreOp.DontCare,
@@ -34,7 +34,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 		var depth = new VkAttachmentDescription() {
 			format = attachmentFormat,
 			samples = samples,
-			loadOp = VkAttachmentLoadOp.Clear,
+			loadOp = VkAttachmentLoadOp.DontCare,
 			storeOp = VkAttachmentStoreOp.DontCare,
 			stencilLoadOp = VkAttachmentLoadOp.DontCare,
 			stencilStoreOp = VkAttachmentStoreOp.DontCare,
@@ -104,7 +104,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 			attachments[i] = new VkAttachmentDescription() {
 				format = VulkanApi.formats[color.Format],
 				samples = VkSampleCountFlags.Count1,
-				loadOp = VkAttachmentLoadOp.Clear,
+				loadOp = VkAttachmentLoadOp.DontCare,
 				storeOp = VkAttachmentStoreOp.Store,
 				stencilLoadOp = VkAttachmentLoadOp.DontCare,
 				stencilStoreOp = VkAttachmentStoreOp.DontCare,
@@ -122,7 +122,7 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 			attachments[i] = new VkAttachmentDescription() {
 				format = VulkanApi.formats[depthStencilAttachment.Format],
 				samples = VkSampleCountFlags.Count1,
-				loadOp = VkAttachmentLoadOp.Clear,
+				loadOp = VkAttachmentLoadOp.DontCare,
 				storeOp = VkAttachmentStoreOp.DontCare,
 				stencilLoadOp = VkAttachmentLoadOp.DontCare,
 				stencilStoreOp = VkAttachmentStoreOp.DontCare,

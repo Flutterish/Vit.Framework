@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics;
@@ -10,7 +11,8 @@ namespace Vit.Framework.Graphics;
 /// The RBG values are linear in absolute brightness. <br/>
 /// See: <see href="https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients"/>
 /// </remarks>
-public struct ColorRgba<T> : IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool> where T : INumber<T> {
+public struct ColorRgba<T> : IUnlabeledColor<T>, IEqualityOperators<ColorRgba<T>, ColorRgba<T>, bool> where T : INumber<T> {
+	public ReadOnlySpan<T> AsSpan () => MemoryMarshal.CreateReadOnlySpan( ref R, 4 );
 	public T R;
 	public T G;
 	public T B;

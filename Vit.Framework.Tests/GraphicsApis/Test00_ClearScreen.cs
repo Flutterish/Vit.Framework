@@ -11,6 +11,7 @@ public class Test00_ClearScreen : GenericRenderThread {
 	}
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
-		using var _ = commands.RenderTo( framebuffer, clearColor: ColorSRgba.HotPink, clearDepth: 1 );
+		using var _ = commands.RenderTo( framebuffer );
+		commands.ClearColor( ColorSRgba.HotPink );
 	}
 }

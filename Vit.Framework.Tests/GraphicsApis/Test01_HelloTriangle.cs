@@ -62,11 +62,14 @@ public class Test01_HelloTriangle : GenericRenderThread {
 
 	DateTime start = DateTime.Now;
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
-		using var _ = commands.RenderTo( framebuffer, clearColor: new ColorHsv<Radians<float>, float> {
+		using var _ = commands.RenderTo( framebuffer );
+		commands.ClearColor( new ColorHsv<Radians<float>, float> {
 			H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
 			S = 1,
 			V = 1
-		}.ToRgb(), clearDepth: 1 );
+		}.ToRgb().ToSRgb() );
+		commands.ClearDepth( 1 );
+
 		commands.SetShaders( shaderSet );
 		commands.SetViewport( Swapchain.BackbufferSize );
 		commands.SetScissors( Swapchain.BackbufferSize );

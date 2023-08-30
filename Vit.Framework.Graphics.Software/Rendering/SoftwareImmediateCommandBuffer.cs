@@ -16,19 +16,31 @@ namespace Vit.Framework.Graphics.Software.Rendering;
 public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRenderer, TargetImage, ISoftwareTexture, ShaderSet>, IImmediateCommandBuffer {
 	public SoftwareImmadiateCommandBuffer ( SoftwareRenderer renderer ) : base( renderer ) { }
 
-	TargetImage renderTarget = null!;
-	protected override DisposeAction<ICommandBuffer> RenderTo ( TargetImage framebuffer, ColorSRgba<float> clearColor, float clearDepth, uint clearStencil ) {
-		renderTarget = framebuffer;
-		var color = clearColor.ToByte().BitCast<ColorSRgba<byte>, Rgba32>();
-		renderTarget.AsSpan().Fill( color );
-		renderTarget.DepthStencilAsSpan().Fill( new() {
-			Depth = clearDepth,
-			Stencil = (byte)clearStencil
-		} );
+	protected override void RenderTo ( TargetImage framebuffer ) { }
 
-		return new DisposeAction<ICommandBuffer>( this, static self => {
-			( (SoftwareImmadiateCommandBuffer)self ).renderTarget = null!;
-		} );
+	protected override void FinishRendering () { }
+
+	public override void ClearColor<T> ( T color ) {
+		var span = color.AsSpan();
+		Framebuffer!.AsSpan().Fill( new(
+			r: span.Length >= 1 ? span[0] : 0,
+			g: span.Length >= 2 ? span[1] : 0,
+			b: span.Length >= 3 ? span[2] : 0,
+			a: span.Length >= 4 ? span[3] : 1
+		) );
+	}
+
+	public override void ClearDepth ( float depth ) {
+		foreach ( ref var i in Framebuffer!.DepthStencilAsSpan() ) {
+			i.Depth = depth;
+		}
+	}
+
+	public override void ClearStencil ( uint _stencil ) {
+		var stencil = (byte)_stencil;
+		foreach ( ref var i in Framebuffer!.DepthStencilAsSpan() ) {
+			i.Stencil = stencil;
+		}
 	}
 
 	protected override void CopyTexture ( ISoftwareTexture source, ISoftwareTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
@@ -247,7 +259,7 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	}
 
 	void rasterize ( VertexShaderOutput A, VertexShaderOutput B, VertexShaderOutput C, SoftwareFragmentShader frag, ShaderMemory memory ) {
-		var resultSize = new Size2<float>( renderTarget.Image.Size.Width, renderTarget.Image.Size.Height );
+		var resultSize = new Size2<float>( Framebuffer!.Image.Size.Width, Framebuffer!.Image.Size.Height );
 		static Point3<float> project ( Vector4<float> vector, Size2<float> size ) {
 			var result = vector.XYZ / vector.W;
 			return new Point3<float>() {
@@ -266,13 +278,13 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 			Y = int.Max( int.Min( int.Min( (int)a.Y, (int)b.Y ), (int)c.Y ), 0 )
 		};
 		var max = new Point2<int> {
-			X = int.Min( int.Max( int.Max( (int)a.X, (int)b.X ), (int)c.X ), renderTarget.Image.Size.Width - 1 ),
-			Y = int.Min( int.Max( int.Max( (int)a.Y, (int)b.Y ), (int)c.Y ), renderTarget.Image.Size.Height - 1 )
+			X = int.Min( int.Max( int.Max( (int)a.X, (int)b.X ), (int)c.X ), Framebuffer!.Image.Size.Width - 1 ),
+			Y = int.Min( int.Max( int.Max( (int)a.Y, (int)b.Y ), (int)c.Y ), Framebuffer!.Image.Size.Height - 1 )
 		};
 
 		var batch = new Triangle.BarycentricBatch<float>( a.XY, b.XY, c.XY );
-		var pixelSpan = renderTarget.AsSpan2D();
-		var depthSpan = renderTarget.DepthStencilAsSpan2D();
+		var pixelSpan = Framebuffer!.AsSpan2D();
+		var depthSpan = Framebuffer!.DepthStencilAsSpan2D();
 		var (aW, bW, cW) = (1 / A.Position.W, 1 / B.Position.W, 1 / C.Position.W);
 		for ( int y = min.Y; y <= max.Y; y++ ) {
 			var pixelRow = pixelSpan.GetRow( y );
