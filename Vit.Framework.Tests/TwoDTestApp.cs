@@ -15,6 +15,7 @@ using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Templates;
@@ -65,6 +66,9 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 	protected override void OnInitialized () {
 		Window.Title = $"New Window [{Name}] [{GraphicsApiType}] (Testing {type})";
+
+		Dependencies.Cache( new StencilFontStore() );
+		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 16 ), glyphSize: ( 32, 32 ) ) );
 
 		Root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
 			Size = new( 1f.Relative() )

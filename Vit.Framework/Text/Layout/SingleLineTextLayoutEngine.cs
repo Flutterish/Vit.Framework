@@ -26,7 +26,7 @@ public static class SingleLineTextLayoutEngine {
 		while ( enumerator.MoveNext() ) {
 			ref var metric = ref metrics[count];
 
-			var glyphVector = metric.GlyphVector = enumerator.GetTextElement().AsMemory();
+			var glyphVector = metric.Grapheme = enumerator.GetTextElement().AsMemory();
 			metric.StartIndex = enumerator.ElementIndex;
 			metric.EndIndex = enumerator.ElementIndex + glyphVector.Length;
 
@@ -55,7 +55,7 @@ public static class SingleLineTextLayoutEngine {
 public struct GlyphMetric {
 	public Point2<double> Anchor;
 	public Glyph Glyph;
-	public ReadOnlyMemory<char> GlyphVector;
+	public ReadOnlyMemory<char> Grapheme;
 	public int StartIndex;
 	public int EndIndex;
 
@@ -64,9 +64,9 @@ public struct GlyphMetric {
 	public int Length => EndIndex - StartIndex;
 
 	public static bool IsWhiteSpace ( GlyphMetric metric ) {
-		if ( metric.GlyphVector.Length != 1 )
+		if ( metric.Grapheme.Length != 1 )
 			return false;
 
-		return string.IsNullOrWhiteSpace( new string( metric.GlyphVector.Span ) );
+		return string.IsNullOrWhiteSpace( new string( metric.Grapheme.Span ) );
 	}
 }

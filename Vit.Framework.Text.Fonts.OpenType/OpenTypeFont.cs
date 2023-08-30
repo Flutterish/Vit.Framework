@@ -94,17 +94,17 @@ public class OpenTypeFont : Font {
 			glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
 		}
 
-		if ( hasSvgOutlines ) {
-			var svg = header.GetTable<SvgTable>( "SVG " )!;
-			if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
-				var calculated = glyph.CalculatedBoundingBox;
-				glyph.MinX = calculated.MinX;
-				glyph.MinY = calculated.MinY;
-				glyph.MaxX = calculated.MaxX;
-				glyph.MaxY = calculated.MaxY;
-				return;
-			}
-		}
+		//if ( hasSvgOutlines ) {
+		//	var svg = header.GetTable<SvgTable>( "SVG " )!;
+		//	if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
+		//		var calculated = glyph.CalculatedBoundingBox;
+		//		glyph.MinX = calculated.MinX;
+		//		glyph.MinY = calculated.MinY;
+		//		glyph.MaxX = calculated.MaxX;
+		//		glyph.MaxY = calculated.MaxY;
+		//		return;
+		//	}
+		//}
 
 		if ( header.SfntVersion == "OTTO" ) {
 			loadCharstringOutline( glyph );

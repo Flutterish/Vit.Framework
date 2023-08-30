@@ -1,4 +1,5 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Collections.Generic;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -11,11 +12,12 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Layout;
+using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public class DrawableSpriteText : DrawableText { // TODO this is a scam and is actually just a bunch of vertices
+public class DrawableStencilText : DrawableText {
 	ColorRgba<float> tint = ColorRgba.Black;
 	public ColorRgba<float> Tint {
 		get => tint;
@@ -27,18 +29,20 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 
 	Shader shader = null!;
 	Texture texture = null!;
+	StencilFontStore stencilFont = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() {
 			Vertex = new() {
-				Shader = ColoredBasicVertexShader.Identifier,
-				Input = ColoredBasicVertexShader.InputDescription
+				Shader = BasicVertexShader.Identifier,
+				Input = BasicVertexShader.InputDescription
 			},
-			Fragment = ColoredBasicFragmentShader.Identifier
+			Fragment = BasicFragmentShader.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		Font ??= deps.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
+		stencilFont = deps.Resolve<StencilFontStore>();
 	}
 
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
@@ -51,11 +55,11 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 
 	struct Vertex {
 		public Point2<float> PositionAndUV;
-		public ColorSRgb<float> Tint;
 	}
 
 	struct Uniforms {
 		public Matrix4x3<float> Matrix;
+		public ColorSRgba<float> Tint;
 	}
 
 	IUniformSet? uniformSet;
@@ -73,17 +77,20 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 		uniforms?.Dispose();
 	}
 
-	public class DrawNode : TextDrawNode<DrawableSpriteText> {
-		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+	public class DrawNode : TextDrawNode<DrawableStencilText> {
+		public DrawNode ( DrawableStencilText source, int subtreeIndex ) : base( source, subtreeIndex ) {
+			stencilFont = source.stencilFont;
+		}
 
 		Shader shader = null!;
+		StencilFontStore stencilFont;
 		Texture texture = null!;
-		ColorSRgb<float> tint;
+		ColorSRgba<float> tint;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
-			tint = Source.Tint.GetRgb().ToSRgb();
+			tint = Source.Tint.ToSRgb();
 		}
 
 		void updateTextMesh ( IRenderer renderer ) {
@@ -101,37 +108,31 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 			}
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
-			List<Vertex> verticesList = new();
-			List<uint> indicesList = new();
 
 			using var layout = new RentedArray<GlyphMetric>( SingleLineTextLayoutEngine.GetBufferLengthFor( Text ) );
 			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var bounds );
 
+			int vertexCount = 0;
+			int indexCount = 0;
 			foreach ( var i in layout.AsSpan( 0, glyphCount ) ) {
-				var glyph = i.Glyph;
+				var glyph = stencilFont.GetGlyph( i.Glyph );
+				vertexCount += glyph.Vertices.Count;
+				indexCount += glyph.Indices.Count;
+			}
+
+			List<Vertex> verticesList = new( vertexCount );
+			List<uint> indicesList = new( indexCount );
+			foreach ( var i in layout.AsSpan( 0, glyphCount ) ) {
+				var glyph = stencilFont.GetGlyph( i.Glyph );
 				var advance = i.Anchor.Cast<float>().FromOrigin();
 
-				foreach ( var spline in glyph.Outline.Splines ) {
-					var tint = this.tint;
-					uint? _anchor = null;
-					uint? _last = null;
-					foreach ( var p in spline.GetPoints() ) {
-						var point = p.Cast<float>();
-						var index = (uint)verticesList.Count;
-						verticesList.Add( new() { PositionAndUV = point + advance, Tint = tint } );
+				var offset = (uint)verticesList.Count;
+				foreach ( var vertex in glyph.Vertices ) {
+					verticesList.Add( new() { PositionAndUV = vertex + advance } );
+				}
 
-						if ( _anchor is not uint anchor ) {
-							_anchor = index;
-							continue;
-						}
-						if ( _last is not uint last ) {
-							_last = index;
-							continue;
-						}
-
-						indicesList.AddRange( new[] { anchor, last, index } );
-						_last = index;
-					}
+				foreach ( var index in glyph.Indices ) {
+					indicesList.Add( index + offset );
 				}
 			}
 
@@ -174,7 +175,8 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 			commands.BindVertexBuffer( vertices!.DeviceBuffer );
 			commands.BindIndexBuffer( indices!.DeviceBuffer );
 			uniforms!.UploadUniform( new Uniforms {
-				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix )
+				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix ),
+				Tint = tint
 			} );
 
 			using ( commands.PushDepthTest( new( CompareOperation.Never ), new() { WriteOnPass = false } ) ) {
