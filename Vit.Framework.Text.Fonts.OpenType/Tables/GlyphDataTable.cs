@@ -119,7 +119,7 @@ public class GlyphDataTable : Table {
 				// TODO Debug.Assert( first.IsOnCurve );
 				var wasLastOnCurve = true;
 				var control = new Point2<double>();
-				var spline = new Spline2<double>( point );
+				var spline = new GlyphSpline<double>( point );
 
 				void addPoint ( Point2<double> next, bool onCurve ) {
 					if ( wasLastOnCurve && onCurve ) {

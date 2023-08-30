@@ -39,7 +39,7 @@ public class CharStringInterpreter {
 	public bool IsWidthPending = true;
 	public string? LastHintType;
 	public bool AreHintsSet;
-	public Spline2<double>? Spline;
+	public GlyphSpline<double>? Spline;
 	public void Execute ( CharString charString ) {
 		var data = charString.Data;
 		execute( ref data );

@@ -73,6 +73,8 @@ public struct TableRecord {
 			return typeof( IndexToLocationTable );
 		//else if ( tableTag == "GPOS" )
 		//	return typeof( GlyphPositioningTable );
+		else if ( tableTag == "SVG " )
+			return typeof( SvgTable );
 
 		return null;
 	}

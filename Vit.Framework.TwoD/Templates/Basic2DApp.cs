@@ -34,6 +34,8 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 	protected virtual void PopulateShaderStore ( ShaderStore shaders ) {
 		shaders.AddShaderPart( BasicVertexShader.Identifier, BasicVertexShader.Spirv );
 		shaders.AddShaderPart( BasicFragmentShader.Identifier, BasicFragmentShader.Spirv );
+		shaders.AddShaderPart( ColoredBasicVertexShader.Identifier, ColoredBasicVertexShader.Spirv );
+		shaders.AddShaderPart( ColoredBasicFragmentShader.Identifier, ColoredBasicFragmentShader.Spirv );
 	}
 	protected abstract void PopulateTextureStore ( TextureStore textures );
 	protected abstract void PopulateFontStore ( FontStore fonts );

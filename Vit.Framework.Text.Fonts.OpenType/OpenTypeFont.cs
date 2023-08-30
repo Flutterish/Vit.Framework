@@ -3,6 +3,7 @@ using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
+using static Vit.Framework.Text.Fonts.OpenType.Tables.GlyphDataTable;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 
@@ -10,6 +11,7 @@ public class OpenTypeFont : Font {
 	Ref<EndianCorrectingBinaryReader?> readerRef = new( null );
 	ReopenableStream source;
 
+	bool hasSvgOutlines;
 	OpenFontFile header;
 	public OpenTypeFont ( ReopenableStream source ) {
 		this.source = source;
@@ -33,6 +35,8 @@ public class OpenTypeFont : Font {
 		var hmtx = header.GetTableRecord( "hmtx" )!.Value;
 		hmtx.Table.Context.CacheDependency( maxp );
 		hmtx.Table.Context.CacheDependency( hhea );
+
+		hasSvgOutlines = header.TableRecords.Any( x => x.TableTag == "SVG " );
 
 		if ( header.SfntVersion != "OTTO" ) {
 			var loca = header.GetTableRecord( "loca" )!.Value;
@@ -89,6 +93,18 @@ public class OpenTypeFont : Font {
 		else {
 			glyph.HorizontalAdvance = hmtx.HorizontalMetrics[^1].AdvanceWidth;
 			glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
+		}
+
+		if ( hasSvgOutlines ) {
+			var svg = header.GetTable<SvgTable>( "SVG " )!;
+			if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
+				var calculated = glyph.CalculatedBoundingBox;
+				glyph.MinX = calculated.MinX;
+				glyph.MinY = calculated.MinY;
+				glyph.MaxX = calculated.MaxX;
+				glyph.MaxY = calculated.MaxY;
+				return;
+			}
 		}
 
 		if ( header.SfntVersion == "OTTO" ) {

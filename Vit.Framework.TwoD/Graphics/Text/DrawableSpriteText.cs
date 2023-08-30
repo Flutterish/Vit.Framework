@@ -32,10 +32,10 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() {
 			Vertex = new() {
-				Shader = BasicVertexShader.Identifier,
-				Input = BasicVertexShader.InputDescription
+				Shader = ColoredBasicVertexShader.Identifier,
+				Input = ColoredBasicVertexShader.InputDescription
 			},
-			Fragment = BasicFragmentShader.Identifier
+			Fragment = ColoredBasicFragmentShader.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		Font ??= deps.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
@@ -51,11 +51,11 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 
 	struct Vertex {
 		public Point2<float> PositionAndUV;
+		public ColorSRgb<float> Tint;
 	}
 
 	struct Uniforms {
 		public Matrix4x3<float> Matrix;
-		public ColorSRgba<float> Tint;
 	}
 
 	IUniformSet? uniformSet;
@@ -78,12 +78,12 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 
 		Shader shader = null!;
 		Texture texture = null!;
-		ColorSRgba<float> tint;
+		ColorSRgb<float> tint;
 		protected override void UpdateState () {
 			base.UpdateState();
 			shader = Source.shader;
 			texture = Source.texture;
-			tint = Source.Tint.ToSRgb();
+			tint = Source.Tint.GetRgb().ToSRgb();
 		}
 
 		void updateTextMesh ( IRenderer renderer ) {
@@ -112,12 +112,13 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 				var advance = i.Anchor.Cast<float>().FromOrigin();
 
 				foreach ( var spline in glyph.Outline.Splines ) {
+					var tint = spline.Color?.ToFloat<float>() ?? this.tint;
 					uint? _anchor = null;
 					uint? _last = null;
 					foreach ( var p in spline.GetPoints() ) {
 						var point = p.Cast<float>();
 						var index = (uint)verticesList.Count;
-						verticesList.Add( new() { PositionAndUV = point + advance } );
+						verticesList.Add( new() { PositionAndUV = point + advance, Tint = tint } );
 
 						if ( _anchor is not uint anchor ) {
 							_anchor = index;
@@ -173,8 +174,7 @@ public class DrawableSpriteText : DrawableText { // TODO this is a scam and is a
 			commands.BindVertexBuffer( vertices!.DeviceBuffer );
 			commands.BindIndexBuffer( indices!.DeviceBuffer );
 			uniforms!.UploadUniform( new Uniforms {
-				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix ),
-				Tint = tint
+				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix )
 			} );
 
 			using ( commands.PushDepthTest( new( CompareOperation.Never ), new() { WriteOnPass = false } ) ) {

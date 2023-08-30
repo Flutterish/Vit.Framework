@@ -195,6 +195,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			public Matrix4x3<float> Matrix;
 		}
 		IUniformSet globalSet = null!;
+		IUniformSet globalSet2 = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
 		protected override bool Initialize () {
 			if ( !base.Initialize() )
@@ -211,10 +212,21 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				Fragment = BasicFragmentShader.Identifier
 			} );
 
+			var coloredBasic = ShaderStore.GetShader( new() {
+				Vertex = new() {
+					Shader = ColoredBasicVertexShader.Identifier,
+					Input = ColoredBasicVertexShader.InputDescription
+				},
+				Fragment = ColoredBasicFragmentShader.Identifier
+			} );
+
 			ShaderStore.CompileNew( Renderer );
 			globalSet = basic.Value.CreateUniformSet( 0 );
+			globalSet2 = coloredBasic.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
+			globalSet2.SetUniformBuffer( globalUniformBuffer, binding: 0 );
 			basic.Value.SetUniformSet( globalSet );
+			coloredBasic.Value.SetUniformSet( globalSet2 );
 
 			return true;
 		}
@@ -228,6 +240,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		protected override void DisposeGraphics ( bool disposing ) {
 			globalSet.Dispose();
+			globalSet2.Dispose();
 			globalUniformBuffer.Dispose();
 			base.DisposeGraphics( disposing );
 		}

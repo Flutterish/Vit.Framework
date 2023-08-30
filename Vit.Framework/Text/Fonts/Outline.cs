@@ -1,12 +1,13 @@
 ﻿using System.Numerics;
 using System.Text;
+using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 
 namespace Vit.Framework.Text.Fonts;
 
 public class Outline<T> where T : INumber<T> {
-	public readonly List<Spline2<T>> Splines = new();
+	public readonly List<GlyphSpline<T>> Splines = new();
 
 	public override string ToString () {
 		return ToSvg();
@@ -49,6 +50,11 @@ public class Outline<T> where T : INumber<T> {
 
 		return sb.ToString();
 	}
+}
+
+public class GlyphSpline<T> : Spline2<T> where T : INumber<T> {
+	public ColorSRgb<byte>? Color;
+	public GlyphSpline ( Point2<T> startPoint ) : base( startPoint ) { }
 }
 
 public static class OutlineExtensions {

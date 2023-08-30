@@ -25,7 +25,7 @@ public class Glyph {
 	public readonly GlyphId Id;
 	public readonly HashSet<string> Names = new();
 	public readonly HashSet<string> AssignedVectors = new();
-	public readonly Outline<double> Outline = new();
+	public readonly Outline<double> Outline = new(); // TODO 1. an outline should be loaded on demand and cached only when requested. 2. the outline type should be an abstract class, and the type should be given when requested
 
 	public double MinX;
 	public double MaxX;
