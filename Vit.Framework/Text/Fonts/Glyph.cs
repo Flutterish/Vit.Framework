@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Mathematics;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts;
@@ -26,7 +27,10 @@ public class Glyph {
 	public readonly GlyphId Id;
 	public readonly HashSet<string> Names = new();
 	public readonly HashSet<string> AssignedVectors = new();
-	public readonly SplineOutline<double> Outline = new(); // TODO 1. an outline should be loaded on demand and cached only when requested. 2. the outline type should be an abstract class, and the type should be given when requested
+
+	public bool TryFetchOutline<TOutline> ( [NotNullWhen( true )] out TOutline? outline ) where TOutline : IGlyphOutline {
+		return Font.TryFetchOutline( Id, out outline );
+	}
 
 	public double MinX;
 	public double MaxX;
@@ -43,11 +47,11 @@ public class Glyph {
 	public double Width => MaxX - MinX;
 	public double Height => MaxY - MinY;
 
-	AxisAlignedBox2<double>? calculatedBoundingBox;
-	public AxisAlignedBox2<double> CalculatedBoundingBox {
-		get => calculatedBoundingBox ??= Outline.CalculateBoundingBox();
-		set => calculatedBoundingBox = null;
-	}
+	//AxisAlignedBox2<double>? calculatedBoundingBox;
+	//public AxisAlignedBox2<double> CalculatedBoundingBox {
+	//	get => calculatedBoundingBox ??= Outline.CalculateBoundingBox();
+	//	set => calculatedBoundingBox = null;
+	//}
 
 	public AxisAlignedBox2<double> DefinedBoundingBox => new AxisAlignedBox2<double> {
 		MinX = MinX,

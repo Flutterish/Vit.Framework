@@ -68,7 +68,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		Window.Title = $"New Window [{Name}] [{GraphicsApiType}] (Testing {type})";
 
 		Dependencies.Cache( new StencilFontStore() );
-		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 16 ), glyphSize: ( 32, 32 ) ) );
+		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ) ) );
 
 		Root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
 			Size = new( 1f.Relative() )

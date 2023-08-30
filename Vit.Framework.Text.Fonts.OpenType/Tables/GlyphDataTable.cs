@@ -24,6 +24,27 @@ public class GlyphDataTable : Table {
 		return BinaryView<GlyphData>.Parse( context with { Offset = context.OffsetAnchor + startOffset } );
 	}
 
+	public GlyphDataHeader? GetHeader ( GlyphId id ) {
+		var loca = context.ResolveDependency<IndexToLocationTable>();
+
+		var index = (int)id.Value;
+		var startOffset = loca[index];
+		var endOffset = loca[index + 1];
+		var length = endOffset - startOffset;
+		if ( length == 0 )
+			return null;
+
+		return BinaryView<GlyphDataHeader>.Parse( context with { Offset = context.OffsetAnchor + startOffset } );
+	}
+
+	public struct GlyphDataHeader {
+		public short NumberOfContours;
+		public short MinX;
+		public short MinY;
+		public short MaxX;
+		public short MaxY;
+	}
+
 	[TypeSelector( nameof( selectType ) )]
 	public abstract class GlyphData {
 		public short NumberOfContours;
@@ -39,7 +60,7 @@ public class GlyphDataTable : Table {
 			};
 		}
 
-		public abstract void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs );
+		public abstract void CopyOutline ( SplineOutline outline, GlyphDataTable glyphs );
 	}
 
 	public class SimpleGlyphData : GlyphData {
@@ -103,7 +124,7 @@ public class GlyphDataTable : Table {
 			return points;
 		}
 
-		public override void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs ) {
+		public override void CopyOutline ( SplineOutline outline, GlyphDataTable glyphs ) {
 			if ( !Points.Any() )
 				return;
 
@@ -239,7 +260,7 @@ public class GlyphDataTable : Table {
 			return data.ToArray();
 		}
 
-		public override void CopyOutline ( SplineOutline<double> outline, GlyphDataTable glyphs ) {
+		public override void CopyOutline ( SplineOutline outline, GlyphDataTable glyphs ) {
 			foreach ( var i in Components ) {
 				Debug.Assert( i.Flags.HasFlag( Flags.ArgsAreXyValues ) );
 				//Debug.Assert( i.Flags.HasFlag( Flags.ArgsAre16Bit ) || (i.Arg1 == 0 && i.Arg2 == 0) );

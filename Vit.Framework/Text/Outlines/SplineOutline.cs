@@ -5,8 +5,8 @@ using Vit.Framework.Mathematics.Curves;
 
 namespace Vit.Framework.Text.Outlines;
 
-public class SplineOutline<T> : IGlyphOutline where T : INumber<T> {
-	public readonly List<Spline2<T>> Splines = new();
+public class SplineOutline : IGlyphOutline {
+	public readonly List<Spline2<double>> Splines = new();
 
 	public override string ToString () {
 		return ToSvg();
@@ -52,7 +52,7 @@ public class SplineOutline<T> : IGlyphOutline where T : INumber<T> {
 }
 
 public static class OutlineExtensions {
-	public static AxisAlignedBox2<T> CalculateBoundingBox<T> ( this SplineOutline<T> outline ) where T : INumber<T>, IFloatingPointIeee754<T> {
-		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<T>.Undefined, ( a, b ) => a.Contain( b ) );
+	public static AxisAlignedBox2<double> CalculateBoundingBox ( this SplineOutline outline ) {
+		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<double>.Undefined, ( a, b ) => a.Contain( b ) );
 	}
 }

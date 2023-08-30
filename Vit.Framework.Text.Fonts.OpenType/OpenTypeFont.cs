@@ -1,8 +1,11 @@
-﻿using Vit.Framework.Memory;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Security;
+using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 
@@ -94,51 +97,46 @@ public class OpenTypeFont : Font {
 			glyph.MinX = hmtx.LeftSideBearings[(int)id.Value - hmtx.HorizontalMetrics.Length];
 		}
 
-		//if ( hasSvgOutlines ) {
-		//	var svg = header.GetTable<SvgTable>( "SVG " )!;
-		//	if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
-		//		var calculated = glyph.CalculatedBoundingBox;
-		//		glyph.MinX = calculated.MinX;
-		//		glyph.MinY = calculated.MinY;
-		//		glyph.MaxX = calculated.MaxX;
-		//		glyph.MaxY = calculated.MaxY;
-		//		return;
-		//	}
-		//}
-
 		if ( header.SfntVersion == "OTTO" ) {
-			loadCharstringOutline( glyph );
+			throw new NotImplementedException(); // TODO otto bounds
 		}
 		else {
-			loadGlyphDataOutline( glyph );
+			var glyf = header.GetTable<GlyphDataTable>( "glyf" )!;
+			var glyphData = glyf.GetHeader( glyph.Id );
+
+			if ( glyphData == null )
+				return;
+
+			glyph.MinX = glyphData.Value.MinX;
+			glyph.MinY = glyphData.Value.MinY;
+			glyph.MaxX = glyphData.Value.MaxX;
+			glyph.MaxY = glyphData.Value.MaxY;
 		}
 	}
 
-	void loadGlyphDataOutline ( Glyph glyph ) {
+	SplineOutline? loadGlyphDataOutline ( GlyphId glyph ) {
 		var glyf = header.GetTable<GlyphDataTable>( "glyf" )!;
-		var glyphData = glyf.GetGlyph( glyph.Id );
+		var glyphData = glyf.GetGlyph( glyph );
 		if ( glyphData == null )
-			return;
+			return null;
 
-		glyphData.CopyOutline( glyph.Outline, glyf );
-		glyph.MinX = glyphData.MinX;
-		glyph.MinY = glyphData.MinY;
-		glyph.MaxX = glyphData.MaxX;
-		glyph.MaxY = glyphData.MaxY;
+		var outline = new SplineOutline();
+		glyphData.CopyOutline( outline, glyf );
+		return outline;
 	}
 
-	void loadCharstringOutline ( Glyph glyph ) {
+	SplineOutline loadCharstringOutline ( GlyphId glyph ) {
 		var cff = header.GetTable<CompactFontFormatTable>( "CFF " )!.Data;
 		var global = cff.GlobalSubrs;
 		var local = cff.GetPrivateDict( 0 )!.Value.LocalSubrs;
 		var charStrings = cff.GetCharStrings( 0 )!.Value;
-		var charString = charStrings[(int)glyph.Id.Value];
+		var charString = charStrings[(int)glyph.Value];
 		var charset = cff.GetCharset( 0 )!.Value;
-		var sid = glyph.Id.Value == 0 ? new StringId() : charset.Glyphs[ (int)glyph.Id.Value - 1 ];
+		var sid = glyph.Value == 0 ? new StringId() : charset.Glyphs[ (int)glyph.Value - 1 ];
 		var name = cff.GetString( sid );
 
-		glyph.Names.Add( name );
-		CharStringInterpreter.Load( charString, glyph, global, local );
+		GetGlyph( glyph ).Names.Add( name );
+		return CharStringInterpreter.Load( charString, global, local );
 	}
 
 	DisposeAction<(OpenTypeFont self, bool wasOpen)> open () {
@@ -151,5 +149,34 @@ public class OpenTypeFont : Font {
 			if ( !data.wasOpen )
 				data.self.source.Close();
 		} );
+	}
+
+	public override bool TryFetchOutline<TOutline> ( GlyphId id, [NotNullWhen( true )] out TOutline? outline ) where TOutline : default {
+		using var _ = open(); // TODO open for longer
+		//if ( hasSvgOutlines ) {
+		//	var svg = header.GetTable<SvgTable>( "SVG " )!;
+		//	if ( svg.TryLoadGlyphOutline( id, glyph ) ) {
+		//		var calculated = glyph.CalculatedBoundingBox;
+		//		glyph.MinX = calculated.MinX;
+		//		glyph.MinY = calculated.MinY;
+		//		glyph.MaxX = calculated.MaxX;
+		//		glyph.MaxY = calculated.MaxY;
+		//		return;
+		//	}
+		//}
+
+		if ( typeof(SplineOutline).IsAssignableTo( typeof(TOutline) ) ) {
+			if ( header.SfntVersion == "OTTO" ) {
+				outline = (TOutline)(object)loadCharstringOutline( id );
+				return true;
+			}
+			else {
+				outline = (TOutline?)(object?)loadGlyphDataOutline( id );
+				return outline != null;
+			}
+		}
+
+		outline = default;
+		return false;
 	}
 }

@@ -52,7 +52,7 @@ public class Circle : SvgElement {
 
 		var spline = new Spline2<double>( context.Matrix.Apply(new Point2<double>( 0, a ) + offset) );
 		//spline.Color = fillValue;
-		context.Glyph.Outline.Splines.Add( spline );
+		//context.Glyph.Outline.Splines.Add( spline );
 		void add ( ref SvgOutline.Context context, Point2< double> a, Point2<double> b, Point2<double> c ) {
 			spline!.AddCubicBezier(
 				context.Matrix.Apply( a + offset ),

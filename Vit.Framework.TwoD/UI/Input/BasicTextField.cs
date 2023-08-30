@@ -45,10 +45,9 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		boundingBox.MinX *= spriteText.Displayed.MetricMultiplier;
 		boundingBox.MinY *= spriteText.Displayed.MetricMultiplier;
 
-		if ( selection.start == selection.end ) {
-			boundingBox.MinX -= 4;
-			boundingBox.MaxX += 4;
-		}
+		boundingBox.MinX -= 4;
+		boundingBox.MaxX += 4;
+
 		this.Animate().ChangeLayoutParameters( selectionBox, ( LayoutParams v ) => v with {
 			Anchor = Anchor<float>.BottomLeft + boundingBox.Position.Cast<float>(),
 			Size = boundingBox.Size.Cast<float>()
@@ -83,7 +82,8 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		} );
 		AddChild( selectionBox = new Box { Tint = ColorRgba.LightBlue }, new() {
 			Origin = Anchor.BottomLeft,
-			Anchor = Anchor.BottomLeft
+			Anchor = Anchor.BottomLeft,
+			IngoreAutosize = LayoutDirection.Both
 		} );
 		AddChild( spriteText = new() { FontSize = 32 }, new() {
 			Size = (20, 0),

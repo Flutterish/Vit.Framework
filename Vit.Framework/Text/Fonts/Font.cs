@@ -1,5 +1,7 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Vit.Framework.Exceptions;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -60,6 +62,7 @@ public abstract class Font {
 		=> GlyphsByCluster.ContainsKey( cluster );
 
 	protected abstract void TryLoadGlyphFor ( UnicodeExtendedGraphemeCluster cluster );
+	public abstract bool TryFetchOutline<TOutline> ( GlyphId id, [NotNullWhen(true)] out TOutline? outline ) where TOutline : IGlyphOutline;
 
 	public void Validate () {
 		if ( double.IsNaN( UnitsPerEm ) )

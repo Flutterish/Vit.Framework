@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Parsing.Binary;
@@ -7,12 +8,12 @@ using Vit.Framework.Text.Outlines;
 namespace Vit.Framework.Text.Fonts.OpenType.Adobe;
 
 public class CharStringInterpreter {
-	SplineOutline<double> outline;
+	SplineOutline outline;
 	Index<CharString> globalSubrs;
 	int globalBias;
 	Index<CharString> localSubrs;
 	int localBias;
-	private CharStringInterpreter ( SplineOutline<double> outline, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
+	private CharStringInterpreter ( SplineOutline outline, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
 		this.outline = outline;
 		this.globalSubrs = globalSubrs;
 		this.localSubrs = localSubrs;
@@ -29,9 +30,11 @@ public class CharStringInterpreter {
 		return 32768;
 	}
 
-	public static void Load ( CharString charString, Glyph glyph, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
-		var interpreter = new CharStringInterpreter( glyph.Outline, globalSubrs, localSubrs );
+	public static SplineOutline Load ( CharString charString, Index<CharString> globalSubrs, Index<CharString> localSubrs ) {
+		var outline = new SplineOutline();
+		var interpreter = new CharStringInterpreter( outline, globalSubrs, localSubrs );
 		interpreter.Execute( charString );
+		return outline;
 	}
 
 	public Point2<double> Position;

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Fonts;
+using Vit.Framework.Text.Outlines;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
@@ -24,7 +25,10 @@ public class StencilGlyph {
 	public readonly List<uint> Indices = new();
 
 	public StencilGlyph ( Glyph glyph ) {
-		foreach ( var spline in glyph.Outline.Splines ) {
+		if ( !glyph.TryFetchOutline<SplineOutline>( out var outline ) )
+			return;
+
+		foreach ( var spline in outline.Splines ) {
 			uint? _anchor = null;
 			uint? _last = null;
 			foreach ( var p in spline.GetPoints() ) {

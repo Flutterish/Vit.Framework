@@ -89,8 +89,8 @@ public abstract class DrawableText : Drawable {
 			return new AxisAlignedBox2<double> {
 				MinY = 0,
 				MaxY = Font.PrimaryUnitsPerEm,
-				MinX = _right.Glyph.DefinedBoundingBox.MaxX * _right.SizeMultiplier + _right.Anchor.X,
-				MaxX = _right.Glyph.DefinedBoundingBox.MaxX * _right.SizeMultiplier + _right.Anchor.X
+				MinX = _right.Glyph.HorizontalAdvance * _right.SizeMultiplier + _right.Anchor.X,
+				MaxX = _right.Glyph.HorizontalAdvance * _right.SizeMultiplier + _right.Anchor.X
 			};
 		}
 
@@ -98,8 +98,8 @@ public abstract class DrawableText : Drawable {
 
 		if ( length == 0 ) {
 			return new AxisAlignedBox2<double> {
-				MinX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
-				MaxX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
+				MinX = left.Anchor.X,
+				MaxX = left.Anchor.X,
 				MinY = 0,
 				MaxY = Font.PrimaryUnitsPerEm
 			};
@@ -110,8 +110,8 @@ public abstract class DrawableText : Drawable {
 		return new AxisAlignedBox2<double> {
 			MinY = 0,
 			MaxY = Font.PrimaryUnitsPerEm,
-			MinX = left.Glyph.DefinedBoundingBox.MinX * left.SizeMultiplier + left.Anchor.X,
-			MaxX = right.Glyph.DefinedBoundingBox.MaxX * right.SizeMultiplier + right.Anchor.X
+			MinX = left.Anchor.X,
+			MaxX = right.Glyph.HorizontalAdvance * right.SizeMultiplier + right.Anchor.X
 		};
 	}
 
