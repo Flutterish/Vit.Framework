@@ -5,7 +5,7 @@ using Vit.Framework.TwoD.UI.Graphics;
 namespace Vit.Framework.Tests.VisualTests;
 
 public class TextSizeTest : TestScene {
-	SpriteText text;
+	StencilText text;
 	Box sizeBox;
 
 	public TextSizeTest () {

@@ -26,6 +26,7 @@ public class VulkanApi : GraphicsApi {
 		[PixelFormat.D24] = VkFormat.X8D24UnormPack32,
 		[PixelFormat.D32f] = VkFormat.D32Sfloat,
 		[PixelFormat.D24S8ui] = VkFormat.D24UnormS8Uint,
-		[PixelFormat.D32fS8ui] = VkFormat.D32SfloatS8Uint
+		[PixelFormat.D32fS8ui] = VkFormat.D32SfloatS8Uint,
+		[PixelFormat.S8ui] = VkFormat.S8Uint
 	};
 }

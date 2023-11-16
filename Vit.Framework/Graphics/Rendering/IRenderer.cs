@@ -40,5 +40,5 @@ public interface IRenderer : IDisposable {
 	ISampler CreateSampler ();
 	IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null );
 
-	IImmediateCommandBuffer CreateImmediateCommandBuffer ();
+	IImmediateCommandBuffer CreateImmediateCommandBuffer (); // TODO currently all implementations behave as if the commands finished when disposed. this will not be true in the future
 }

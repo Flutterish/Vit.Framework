@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Vit.Framework.DependencyInjection;
+﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
@@ -7,13 +6,13 @@ using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Interop;
-using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Layout;
-using Vit.Framework.TwoD.Layout;
-using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Shaders;
+using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Uniforms;
+using Vertex = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
@@ -35,10 +34,10 @@ public class DrawableStencilText : DrawableText {
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() {
 			Vertex = new() {
-				Shader = BasicVertexShader.Identifier,
-				Input = BasicVertexShader.InputDescription
+				Shader = BasicVertex.Identifier,
+				Input = BasicVertex.InputDescription
 			},
-			Fragment = BasicFragmentShader.Identifier
+			Fragment = BasicFragment.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		Font ??= deps.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
@@ -51,15 +50,6 @@ public class DrawableStencilText : DrawableText {
 
 	protected override void Dispose ( bool disposing ) {
 		base.Dispose( disposing );
-	}
-
-	struct Vertex {
-		public Point2<float> PositionAndUV;
-	}
-
-	struct Uniforms {
-		public Matrix4x3<float> Matrix;
-		public ColorSRgba<float> Tint;
 	}
 
 	IUniformSet? uniformSet;

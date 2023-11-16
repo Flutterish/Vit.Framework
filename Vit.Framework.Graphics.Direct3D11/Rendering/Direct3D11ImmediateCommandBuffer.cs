@@ -5,7 +5,6 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Memory;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.Mathematics;

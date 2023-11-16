@@ -43,7 +43,7 @@ public class BasicButton : Button {
 	}
 
 	Box background;
-	public readonly SpriteText SpriteText;
+	public readonly StencilText SpriteText;
 	public string Text {
 		get => SpriteText.Text;
 		set => SpriteText.Text = value;

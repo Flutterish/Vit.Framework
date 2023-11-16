@@ -23,6 +23,7 @@ public class Direct3D11Api : GraphicsApi {
 		[PixelFormat.D24] = Format.D24_UNorm_S8_UInt,
 		[PixelFormat.D32f] = Format.D32_Float,
 		[PixelFormat.D24S8ui] = Format.D24_UNorm_S8_UInt,
-		[PixelFormat.D32fS8ui] = Format.D32_Float_S8X24_UInt
+		[PixelFormat.D32fS8ui] = Format.D32_Float_S8X24_UInt,
+		[PixelFormat.S8ui] = Format.D24_UNorm_S8_UInt
 	};
 }

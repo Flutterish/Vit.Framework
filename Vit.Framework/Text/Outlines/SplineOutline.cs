@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Text;
+﻿using System.Text;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 

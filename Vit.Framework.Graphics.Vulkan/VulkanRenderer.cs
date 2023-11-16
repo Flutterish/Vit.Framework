@@ -121,7 +121,11 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 				viewType = VkImageViewType.Image2D,
 				format = VulkanApi.formats[depthStencilAttachment.Format],
 				subresourceRange = {
-					aspectMask = VkImageAspectFlags.Depth,
+					aspectMask = depthStencilAttachment.Format.Type switch {
+						PixelType.Stencil => VkImageAspectFlags.Stencil,
+						PixelType.Depth => VkImageAspectFlags.Depth,
+						_ => VkImageAspectFlags.Stencil | VkImageAspectFlags.Depth
+					},
 					baseMipLevel = 0,
 					levelCount = 1,
 					baseArrayLayer = 0,

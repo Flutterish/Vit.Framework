@@ -7,8 +7,8 @@ using Vit.Framework.TwoD.Graphics.Text;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
-public class SpriteText : Visual<DrawableStencilText> {
-	public SpriteText () : base( new() ) { }
+public class StencilText : Visual<DrawableStencilText> {
+	public StencilText () : base( new() ) { }
 
 	public string Text {
 		get => Displayed.Text;

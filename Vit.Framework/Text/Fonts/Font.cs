@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Vit.Framework.Exceptions;
 using Vit.Framework.Text.Outlines;
@@ -37,7 +36,7 @@ public abstract class Font {
 
 		return GetGlyph( new UnicodeExtendedGraphemeCluster( bytes ) );
 	}
-	public Glyph? TryGetGlyph ( GlyphId id ) {
+	public Glyph? TryGetGlyph ( GlyphId id ) { // TODO try loading the glyph by id
 		if ( !GlyphsById.TryGetValue( id, out var glyph ) )
 			return null;
 

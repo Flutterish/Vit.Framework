@@ -16,6 +16,7 @@ public static unsafe class ShaderBindingExtensions {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
 					(PrimitiveType.Float32, [2] ) => VkFormat.R32g32Sfloat,
 					(PrimitiveType.Float32, [3] ) => VkFormat.R32g32b32Sfloat,
+					(PrimitiveType.Float32, [4] ) => VkFormat.R32g32b32a32Sfloat,
 					_ => throw new Exception( "Unrecognized format" )
 				};
 

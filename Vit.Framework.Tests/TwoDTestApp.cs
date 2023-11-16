@@ -18,6 +18,7 @@ using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Components;
@@ -68,7 +69,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		Window.Title = $"New Window [{Name}] [{GraphicsApiType}] (Testing {type})";
 
 		Dependencies.Cache( new StencilFontStore() );
-		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ) ) );
+		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ), Dependencies.Resolve<ShaderStore>() ) );
 
 		Root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
 			Size = new( 1f.Relative() )
@@ -199,7 +200,6 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			public Matrix4x3<float> Matrix;
 		}
 		IUniformSet globalSet = null!;
-		IUniformSet globalSet2 = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
 		protected override bool Initialize () {
 			if ( !base.Initialize() )
@@ -210,27 +210,16 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 			var basic = ShaderStore.GetShader( new() {
 				Vertex = new() {
-					Shader = BasicVertexShader.Identifier,
-					Input = BasicVertexShader.InputDescription
+					Shader = BasicVertex.Identifier,
+					Input = BasicVertex.InputDescription
 				},
-				Fragment = BasicFragmentShader.Identifier
-			} );
-
-			var coloredBasic = ShaderStore.GetShader( new() {
-				Vertex = new() {
-					Shader = ColoredBasicVertexShader.Identifier,
-					Input = ColoredBasicVertexShader.InputDescription
-				},
-				Fragment = ColoredBasicFragmentShader.Identifier
+				Fragment = BasicFragment.Identifier
 			} );
 
 			ShaderStore.CompileNew( Renderer );
 			globalSet = basic.Value.CreateUniformSet( 0 );
-			globalSet2 = coloredBasic.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
-			globalSet2.SetUniformBuffer( globalUniformBuffer, binding: 0 );
 			basic.Value.SetUniformSet( globalSet );
-			coloredBasic.Value.SetUniformSet( globalSet2 );
 
 			return true;
 		}
@@ -244,7 +233,6 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		protected override void DisposeGraphics ( bool disposing ) {
 			globalSet.Dispose();
-			globalSet2.Dispose();
 			globalUniformBuffer.Dispose();
 			base.DisposeGraphics( disposing );
 		}

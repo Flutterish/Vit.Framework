@@ -1,13 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Security;
-using Vit.Framework.Memory;
+﻿using Vit.Framework.Memory;
 using Vit.Framework.Parsing;
 using Vit.Framework.Parsing.Binary;
 using Vit.Framework.Text.Fonts.OpenType.Adobe;
 using Vit.Framework.Text.Fonts.OpenType.Tables;
 using Vit.Framework.Text.Outlines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Vit.Framework.Text.Fonts.OpenType;
 

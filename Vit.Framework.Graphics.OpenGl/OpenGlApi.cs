@@ -43,6 +43,7 @@ public class OpenGlApi : GraphicsApi {
 		[Graphics.Rendering.Textures.PixelFormat.D24] = SizedInternalFormat.DepthComponent24,
 		[Graphics.Rendering.Textures.PixelFormat.D32f] = SizedInternalFormat.DepthComponent32f,
 		[Graphics.Rendering.Textures.PixelFormat.D24S8ui] = SizedInternalFormat.Depth24Stencil8,
-		[Graphics.Rendering.Textures.PixelFormat.D32fS8ui] = SizedInternalFormat.Depth32fStencil8
+		[Graphics.Rendering.Textures.PixelFormat.D32fS8ui] = SizedInternalFormat.Depth32fStencil8,
+		[Graphics.Rendering.Textures.PixelFormat.S8ui] = SizedInternalFormat.StencilIndex8
 	};
 }

@@ -14,6 +14,7 @@ public enum TexelFormat {
 	Vec2_8_8_Unorm,
 	Vec1_8_Unorm,
 
+	Vec1_8_UInt,
 	Vec1_24_Unorm_8_Pad,
 	Vec1_32_Fp,
 	Vec2_24_Unorm_8_UInt,
@@ -60,5 +61,9 @@ public struct PixelFormat {
 	public static readonly PixelFormat D32fS8ui = new() {
 		Format = TexelFormat.Vec2_32_Fp_8_UInt_24_Pad,
 		Type = PixelType.DepthStencil
+	};
+	public static readonly PixelFormat S8ui = new() {
+		Format = TexelFormat.Vec1_8_UInt,
+		Type = PixelType.Stencil
 	};
 }

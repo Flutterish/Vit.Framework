@@ -5,7 +5,6 @@ using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 

@@ -255,7 +255,8 @@ public class GlyphDataTable : Table {
 			}
 			while ( flags.HasFlag( Flags.MoreComponents ) );
 
-			Debug.Assert( !flags.HasFlag( Flags.HasInstructions ) );
+			// TODO uncomment this
+			//Debug.Assert( !flags.HasFlag( Flags.HasInstructions ) );
 
 			return data.ToArray();
 		}

@@ -7,6 +7,7 @@ using Vit.Framework.Text.Fonts;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.Windowing;
 
@@ -32,10 +33,10 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 	protected abstract TRoot CreateRoot ();
 
 	protected virtual void PopulateShaderStore ( ShaderStore shaders ) {
-		shaders.AddShaderPart( BasicVertexShader.Identifier, BasicVertexShader.Spirv );
-		shaders.AddShaderPart( BasicFragmentShader.Identifier, BasicFragmentShader.Spirv );
-		shaders.AddShaderPart( ColoredBasicVertexShader.Identifier, ColoredBasicVertexShader.Spirv );
-		shaders.AddShaderPart( ColoredBasicFragmentShader.Identifier, ColoredBasicFragmentShader.Spirv );
+		shaders.AddShaderPart( BasicVertex.Identifier, BasicVertex.Spirv );
+		shaders.AddShaderPart( BasicFragment.Identifier, BasicFragment.Spirv );
+		shaders.AddShaderPart( SvgVertex.Identifier, SvgVertex.Spirv );
+		shaders.AddShaderPart( SvgFragment.Identifier, SvgFragment.Spirv );
 	}
 	protected abstract void PopulateTextureStore ( TextureStore textures );
 	protected abstract void PopulateFontStore ( FontStore fonts );

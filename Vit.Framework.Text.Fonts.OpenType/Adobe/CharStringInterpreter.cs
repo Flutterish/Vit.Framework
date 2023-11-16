@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Linq.Expressions;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Parsing.Binary;

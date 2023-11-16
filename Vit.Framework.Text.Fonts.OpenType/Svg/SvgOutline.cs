@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Vit.Framework.Mathematics.LinearAlgebra;
 
