@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Mathematics;
+﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Layout;
@@ -35,7 +36,12 @@ public abstract class DrawableText : Drawable {
 	}
 
 	public DrawableText () {
-		layout = new RentedArray<GlyphMetric>( 64 ) with { Length = 0 };
+		layout = new RentedArray<GlyphMetric>( 8 ) with { Length = 0 };
+	}
+
+	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		base.OnLoad( dependencies );
+		Font ??= dependencies.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
 	}
 
 	SharedResourceInvalidations textLayoutInvalidations;
@@ -134,7 +140,7 @@ public abstract class DrawableText : Drawable {
 		public TextDrawNode ( TSource source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		SharedResourceUpload textLayoutUpload;
-		protected double FontSize;
+		protected double MetricMultiplier;
 		protected FontCollection Font = null!;
 		protected string Text = null!;
 		protected override void UpdateState () {
@@ -142,7 +148,7 @@ public abstract class DrawableText : Drawable {
 			textLayoutUpload = Source.textLayoutInvalidations.GetUpload();
 			Text = Source.Text;
 			Font = Source.Font;
-			FontSize = Source.MetricMultiplier;
+			MetricMultiplier = Source.MetricMultiplier;
 		}
 
 		protected bool ValidateLayout () {

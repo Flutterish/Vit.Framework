@@ -11,7 +11,8 @@ public static class BasicVertex {
 	public static readonly ShaderIdentifier Identifier = new() { Name = "Vertex" };
 	static SpirvBytecode? spirv;
 	public static SpirvBytecode Spirv => spirv ??= new SpirvBytecode( @"#version 450
-		layout(location = 0) in vec2 inPositionAndUv;
+		layout(location = 0) in vec2 inPosition;
+		layout(location = 1) in vec2 inUv;
 
 		layout(location = 0) out vec2 outUv;
 
@@ -25,8 +26,8 @@ public static class BasicVertex {
 		} uniforms;
 
 		void main () {
-			outUv = inPositionAndUv;
-			gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPositionAndUv, 1)).xy, 0, 1);
+			outUv = inUv;
+			gl_Position = vec4((globalUniforms.proj * uniforms.model * vec3(inPosition, 1)).xy, 0, 1);
 		}
 	", ShaderLanguage.GLSL, ShaderPartType.Vertex );
 
@@ -34,7 +35,15 @@ public static class BasicVertex {
 	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateSingle( Spirv.Reflections );
 
 	public struct Vertex {
-		public Point2<float> PositionAndUV;
+		public Point2<float> Position;
+		public Point2<float> UV;
+
+		public Point2<float> PositionAndUV {
+			set {
+				Position = value;
+				UV = value;
+			}
+		}
 	}
 
 	public struct Uniforms {

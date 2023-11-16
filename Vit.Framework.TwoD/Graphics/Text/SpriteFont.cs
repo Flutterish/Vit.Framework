@@ -94,12 +94,19 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 	public ITexture2DView View => view;
 
+	AxisAlignedBox2<float>[] boundingBoxes;
+	public AxisAlignedBox2<float> GetUvBox ( GlyphId glyph ) {
+		return boundingBoxes[glyph.Value % (ulong)boundingBoxes.Length];
+	}
+
 	public SpriteFontPage ( SpriteFont font, GlyphId firstGlyph ) {
+		boundingBoxes = new AxisAlignedBox2<float>[font.PageSize.Width * font.PageSize.Height];
 		generate( font, firstGlyph );
-		//foreach ( var i in buffers ) {
-		//	i.Dispose();
-		//}
-		//buffers.Clear();
+
+		foreach ( var i in buffers ) {
+			i.Dispose();
+		}
+		buffers.Clear();
 	}
 
 	void generate ( SpriteFont font, GlyphId firstGlyph ) {
@@ -161,6 +168,13 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 				? (bounds.Height / font.Font.UnitsPerEm * boundsAspectRatio / glyphAspectRatio)
 				: (bounds.Height / font.Font.UnitsPerEm * glyphAspectRatio / boundsAspectRatio));
 
+			boundingBoxes[id.Value - firstGlyph.Value] = new() {
+				MinX = (bounds.MinX + 1) / 2,
+				MinY = (bounds.MinY + 1) / 2,
+				MaxX = (bounds.MinX + (float)glyphBounds.Width * multiplier + 1) / 2,
+				MaxY = (bounds.MinY + (float)glyphBounds.Height * multiplier + 1) / 2
+			};
+
 			var stencil = new StencilGlyph( outline );
 			vertexList.EnsureCapacity( stencil.Vertices.Count );
 
@@ -175,7 +189,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			foreach ( var i in stencil.Vertices ) {
 				vertexList.Add( new() {
 					Color = ColorSRgba.White,
-					Position = ((i - glyphBounds.Position.Cast<float>()) * multiplier).FromOrigin() + bounds.Position.FromOrigin().Cast<float>()
+					Position = bounds.Position.Cast<float>() + (i - glyphBounds.Position.Cast<float>()) * multiplier
 				} );
 			}
 

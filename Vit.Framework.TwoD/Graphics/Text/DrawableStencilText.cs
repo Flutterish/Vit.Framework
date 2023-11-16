@@ -8,7 +8,6 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
-using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Layout;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Uniforms;
@@ -40,7 +39,6 @@ public class DrawableStencilText : DrawableText {
 			Fragment = BasicFragment.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
-		Font ??= deps.Resolve<FontStore>().GetFontCollection( FontStore.DefaultFontCollection );
 		stencilFont = deps.Resolve<StencilFontStore>();
 	}
 
@@ -165,7 +163,7 @@ public class DrawableStencilText : DrawableText {
 			commands.BindVertexBuffer( vertices!.DeviceBuffer );
 			commands.BindIndexBuffer( indices!.DeviceBuffer );
 			uniforms!.UploadUniform( new Uniforms {
-				Matrix = new( Matrix3<float>.CreateScale( (float)FontSize, (float)FontSize ) * UnitToGlobalMatrix ),
+				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
 				Tint = tint
 			} );
 

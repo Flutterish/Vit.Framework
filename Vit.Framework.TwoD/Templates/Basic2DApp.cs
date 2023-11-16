@@ -6,6 +6,7 @@ using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.UI.Components;
@@ -71,6 +72,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		Dependencies.Cache( DisposeScheduler );
 
 		Dependencies.Cache( new Sprite.DrawDependencies() );
+		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );
