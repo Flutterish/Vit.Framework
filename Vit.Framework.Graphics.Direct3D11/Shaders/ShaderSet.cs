@@ -44,6 +44,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
 					(PrimitiveType.Float32, [2]) => Format.R32G32_Float,
 					(PrimitiveType.Float32, [3]) => Format.R32G32B32_Float,
+					(PrimitiveType.Float32, [4]) => Format.R32G32B32A32_Float,
 					_ => throw new Exception( "Unrecognized format" )
 				};
 

@@ -163,7 +163,16 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 	}
 
+	[ThreadStatic]
+	static GlImmediateCommandBuffer? activeState;
+	void ensureActiveState () {
+		Debug.Assert( activeState == this || activeState == null );
+		activeState = this;
+	}
+
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
+		ensureActiveState();
+
 		Debug.Assert( Topology == Topology.Triangles );
 		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
 	}

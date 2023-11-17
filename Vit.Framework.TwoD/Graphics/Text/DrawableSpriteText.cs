@@ -191,7 +191,7 @@ public partial class DrawableSpriteText : DrawableText {
 				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
 				Tint = ColorSRgba.White
 			}, uniforms.Offset );
-
+			
 			commands.BindVertexBuffer( Source.vertices.DeviceBuffer );
 			foreach ( var batch in Source.batches ) {
 				shaders.SetUniformSet( batch.UniformSet.UniformSet, set: 1 );
