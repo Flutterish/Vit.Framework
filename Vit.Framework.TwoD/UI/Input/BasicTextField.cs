@@ -59,7 +59,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 	GlyphString Text {
 		get => new() { Source = spriteText.Displayed, StartIndex = 0, Length = spriteText.Displayed.TextLayout.Length };
 		set {
-			spriteText.Text = value.Result;
+			spriteText.RawText = value.Result;
 			changesPending = true;
 		}
 	}
@@ -304,7 +304,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 
 				historyIndex--;
 				var stack = history.Peek( history.Length - historyIndex );
-				spriteText.Text = stack.text;
+				spriteText.RawText = stack.text;
 				Selection = stack.selection;
 				break;
 
@@ -315,7 +315,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 				typedWords = false;
 				historyIndex++;
 				stack = history.Peek( history.Length - historyIndex );
-				spriteText.Text = stack.text;
+				spriteText.RawText = stack.text;
 				Selection = stack.selection;
 				break;
 

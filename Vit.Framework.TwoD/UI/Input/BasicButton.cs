@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Animations;
+using Vit.Framework.Localisation;
 using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Layout;
@@ -44,9 +45,13 @@ public class BasicButton : Button {
 
 	Box background;
 	public readonly StencilText SpriteText;
-	public string Text {
+	public LocalisableString Text {
 		get => SpriteText.Text;
 		set => SpriteText.Text = value;
+	}
+	public string RawText {
+		get => SpriteText.RawText;
+		set => SpriteText.RawText = value;
 	}
 	public RelativeAxes2<float> TextAnchor {
 		get => GetLayoutParameters( SpriteText ).Anchor;

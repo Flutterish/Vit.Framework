@@ -32,7 +32,7 @@ public class VisualTestRunner : Flexbox {
 		foreach ( var i in tests ) {
 			var button = new BasicButton() {
 				Clicked = () => runTest( i ),
-				Text = i.Name,
+				RawText = i.Name,
 				TextAnchor = Anchor<float>.CentreLeft + (10, 0)
 			};
 			sidebar.AddChild( button, new() {

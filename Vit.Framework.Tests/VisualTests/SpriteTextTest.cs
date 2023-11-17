@@ -15,7 +15,7 @@ public class SpriteTextTest : TestScene {
 		} );
 
 		AddChild( text = new() {
-			Text = "Hello, World!",
+			RawText = "Hello, World!",
 			FontSize = 64
 		}, new() {
 			Size = (0, 0), // size is expanded to fit requiredSize

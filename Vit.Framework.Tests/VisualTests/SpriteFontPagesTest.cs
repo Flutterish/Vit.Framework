@@ -1,4 +1,5 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Text.Fonts;
@@ -94,9 +95,9 @@ public class SpriteFontPagesTest : TestScene {
 				base.Draw( commands );
 			}
 
-			protected override bool UpdateTexture ( out ITexture2DView? texture, out ISampler? sampler ) {
+			protected override bool UpdateTexture ( [NotNullWhen(true)] out ITexture2DView? texture, [NotNullWhen(true)] out ISampler? sampler ) {
 				texture = page!.View;
-				sampler = this.sampler;
+				sampler = this.sampler!;
 
 				return true;
 			}

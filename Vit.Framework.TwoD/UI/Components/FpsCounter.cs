@@ -16,7 +16,8 @@ public class FpsCounter : StencilText {
 	}
 
 	public override void Update () {
-		Text = string.Join( " / ", data.Counters.Select( x => $"{x.counter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
+		// TODO this can definitely be localised, but its too much effort right now and it spams the store
+		RawText = string.Join( " / ", data.Counters.Select( x => $"{x.counter.GetUpdatesPer(TimeSpan.FromSeconds(1)):N1}{x.tickName}" ) );
 
 		base.Update();
 	}

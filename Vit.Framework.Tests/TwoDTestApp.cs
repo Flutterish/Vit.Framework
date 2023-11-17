@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Input;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Input.Trackers;
+using Vit.Framework.Localisation;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Parsing;
@@ -70,6 +71,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		Dependencies.Cache( new StencilFontStore() );
 		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ), Dependencies.Resolve<ShaderStore>() ) );
+		Dependencies.Cache( new LocalisationStore() );
 
 		Root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
 			Size = new( 1f.Relative() )

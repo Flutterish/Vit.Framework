@@ -57,7 +57,7 @@ public class Transform2D<T> : DisposableObject where T : INumber<T>, ITrigonomet
 	}
 
 	[MethodImpl( MethodImplOptions.AggressiveInlining )]
-	void trySet<T> ( ref T field, T value ) where T : IEqualityOperators<T, T, bool> {
+	void trySet<K> ( ref K field, K value ) where K : IEqualityOperators<K, K, bool> {
 		if ( field == value )
 			return;
 

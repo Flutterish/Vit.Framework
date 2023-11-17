@@ -1,4 +1,5 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.TwoD.Rendering;
@@ -42,7 +43,7 @@ public class Sprite : TexturedQuad {
 			textureUpload = Source.textureInvalidations.GetUpload();
 		}
 
-		protected override bool UpdateTexture ( out ITexture2DView? texture, out ISampler? sampler ) {
+		protected override bool UpdateTexture ( [NotNullWhen(true)] out ITexture2DView? texture, [NotNullWhen(true)] out ISampler? sampler ) {
 			texture = this.texture.View;
 			sampler = this.texture.Sampler;
 			return textureUpload.Validate( ref Source.textureInvalidations );

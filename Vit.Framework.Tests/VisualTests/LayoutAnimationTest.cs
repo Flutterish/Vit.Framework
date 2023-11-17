@@ -34,12 +34,14 @@ public class LayoutAnimationTest : TestScene {
 		bool toggle = true;
 		AddChild( new BasicButton {
 			Clicked = () => {
+#pragma warning disable CS0618 // this is a test. its fine
 				if ( toggle ) {
 					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 100 ), 1000.Millis(), Easing.InOut );
 				}
 				else {
 					this.Animate().Mutate( v => v.Padding, (v, s) => v.Padding = s, new Spacing<float>( 0 ), 1000.Millis(), Easing.InOut );
 				}
+#pragma warning restore CS0618
 				toggle = !toggle;
 			}
 		}, new() {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Localisation;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.TwoD.Graphics.Text;
@@ -9,11 +10,28 @@ namespace Vit.Framework.TwoD.UI.Graphics;
 public abstract class TextVisual<T> : Visual<T> where T : DrawableText {
 	protected TextVisual ( T displayed ) : base( displayed ) { }
 
-	public string Text {
+	LocalisableString text;
+	LocalisationStore? localisationStore;
+	LocalisedString? localised;
+
+	public string RawText {
 		get => Displayed.Text;
 		set {
+			if ( localised != null ) {
+				localised.TextChanged -= onLocalisedTextChanged;
+				localised = null;
+				text = default;
+			}
+
 			Displayed.Text = value;
 			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+		}
+	}
+	public LocalisableString Text {
+		get => text;
+		set {
+			text = value;
+			updateLocalisedString();
 		}
 	}
 	public float FontSize {
@@ -24,9 +42,31 @@ public abstract class TextVisual<T> : Visual<T> where T : DrawableText {
 		}
 	}
 
+	void updateLocalisedString () {
+		if ( localisationStore == null )
+			return;
+
+		if ( localised != null ) {
+			localised.TextChanged -= onLocalisedTextChanged;
+		}
+		if ( text.Data == null ) {
+			localised = null;
+			return;
+		}
+		localised = localisationStore.GetLocalised( text );
+		localised.BindTextChanged( onLocalisedTextChanged );
+	}
+
+	void onLocalisedTextChanged ( string value ) {
+		Displayed.Text = value;
+		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+	}
+
 	FontStore fontStore = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		fontStore = dependencies.Resolve<FontStore>();
+		localisationStore = dependencies.Resolve<LocalisationStore>();
+		updateLocalisedString();
 		base.OnLoad( dependencies );
 	}
 
