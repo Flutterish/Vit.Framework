@@ -163,12 +163,26 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		public required StencilState StencilState;
 	}
 
+	Dictionary<BlendDescription, ID3D11BlendState> blendStates = new();
+	public ID3D11BlendState GetBlendState ( BlendDescription description ) {
+		if ( !blendStates.TryGetValue( description, out var value ) ) {
+			blendStates.Add( description, value = Device.CreateBlendState( description ) );
+		}
+
+		return value;
+	}
+
 	protected override void Dispose ( bool disposing ) {
 		foreach ( var (_, i) in depthStencilStates ) {
 			i.Dispose();
 		}
 
 		RasterizerState.Dispose();
+		foreach ( var (_, i) in blendStates ) {
+			i.Dispose();
+		}
+		blendStates.Clear();
+
 		Device.Dispose();
 		Context.Dispose();
 	}

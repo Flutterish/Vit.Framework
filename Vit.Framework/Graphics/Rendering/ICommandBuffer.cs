@@ -95,6 +95,12 @@ public interface ICommandBuffer {
 	/// </summary>
 	void SetStencilTest ( BufferTest test, StencilState state );
 
+	BlendState BlendState { get; }
+	/// <summary>
+	/// Sets the blending behaviour.
+	/// </summary>
+	void SetBlending ( BlendState state );
+
 	/// <summary>
 	/// Binds a vertex buffer to the pipeline.
 	/// </summary>
@@ -177,6 +183,15 @@ public static class ICommandBufferExtensions {
 		} );
 	}
 
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static DisposeAction<(ICommandBuffer buffer, BlendState state)> PushBlending ( this ICommandBuffer self, BlendState state ) {
+		var previous = self.BlendState;
+		self.SetBlending( state );
+		return new( (self, previous), static data => {
+			data.buffer.SetBlending( data.state );
+		} );
+	}
+
 	/// <summary>
 	/// Copies data from one buffer to another.
 	/// </summary>
@@ -230,7 +245,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		CopyTexture( (TTexture)source, (TTexture)destination, sourceRect, destinationOffset );
 	}
 
-	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;
+	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest | PipelineInvalidations.Blending;
 	protected void InvalidateAll () {
 		uniformsInvalidated = true;
 		Invalidations = PipelineInvalidations.All;
@@ -288,6 +303,12 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 		StencilTest = test;
 		StencilState = state;
 		Invalidations |= PipelineInvalidations.StencilTest;
+	}
+
+	public BlendState BlendState { get; private set; }
+	public void SetBlending ( BlendState state ) {
+		BlendState = state;
+		Invalidations |= PipelineInvalidations.Blending;
 	}
 
 	protected BufferInvalidations BufferInvalidations { get; private set; }
@@ -362,7 +383,8 @@ public enum PipelineInvalidations : byte {
 	Framebuffer = 0x10,
 	DepthTest = 0x20,
 	StencilTest = 0x40,
-	All = StencilTest * 2 - 1
+	Blending = 0x80,
+	All = Blending * 2 - 1
 }
 
 [Flags]

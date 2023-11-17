@@ -114,7 +114,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		if ( invalidations.HasFlag( PipelineInvalidations.StencilTest ) ) {
 			if ( !StencilTest.IsEnabled ) {
 				GL.Disable( EnableCap.StencilTest );
-				return;
+				goto blending;
 			}
 
 			GL.Enable( EnableCap.StencilTest );
@@ -142,6 +142,77 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 				};
 			}
 			GL.StencilOp( stencilOp( StencilState.StencilFailOperation ), stencilOp( StencilState.DepthFailOperation ), stencilOp( StencilState.PassOperation ) );
+		}
+
+		blending:
+		if ( invalidations.HasFlag( PipelineInvalidations.Blending ) ) {
+			if ( !BlendState.IsEnabled ) {
+				GL.Disable( EnableCap.Blend );
+				return;
+			}
+
+			static BlendEquationMode equationMode ( BlendFunction function ) {
+				return function switch {
+					BlendFunction.Add => BlendEquationMode.FuncAdd,
+					BlendFunction.Max => BlendEquationMode.Max,
+					BlendFunction.Min => BlendEquationMode.Min,
+					BlendFunction.FragmentMinusDestination => BlendEquationMode.FuncSubtract,
+					BlendFunction.DestinationMinusFragment or _ => BlendEquationMode.FuncReverseSubtract
+				};
+			}
+
+			static BlendingFactorSrc factorSrc ( BlendFactor factor ) {
+				return factor switch {
+					BlendFactor.Zero => BlendingFactorSrc.Zero,
+					BlendFactor.One => BlendingFactorSrc.One,
+					BlendFactor.Fragment => BlendingFactorSrc.SrcColor,
+					BlendFactor.FragmentInverse => BlendingFactorSrc.OneMinusSrcColor,
+					BlendFactor.Destination => BlendingFactorSrc.DstColor,
+					BlendFactor.DestinationInverse => BlendingFactorSrc.OneMinusDstColor,
+					BlendFactor.FragmentAlpha => BlendingFactorSrc.SrcAlpha,
+					BlendFactor.FragmentAlphaInverse => BlendingFactorSrc.OneMinusSrcAlpha,
+					BlendFactor.DestinationAlpha => BlendingFactorSrc.DstAlpha,
+					BlendFactor.DestinationAlphaInverse => BlendingFactorSrc.OneMinusDstAlpha,
+					BlendFactor.Constant => BlendingFactorSrc.ConstantColor,
+					BlendFactor.ConstantInverse => BlendingFactorSrc.OneMinusConstantColor,
+					BlendFactor.ConstantAlpha => BlendingFactorSrc.ConstantAlpha,
+					BlendFactor.ConstantAlphaInverse => BlendingFactorSrc.OneMinusConstantAlpha,
+					BlendFactor.AlphaSaturate => BlendingFactorSrc.SrcAlphaSaturate,
+					BlendFactor.SecondFragment => BlendingFactorSrc.Src1Color,
+					BlendFactor.SecondFragmentAlpha => BlendingFactorSrc.Src1Alpha,
+					BlendFactor.SecondFragmentInverse => BlendingFactorSrc.OneMinusSrc1Color,
+					BlendFactor.SecondFragmentAlphaInverse or _ => BlendingFactorSrc.OneMinusSrc1Alpha
+				};
+			}
+
+			static BlendingFactorDest factorDst ( BlendFactor factor ) {
+				return factor switch {
+					BlendFactor.Zero => BlendingFactorDest.Zero,
+					BlendFactor.One => BlendingFactorDest.One,
+					BlendFactor.Fragment => BlendingFactorDest.SrcColor,
+					BlendFactor.FragmentInverse => BlendingFactorDest.OneMinusSrcColor,
+					BlendFactor.Destination => BlendingFactorDest.DstColor,
+					BlendFactor.DestinationInverse => BlendingFactorDest.OneMinusDstColor,
+					BlendFactor.FragmentAlpha => BlendingFactorDest.SrcAlpha,
+					BlendFactor.FragmentAlphaInverse => BlendingFactorDest.OneMinusSrcAlpha,
+					BlendFactor.DestinationAlpha => BlendingFactorDest.DstAlpha,
+					BlendFactor.DestinationAlphaInverse => BlendingFactorDest.OneMinusDstAlpha,
+					BlendFactor.Constant => BlendingFactorDest.ConstantColor,
+					BlendFactor.ConstantInverse => BlendingFactorDest.OneMinusConstantColor,
+					BlendFactor.ConstantAlpha => BlendingFactorDest.ConstantAlpha,
+					BlendFactor.ConstantAlphaInverse => BlendingFactorDest.OneMinusConstantAlpha,
+					BlendFactor.AlphaSaturate => BlendingFactorDest.SrcAlphaSaturate,
+					BlendFactor.SecondFragment => BlendingFactorDest.Src1Color,
+					BlendFactor.SecondFragmentAlpha => BlendingFactorDest.Src1Alpha,
+					BlendFactor.SecondFragmentInverse => BlendingFactorDest.OneMinusSrc1Color,
+					BlendFactor.SecondFragmentAlphaInverse or _ => BlendingFactorDest.OneMinusSrc1Alpha
+				};
+			}
+
+			GL.Enable( EnableCap.Blend );
+			GL.BlendEquationSeparate( equationMode( BlendState.ColorFunction ), equationMode( BlendState.AlphaFunction ) );
+			GL.BlendFuncSeparate( factorSrc( BlendState.FragmentColorFactor ), factorDst( BlendState.DestinationColorFactor ), factorSrc( BlendState.FragmentAlphaFactor ), factorDst( BlendState.DestinationAlphaFactor ) );
+			GL.BlendColor( BlendState.Constant.X, BlendState.Constant.Y, BlendState.Constant.Z, BlendState.Constant.W );
 		}
 	}
 

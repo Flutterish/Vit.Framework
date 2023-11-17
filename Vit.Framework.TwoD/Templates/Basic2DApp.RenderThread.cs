@@ -99,6 +99,7 @@ public abstract partial class Basic2DApp<TRoot> {
 				commands.ClearStencil( 0 );
 
 				commands.SetTopology( Topology.Triangles );
+				commands.SetBlending( BlendState.PremultipliedAlpha );
 				var size = Window.Size;
 				commands.SetViewport( Swapchain.BackbufferSize );
 				commands.SetScissors( Swapchain.BackbufferSize );
