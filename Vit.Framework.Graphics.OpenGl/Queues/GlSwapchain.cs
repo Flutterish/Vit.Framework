@@ -12,14 +12,15 @@ namespace Vit.Framework.Graphics.OpenGl.Queues;
 public class GlSwapchain : ISwapchain {
 	IGlWindow window;
 	nint context;
+	GlRenderer renderer;
 
 	public GlSwapchain ( GlRenderer renderer, IGlWindow window ) {
+		this.renderer = renderer;
 		this.window = window;
 		context = window.CreateContext();
 		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
 		GL.Enable( EnableCap.FramebufferSrgb ); // TODO this should only be done for the default framebuffer, but the enable cap does it for all framebuffers
 		enableDebug();
-		immediateCommandBuffer = renderer.CreateImmediateCommandBuffer();
 	}
 
 	[Conditional("DEBUG")]
@@ -52,9 +53,8 @@ public class GlSwapchain : ISwapchain {
 		GL.Finish();
 	}
 
-	IImmediateCommandBuffer immediateCommandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
-		return immediateCommandBuffer;
+		return renderer.CreateImmediateCommandBuffer();
 	}
 
 	public void Dispose () {

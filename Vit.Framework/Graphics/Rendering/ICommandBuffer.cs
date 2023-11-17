@@ -231,6 +231,11 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	}
 
 	protected PipelineInvalidations Invalidations { get; private set; } = PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest;
+	protected void InvalidateAll () {
+		uniformsInvalidated = true;
+		Invalidations = PipelineInvalidations.All;
+		BufferInvalidations = BufferInvalidations.All;
+	}
 
 	IShaderSet ICommandBuffer.ShaderSet => ShaderSet;
 	protected TShaderSet ShaderSet { get; private set; } = null!;
@@ -356,14 +361,16 @@ public enum PipelineInvalidations : byte {
 	Scissors = 0x8,
 	Framebuffer = 0x10,
 	DepthTest = 0x20,
-	StencilTest = 0x40
+	StencilTest = 0x40,
+	All = StencilTest * 2 - 1
 }
 
 [Flags]
 public enum BufferInvalidations : byte {
 	None = 0x0,
 	Vertex = 0x1,
-	Index  = 0x2
+	Index  = 0x2,
+	All = Index * 2 - 1
 }
 
 public enum IndexBufferType {

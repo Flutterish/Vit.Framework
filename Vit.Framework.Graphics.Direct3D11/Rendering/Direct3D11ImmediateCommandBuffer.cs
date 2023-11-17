@@ -15,13 +15,29 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 	public readonly ID3D11DeviceContext Context;
 	public Direct3D11ImmediateCommandBuffer ( Direct3D11Renderer renderer, ID3D11DeviceContext context ) : base( renderer ) {
 		Context = context;
+		Renderer.ActiveImmediateContextState?.InvalidateAll();
+		Renderer.ActiveImmediateContextState = this;
 	}
 
+	ID3D11RenderTargetView[]? previousFrameBufferAttachments;
+	ID3D11DepthStencilView? previousFrameBufferDepthStencil;
 	protected override void RenderTo ( TargetView framebuffer ) {
-		Context.OMSetRenderTargets( framebuffer.ColorAttachments, framebuffer.DepthStencil );
+		previousFrameBufferAttachments = Renderer.ActiveImmediateContextFrameBufferAttachments;
+		previousFrameBufferDepthStencil = Renderer.ActiveImmediateContextFrameBufferDepthStencil;
+
+		Context.OMSetRenderTargets( 
+			Renderer.ActiveImmediateContextFrameBufferAttachments = framebuffer.ColorAttachments, 
+			Renderer.ActiveImmediateContextFrameBufferDepthStencil = framebuffer.DepthStencil
+		);
 	}
 	protected override void FinishRendering () {
-		// TODO set to null?
+		if ( previousFrameBufferAttachments == null )
+			return;
+
+		Context.OMSetRenderTargets(
+			Renderer.ActiveImmediateContextFrameBufferAttachments = previousFrameBufferAttachments,
+			Renderer.ActiveImmediateContextFrameBufferDepthStencil = previousFrameBufferDepthStencil
+		);
 	}
 
 	public override void ClearColor<T> ( T color ) {

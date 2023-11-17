@@ -6,6 +6,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Outlines;
@@ -111,6 +112,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 	void generate ( SpriteFont font, GlyphId firstGlyph ) {
 		var renderer = font.Renderer;
+		var uvMatrix = new Matrix4x3<float>( renderer.CreateUvCorrectionMatrix<float>() );
 		var pageSize = font.PageSize;
 		var glyphSize = font.GlyphSize;
 
@@ -189,7 +191,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			foreach ( var i in stencil.Vertices ) {
 				vertexList.Add( new() {
 					Color = ColorSRgba.White,
-					Position = bounds.Position.Cast<float>() + (i - glyphBounds.Position.Cast<float>()) * multiplier
+					Position = uvMatrix.Apply( bounds.Position.Cast<float>() + (i - glyphBounds.Position.Cast<float>()) * multiplier )
 				} );
 			}
 

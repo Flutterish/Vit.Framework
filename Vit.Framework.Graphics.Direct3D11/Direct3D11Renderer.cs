@@ -25,7 +25,6 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		GraphicsApi = graphicsApi;
 		Device = device;
 		Context = context;
-		commandBuffer = new( this, Context );
 
 		RasterizerState = device.CreateRasterizerState( new() {
 			FillMode = FillMode.Solid,
@@ -33,6 +32,10 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		} );
 		context.RSSetState( RasterizerState );
 	}
+
+	public Direct3D11ImmediateCommandBuffer? ActiveImmediateContextState;
+	public ID3D11RenderTargetView[]? ActiveImmediateContextFrameBufferAttachments;
+	public ID3D11DepthStencilView? ActiveImmediateContextFrameBufferDepthStencil;
 
 	public GraphicsApi GraphicsApi { get; }
 
@@ -98,9 +101,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new TargetView( attachments.Select( x => ((Texture2D)x).Texture ), ((Texture2D?)depthStencilAttachment)?.Texture );
 	}
 
-	Direct3D11ImmediateCommandBuffer commandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
-		return commandBuffer;
+		return new Direct3D11ImmediateCommandBuffer( this, Context );
 	}
 
 	Dictionary<DepthStencilStateInfo, ID3D11DepthStencilState> depthStencilStates = new();

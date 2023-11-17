@@ -78,7 +78,7 @@ public class GlRenderer : IRenderer {
 	}
 
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
-		return new GlImmediateCommandBuffer( this );
+		return new GlImmediateCommandBuffer( this ); // TODO instead of creating a new one, we can pool them
 	}
 
 	public void Dispose () {

@@ -24,7 +24,6 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Handle = handle;
 		Renderer = renderer;
 		Window = window;
-		commandBuffer = new( renderer, renderer.Context );
 
 		BackbufferSize = window.PixelSize;
 		D3DExtensions.Validate( Handle.GetBuffer<ID3D11Texture2D>( 0, out framebuffer! ) );
@@ -57,9 +56,8 @@ public class Swapchain : DisposableObject, ISwapchain {
 		Handle.Present( 1, PresentFlags.None );
 	}
 
-	Direct3D11ImmediateCommandBuffer commandBuffer;
 	public IImmediateCommandBuffer CreateImmediateCommandBufferForPresentation () {
-		return commandBuffer;
+		return new Direct3D11ImmediateCommandBuffer( Renderer, Renderer.Context ); ;
 	}
 
 	protected override void Dispose ( bool disposing ) {

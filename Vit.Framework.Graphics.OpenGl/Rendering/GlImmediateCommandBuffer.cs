@@ -9,14 +9,24 @@ using Vit.Framework.Mathematics;
 namespace Vit.Framework.Graphics.OpenGl.Rendering;
 
 public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFramebuffer, IGlTexture2D, ShaderProgram>, IImmediateCommandBuffer {
-	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) { }
+	[ThreadStatic]
+	static GlImmediateCommandBuffer? activeState;
 
+	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) {
+		activeState?.InvalidateAll();
+		activeState = this;
+	}
+
+	[ThreadStatic]
+	static int currentFrameBuffer;
+	int previousFrameBuffer;
 	protected override void RenderTo ( IGlFramebuffer framebuffer ) {
-		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, framebuffer.Handle );
+		previousFrameBuffer = currentFrameBuffer;
+		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, currentFrameBuffer = framebuffer.Handle );
 	}
 
 	protected override void FinishRendering () {
-		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, 0 );
+		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, currentFrameBuffer = previousFrameBuffer );
 	}
 
 	public override void ClearColor<T> ( T color ) {
@@ -163,19 +173,12 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 	}
 
-	[ThreadStatic]
-	static GlImmediateCommandBuffer? activeState;
-	void ensureActiveState () {
-		Debug.Assert( activeState == this || activeState == null );
-		activeState = this;
-	}
-
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
-		ensureActiveState();
-
 		Debug.Assert( Topology == Topology.Triangles );
 		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
 	}
 
-	public void Dispose () { }
+	public void Dispose () {
+		
+	}
 }
