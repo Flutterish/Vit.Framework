@@ -178,4 +178,5 @@ public struct PipelineArgs {
 	public required DepthState DepthState;
 	public required BufferTest StencilTest;
 	public required StencilState StencilState;
+	public required BlendState BlendState;
 }

@@ -155,7 +155,8 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 				DepthTest = DepthTest.IsEnabled ? DepthTest : new BufferTest() { IsEnabled = false },
 				DepthState = DepthTest.IsEnabled ? DepthState : new DepthState { WriteOnPass = false },
 				StencilTest = StencilTest.IsEnabled ? StencilTest : new BufferTest() { IsEnabled = false },
-				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( StencilOperation.Keep )
+				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( StencilOperation.Keep ),
+				BlendState = BlendState.IsEnabled ? BlendState : new BlendState { IsEnabled = false }
 			} );
 
 			Buffer.BindPipeline( pipeline );

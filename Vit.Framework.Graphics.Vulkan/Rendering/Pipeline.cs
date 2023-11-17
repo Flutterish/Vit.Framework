@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Interop;
+﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
@@ -59,7 +60,52 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			minSampleShading = 1
 		};
 
-		var blendInfo = new VkPipelineColorBlendAttachmentState() {
+		static VkBlendOp op ( BlendFunction func ) {
+			return func switch {
+				BlendFunction.Add => VkBlendOp.Add,
+				BlendFunction.Max => VkBlendOp.Max,
+				BlendFunction.Min => VkBlendOp.Min,
+				BlendFunction.FragmentMinusDestination => VkBlendOp.Subtract,
+				BlendFunction.DestinationMinusFragment or _ => VkBlendOp.ReverseSubtract
+			};
+		}
+
+		static VkBlendFactor factor ( BlendFactor factor ) {
+			return factor switch {
+				BlendFactor.Zero => VkBlendFactor.Zero,
+				BlendFactor.One => VkBlendFactor.One,
+				BlendFactor.Fragment => VkBlendFactor.SrcColor,
+				BlendFactor.FragmentInverse => VkBlendFactor.OneMinusSrcColor,
+				BlendFactor.Destination => VkBlendFactor.DstColor,
+				BlendFactor.DestinationInverse => VkBlendFactor.OneMinusDstColor,
+				BlendFactor.FragmentAlpha => VkBlendFactor.SrcAlpha,
+				BlendFactor.FragmentAlphaInverse => VkBlendFactor.OneMinusSrcAlpha,
+				BlendFactor.DestinationAlpha => VkBlendFactor.DstAlpha,
+				BlendFactor.DestinationAlphaInverse => VkBlendFactor.OneMinusDstAlpha,
+				BlendFactor.Constant => VkBlendFactor.ConstantColor,
+				BlendFactor.ConstantInverse => VkBlendFactor.OneMinusConstantColor,
+				BlendFactor.ConstantAlpha => VkBlendFactor.ConstantAlpha,
+				BlendFactor.ConstantAlphaInverse => VkBlendFactor.OneMinusConstantAlpha,
+				BlendFactor.AlphaSaturate => VkBlendFactor.SrcAlphaSaturate,
+				BlendFactor.SecondFragment => VkBlendFactor.Src1Color,
+				BlendFactor.SecondFragmentInverse => VkBlendFactor.OneMinusSrc1Color,
+				BlendFactor.SecondFragmentAlpha => VkBlendFactor.Src1Alpha,
+				BlendFactor.SecondFragmentAlphaInverse or _ => VkBlendFactor.OneMinusSrc1Alpha
+			};
+		}
+
+		var blendInfo = args.BlendState.IsEnabled 
+		? new VkPipelineColorBlendAttachmentState() {
+			colorWriteMask = VkColorComponentFlags.R | VkColorComponentFlags.G | VkColorComponentFlags.B | VkColorComponentFlags.A,
+			blendEnable = true,
+			alphaBlendOp = op( args.BlendState.AlphaFunction ),
+			colorBlendOp = op( args.BlendState.ColorFunction ),
+			srcColorBlendFactor = factor( args.BlendState.FragmentColorFactor ),
+			srcAlphaBlendFactor = factor( args.BlendState.FragmentAlphaFactor ),
+			dstColorBlendFactor = factor( args.BlendState.DestinationColorFactor ),
+			dstAlphaBlendFactor = factor( args.BlendState.DestinationAlphaFactor )
+		} 
+		: new VkPipelineColorBlendAttachmentState() {
 			colorWriteMask = VkColorComponentFlags.R | VkColorComponentFlags.G | VkColorComponentFlags.B | VkColorComponentFlags.A,
 			blendEnable = false
 		};
@@ -68,7 +114,11 @@ public class Pipeline : DisposableVulkanObject<VkPipeline> {
 			sType = VkStructureType.PipelineColorBlendStateCreateInfo,
 			logicOpEnable = false,
 			attachmentCount = 1,
-			pAttachments = &blendInfo
+			pAttachments = &blendInfo,
+			blendConstants_0 = args.BlendState.Constant.X,
+			blendConstants_1 = args.BlendState.Constant.Y,
+			blendConstants_2 = args.BlendState.Constant.Z,
+			blendConstants_3 = args.BlendState.Constant.W
 		};
 
 		VkStencilOpState stencilOpState = new() {

@@ -122,6 +122,10 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 				StencilState = StencilTest.IsEnabled ? StencilState : new StencilState( Graphics.Rendering.StencilOperation.Keep )
 			} ), stencilRef: StencilState.ReferenceValue.BitCast<uint, int>() );
 		}
+
+		if ( invalidations.HasFlag( PipelineInvalidations.Blending ) ) {
+			Context.OMSetBlendState( Renderer.GetBlendState( BlendState ), new Color4( BlendState.Constant.X, BlendState.Constant.Y, BlendState.Constant.Z, BlendState.Constant.W ) );
+		}
 	}
 
 	protected override void UpdateUniforms () {

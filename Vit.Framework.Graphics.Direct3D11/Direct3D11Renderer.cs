@@ -163,10 +163,58 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		public required StencilState StencilState;
 	}
 
-	Dictionary<BlendDescription, ID3D11BlendState> blendStates = new();
-	public ID3D11BlendState GetBlendState ( BlendDescription description ) {
+	Dictionary<BlendState, ID3D11BlendState> blendStates = new();
+	public ID3D11BlendState GetBlendState ( BlendState description ) {
+		if ( !description.IsEnabled )
+			description = default;
+
 		if ( !blendStates.TryGetValue( description, out var value ) ) {
-			blendStates.Add( description, value = Device.CreateBlendState( description ) );
+			static Blend blend ( BlendFactor factor ) {
+				return factor switch {
+					BlendFactor.Zero => Blend.Zero,
+					BlendFactor.One => Blend.One,
+					BlendFactor.Fragment => Blend.SourceColor,
+					BlendFactor.FragmentInverse => Blend.InverseSourceColor,
+					BlendFactor.Destination => Blend.DestinationColor,
+					BlendFactor.DestinationInverse => Blend.InverseDestinationColor,
+					BlendFactor.FragmentAlpha => Blend.SourceAlpha,
+					BlendFactor.FragmentAlphaInverse => Blend.InverseSourceAlpha,
+					BlendFactor.DestinationAlpha => Blend.DestinationAlpha,
+					BlendFactor.DestinationAlphaInverse => Blend.InverseDestinationAlpha,
+					BlendFactor.Constant => Blend.BlendFactor,
+					BlendFactor.ConstantInverse => Blend.InverseBlendFactor,
+					BlendFactor.ConstantAlpha => Blend.BlendFactor,
+					BlendFactor.ConstantAlphaInverse => Blend.InverseBlendFactor,
+					BlendFactor.AlphaSaturate => Blend.SourceAlphaSaturate,
+					BlendFactor.SecondFragment => Blend.Source1Color,
+					BlendFactor.SecondFragmentInverse => Blend.InverseSource1Color,
+					BlendFactor.SecondFragmentAlpha => Blend.Source1Alpha,
+					BlendFactor.SecondFragmentAlphaInverse or _ => Blend.InverseSource1Alpha
+				};
+			}
+
+			static BlendOperation op ( BlendFunction function ) {
+				return function switch {
+					BlendFunction.Add => BlendOperation.Add,
+					BlendFunction.Max => BlendOperation.Max,
+					BlendFunction.Min => BlendOperation.Min,
+					BlendFunction.FragmentMinusDestination => BlendOperation.Subtract,
+					BlendFunction.DestinationMinusFragment or _ => BlendOperation.ReverseSubtract
+				};
+			}
+
+			blendStates.Add( description, value = Device.CreateBlendState( new() {
+				RenderTarget = { e0 = {
+					BlendEnable = description.IsEnabled,
+					RenderTargetWriteMask = ColorWriteEnable.All,
+					BlendOperation = op( description.ColorFunction ),
+					BlendOperationAlpha = op( description.AlphaFunction ),
+					SourceBlend = blend( description.FragmentColorFactor ),
+					SourceBlendAlpha = blend( description.FragmentAlphaFactor ),
+					DestinationBlend = blend( description.DestinationColorFactor ),
+					DestinationBlendAlpha = blend( description.DestinationAlphaFactor )
+				} }
+			} ) );
 		}
 
 		return value;
