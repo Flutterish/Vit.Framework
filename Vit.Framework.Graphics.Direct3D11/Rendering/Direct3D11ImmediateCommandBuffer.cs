@@ -111,7 +111,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) ) {
-			// TODO scissors
+			Context.RSSetScissorRect( (int)Scissors.MinX, (int)Scissors.MinY, (int)Scissors.Width, (int)Scissors.Height );
 		}
 
 		if ( (invalidations & (PipelineInvalidations.DepthTest | PipelineInvalidations.StencilTest)) != 0 ) {
