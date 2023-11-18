@@ -74,7 +74,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		Dependencies.Cache( new Sprite.DrawDependencies() );
 		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
-		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 ) ); // 1MiB buffer
+		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 * 8 ) ); // 8MiB buffer
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );

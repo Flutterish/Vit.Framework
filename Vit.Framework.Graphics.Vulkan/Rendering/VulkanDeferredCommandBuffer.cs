@@ -210,14 +210,14 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			Buffer.BindVertexBuffers( vertexBuffers.AsSpan( 0, ShaderSet.VertexBufferCount ) );
+			Buffer.BindVertexBuffers( vertexBuffers.AsSpan( 0, ShaderSet.VertexBufferCount ), bufferOffsets.AsSpan( 0, ShaderSet.VertexBufferCount ) );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
 			if ( IndexBufferType == IndexBufferType.UInt16 )
-				Buffer.BindU16IndexBuffer( (Buffer)IndexBuffer );
+				Buffer.BindU16IndexBuffer( (Buffer)IndexBuffer, IndexBufferOffset );
 			else
-				Buffer.BindU32IndexBuffer( (Buffer)IndexBuffer );
+				Buffer.BindU32IndexBuffer( (Buffer)IndexBuffer, IndexBufferOffset );
 		}
 	}
 

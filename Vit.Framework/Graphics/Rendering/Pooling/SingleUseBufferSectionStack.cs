@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.Rendering.Pooling;
@@ -121,5 +122,11 @@ public class SingleUseBufferSectionStack {
 			i.HostBuffers.EndFrame();
 			i.DeviceBuffers.EndFrame();
 		}
+	}
+}
+
+public static class SingleUseBufferSectionStackExtensions {
+	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
 	}
 }

@@ -228,7 +228,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	nint[] bufferOffsets = new nint[16];
 	protected override bool UpdateVertexBufferMetadata ( IBuffer buffer, uint binding, uint offset ) {
 		var bufferSet = ((IGlBuffer)buffer).Handle.TrySet( ref vertexBuffers[binding] );
-		var offsetSet = ((nint)offset).TrySet( ref bufferOffsets[offset] );
+		var offsetSet = ((nint)offset).TrySet( ref bufferOffsets[binding] );
 
 		return bufferSet || offsetSet;
 	}
@@ -246,11 +246,11 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		Debug.Assert( Topology == Topology.Triangles );
-		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset * indexType switch {
+		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)(IndexBufferOffset + offset * indexType switch {
 			DrawElementsType.UnsignedByte => 1,
 			DrawElementsType.UnsignedShort => 2,
 			DrawElementsType.UnsignedInt or _ => 4
-		} );
+		}) );
 	}
 
 	public void Dispose () {

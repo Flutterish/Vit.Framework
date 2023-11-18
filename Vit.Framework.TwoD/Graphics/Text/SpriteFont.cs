@@ -98,8 +98,6 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	IDeviceTexture2D stencil = null!;
 	IFramebuffer canvas = null!;
 
-	List<IHostBuffer> buffers = new();
-
 	[ThreadStatic]
 	static HashSet<GlyphId>? unresolvedGlyphs;
 
@@ -113,14 +111,9 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	public SpriteFontPage ( SpriteFont font, GlyphId firstGlyph ) {
 		boundingBoxes = new AxisAlignedBox2<float>[font.PageSize.Width * font.PageSize.Height];
 		generate( font, firstGlyph );
-
-		foreach ( var i in buffers ) {
-			i.Dispose();
-		}
-		buffers.Clear();
 	}
 
-	void generate ( SpriteFont font, GlyphId firstGlyph ) {
+	unsafe void generate ( SpriteFont font, GlyphId firstGlyph ) {
 		var renderer = font.Renderer;
 		var uvMatrix = new Matrix4x3<float>( renderer.CreateUvCorrectionMatrix<float>() );
 		var pageSize = font.PageSize;
@@ -153,7 +146,6 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			unresolvedGlyphs.Add( new( firstGlyph.Value + (uint)i ) );
 		}
 
-		List<Vertex> vertexList = new();
 		using var _ = commands.RenderTo( canvas );
 		commands.SetTopology( Topology.Triangles );
 		commands.SetViewport( size );
@@ -188,29 +180,24 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			};
 
 			var stencil = new StencilGlyph( outline );
-			vertexList.EnsureCapacity( stencil.Vertices.Count );
 
-			var indices = renderer.CreateHostBuffer<uint>( BufferType.Index );
-			var vertices = renderer.CreateHostBuffer<Vertex>( BufferType.Vertex );
-			buffers.Add( indices );
-			buffers.Add( vertices );
-
-			indices.Allocate( (uint)stencil.Indices.Count, BufferUsage.CpuWrite | BufferUsage.GpuRead ); // TODO absolutely fucking not
-			vertices.Allocate( (uint)stencil.Vertices.Count, BufferUsage.CpuWrite | BufferUsage.GpuRead );
+			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index );
+			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex );
+			var vertexPtr = (Vertex*)((byte*)vertices.Buffer.Map() + vertices.Offset);
 
 			foreach ( var i in stencil.Vertices ) {
-				vertexList.Add( new() {
+				*vertexPtr = new() {
 					Color = ColorSRgba.White,
 					Position = uvMatrix.Apply( bounds.Position.Cast<float>() + (i - glyphBounds.Position.Cast<float>()) * multiplier )
-				} );
+				};
+				vertexPtr++;
 			}
 
-			indices.Upload( stencil.Indices.AsSpan() );
-			vertices.Upload( vertexList.AsSpan() );
-			vertexList.Clear();
+			vertices.Buffer.Unmap();
+			indices.Upload<uint>( stencil.Indices.AsSpan() );
 
-			commands.BindIndexBuffer( indices );
-			commands.BindVertexBuffer( vertices );
+			commands.BindIndexBufferRaw( indices.Buffer, IndexBufferType.UInt32, offset: indices.Offset );
+			commands.BindVertexBufferRaw( vertices.Buffer, offset: vertices.Offset );
 			using ( commands.PushStencilTest( new( CompareOperation.Never ), new() { CompareMask = 1, WriteMask = 1, StencilFailOperation = StencilOperation.Invert } ) ) {
 				commands.DrawIndexed( (uint)stencil.Indices.Count );
 

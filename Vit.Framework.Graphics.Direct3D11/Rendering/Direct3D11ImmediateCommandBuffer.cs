@@ -146,7 +146,7 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
-			Context.IASetIndexBuffer( ((ID3D11BufferHandle)IndexBuffer).Handle!, IndexBufferType == IndexBufferType.UInt32 ? Vortice.DXGI.Format.R32_UInt : Vortice.DXGI.Format.R16_UInt, 0 );
+			Context.IASetIndexBuffer( ((ID3D11BufferHandle)IndexBuffer).Handle!, IndexBufferType == IndexBufferType.UInt32 ? Vortice.DXGI.Format.R32_UInt : Vortice.DXGI.Format.R16_UInt, (int)IndexBufferOffset );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {

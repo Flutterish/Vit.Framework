@@ -59,19 +59,18 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdBindVertexBuffers( this, 0, 1, &vkbuffer, &offset );
 	}
 
-	public unsafe void BindVertexBuffers ( ReadOnlySpan<VkBuffer> buffers ) {
-		var offsets = stackalloc ulong[buffers.Length];
-		Vk.vkCmdBindVertexBuffers( this, 0, 1, buffers.Data(), offsets );
+	public unsafe void BindVertexBuffers ( ReadOnlySpan<VkBuffer> buffers, ReadOnlySpan<ulong> offsets ) {
+		Vk.vkCmdBindVertexBuffers( this, 0, (uint)buffers.Length, buffers.Data(), offsets.Data() );
 	}
 
-	void bindIndexBuffer ( IVulkanHandle<VkBuffer> buffer, VkIndexType indexType ) {
-		Vk.vkCmdBindIndexBuffer( this, buffer.Handle, 0, indexType );
+	void bindIndexBuffer ( IVulkanHandle<VkBuffer> buffer, VkIndexType indexType, ulong offset ) {
+		Vk.vkCmdBindIndexBuffer( this, buffer.Handle, offset, indexType );
 	}
-	public unsafe void BindU16IndexBuffer ( Buffer buffer ) {
-		bindIndexBuffer( buffer, VkIndexType.Uint16 );
+	public unsafe void BindU16IndexBuffer ( Buffer buffer, ulong offset ) {
+		bindIndexBuffer( buffer, VkIndexType.Uint16, offset );
 	}
-	public unsafe void BindU32IndexBuffer ( Buffer buffer ) {
-		bindIndexBuffer( buffer, VkIndexType.Uint32 );
+	public unsafe void BindU32IndexBuffer ( Buffer buffer, ulong offset ) {
+		bindIndexBuffer( buffer, VkIndexType.Uint32, offset );
 	}
 
 	public unsafe void SetViewPort ( VkViewport viewport ) {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Vit.Framework.Exceptions;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -118,7 +119,24 @@ public interface ICommandBuffer {
 	/// <summary>
 	/// Sets the index buffer to use when drawing indexed elements.
 	/// </summary>
-	void BindIndexBuffer ( IBuffer buffer );
+	/// <param name="offset">Offset into the buffer in <b>bytes</b>.</param>
+	void BindIndexBufferRaw ( IBuffer buffer, IndexBufferType type, uint offset = 0 );
+
+	/// <summary>
+	/// Sets the index buffer to use when drawing indexed elements.
+	/// </summary>
+	/// <param name="offset">Offset into the buffer in <b>elements</b>.</param>
+	public void BindIndexBuffer<T> ( IBuffer<T> buffer, uint offset = 0 ) where T : unmanaged {
+		if ( typeof( T ) == typeof( ushort ) ) {
+			BindIndexBufferRaw( buffer, IndexBufferType.UInt16, offset * sizeof(ushort) );
+		}
+		else if ( typeof( T ) == typeof( uint ) ) {
+			BindIndexBufferRaw( buffer, IndexBufferType.UInt32, offset * sizeof(uint)  );
+		}
+		else {
+			Debug.Assert( false, "Bound an index buffer with an incorrect index type" );
+		}
+	}
 
 	/// <summary>
 	/// Draws using the index buffer.
@@ -212,8 +230,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	where TRenderer : class, IRenderer
 	where TFramebuffer : class, IFramebuffer
 	where TTexture : class, ITexture2D
-	where TShaderSet : class, IShaderSet 
-{
+	where TShaderSet : class, IShaderSet {
 	IRenderer ICommandBuffer.Renderer => Renderer;
 	protected readonly TRenderer Renderer;
 	protected BasicCommandBuffer ( TRenderer renderer ) {
@@ -322,13 +339,26 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 
 	protected IndexBufferType IndexBufferType { get; private set; }
 	protected IBuffer IndexBuffer { get; private set; } = null!;
-	public void BindIndexBuffer ( IBuffer buffer ) {
-		if ( buffer == IndexBuffer )
+	protected uint IndexBufferOffset { get; private set; }
+	public void BindIndexBufferRaw ( IBuffer buffer, IndexBufferType type, uint offset ) {
+		if ( buffer == IndexBuffer && IndexBufferOffset == offset )
 			return;
 
 		IndexBuffer = buffer;
-		IndexBufferType = buffer is IBuffer<uint> ? IndexBufferType.UInt32 : IndexBufferType.UInt16; // TODO bad!
+		IndexBufferType = type;
+		IndexBufferOffset = offset;
+		validateIndexType();
 		BufferInvalidations |= BufferInvalidations.Index;
+	}
+
+	[Conditional("DEBUG")]
+	void validateIndexType () {
+		if ( IndexBuffer is IBuffer<ushort> && IndexBufferType != IndexBufferType.UInt16 ) {
+			throw new InvalidStateException( $"Bound a {IndexBufferType.UInt16} index buffer but decalred it as a {IndexBufferType} buffer" );
+		}
+		if ( IndexBuffer is IBuffer<uint> && IndexBufferType != IndexBufferType.UInt32 ) {
+			throw new InvalidStateException( $"Bound a {IndexBufferType.UInt32} index buffer but decalred it as a {IndexBufferType} buffer" );
+		}
 	}
 
 	/// <inheritdoc cref="ICommandBuffer.UpdateUniforms"/>

@@ -30,6 +30,7 @@ public unsafe class HostBuffer<T> : Buffer, IHostStagingBuffer<T> where T : unma
 	public Span<T> GetDataSpan ( int length, int offset = 0 )
 		=> new Span<T>( (T*)data + offset, length );
 
+	void IHostBuffer.Unmap() { }
 	public void Unmap () {
 		if ( data == null )
 			return;
