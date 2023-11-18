@@ -129,7 +129,7 @@ public class DrawableStencilText : DrawableText {
 
 			Source.indexCount = indicesList.Count;
 			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
-			vertices = renderer.CreateDeviceBuffer<Vertex>(BufferType.Vertex );
+			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex ); // TODO also no need to reallocate device buffers if the old one fits
 			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform ); // TODO no need to reallocate the uniforms
 			uniformSet = shaders.CreateUniformSet( set: 1 );
 
