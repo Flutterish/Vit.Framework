@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
@@ -31,11 +32,18 @@ public class SpriteFontStore : DisposableObject {
 		} );
 	}
 
+	IRenderer renderer = null!;
+	SingleUseBufferSectionStack singleUseBuffers = null!;
+	public void Initialize ( IRenderer renderer, SingleUseBufferSectionStack singleUseBuffers ) {
+		this.renderer = renderer;
+		this.singleUseBuffers = singleUseBuffers;
+	}
+
 	Shader shader;
 	Dictionary<Font, SpriteFont> fonts = new();
-	public SpriteFont GetSpriteFont ( Font font, IRenderer renderer ) {
+	public SpriteFont GetSpriteFont ( Font font ) {
 		if ( !fonts.TryGetValue( font, out var spriteFont ) ) {
-			fonts.Add( font, spriteFont = new( font, renderer, shader.Value, PageSize, GlyphSize ) );
+			fonts.Add( font, spriteFont = new( font, renderer, singleUseBuffers, shader.Value, PageSize, GlyphSize ) );
 		}
 
 		return spriteFont;
@@ -53,16 +61,18 @@ public class SpriteFont : DisposableObject {
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public readonly uint GlyphsPerPage;
-	public SpriteFont ( Font font, IRenderer renderer, IShaderSet shaders, Size2<uint> pageSize, Size2<uint> glyphSize ) {
+	public SpriteFont ( Font font, IRenderer renderer, SingleUseBufferSectionStack singleUseBuffers, IShaderSet shaders, Size2<uint> pageSize, Size2<uint> glyphSize ) {
 		PageSize = pageSize;
 		GlyphSize = glyphSize;
 		Font = font;
 		Renderer = renderer;
+		SingleUseBuffers = singleUseBuffers;
 
 		GlyphsPerPage = PageSize.Width * pageSize.Height;
 		Shaders = shaders;
 	}
 
+	public readonly SingleUseBufferSectionStack SingleUseBuffers;
 	public readonly IShaderSet Shaders;
 	public readonly IRenderer Renderer;
 	Dictionary<uint, SpriteFontPage> pages = new();

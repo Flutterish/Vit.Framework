@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
@@ -73,6 +74,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		Dependencies.Cache( new Sprite.DrawDependencies() );
 		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
+		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 ) ); // 1MiB buffer
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );

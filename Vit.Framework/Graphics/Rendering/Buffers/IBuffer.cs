@@ -24,12 +24,21 @@ public interface IBuffer<T> : IBuffer where T : unmanaged {
 }
 
 /// <summary>
-/// GPU-side storage of arbitrary data stored in cpu-local memory.
+/// GPU-side storage of arbitrary data stored in cpu-local memory. Can be temporarily mapped.
 /// </summary>
 /// <remarks>
 /// This type of buffer should be used for rapidly updated data, such as uniforms, or anything you need to be able to read per-frame.
 /// </remarks>
-public interface IHostBuffer : IBuffer {
+public unsafe interface IHostBuffer : IBuffer {
+	/// <summary>
+	/// Temporarily maps the buffer. This may block GPU access.
+	/// </summary>
+	void* Map ();
+	/// <summary>
+	/// Unmaps the buffer, restoring GPU access if it was blocked.
+	/// </summary>
+	void Unmap ();
+
 	/// <summary>
 	/// Uploads data to the buffer.
 	/// </summary>
@@ -107,7 +116,12 @@ public unsafe interface IStagingBuffer<T> : IStagingBuffer, IBuffer<T> where T :
 /// <summary>
 /// An interface which implements <see cref="IHostBuffer{T}"/> and <see cref="IStagingBuffer{T}"/> for backends where the 2 are not distinct.
 /// </summary>
-public interface IHostStagingBuffer<T> : IHostBuffer<T>, IStagingBuffer<T> where T : unmanaged {
+public unsafe interface IHostStagingBuffer<T> : IHostBuffer<T>, IStagingBuffer<T> where T : unmanaged {
+	void* IHostBuffer.Map () {
+		return GetData();
+	}
+	void IHostBuffer.Unmap() { }
+
 	void IHostBuffer.UploadRaw( ReadOnlySpan<byte> data, uint offset ) {
 		((IStagingBuffer)this).UploadRaw( data, offset );
 	}

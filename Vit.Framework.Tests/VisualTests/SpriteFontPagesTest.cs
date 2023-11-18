@@ -86,7 +86,7 @@ public class SpriteFontPagesTest : TestScene {
 			ISampler? sampler;
 			public override void Draw ( ICommandBuffer commands ) {
 				if ( page == null ) {
-					var spriteFont = spriteFontStore.GetSpriteFont( font, commands.Renderer );
+					var spriteFont = spriteFontStore.GetSpriteFont( font );
 					page = spriteFont.GetPage( pageId );
 
 					sampler ??= commands.Renderer.CreateSampler();

@@ -24,6 +24,9 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		return Context.Map( Handle!, MapMode.WriteNoOverwrite );
 	}
 
+	unsafe void* IHostBuffer.Map () {
+		return (void*)Map().DataPointer;
+	}
 	public void Unmap () {
 		Context.Unmap( Handle! );
 	}

@@ -18,7 +18,7 @@ public unsafe class HeapAllocator : IAllocator {
 		this.@base->Previous = null;
 		this.@base->Size = size - SizeOfHelper<Header>.Size - SizeOfHelper<Header>.Size;
 		this.@base->IsFree = true;
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		this.@base->Magic = Header.MagicValue;
 #endif
 		Header.GetNext( this.@base )->IsFree = false; // fake allocated region after all data
@@ -76,7 +76,7 @@ public unsafe class HeapAllocator : IAllocator {
 			nextNode->Previous = newNode;
 
 			insertNode( newNode );
-#if DEBUG
+#if DEBUG_ALLOCATORS
 			newNode->Magic = Header.MagicValue;
 #endif
 		}
@@ -98,7 +98,7 @@ public unsafe class HeapAllocator : IAllocator {
 		nextNode->Previous = newNode;
 
 		insertNode( newNode );
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		newNode->Magic = Header.MagicValue;
 #endif
 	}
@@ -112,7 +112,7 @@ public unsafe class HeapAllocator : IAllocator {
 			node->PreviousFreeBySize->NextFreeBySize = node->NextFreeBySize;
 		if ( node->NextFreeBySize != null )
 			node->NextFreeBySize->PreviousFreeBySize = node->PreviousFreeBySize;
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		node->NextFreeBySize = null;
 		node->PreviousFreeBySize = null;
 #endif
@@ -172,7 +172,7 @@ public unsafe class HeapAllocator : IAllocator {
 	public Allocation Reallocate ( void* ptr, nuint newSize, out bool moved ) {
 		var node = (Header*)((nuint)ptr - SizeOfHelper<Header>.Size);
 
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		if ( node->Magic != Header.MagicValue )
 			throwMagic2();
 #endif
@@ -253,7 +253,7 @@ public unsafe class HeapAllocator : IAllocator {
 
 	public void Free ( void* ptr ) {
 		var node = (Header*)((nuint)ptr - SizeOfHelper<Header>.Size);
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		if ( node->Magic != Header.MagicValue )
 			throwMagic();
 #endif
@@ -352,7 +352,7 @@ public unsafe class HeapAllocator : IAllocator {
 			return (Header*)((nuint)@this + SizeOfHelper<Header>.Size + @this->Size);
 		}
 
-#if DEBUG
+#if DEBUG_ALLOCATORS
 		public const long MagicValue = 0x0123456789ABCDEF0L;
 		public long Magic;
 #endif

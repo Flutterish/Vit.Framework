@@ -2,12 +2,14 @@
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
+using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.Windowing;
 
@@ -56,6 +58,9 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			ShaderStore = Dependencies.Resolve<ShaderStore>();
 			TextureStore = Dependencies.Resolve<TextureStore>();
+			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
+			SingleUseBuffers.Initialize( Renderer );
+			Dependencies.Resolve<SpriteFontStore>().Initialize( Renderer, SingleUseBuffers );
 
 			ShaderStore.CompileNew( Renderer );
 			TextureStore.UploadNew( Renderer );
@@ -70,6 +75,7 @@ public abstract partial class Basic2DApp<TRoot> {
 
 		protected ShaderStore ShaderStore = null!;
 		protected TextureStore TextureStore = null!;
+		protected SingleUseBufferSectionStack SingleUseBuffers = null!;
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;
@@ -107,6 +113,7 @@ public abstract partial class Basic2DApp<TRoot> {
 				drawNodeRenderer.Draw( commands, disposeScheduler.Execute );
 			}
 			Swapchain.Present( index );
+			SingleUseBuffers.EndFrame();
 		}
 
 		protected abstract void BeforeRender ();

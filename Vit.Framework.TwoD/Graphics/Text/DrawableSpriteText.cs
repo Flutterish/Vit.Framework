@@ -83,7 +83,7 @@ public partial class DrawableSpriteText : DrawableText {
 
 			Dictionary<SpriteFontPage, uint> groupSizes = new();
 			foreach ( var metric in layout.AsSpan( 0, glyphCount ) ) {
-				var page = store.GetSpriteFont( metric.Glyph.Font, renderer ).GetPage( metric.Glyph.Id );
+				var page = store.GetSpriteFont( metric.Glyph.Font ).GetPage( metric.Glyph.Id );
 				if ( groupSizes.ContainsKey( page ) ) {
 					groupSizes[page]++;
 				}
@@ -102,7 +102,7 @@ public partial class DrawableSpriteText : DrawableText {
 			}
 
 			foreach ( var metric in layout.AsSpan( 0, glyphCount ) ) {
-				var page = store.GetSpriteFont( metric.Glyph.Font, renderer ).GetPage( metric.Glyph.Id );
+				var page = store.GetSpriteFont( metric.Glyph.Font ).GetPage( metric.Glyph.Id );
 				index = groupOffsets[page]++;
 
 				indicesList[index * 6 + 0] = index * 4 + 0;
