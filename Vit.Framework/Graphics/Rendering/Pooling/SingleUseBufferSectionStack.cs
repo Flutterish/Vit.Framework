@@ -7,7 +7,7 @@ namespace Vit.Framework.Graphics.Rendering.Pooling;
 /// <summary>
 /// A stack allocator for single-use buffer sections from larger buffers. The rented sections are only valid for one frame.
 /// </summary>
-public class SingleUseBufferSectionStack {
+public class SingleUseBufferSectionStack : IDisposable {
 	public readonly uint BufferLength;
 	IRenderer Renderer = null!;
 	public SingleUseBufferSectionStack ( uint bufferLength ) {
@@ -67,7 +67,7 @@ public class SingleUseBufferSectionStack {
 		return buffers.DeviceBuffers.Allocate( length * SizeOfHelper<T>.Size );
 	}
 
-	class AllocationStack<T> where T : IBuffer {
+	class AllocationStack<T> : IDisposable where T : IBuffer {
 		uint bufferLength;
 		List<(T buffer, uint remainingLength)> buffers = new();
 		Func<uint, T> creator;
@@ -111,6 +111,12 @@ public class SingleUseBufferSectionStack {
 				buffers[i] = buffers[i] with { remainingLength = bufferLength << i };
 			}
 		}
+
+		public void Dispose () {
+			foreach ( var (i, _) in buffers ) {
+				i.Dispose();
+			}
+		}
 	}
 
 	/// <summary>
@@ -123,6 +129,14 @@ public class SingleUseBufferSectionStack {
 			i.DeviceBuffers.EndFrame();
 		}
 	}
+
+	public void Dispose () {
+		stagingBuffers.Dispose();
+		foreach ( var i in buffersByType.Values ) {
+			i.HostBuffers.Dispose();
+			i.DeviceBuffers.Dispose();
+		}
+	}
 }
 
 public static class SingleUseBufferSectionStackExtensions {
@@ -131,5 +145,14 @@ public static class SingleUseBufferSectionStackExtensions {
 	}
 	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IStagingBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
 		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
+	}
+	public static unsafe T* Map<T> ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation ) where T : unmanaged {
+		return (T*)((byte*)allocation.Buffer.Map() + allocation.Offset);
+	}
+	public static void Unmap ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation ) {
+		allocation.Buffer.Unmap();
+	}
+	public static unsafe T* GetData<T> ( this SingleUseBufferSectionStack.Allocation<IStagingBuffer> allocation ) where T : unmanaged {
+		return (T*)((byte*)allocation.Buffer.GetData() + allocation.Offset);
 	}
 }

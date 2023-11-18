@@ -185,7 +185,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index );
 			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex );
-			var vertexPtr = (Vertex*)((byte*)vertices.Buffer.Map() + vertices.Offset);
+			var vertexPtr = vertices.Map<Vertex>();
 
 			foreach ( var i in stencil.Vertices ) {
 				*vertexPtr = new() {
@@ -195,7 +195,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 				vertexPtr++;
 			}
 
-			vertices.Buffer.Unmap();
+			vertices.Unmap();
 			indices.Upload<uint>( stencil.Indices.AsSpan() );
 
 			commands.BindIndexBufferRaw( indices.Buffer, IndexBufferType.UInt32, offset: indices.Offset );

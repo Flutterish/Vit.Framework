@@ -44,8 +44,8 @@ public partial class DrawableSpriteText : DrawableText {
 		public required uint Offset;
 		public required UniformSetPool.Allocation UniformSet;
 	}
-	StagedDeviceBuffer<uint> indices = null!;
-	StagedDeviceBuffer<Vertex> vertices = null!;
+	IDeviceBuffer<uint> indices = null!;
+	IDeviceBuffer<Vertex> vertices = null!;
 	List<PageBatch> batches = new();
 	ISampler? sampler;
 
@@ -61,12 +61,6 @@ public partial class DrawableSpriteText : DrawableText {
 	protected class DrawNode : TextDrawNode<DrawableSpriteText> {
 		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		float fontSize;
-		protected override void UpdateState () {
-			fontSize = Source.FontSize;
-			base.UpdateState();
-		}
-
 		void initializeSharedData ( IRenderer renderer ) {
 			ref var uniforms = ref Source.uniforms;
 
@@ -74,7 +68,7 @@ public partial class DrawableSpriteText : DrawableText {
 			Source.sampler = renderer.CreateSampler();
 		}
 
-		void updateTextMesh ( IRenderer renderer ) {
+		unsafe void updateTextMesh ( IRenderer renderer ) {
 			Source.clearBatches();
 			using var layout = new RentedArray<GlyphMetric>( SingleLineTextLayoutEngine.GetBufferLengthFor( Text ) );
 			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var textBounds );
@@ -92,8 +86,10 @@ public partial class DrawableSpriteText : DrawableText {
 				}
 			}
 
-			using var indicesList = new RentedArray<uint>( glyphCount * 6 );
-			using var verticesList = new RentedArray<Vertex>( glyphCount * 4 );
+			var vertexStaging = Source.drawDependencies.SingleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)glyphCount * 4 );
+			var indexStaging = Source.drawDependencies.SingleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)glyphCount * 6 );
+			var verticesList = vertexStaging.GetData<Vertex>();
+			var indicesList = indexStaging.GetData<uint>();
 			Dictionary<SpriteFontPage, uint> groupOffsets = new( groupSizes.Count );
 			var index = 0u;
 			foreach ( var (page, size) in groupSizes ) {
@@ -146,15 +142,13 @@ public partial class DrawableSpriteText : DrawableText {
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 
-			var vertices = new StagedDeviceBuffer<Vertex>( renderer, BufferType.Vertex );
-			vertices.Allocate( (uint)verticesList.Length, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			vertices.Upload( copy, verticesList );
-			Source.vertices = vertices;
+			Source.vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
+			Source.vertices.Allocate( vertexStaging.Length, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			copy.CopyBufferRaw( vertexStaging.Buffer, Source.vertices, vertexStaging.Length, sourceOffset: vertexStaging.Offset );
 
-			var indices = new StagedDeviceBuffer<uint>( renderer, BufferType.Index );
-			indices.Allocate( (uint)indicesList.Length, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			indices.Upload( copy, indicesList );
-			Source.indices = indices;
+			Source.indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+			Source.indices.Allocate( indexStaging.Length, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			copy.CopyBufferRaw( indexStaging.Buffer, Source.indices, indexStaging.Length, sourceOffset: indexStaging.Offset );
 
 			foreach ( var (page, offset) in groupOffsets ) {
 				var size = groupSizes[page];
@@ -194,8 +188,8 @@ public partial class DrawableSpriteText : DrawableText {
 				Tint = ColorSRgba.White
 			}, uniforms.Offset );
 			
-			commands.BindVertexBuffer( Source.vertices.DeviceBuffer );
-			commands.BindIndexBuffer( Source.indices.DeviceBuffer );
+			commands.BindVertexBuffer( Source.vertices );
+			commands.BindIndexBuffer( Source.indices );
 			foreach ( var batch in Source.batches ) {
 				shaders.SetUniformSet( batch.UniformSet.UniformSet, set: 1 );
 				commands.UpdateUniforms();
