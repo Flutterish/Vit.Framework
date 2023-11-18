@@ -9,7 +9,6 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
-using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.Windowing;
 
@@ -50,7 +49,10 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			GraphicsSurface = initializationTask.Result;
 			(Swapchain, Renderer) = (GraphicsSurface.Swapchain, GraphicsSurface.Renderer);
-			
+
+			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
+			SingleUseBuffers.Initialize( Renderer );
+
 			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
 				if ( dep is IDrawDependency drawDependency )
 					drawDependency.Initialize( Renderer, Dependencies );
@@ -58,9 +60,6 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			ShaderStore = Dependencies.Resolve<ShaderStore>();
 			TextureStore = Dependencies.Resolve<TextureStore>();
-			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
-			SingleUseBuffers.Initialize( Renderer );
-			Dependencies.Resolve<SpriteFontStore>().Initialize( Renderer, SingleUseBuffers );
 
 			ShaderStore.CompileNew( Renderer );
 			TextureStore.UploadNew( Renderer );

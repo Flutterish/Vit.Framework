@@ -72,9 +72,9 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		DisposeScheduler = new RenderThreadScheduler();
 		Dependencies.Cache( DisposeScheduler );
 
-		Dependencies.Cache( new Sprite.DrawDependencies() );
-		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
 		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 * 8 ) ); // 8MiB buffer
+		Dependencies.Cache( new TexturedQuad.DrawDependencies() );
+		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
 
 		StopwatchClock clock = new();
 		Dependencies.Cache( clock );

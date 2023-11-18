@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics;
+﻿using Vit.Framework.DependencyInjection;
+using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
@@ -12,11 +13,12 @@ using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Outlines;
 using Vit.Framework.TwoD.Rendering.Shaders;
+using Vit.Framework.TwoD.Templates;
 using Vertex = Vit.Framework.TwoD.Rendering.Shaders.SvgVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public class SpriteFontStore : DisposableObject {
+public class SpriteFontStore : DisposableObject, IDrawDependency {
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public SpriteFontStore ( Size2<uint> pageSize, Size2<uint> glyphSize, ShaderStore shaders ) {
@@ -34,9 +36,9 @@ public class SpriteFontStore : DisposableObject {
 
 	IRenderer renderer = null!;
 	SingleUseBufferSectionStack singleUseBuffers = null!;
-	public void Initialize ( IRenderer renderer, SingleUseBufferSectionStack singleUseBuffers ) {
+	public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 		this.renderer = renderer;
-		this.singleUseBuffers = singleUseBuffers;
+		this.singleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
 	}
 
 	Shader shader;
