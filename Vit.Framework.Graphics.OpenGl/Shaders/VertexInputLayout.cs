@@ -39,8 +39,8 @@ public class VertexInputLayout : DisposableObject {
 		GL.BindVertexArray( VAO );
 	}
 
-	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers, ReadOnlySpan<nint> offsets, int count ) {
-		GL.BindVertexBuffers( 0, count, buffers.Data(), offsets.Data(), strides.Data() );
+	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers, ReadOnlySpan<nint> offsets ) {
+		GL.BindVertexBuffers( 0, BindingPoints, buffers.Data(), offsets.Data(), strides.Data() );
 	}
 
 	protected override void Dispose ( bool disposing ) {

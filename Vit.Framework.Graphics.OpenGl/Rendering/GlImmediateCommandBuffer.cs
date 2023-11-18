@@ -235,7 +235,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 		if ( invalidations.HasFlag( BufferInvalidations.Vertex ) ) {
-			ShaderSet.InputLayout!.BindBuffers( vertexBuffers, bufferOffsets, ShaderSet.InputLayout.BindingPoints );
+			ShaderSet.InputLayout!.BindBuffers( vertexBuffers, bufferOffsets );
 		}
 
 		if ( invalidations.HasFlag( BufferInvalidations.Index ) ) {
