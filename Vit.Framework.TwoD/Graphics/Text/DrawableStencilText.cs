@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
@@ -28,6 +29,7 @@ public class DrawableStencilText : DrawableText {
 	Shader shader = null!;
 	Texture texture = null!;
 	StencilFontStore stencilFont = null!;
+	SingleUseBufferSectionStack singleUseBuffers = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
@@ -40,6 +42,7 @@ public class DrawableStencilText : DrawableText {
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		stencilFont = deps.Resolve<StencilFontStore>();
+		singleUseBuffers = deps.Resolve<SingleUseBufferSectionStack>();
 	}
 
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
@@ -51,8 +54,8 @@ public class DrawableStencilText : DrawableText {
 	}
 
 	IUniformSet? uniformSet;
-	StagedDeviceBuffer<uint>? indices;
-	StagedDeviceBuffer<Vertex>? vertices;
+	IDeviceBuffer<uint>? indices;
+	IDeviceBuffer<Vertex>? vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
 
@@ -125,18 +128,23 @@ public class DrawableStencilText : DrawableText {
 			}
 
 			Source.indexCount = indicesList.Count;
-			indices = new( renderer, BufferType.Index );
-			vertices = new( renderer, BufferType.Vertex );
-			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
+			vertices = renderer.CreateDeviceBuffer<Vertex>(BufferType.Vertex );
+			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform ); // TODO no need to reallocate the uniforms
 			uniformSet = shaders.CreateUniformSet( set: 1 );
 
 			if ( Source.indexCount == 0 )
 				return;
 
-			indices.Allocate( (uint)indicesList.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			indices.Upload( copy, indicesList.AsSpan() );
-			vertices.Allocate( (uint)verticesList.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			vertices.Upload( copy, verticesList.AsSpan() );
+			var indexStaging = Source.singleUseBuffers.AllocateStagingBuffer<uint>( (uint)indicesList.Count );
+			var vertexStaging = Source.singleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)verticesList.Count );
+			indexStaging.Upload<uint>( indicesList.AsSpan() );
+			vertexStaging.Upload<Vertex>( verticesList.AsSpan() );
+
+			indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			copy.CopyBufferRaw( indexStaging.Buffer, indices, indexStaging.Length, sourceOffset: indexStaging.Offset );
+			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			copy.CopyBufferRaw( vertexStaging.Buffer, vertices, vertexStaging.Length, sourceOffset: vertexStaging.Offset );
 			uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
@@ -160,8 +168,8 @@ public class DrawableStencilText : DrawableText {
 			shaders.SetUniformSet( uniformSet!, set: 1 );
 
 			commands.SetShaders( shaders );
-			commands.BindVertexBuffer( vertices!.DeviceBuffer );
-			commands.BindIndexBuffer( indices!.DeviceBuffer );
+			commands.BindVertexBuffer( vertices! );
+			commands.BindIndexBuffer( indices! );
 			uniforms!.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
 				Tint = tint
