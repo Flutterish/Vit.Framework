@@ -129,4 +129,7 @@ public static class SingleUseBufferSectionStackExtensions {
 	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
 		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
 	}
+	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IStagingBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
+		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
+	}
 }

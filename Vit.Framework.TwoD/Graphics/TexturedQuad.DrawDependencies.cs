@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
+using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
@@ -39,17 +40,15 @@ public abstract partial class TexturedQuad {
 			Shader = basicShader.Value;
 
 			UniformSetAllocator = new( Shader, set: 1, poolSize: 256 );
-
-			using var indexSource = renderer.CreateStagingBuffer<ushort>();
-			indexSource.Allocate( 6, BufferUsage.GpuRead | BufferUsage.GpuRarely | BufferUsage.CpuWrite | BufferUsage.CpuRarely );
-			indexSource.Upload( stackalloc ushort[] {
+			var singleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
+			var indices = singleUseBuffers.AllocateStagingBuffer<ushort>( 6 );
+			indices.Upload<ushort>( stackalloc ushort[] {
 				0, 1, 2,
 				0, 2, 3
 			} );
 
-			using var vertexSource = renderer.CreateStagingBuffer<Vertex>();
-			vertexSource.Allocate( 4, BufferUsage.GpuRead | BufferUsage.GpuRarely | BufferUsage.CpuWrite | BufferUsage.CpuRarely );
-			vertexSource.Upload( stackalloc Vertex[] {
+			var vertices = singleUseBuffers.AllocateStagingBuffer<Vertex>( 4 );
+			vertices.Upload<Vertex>( stackalloc Vertex[] {
 				new() { PositionAndUV = new( 0, 1 ) },
 				new() { PositionAndUV = new( 1, 1 ) },
 				new() { PositionAndUV = new( 1, 0 ) },
@@ -59,11 +58,11 @@ public abstract partial class TexturedQuad {
 			using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
 				Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
 				Indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.CopyBuffer( indexSource, Indices, 6 );
+				copy.CopyBufferRaw( indices.Buffer, Indices, 6 * SizeOfHelper<ushort>.Size, sourceOffset: indices.Offset );
 
 				Vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
 				Vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
-				copy.CopyBuffer( vertexSource, Vertices, 4 );
+				copy.CopyBufferRaw( vertices.Buffer, Vertices, 4 * SizeOfHelper<Vertex>.Size, sourceOffset: vertices.Offset );
 			}
 		}
 
