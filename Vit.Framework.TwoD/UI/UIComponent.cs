@@ -231,7 +231,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		: Parent.GlobalToUnitMatrix * LocalToUnitMatrix;
 	#endregion
 	#region Lifetime
-	public IClock Clock { get; private set; } = null!;
+	public IClock Clock { get; private set; } = null!; // NOTE maybe the timeline should be lazily initialized? there probably are way more components that are not animated
 	public AnimationTimeline AnimationTimeline { get; } = new() { CurrentTime = double.NegativeInfinity.Millis() }; // negative infinity start time basically makes load-time animations finish instantly
 	public bool IsLoaded { get; private set; }
 	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) {

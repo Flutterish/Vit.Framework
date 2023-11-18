@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Vit.Framework.Collections;
 
@@ -137,8 +138,12 @@ public class ByteCharPrefixTree<TValue> {
 		return node.hasValue;
 	}
 
+	public bool TryGetValue ( ReadOnlySpan<char> key, [NotNullWhen( true )] out TValue? value ) {
+		return TryGetValue( MemoryMarshal.AsBytes( key ), out value );
+	}
+
 	public bool TryGetValue ( ReadOnlySpan<byte> key, [NotNullWhen( true )] out TValue? value ) {
-		var node = this;
+			var node = this;
 		foreach ( var i in key ) {
 			if ( node.children == null ) {
 				value = default;
@@ -165,7 +170,15 @@ public class ByteCharPrefixTree<TValue> {
 		return node.value;
 	}
 
-	public TValue this[ReadOnlySpan<byte> key] => GetValue( key );
+	public TValue this[ReadOnlySpan<byte> key] {
+		get => GetValue( key );
+		set => Add( key, value );
+	}
+
+	public TValue this[ReadOnlySpan<char> key] {
+		get => GetValue( MemoryMarshal.AsBytes( key ) );
+		set => Add( MemoryMarshal.AsBytes( key ), value );
+	}
 
 	public override string ToString () {
 		return $"{(hasValue ? value : "")}{(children == null ? "" : "+")}";
