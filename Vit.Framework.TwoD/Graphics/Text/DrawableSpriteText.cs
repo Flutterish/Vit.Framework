@@ -41,18 +41,19 @@ public partial class DrawableSpriteText : DrawableText {
 
 	struct PageBatch {
 		public required uint IndexCount;
-		public required StagedDeviceBuffer<uint> Indices; // TODO just use one buffer with offsets
+		public required uint Offset;
 		public required UniformSetPool.Allocation UniformSet;
 	}
+	StagedDeviceBuffer<uint> indices = null!;
 	StagedDeviceBuffer<Vertex> vertices = null!;
 	List<PageBatch> batches = new();
 	ISampler? sampler;
 
 	void clearBatches () {
 		foreach ( var i in batches ) {
-			i.Indices.Dispose();
 			drawDependencies.UniformSetAllocator.Free( i.UniformSet );
 		}
+		indices?.Dispose();
 		vertices?.Dispose();
 		batches.Clear();
 	}
@@ -150,6 +151,11 @@ public partial class DrawableSpriteText : DrawableText {
 			vertices.Upload( copy, verticesList );
 			Source.vertices = vertices;
 
+			var indices = new StagedDeviceBuffer<uint>( renderer, BufferType.Index );
+			indices.Allocate( (uint)indicesList.Length, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+			indices.Upload( copy, indicesList );
+			Source.indices = indices;
+
 			foreach ( var (page, offset) in groupOffsets ) {
 				var size = groupSizes[page];
 
@@ -157,14 +163,10 @@ public partial class DrawableSpriteText : DrawableText {
 				uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
 				uniformSet.UniformSet.SetSampler( page.View, Source.sampler!, binding: 1 );
 
-				var indices = new StagedDeviceBuffer<uint>( renderer, BufferType.Index );
-				indices.Allocate( size * 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-				indices.Upload( copy, indicesList.AsSpan( (int)(offset - size) * 6, (int)size * 6 ) );
-
 				var batch = new PageBatch {
 					IndexCount = size * 6,
 					UniformSet = uniformSet,
-					Indices = indices
+					Offset = (offset - size) * 6
 				};
 				Source.batches.Add( batch );
 			}
@@ -193,11 +195,11 @@ public partial class DrawableSpriteText : DrawableText {
 			}, uniforms.Offset );
 			
 			commands.BindVertexBuffer( Source.vertices.DeviceBuffer );
+			commands.BindIndexBuffer( Source.indices.DeviceBuffer );
 			foreach ( var batch in Source.batches ) {
 				shaders.SetUniformSet( batch.UniformSet.UniformSet, set: 1 );
 				commands.UpdateUniforms();
-				commands.BindIndexBuffer( batch.Indices.DeviceBuffer );
-				commands.DrawIndexed( batch.IndexCount );
+				commands.DrawIndexed( batch.IndexCount, batch.Offset );
 			}
 		}
 

@@ -86,8 +86,8 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkCmdDraw( this, vertexCount, instanceCount, 0, 0 );
 	}
 
-	public void DrawIndexed ( uint indexCount, uint instanceCount = 1 ) {
-		Vk.vkCmdDrawIndexed( this, indexCount, instanceCount, 0, 0, 0 );
+	public void DrawIndexed ( uint indexCount, uint offset ) {
+		Vk.vkCmdDrawIndexed( this, indexCount, 1, offset, 0, 0 );
 	}
 
 	public unsafe void Copy ( VkBuffer source, VkBuffer destination, ulong size, ulong srcOffset = 0, ulong dstOffset = 0 ) {

@@ -246,7 +246,11 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		Debug.Assert( Topology == Topology.Triangles );
-		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset );
+		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)offset * indexType switch {
+			DrawElementsType.UnsignedByte => 1,
+			DrawElementsType.UnsignedShort => 2,
+			DrawElementsType.UnsignedInt or _ => 4
+		} );
 	}
 
 	public void Dispose () {
