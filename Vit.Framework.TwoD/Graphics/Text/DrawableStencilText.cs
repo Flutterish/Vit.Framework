@@ -6,7 +6,6 @@ using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Layout;
@@ -30,6 +29,7 @@ public class DrawableStencilText : DrawableText {
 	Texture texture = null!;
 	StencilFontStore stencilFont = null!;
 	SingleUseBufferSectionStack singleUseBuffers = null!;
+	DeviceBufferHeap bufferHeap = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 
@@ -43,6 +43,7 @@ public class DrawableStencilText : DrawableText {
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 		stencilFont = deps.Resolve<StencilFontStore>();
 		singleUseBuffers = deps.Resolve<SingleUseBufferSectionStack>();
+		bufferHeap = deps.Resolve<DeviceBufferHeap>();
 	}
 
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
@@ -54,18 +55,22 @@ public class DrawableStencilText : DrawableText {
 	}
 
 	IUniformSet? uniformSet;
-	IDeviceBuffer<uint>? indices;
-	IDeviceBuffer<Vertex>? vertices;
+	DeviceBufferHeap.Allocation<uint> indices;
+	DeviceBufferHeap.Allocation<Vertex> vertices;
 	IHostBuffer<Uniforms>? uniforms;
 	int indexCount;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();
 
-		uniformSet?.Dispose();
-		indices?.Dispose();
-		vertices?.Dispose();
-		uniforms?.Dispose();
+		if ( uniformSet != null ) {
+			uniformSet!.Dispose();
+			uniforms!.Dispose();
+		}
+		if ( indexCount != 0 ) {
+			indices.Dispose();
+			vertices.Dispose();
+		}
 	}
 
 	public class DrawNode : TextDrawNode<DrawableStencilText> {
@@ -84,21 +89,15 @@ public class DrawableStencilText : DrawableText {
 			tint = Source.Tint.ToSRgb();
 		}
 
-		void updateTextMesh ( IRenderer renderer ) {
+		unsafe void updateTextMesh ( IRenderer renderer ) {
 			var shaders = shader.Value;
 			ref var indices = ref Source.indices;
 			ref var vertices = ref Source.vertices;
-			ref var uniforms = ref Source.uniforms;
-			ref var uniformSet = ref Source.uniformSet;
 
-			if ( indices != null ) {
+			if ( Source.indexCount != 0 ) {
 				indices.Dispose();
-				vertices!.Dispose();
-				uniforms!.Dispose();
-				uniformSet!.Dispose();
+				vertices.Dispose();
 			}
-
-			using var copy = renderer.CreateImmediateCommandBuffer();
 
 			using var layout = new RentedArray<GlyphMetric>( SingleLineTextLayoutEngine.GetBufferLengthFor( Text ) );
 			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var bounds );
@@ -111,44 +110,49 @@ public class DrawableStencilText : DrawableText {
 				indexCount += glyph.Indices.Count;
 			}
 
-			List<Vertex> verticesList = new( vertexCount );
-			List<uint> indicesList = new( indexCount );
+			Source.indexCount = indexCount;
+			if ( Source.indexCount == 0 )
+				return;
+
+			ref var uniformSet = ref Source.uniformSet;
+			if ( uniformSet == null ) {
+				ref var uniforms = ref Source.uniforms;
+				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform ); // TODO no need to reallocate the uniforms
+				uniformSet = shaders.CreateUniformSet( set: 1 );
+
+				uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+
+				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
+				uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );
+			}
+
+			uint vertexOffset = 0;
+			var indexStaging = Source.singleUseBuffers.AllocateStagingBuffer<uint>( (uint)indexCount );
+			var vertexStaging = Source.singleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)vertexCount );
+			var indexPtr = indexStaging.GetData();
+			var vertexPtr = vertexStaging.GetData();
 			foreach ( var i in layout.AsSpan( 0, glyphCount ) ) {
 				var glyph = stencilFont.GetGlyph( i.Glyph );
 				var advance = i.Anchor.Cast<float>().FromOrigin();
 
-				var offset = (uint)verticesList.Count;
-				foreach ( var vertex in glyph.Vertices ) {
-					verticesList.Add( new() { PositionAndUV = vertex + advance } );
+				foreach ( var index in glyph.Indices ) {
+					*indexPtr = index + vertexOffset;
+					indexPtr++;
 				}
 
-				foreach ( var index in glyph.Indices ) {
-					indicesList.Add( index + offset );
+				foreach ( var vertex in glyph.Vertices ) {
+					*vertexPtr = new() { PositionAndUV = vertex + advance };
+					vertexPtr++;
+					vertexOffset++;
 				}
 			}
 
-			Source.indexCount = indicesList.Count;
-			indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
-			vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex ); // TODO also no need to reallocate device buffers if the old one fits
-			uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform ); // TODO no need to reallocate the uniforms
-			uniformSet = shaders.CreateUniformSet( set: 1 );
+			indices = Source.bufferHeap.Allocate<uint>( BufferType.Index, (uint)indexCount );
+			vertices = Source.bufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)vertexCount );
 
-			if ( Source.indexCount == 0 )
-				return;
-
-			var indexStaging = Source.singleUseBuffers.AllocateStagingBuffer<uint>( (uint)indicesList.Count );
-			var vertexStaging = Source.singleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)verticesList.Count );
-			indexStaging.Upload<uint>( indicesList.AsSpan() );
-			vertexStaging.Upload<Vertex>( verticesList.AsSpan() );
-
-			indices.Allocate( (uint)indicesList.Count, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			copy.CopyBufferRaw( indexStaging.Buffer, indices, indexStaging.Length, sourceOffset: indexStaging.Offset );
-			vertices.Allocate( (uint)verticesList.Count, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			copy.CopyBufferRaw( vertexStaging.Buffer, vertices, vertexStaging.Length, sourceOffset: vertexStaging.Offset );
-			uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
-
-			uniformSet.SetUniformBuffer( uniforms, binding: 0 );
-			uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );
+			using var copy = renderer.CreateImmediateCommandBuffer();
+			copy.CopyBufferRaw( indexStaging.Buffer, indices.Buffer, indexStaging.Length, sourceOffset: indexStaging.Offset, destinationOffset: indices.Offset );
+			copy.CopyBufferRaw( vertexStaging.Buffer, vertices.Buffer, vertexStaging.Length, sourceOffset: vertexStaging.Offset, destinationOffset: vertices.Offset );
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
@@ -168,8 +172,8 @@ public class DrawableStencilText : DrawableText {
 			shaders.SetUniformSet( uniformSet!, set: 1 );
 
 			commands.SetShaders( shaders );
-			commands.BindVertexBuffer( vertices! );
-			commands.BindIndexBuffer( indices! );
+			commands.BindVertexBufferRaw( vertices.Buffer, offset: vertices.Offset );
+			commands.BindIndexBufferRaw( indices.Buffer, IndexBufferType.UInt32, indices.Offset );
 			uniforms!.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
 				Tint = tint

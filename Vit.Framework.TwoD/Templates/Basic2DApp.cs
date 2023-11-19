@@ -73,6 +73,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		Dependencies.Cache( DisposeScheduler );
 
 		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 * 8 ) ); // 8MiB buffer
+		Dependencies.Cache( new DeviceBufferHeap( 1024 * 1024 * 64, 1024 * 16 ) ); // 64MiB buffer, expect 16kiB allocs
 		Dependencies.Cache( new TexturedQuad.DrawDependencies() );
 		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
 

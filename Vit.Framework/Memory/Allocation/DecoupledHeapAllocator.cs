@@ -42,6 +42,8 @@ public class DecoupledHeapAllocator {
 
 	/// <inheritdoc cref="IAllocator.Allocate(nuint)"/>
 	public unsafe DecoupledAllocation Allocate ( nuint size ) {
+		Debug.Assert( size != 0 );
+
 		RegionMetadata? node = null;
 		var bucketIndex = getBucketIndex( size );
 		for ( ; bucketIndex < freeBucketCount; bucketIndex++ ) {
@@ -155,6 +157,7 @@ public class DecoupledHeapAllocator {
 	/// Might return <see langword="null"/> if there is not enough memory, in which case this is equivalent to a <see cref="Free(nuint)"/>.
 	/// </remarks>
 	public unsafe DecoupledAllocation Reallocate ( nuint ptr, nuint newSize, out bool moved ) {
+		Debug.Assert( newSize != 0 );
 		RegionMetadata node = regionsByAddress[ptr];
 
 		var oldSize = node.Size;
@@ -231,6 +234,8 @@ public class DecoupledHeapAllocator {
 			removeNode( next, getBucketIndex( next.Size ) );
 			regionsByAddress[next.Offset + next.Size].Previous = node;
 			node.Size += next.Size;
+			next.Previous = null;
+			next.NextFreeBySize = null;
 			freeMetadata( next );
 		}
 

@@ -97,7 +97,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	IDeviceTexture2D texture = null!;
 	ITexture2DView view = null!;
 
-	IDeviceTexture2D stencil = null!;
+	IDeviceTexture2D stencil = null!; // TODO these 2 should be disposed after drawing
 	IFramebuffer canvas = null!;
 
 	[ThreadStatic]

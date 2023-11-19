@@ -15,6 +15,8 @@ public class IndexToLocationTable : Table {
 		return head.IndexToLocFormat == 1 ? ( maxp.GlyphCount + 1 ) : 0;
 	}
 
+	public int Length => ShortOffsets.Any() ? ShortOffsets.Length : LongOffsets.Length;
+
 	public Offset32 this[int index] => ShortOffsets.Any() 
 		? new Offset32 { Value = ShortOffsets[index].Value }
 		: LongOffsets[index];

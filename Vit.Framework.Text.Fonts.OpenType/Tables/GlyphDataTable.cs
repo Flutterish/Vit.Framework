@@ -15,6 +15,9 @@ public class GlyphDataTable : Table {
 		var loca = context.ResolveDependency<IndexToLocationTable>();
 
 		var index = (int)id.Value;
+		if ( index + 1 >= loca.Length )
+			return null;
+
 		var startOffset = loca[index];
 		var endOffset = loca[index + 1];
 		var length = endOffset - startOffset;

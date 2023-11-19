@@ -31,12 +31,13 @@ public partial class DrawableSpriteText : DrawableText {
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();
 
-		if ( !areUniformsInitialized )
-			return;
-
-		clearBatches();
-		sampler!.Dispose();
-		drawDependencies.UniformAllocator.Free( uniforms );
+		if ( areUniformsInitialized ) {
+			drawDependencies.UniformAllocator.Free( uniforms );
+			sampler!.Dispose();
+		}
+		if ( batches.Count != 0 ) {
+			clearBatches();
+		}	
 	}
 
 	struct PageBatch {
@@ -44,8 +45,8 @@ public partial class DrawableSpriteText : DrawableText {
 		public required uint Offset;
 		public required UniformSetPool.Allocation UniformSet;
 	}
-	IDeviceBuffer<uint> indices = null!;
-	IDeviceBuffer<Vertex> vertices = null!;
+	DeviceBufferHeap.Allocation<uint> indices;
+	DeviceBufferHeap.Allocation<Vertex> vertices;
 	List<PageBatch> batches = new();
 	ISampler? sampler;
 
@@ -53,23 +54,19 @@ public partial class DrawableSpriteText : DrawableText {
 		foreach ( var i in batches ) {
 			drawDependencies.UniformSetAllocator.Free( i.UniformSet );
 		}
-		indices?.Dispose();
-		vertices?.Dispose();
+		indices.Dispose();
+		vertices.Dispose();
 		batches.Clear();
 	}
 
 	protected class DrawNode : TextDrawNode<DrawableSpriteText> {
 		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		void initializeSharedData ( IRenderer renderer ) {
-			ref var uniforms = ref Source.uniforms;
-
-			uniforms = Source.drawDependencies.UniformAllocator.Allocate();
-			Source.sampler = renderer.CreateSampler();
-		}
-
 		unsafe void updateTextMesh ( IRenderer renderer ) {
-			Source.clearBatches();
+			if ( Source.batches.Count != 0 ) {
+				Source.clearBatches();
+			}
+
 			using var layout = new RentedArray<GlyphMetric>( SingleLineTextLayoutEngine.GetBufferLengthFor( Text ) );
 			var glyphCount = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out var textBounds );
 
@@ -86,10 +83,20 @@ public partial class DrawableSpriteText : DrawableText {
 				}
 			}
 
+			if ( groupSizes.Count == 0 )
+				return;
+
+			ref var uniforms = ref Source.uniforms;
+			if ( !Source.areUniformsInitialized ) {
+				uniforms = Source.drawDependencies.UniformAllocator.Allocate();
+				Source.sampler = renderer.CreateSampler();
+				Source.areUniformsInitialized = true;
+			}
+
 			var vertexStaging = Source.drawDependencies.SingleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)glyphCount * 4 );
-			var indexStaging = Source.drawDependencies.SingleUseBuffers.AllocateStagingBuffer<Vertex>( (uint)glyphCount * 6 );
-			var verticesList = vertexStaging.GetData<Vertex>();
-			var indicesList = indexStaging.GetData<uint>();
+			var indexStaging = Source.drawDependencies.SingleUseBuffers.AllocateStagingBuffer<uint>( (uint)glyphCount * 6 );
+			var vertexPtr = vertexStaging.GetData();
+			var indexPtr = indexStaging.GetData();
 			Dictionary<SpriteFontPage, uint> groupOffsets = new( groupSizes.Count );
 			var index = 0u;
 			foreach ( var (page, size) in groupSizes ) {
@@ -101,54 +108,50 @@ public partial class DrawableSpriteText : DrawableText {
 				var page = store.GetSpriteFont( metric.Glyph.Font ).GetPage( metric.Glyph.Id );
 				index = groupOffsets[page]++;
 
-				indicesList[index * 6 + 0] = index * 4 + 0;
-				indicesList[index * 6 + 1] = index * 4 + 1;
-				indicesList[index * 6 + 2] = index * 4 + 2;
-				indicesList[index * 6 + 3] = index * 4 + 0;
-				indicesList[index * 6 + 4] = index * 4 + 2;
-				indicesList[index * 6 + 5] = index * 4 + 3;
+				indexPtr[index * 6 + 0] = index * 4 + 0;
+				indexPtr[index * 6 + 1] = index * 4 + 1;
+				indexPtr[index * 6 + 2] = index * 4 + 2;
+				indexPtr[index * 6 + 3] = index * 4 + 0;
+				indexPtr[index * 6 + 4] = index * 4 + 2;
+				indexPtr[index * 6 + 5] = index * 4 + 3;
 
 				var uv = page.GetUvBox( metric.Glyph.Id );
 				var bounds = metric.Glyph.DefinedBoundingBox;
 
 				var multiplier = (float)metric.SizeMultiplier;
 				Point2<float> anchor = metric.Anchor.Cast<float>() + new Vector2<float>( (float)bounds.MinX * multiplier, (float)bounds.MinY * multiplier );
-				verticesList[index * 4 + 0] = new() {
+				vertexPtr[index * 4 + 0] = new() {
 					UV = uv.Position + (0, uv.Height),
 					Position = anchor + new Vector2<float> {
 						Y = (float)bounds.Height * multiplier
 					}
 				};
-				verticesList[index * 4 + 1] = new() {
+				vertexPtr[index * 4 + 1] = new() {
 					UV = uv.Position + (uv.Width, uv.Height),
 					Position = anchor + new Vector2<float> {
 						X = (float)bounds.Width * multiplier,
 						Y = (float)bounds.Height * multiplier
 					}
 				};
-				verticesList[index * 4 + 2] = new() {
+				vertexPtr[index * 4 + 2] = new() {
 					UV = uv.Position + (uv.Width, 0),
 					Position = anchor + new Vector2<float> {
 						X = (float)bounds.Width * multiplier
 					}
 				};
-				verticesList[index * 4 + 3] = new() {
+				vertexPtr[index * 4 + 3] = new() {
 					UV = uv.Position,
 					Position = anchor
 				};
 			}
 
-			ref var uniforms = ref Source.uniforms;
-
 			using var copy = renderer.CreateImmediateCommandBuffer();
 
-			Source.vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-			Source.vertices.Allocate( vertexStaging.Length, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			copy.CopyBufferRaw( vertexStaging.Buffer, Source.vertices, vertexStaging.Length, sourceOffset: vertexStaging.Offset );
+			Source.vertices = Source.drawDependencies.BufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)glyphCount * 4 );
+			copy.CopyBufferRaw( vertexStaging.Buffer, Source.vertices.Buffer, vertexStaging.Length, sourceOffset: vertexStaging.Offset, destinationOffset: Source.vertices.Offset );
 
-			Source.indices = renderer.CreateDeviceBuffer<uint>( BufferType.Index );
-			Source.indices.Allocate( indexStaging.Length, BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-			copy.CopyBufferRaw( indexStaging.Buffer, Source.indices, indexStaging.Length, sourceOffset: indexStaging.Offset );
+			Source.indices = Source.drawDependencies.BufferHeap.Allocate<uint>( BufferType.Index, (uint)glyphCount * 6 );
+			copy.CopyBufferRaw( indexStaging.Buffer, Source.indices.Buffer, indexStaging.Length, sourceOffset: indexStaging.Offset, destinationOffset: Source.indices.Offset );
 
 			foreach ( var (page, offset) in groupOffsets ) {
 				var size = groupSizes[page];
@@ -172,11 +175,6 @@ public partial class DrawableSpriteText : DrawableText {
 
 			var shaders = Source.drawDependencies.Shader;
 
-			if ( !Source.areUniformsInitialized ) {
-				initializeSharedData( renderer );
-				Source.areUniformsInitialized = true;
-			}
-
 			if ( ValidateLayout() )
 				updateTextMesh( renderer );
 			if ( Source.batches.Count == 0 )
@@ -188,8 +186,8 @@ public partial class DrawableSpriteText : DrawableText {
 				Tint = ColorSRgba.White
 			}, uniforms.Offset );
 			
-			commands.BindVertexBuffer( Source.vertices );
-			commands.BindIndexBuffer( Source.indices );
+			commands.BindVertexBufferRaw( Source.vertices.Buffer, offset: Source.vertices.Offset );
+			commands.BindIndexBufferRaw( Source.indices.Buffer, IndexBufferType.UInt32, Source.indices.Offset );
 			foreach ( var batch in Source.batches ) {
 				shaders.SetUniformSet( batch.UniformSet.UniformSet, set: 1 );
 				commands.UpdateUniforms();

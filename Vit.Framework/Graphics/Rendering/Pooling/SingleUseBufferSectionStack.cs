@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.Rendering.Pooling;
@@ -44,39 +43,45 @@ public class SingleUseBufferSectionStack : IDisposable {
 		public AllocationStack<IHostBuffer> HostBuffers;
 	}
 
-	public struct Allocation<T> where T : IBuffer {
-		public T Buffer;
+	public struct Allocation<TBuffer, T> : IBufferSection<TBuffer, T> where TBuffer : IBuffer where T : unmanaged {
+		public TBuffer Buffer;
 		public uint Offset;
 		public uint Length;
+
+		readonly TBuffer IBufferSection<TBuffer>.Buffer => Buffer;
+		readonly uint IBufferSection<TBuffer>.ByteOffset => Offset;
+		readonly uint IBufferSection<TBuffer>.ByteLength => Length;
 	}
-	public Allocation<IStagingBuffer> AllocateStagingBuffer<T> ( uint length ) where T : unmanaged {
-		return stagingBuffers.Allocate( length * SizeOfHelper<T>.Size );
+	public Allocation<IStagingBuffer, T> AllocateStagingBuffer<T> ( uint length ) where T : unmanaged {
+		return stagingBuffers.Allocate<T>( length );
 	}
-	public Allocation<IHostBuffer> AllocateHostBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
+	public Allocation<IHostBuffer, T> AllocateHostBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
 		if ( !buffersByType.TryGetValue( type, out var buffers ) ) {
 			buffersByType.Add( type, buffers = new( this, type ) );
 		}
 
-		return buffers.HostBuffers.Allocate( length * SizeOfHelper<T>.Size );
+		return buffers.HostBuffers.Allocate<T>( length );
 	}
-	public Allocation<IDeviceBuffer> AllocateDeviceBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
+	public Allocation<IDeviceBuffer, T> AllocateDeviceBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
 		if ( !buffersByType.TryGetValue( type, out var buffers ) ) {
 			buffersByType.Add( type, buffers = new( this, type ) );
 		}
 
-		return buffers.DeviceBuffers.Allocate( length * SizeOfHelper<T>.Size );
+		return buffers.DeviceBuffers.Allocate<T>( length );
 	}
 
-	class AllocationStack<T> : IDisposable where T : IBuffer {
+	class AllocationStack<TBuffer> : IDisposable where TBuffer : IBuffer {
 		uint bufferLength;
-		List<(T buffer, uint remainingLength)> buffers = new();
-		Func<uint, T> creator;
-		public AllocationStack ( uint bufferLength, Func<uint, T> creator ) {
+		List<(TBuffer buffer, uint remainingLength)> buffers = new();
+		Func<uint, TBuffer> creator;
+		public AllocationStack ( uint bufferLength, Func<uint, TBuffer> creator ) {
 			this.bufferLength = bufferLength;
 			this.creator = creator;
 		}
 
-		public Allocation<T> Allocate ( uint length ) {
+		public Allocation<TBuffer, T> Allocate<T> ( uint length ) where T : unmanaged {
+			length *= SizeOfHelper<T>.Size;
+
 			for ( int i = 0; i < buffers.Count; i++ ) {
 				var buffer = buffers[i];
 				if ( buffer.remainingLength >= length ) {
@@ -136,23 +141,5 @@ public class SingleUseBufferSectionStack : IDisposable {
 			i.HostBuffers.Dispose();
 			i.DeviceBuffers.Dispose();
 		}
-	}
-}
-
-public static class SingleUseBufferSectionStackExtensions {
-	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
-	}
-	public static void Upload<T> ( this SingleUseBufferSectionStack.Allocation<IStagingBuffer> allocation, ReadOnlySpan<T> data, uint offset = 0 ) where T : unmanaged {
-		allocation.Buffer.UploadRaw( MemoryMarshal.AsBytes( data ), offset * SizeOfHelper<T>.Size + allocation.Offset );
-	}
-	public static unsafe T* Map<T> ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation ) where T : unmanaged {
-		return (T*)((byte*)allocation.Buffer.Map() + allocation.Offset);
-	}
-	public static void Unmap ( this SingleUseBufferSectionStack.Allocation<IHostBuffer> allocation ) {
-		allocation.Buffer.Unmap();
-	}
-	public static unsafe T* GetData<T> ( this SingleUseBufferSectionStack.Allocation<IStagingBuffer> allocation ) where T : unmanaged {
-		return (T*)((byte*)allocation.Buffer.GetData() + allocation.Offset);
 	}
 }

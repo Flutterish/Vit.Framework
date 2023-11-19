@@ -52,6 +52,8 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
 			SingleUseBuffers.Initialize( Renderer );
+			DeviceBufferHeap = Dependencies.Resolve<DeviceBufferHeap>();
+			DeviceBufferHeap.Initialize( Renderer );
 
 			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
 				if ( dep is IDrawDependency drawDependency )
@@ -75,6 +77,7 @@ public abstract partial class Basic2DApp<TRoot> {
 		protected ShaderStore ShaderStore = null!;
 		protected TextureStore TextureStore = null!;
 		protected SingleUseBufferSectionStack SingleUseBuffers = null!;
+		protected DeviceBufferHeap DeviceBufferHeap = null!;
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;

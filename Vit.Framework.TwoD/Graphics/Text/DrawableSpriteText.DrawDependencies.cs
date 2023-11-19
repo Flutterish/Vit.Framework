@@ -17,12 +17,14 @@ public partial class DrawableSpriteText {
 		public UniformSetPool UniformSetAllocator = null!;
 		public SpriteFontStore Store = null!;
 		public SingleUseBufferSectionStack SingleUseBuffers = null!;
+		public DeviceBufferHeap BufferHeap = null!;
 
 		public IShaderSet Shader = null!;
 
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 			Store = dependencies.Resolve<SpriteFontStore>();
 			SingleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
+			BufferHeap = dependencies.Resolve<DeviceBufferHeap>();
 
 			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
 				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
