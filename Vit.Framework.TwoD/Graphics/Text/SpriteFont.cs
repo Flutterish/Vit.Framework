@@ -172,17 +172,11 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			var bounds = getBounds( id );
 
 			var glyphBounds = outline.CalculateBoundingBox();
-			var glyphAspectRatio = glyphBounds.Height / glyphBounds.Width;
-			var boundsAspectRatio = bounds.Height / bounds.Width;
-			var multiplier = (float)(glyphAspectRatio > boundsAspectRatio
-				? (bounds.Height / font.Font.UnitsPerEm * boundsAspectRatio / glyphAspectRatio)
-				: (bounds.Height / font.Font.UnitsPerEm * glyphAspectRatio / boundsAspectRatio));
-
 			boundingBoxes[id.Value - firstGlyph.Value] = new() {
 				MinX = (bounds.MinX + 1) / 2,
 				MinY = (bounds.MinY + 1) / 2,
-				MaxX = (bounds.MinX + (float)glyphBounds.Width * multiplier + 1) / 2,
-				MaxY = (bounds.MinY + (float)glyphBounds.Height * multiplier + 1) / 2
+				MaxX = (bounds.MaxX + 1) / 2,
+				MaxY = (bounds.MaxY + 1) / 2
 			};
 
 			var stencil = new StencilGlyph( outline );
@@ -192,9 +186,12 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			var vertexPtr = vertices.Map();
 
 			foreach ( var i in stencil.Vertices ) {
+				var pos = i.Cast<double>() - glyphBounds.Position;
+				pos.X = pos.X * bounds.Width / glyphBounds.Width;
+				pos.Y = pos.Y * bounds.Height / glyphBounds.Height;
 				*vertexPtr = new() {
 					Color = ColorSRgba.White,
-					Position = uvMatrix.Apply( bounds.Position.Cast<float>() + (i - glyphBounds.Position.Cast<float>()) * multiplier )
+					Position = uvMatrix.Apply( bounds.Position.Cast<float>() + pos.Cast<float>() )
 				};
 				vertexPtr++;
 			}
