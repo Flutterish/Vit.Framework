@@ -4,11 +4,11 @@ using Vit.Framework.TwoD.UI.Graphics;
 
 namespace Vit.Framework.Tests.VisualTests;
 
-public class TextSizeTest : TestScene {
+public class StencilTextTest : TestScene {
 	StencilText text;
 	Box sizeBox;
 
-	public TextSizeTest () {
+	public StencilTextTest () {
 		AddChild( sizeBox = new() { Tint = ColorRgba.Green }, new() {
 			Anchor = Anchor.BottomRight,
 			Origin = Anchor.BottomRight

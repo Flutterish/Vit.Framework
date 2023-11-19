@@ -44,7 +44,7 @@ public class BasicButton : Button {
 	}
 
 	Box background;
-	public readonly StencilText SpriteText;
+	public readonly SpriteText SpriteText;
 	public LocalisableString Text {
 		get => SpriteText.Text;
 		set => SpriteText.Text = value;

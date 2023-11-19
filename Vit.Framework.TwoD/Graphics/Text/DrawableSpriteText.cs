@@ -14,6 +14,15 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Vertex;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public partial class DrawableSpriteText : DrawableText {
+	ColorRgba<float> tint = ColorRgba.Black;
+	public ColorRgba<float> Tint {
+		get => tint;
+		set {
+			if ( value.TrySet( ref tint ) )
+				InvalidateDrawNodes();
+		}
+	}
+
 	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
@@ -60,7 +69,13 @@ public partial class DrawableSpriteText : DrawableText {
 	}
 
 	protected class DrawNode : TextDrawNode<DrawableSpriteText> {
+		ColorSRgba<float> tint;
 		public DrawNode ( DrawableSpriteText source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+
+		protected override void UpdateState () {
+			base.UpdateState();
+			tint = Source.Tint.ToSRgb();
+		}
 
 		unsafe void updateTextMesh ( IRenderer renderer ) {
 			if ( Source.batches.Count != 0 ) {
@@ -183,7 +198,7 @@ public partial class DrawableSpriteText : DrawableText {
 			commands.SetShaders( shaders );
 			uniforms.Buffer.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
-				Tint = ColorSRgba.White
+				Tint = tint
 			}, uniforms.Offset );
 			
 			commands.BindVertexBufferRaw( Source.vertices.Buffer, offset: Source.vertices.Offset );

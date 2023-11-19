@@ -4,7 +4,7 @@ using Vit.Framework.TwoD.UI.Graphics;
 
 namespace Vit.Framework.TwoD.UI.Components;
 
-public class FpsCounter : StencilText {
+public class FpsCounter : SpriteText {
 	public FpsCounter () {
 		FontSize = 32;
 	}

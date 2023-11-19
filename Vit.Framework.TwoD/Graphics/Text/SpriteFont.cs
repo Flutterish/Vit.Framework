@@ -97,8 +97,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	IDeviceTexture2D texture = null!;
 	ITexture2DView view = null!;
 
-	IDeviceTexture2D stencil = null!; // TODO these 2 should be disposed after drawing
-	IFramebuffer canvas = null!;
+	IFramebuffer canvas = null!; // TODO this should be disposed after drawing
 
 	[ThreadStatic]
 	static HashSet<GlyphId>? unresolvedGlyphs;
@@ -125,10 +124,9 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		var glyphCount = pageSize.Width * pageSize.Height;
 
 		texture = renderer.CreateDeviceTexture( size, PixelFormat.Rgba8 );
-		stencil = renderer.CreateDeviceTexture( size, PixelFormat.S8ui );
 		view = texture.CreateView();
 
-		canvas = renderer.CreateFramebuffer( new[] { texture }, stencil );
+		canvas = renderer.CreateFramebuffer( new[] { texture } );
 
 		AxisAlignedBox2<float> getBounds ( GlyphId id ) {
 			var offset = (uint)(id.Value - firstGlyph.Value);
@@ -164,6 +162,12 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		//	return;
 
 		foreach ( var (id, outline) in font.Font.FetchOutlines<SplineOutline>( unresolvedGlyphs ) ) {
+			using var stancilBlend = commands.PushBlending( new() { 
+				IsEnabled = true,
+				FragmentFactor = BlendFactor.One,
+				DestinationFactor = BlendFactor.One,
+				Function = BlendFunction.FragmentMinusDestination
+			} );
 			unresolvedGlyphs.Remove( id );
 			var bounds = getBounds( id );
 
@@ -185,7 +189,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index );
 			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex );
-			var vertexPtr = vertices.Map<Vertex>();
+			var vertexPtr = vertices.Map();
 
 			foreach ( var i in stencil.Vertices ) {
 				*vertexPtr = new() {
@@ -196,16 +200,11 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			}
 
 			vertices.Unmap();
-			indices.Upload<uint>( stencil.Indices.AsSpan() );
+			indices.Upload( stencil.Indices.AsSpan() );
 
 			commands.BindIndexBufferRaw( indices.Buffer, IndexBufferType.UInt32, offset: indices.Offset );
 			commands.BindVertexBufferRaw( vertices.Buffer, offset: vertices.Offset );
-			using ( commands.PushStencilTest( new( CompareOperation.Never ), new() { CompareMask = 1, WriteMask = 1, StencilFailOperation = StencilOperation.Invert } ) ) {
-				commands.DrawIndexed( (uint)stencil.Indices.Count );
-
-				commands.SetStencilTest( new( CompareOperation.Equal ), new() { CompareMask = 1, WriteMask = 1, ReferenceValue = 1, PassOperation = StencilOperation.SetTo0 } );
-				commands.DrawIndexed( (uint)stencil.Indices.Count );
-			}
+			commands.DrawIndexed( (uint)stencil.Indices.Count );
 		}
 
 		unresolvedGlyphs.Clear();
@@ -213,7 +212,6 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 	protected override void Dispose ( bool disposing ) {
 		canvas.Dispose();
-		stencil.Dispose();
 		view.Dispose();
 		texture.Dispose();
 	}
