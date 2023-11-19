@@ -9,6 +9,8 @@
     <IsPackable>false</IsPackable>
 
     <StartupObject>Vit.Framework.Tests.Program</StartupObject>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

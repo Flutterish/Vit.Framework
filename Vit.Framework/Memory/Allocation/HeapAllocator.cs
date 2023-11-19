@@ -235,8 +235,8 @@ public unsafe class HeapAllocator : IAllocator {
 		// if that fails too, we basically already freed this block, so we can just allocate a new one and move the data there
 		// the edge case is when we are out of memory, in which case we need to restore this block and return null
 
-		newPtr = Allocate( newSize );
-		if ( newPtr == null )
+		(newPtr, var allocatedSize) = Allocate( newSize );
+		if ( allocatedSize != newSize )
 			throwImLazy();
 		new Span<byte>( ptr, length ).CopyTo( new Span<byte>( newPtr, length ) );
 
