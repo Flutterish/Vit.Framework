@@ -97,7 +97,8 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	IDeviceTexture2D texture = null!;
 	ITexture2DView view = null!;
 
-	IFramebuffer canvas = null!; // TODO this should be disposed after drawing
+	IDeviceTexture2D stencil = null!; // TODO these 2 should be disposed after drawing
+	IFramebuffer canvas = null!;
 
 	[ThreadStatic]
 	static HashSet<GlyphId>? unresolvedGlyphs;
@@ -124,17 +125,18 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		var glyphCount = pageSize.Width * pageSize.Height;
 
 		texture = renderer.CreateDeviceTexture( size, PixelFormat.Rgba8 );
+		stencil = renderer.CreateDeviceTexture( size, PixelFormat.S8ui );
 		view = texture.CreateView();
 
-		canvas = renderer.CreateFramebuffer( new[] { texture } );
+		canvas = renderer.CreateFramebuffer( new[] { texture }, stencil );
 
 		AxisAlignedBox2<float> getBounds ( GlyphId id ) {
 			var offset = (uint)(id.Value - firstGlyph.Value);
 			return new() {
 				MinX = ((offset % pageSize.Width) * glyphSize.Width) / (float)size.Width * 2 - 1,
-				MaxX = ((offset % pageSize.Width + 1) * glyphSize.Width) / (float)size.Width * 2 - 1,
+				MaxX = ((offset % pageSize.Width + 1) * glyphSize.Width - 1) / (float)size.Width * 2 - 1,
 				MinY = ((offset / pageSize.Width) * glyphSize.Height) / (float)size.Height * 2 - 1,
-				MaxY = ((offset / pageSize.Width + 1) * glyphSize.Height) / (float)size.Height * 2 - 1
+				MaxY = ((offset / pageSize.Width + 1) * glyphSize.Height - 1) / (float)size.Height * 2 - 1
 			};
 		}
 
@@ -162,12 +164,6 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		//	return;
 
 		foreach ( var (id, outline) in font.Font.FetchOutlines<SplineOutline>( unresolvedGlyphs ) ) {
-			using var stancilBlend = commands.PushBlending( new() { 
-				IsEnabled = true,
-				FragmentFactor = BlendFactor.One,
-				DestinationFactor = BlendFactor.One,
-				Function = BlendFunction.FragmentMinusDestination
-			} );
 			unresolvedGlyphs.Remove( id );
 			var bounds = getBounds( id );
 
@@ -201,7 +197,12 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 			commands.BindIndexBufferRaw( indices.Buffer, IndexBufferType.UInt32, offset: indices.Offset );
 			commands.BindVertexBufferRaw( vertices.Buffer, offset: vertices.Offset );
-			commands.DrawIndexed( (uint)stencil.Indices.Count );
+			using ( commands.PushStencilTest( new( CompareOperation.Never ), new() { CompareMask = 1, WriteMask = 1, StencilFailOperation = StencilOperation.Invert } ) ) {
+				commands.DrawIndexed( (uint)stencil.Indices.Count );
+
+				commands.SetStencilTest( new( CompareOperation.Equal ), new() { CompareMask = 1, WriteMask = 1, ReferenceValue = 1, PassOperation = StencilOperation.SetTo0 } );
+				commands.DrawIndexed( (uint)stencil.Indices.Count );
+			}
 		}
 
 		unresolvedGlyphs.Clear();
@@ -209,6 +210,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 
 	protected override void Dispose ( bool disposing ) {
 		canvas.Dispose();
+		stencil.Dispose();
 		view.Dispose();
 		texture.Dispose();
 	}

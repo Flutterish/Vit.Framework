@@ -87,8 +87,10 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
 			GL.Viewport( (int)Viewport.MinX, (int)Viewport.MinY, (int)Viewport.Width, (int)Viewport.Height );
 
-		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) )
+		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) ) {
+			GL.Enable( EnableCap.ScissorTest );
 			GL.Scissor( (int)Scissors.MinX, (int)Scissors.MinY, (int)Scissors.Width, (int)Scissors.Height );
+		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.DepthTest ) ) {
 			if ( !DepthTest.IsEnabled ) {
