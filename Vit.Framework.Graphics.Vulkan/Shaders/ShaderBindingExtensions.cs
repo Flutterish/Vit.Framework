@@ -14,6 +14,7 @@ public static unsafe class ShaderBindingExtensions {
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.Float32, [] ) => VkFormat.R32Sfloat,
 					(PrimitiveType.Float32, [2] ) => VkFormat.R32g32Sfloat,
 					(PrimitiveType.Float32, [3] ) => VkFormat.R32g32b32Sfloat,
 					(PrimitiveType.Float32, [4] ) => VkFormat.R32g32b32a32Sfloat,
