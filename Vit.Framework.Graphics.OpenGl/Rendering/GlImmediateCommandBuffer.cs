@@ -246,16 +246,25 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		}
 	}
 
+	static uint indexSize ( uint count, DrawElementsType type ) {
+		return count * type switch {
+			DrawElementsType.UnsignedByte => 1u,
+			DrawElementsType.UnsignedShort => 2u,
+			DrawElementsType.UnsignedInt or _ => 4u
+		};
+	}
+
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
 		Debug.Assert( Topology == Topology.Triangles );
-		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)(IndexBufferOffset + offset * indexType switch {
-			DrawElementsType.UnsignedByte => 1,
-			DrawElementsType.UnsignedShort => 2,
-			DrawElementsType.UnsignedInt or _ => 4
-		}) );
+		GL.DrawElements( BeginMode.Triangles, (int)vertexCount, indexType, (int)(IndexBufferOffset + indexSize(offset, indexType)) );
+	}
+
+	protected override void DrawInstancesIndexed ( uint vertexCount, uint instanceCount, uint offset, uint instanceOffset ) {
+		Debug.Assert( Topology == Topology.Triangles );
+		GL.DrawElementsInstancedBaseInstance( PrimitiveType.Triangles, (int)vertexCount, indexType, (int)(IndexBufferOffset + indexSize( offset, indexType )), (int)instanceCount, instanceOffset );
 	}
 
 	public void Dispose () {
-		
+
 	}
 }

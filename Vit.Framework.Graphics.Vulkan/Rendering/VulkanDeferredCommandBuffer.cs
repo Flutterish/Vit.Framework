@@ -222,6 +222,10 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 	}
 
 	protected override void DrawIndexed ( uint vertexCount, uint offset = 0 ) {
-		Buffer.DrawIndexed( vertexCount, offset );
+		Buffer.DrawIndexed( vertexCount, instanceCount: 1, offset: offset, instanceOffset: 0 );
+	}
+
+	protected override void DrawInstancesIndexed ( uint vertexCount, uint instanceCount, uint offset, uint instanceOffset ) {
+		Buffer.DrawIndexed( vertexCount, instanceCount, offset, instanceOffset );
 	}
 }

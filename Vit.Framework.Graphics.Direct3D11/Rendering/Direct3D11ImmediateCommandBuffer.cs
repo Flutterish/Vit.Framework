@@ -161,5 +161,9 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		Context.DrawIndexed( (int)vertexCount, (int)offset, 0 );
 	}
 
+	protected override void DrawInstancesIndexed ( uint vertexCount, uint instanceCount, uint offset, uint instanceOffset ) {
+		Context.DrawIndexedInstanced( (int)vertexCount, (int)instanceCount, (int)offset, 0, (int)instanceOffset );
+	}
+
 	public void Dispose () { }
 }

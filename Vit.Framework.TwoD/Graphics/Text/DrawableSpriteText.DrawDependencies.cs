@@ -20,6 +20,8 @@ public partial class DrawableSpriteText {
 		public DeviceBufferHeap BufferHeap = null!;
 
 		public IShaderSet Shader = null!;
+		public IDeviceBuffer<TextVertex.Corner> CornerBuffer = null!;
+		public IDeviceBuffer<ushort> IndexBuffer = null!;
 
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 			Store = dependencies.Resolve<SpriteFontStore>();
@@ -43,6 +45,29 @@ public partial class DrawableSpriteText {
 			Shader = basicShader.Value;
 
 			UniformSetAllocator = new( Shader, set: 1, poolSize: 256 );
+
+			CornerBuffer = renderer.CreateDeviceBuffer<TextVertex.Corner>( BufferType.Vertex );
+			CornerBuffer.Allocate( 4, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+			IndexBuffer = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
+			IndexBuffer.Allocate( 6, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+
+			using var copy = renderer.CreateImmediateCommandBuffer();
+			var cornerStaging = SingleUseBuffers.AllocateStagingBuffer<TextVertex.Corner>( 4 );
+			var indexStaging = SingleUseBuffers.AllocateStagingBuffer<ushort>( 6 );
+
+			cornerStaging.Upload( stackalloc TextVertex.Corner[] {
+				new() { Value = (0, 1) },
+				new() { Value = (1, 1) },
+				new() { Value = (1, 0) },
+				new() { Value = (0, 0) }
+			} );
+			indexStaging.Upload( stackalloc ushort[] {
+				0, 1, 2,
+				0, 2, 3
+			} );
+
+			copy.CopyBufferRaw( cornerStaging.Buffer, CornerBuffer, cornerStaging.Length, sourceOffset: cornerStaging.Offset );
+			copy.CopyBufferRaw( indexStaging.Buffer, IndexBuffer, indexStaging.Length, sourceOffset: indexStaging.Offset );
 		}
 
 		protected override void Dispose ( bool disposing ) {

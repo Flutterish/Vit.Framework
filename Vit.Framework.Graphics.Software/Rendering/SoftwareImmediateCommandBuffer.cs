@@ -326,4 +326,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 	protected override void UpdateBuffers ( BufferInvalidations invalidations ) {
 
 	}
+
+	protected override void DrawInstancesIndexed ( uint vertexCount, uint instanceCount, uint offset, uint instanceOffset ) {
+		throw new NotImplementedException();
+	}
 }

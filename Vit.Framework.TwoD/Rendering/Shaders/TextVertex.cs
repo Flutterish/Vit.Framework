@@ -42,7 +42,7 @@ public static class TextVertex {
 			vec2 screenSpaceEnding = toScreenSpace( (globalUniforms.proj * uniforms.model * vec3(inRect.xy + inRect.zw, 1)).xy );
 			vec2 size = floor(screenSpaceEnding - screenSpaceBase);
 
-			vec2 positionAligned = floor(screenSpaceBase) + size * inCorner;
+			vec2 positionAligned = round(screenSpaceBase) + size * inCorner;
 
 			outUv = inUvRect.xy + inUvRect.zw * inCorner;
 			outUvRange = inUvRect.zw / size;
@@ -51,12 +51,24 @@ public static class TextVertex {
 	", ShaderLanguage.GLSL, ShaderPartType.Vertex );
 
 	static VertexInputDescription? inputDescription;
-	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateSingle( Spirv.Reflections );
+	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateGrouped( Spirv.Reflections, 
+		(BufferInputRate.PerInstance, new uint[] { 0, 1 }),
+		(BufferInputRate.PerVertex, new uint[] { 2 })
+	);
 
+	/// <summary>
+	/// Per-instance data for a quad (binding 0)
+	/// </summary>
 	public struct Vertex {
 		public required UniformRectangle<float> Rectangle;
 		public required UniformRectangle<float> UvRectangle;
-		public required Axes2<float> Corner;
+	}
+
+	/// <summary>
+	/// Corner values (binding 1)
+	/// </summary>
+	public struct Corner {
+		public required Axes2<float> Value;
 	}
 
 	public struct Uniforms {
