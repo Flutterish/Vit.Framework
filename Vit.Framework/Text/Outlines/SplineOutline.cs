@@ -50,7 +50,7 @@ public class SplineOutline : IGlyphOutline {
 	}
 }
 
-public static class OutlineExtensions {
+public static class SplineOutlineExtensions {
 	public static AxisAlignedBox2<double> CalculateBoundingBox ( this SplineOutline outline ) {
 		return outline.Splines.Select( x => x.GetBoundingBox() ).Aggregate( AABox2<double>.Undefined, ( a, b ) => a.Contain( b ) );
 	}

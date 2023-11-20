@@ -16,7 +16,7 @@ public static class SvgOutline {
 
 		Outlines.SvgOutline outline = new();
 		ByteString byteData = new() { Bytes = data };
-		parse( ref byteData, new Context { Outline = outline, Depth = 0, Matrix = Matrix3<double>.Identity } );
+		parse( ref byteData, new Context { Outline = outline, Depth = 0, Matrix = Matrix3<double>.CreateScale( 1, -1 ) } );
 		return outline;
 	}
 

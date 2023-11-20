@@ -19,6 +19,7 @@ public class VertexInputLayout : DisposableObject {
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.Float32, []) => VertexAttribType.Float,
 					(PrimitiveType.Float32, [2]) => VertexAttribType.Float,
 					(PrimitiveType.Float32, [3]) => VertexAttribType.Float,
 					(PrimitiveType.Float32, [4]) => VertexAttribType.Float,

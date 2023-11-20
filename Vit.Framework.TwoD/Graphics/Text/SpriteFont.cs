@@ -8,6 +8,7 @@ using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
@@ -19,13 +20,11 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.SvgVertex.Vertex;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public class SpriteFontStore : DisposableObject, IDrawDependency {
-	public readonly Size2<uint> AtlasSize;
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public SpriteFontStore ( Size2<uint> pageSize, Size2<uint> glyphSize, ShaderStore shaders ) {
 		PageSize = pageSize;
 		GlyphSize = glyphSize;
-		AtlasSize = new( PageSize.Width * glyphSize.Width, PageSize.Height * glyphSize.Height );
 
 		shader = shaders.GetShader( new() {
 			Vertex = new() {
@@ -108,12 +107,17 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	public ITexture2DView View => view;
 
 	AxisAlignedBox2<float>[] boundingBoxes;
+	bool[] hasOwnColor;
 	public AxisAlignedBox2<float> GetUvBox ( GlyphId glyph ) {
 		return boundingBoxes[glyph.Value % (ulong)boundingBoxes.Length];
+	}
+	public bool HasOwnColor ( GlyphId glyph ) {
+		return hasOwnColor[glyph.Value % (ulong)boundingBoxes.Length];
 	}
 
 	public SpriteFontPage ( SpriteFont font, GlyphId firstGlyph ) {
 		boundingBoxes = new AxisAlignedBox2<float>[font.PageSize.Width * font.PageSize.Height];
+		hasOwnColor = new bool[font.PageSize.Width * font.PageSize.Height];
 		generate( font, firstGlyph );
 	}
 
@@ -157,27 +161,8 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		commands.ClearColor( ColorSRgba.Transparent );
 		commands.SetDepthTest( new() { IsEnabled = false }, new() { WriteOnPass = false } );
 
-		//foreach ( var (id, outline) in font.Font.FetchOutlines<SvgOutline>( unresolvedGlyphs ) ) {
-		//	unresolvedGlyphs.Remove( id );
-
-		//}
-
-		//if ( !unresolvedGlyphs.Any() )
-		//	return;
-
-		foreach ( var (id, outline) in font.Font.FetchOutlines<SplineOutline>( unresolvedGlyphs ) ) {
-			unresolvedGlyphs.Remove( id );
-			var bounds = getBounds( id );
-
-			var glyphBounds = outline.CalculateBoundingBox();
-			boundingBoxes[id.Value - firstGlyph.Value] = new() {
-				MinX = (bounds.MinX + 1) / 2,
-				MinY = (bounds.MinY + 1) / 2,
-				MaxX = (bounds.MaxX + 1) / 2,
-				MaxY = (bounds.MaxY + 1) / 2
-			};
-
-			var stencil = new StencilGlyph( outline );
+		void renderOutline ( IEnumerable<Spline2<double>> outline, AxisAlignedBox2<double> glyphBounds, AxisAlignedBox2<float> bounds, ColorSRgba<float> color ) {
+			var stencil = new StencilGlyph( outline ); // TODO generate this on the fly
 
 			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index );
 			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex );
@@ -188,7 +173,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 				pos.X = pos.X * bounds.Width / glyphBounds.Width;
 				pos.Y = pos.Y * bounds.Height / glyphBounds.Height;
 				*vertexPtr = new() {
-					Color = ColorSRgba.White,
+					Color = color,
 					Position = uvMatrix.Apply( bounds.Position.Cast<float>() + pos.Cast<float>() )
 				};
 				vertexPtr++;
@@ -205,6 +190,42 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 				commands.SetStencilTest( new( CompareOperation.Equal ), new() { CompareMask = 1, WriteMask = 1, ReferenceValue = 1, PassOperation = StencilOperation.SetTo0 } );
 				commands.DrawIndexed( (uint)stencil.Indices.Count );
 			}
+		}
+
+		foreach ( var (id, outline) in font.Font.FetchOutlines<SvgOutline>( unresolvedGlyphs ) ) {
+			unresolvedGlyphs.Remove( id ); // TODO fillrule
+			var bounds = getBounds( id );
+
+			var glyphBounds = outline.CalculateBoundingBox();
+			hasOwnColor[id.Value - firstGlyph.Value] = true;
+			boundingBoxes[id.Value - firstGlyph.Value] = new() {
+				MinX = (bounds.MinX + 1) / 2,
+				MinY = (bounds.MinY + 1) / 2,
+				MaxX = (bounds.MaxX + 1) / 2,
+				MaxY = (bounds.MaxY + 1) / 2
+			};
+
+			foreach ( var element in outline.Elements ) {
+				renderOutline( element.Splines, glyphBounds, bounds, element.Fill?.ToFloat<float>() ?? ColorSRgba.White );
+			}
+		}
+
+		if ( !unresolvedGlyphs.Any() )
+			return;
+
+		foreach ( var (id, outline) in font.Font.FetchOutlines<SplineOutline>( unresolvedGlyphs ) ) { // 🍆 😊
+			unresolvedGlyphs.Remove( id );
+			var bounds = getBounds( id );
+
+			var glyphBounds = outline.CalculateBoundingBox();
+			boundingBoxes[id.Value - firstGlyph.Value] = new() {
+				MinX = (bounds.MinX + 1) / 2,
+				MinY = (bounds.MinY + 1) / 2,
+				MaxX = (bounds.MaxX + 1) / 2,
+				MaxY = (bounds.MaxY + 1) / 2
+			};
+
+			renderOutline( outline.Splines, glyphBounds, bounds, ColorSRgba.White );
 		}
 
 		unresolvedGlyphs.Clear();

@@ -5,11 +5,22 @@ using Vit.Framework.Mathematics.Curves;
 namespace Vit.Framework.Text.Outlines;
 
 public class SvgOutline : IGlyphOutline {
-	public List<SvgSpline> Splines = new();
+	public List<SvgElement> Elements = new();
 }
 
-public class SvgSpline : Spline2<double> {
+public struct SvgElement { // TODO clip-rule, opacity
+	public required Spline2<double>[] Splines;
 	public ColorSRgba<byte>? Fill;
+	public FillRule FillRule;
+}
 
-	public SvgSpline ( Point2<double> startPoint ) : base( startPoint ) { }
+public enum FillRule {
+	EvenOdd,
+	NonZero
+}
+
+public static class SvgOutlineExtensions {
+	public static AxisAlignedBox2<double> CalculateBoundingBox ( this SvgOutline outline ) {
+		return outline.Elements.SelectMany( x => x.Splines ).Select( x => x.GetBoundingBox() ).Aggregate( AABox2<double>.Undefined, ( a, b ) => a.Contain( b ) );
+	}
 }

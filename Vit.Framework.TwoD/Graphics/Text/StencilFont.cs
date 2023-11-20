@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Outlines;
 
@@ -23,15 +24,18 @@ public class StencilGlyph {
 		if ( !glyph.TryFetchOutline<SplineOutline>( out var outline ) )
 			return;
 
-		load( outline );
+		load( outline.Splines );
 	}
 
 	public StencilGlyph ( SplineOutline outline ) {
+		load( outline.Splines );
+	}
+	public StencilGlyph ( IEnumerable<Spline2<double>> outline ) {
 		load( outline );
 	}
 
-	void load ( SplineOutline outline ) {
-		foreach ( var spline in outline.Splines ) {
+	void load ( IEnumerable<Spline2<double>> outline ) {
+		foreach ( var spline in outline ) {
 			uint? _anchor = null;
 			uint? _last = null;
 			foreach ( var p in spline.GetPoints() ) {

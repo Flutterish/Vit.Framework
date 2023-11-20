@@ -8,6 +8,13 @@ public static class Number {
 		return value;
 	}
 
+	public static double Consume ( ref ByteString data ) {
+		if ( !number( ref data, out var value ) )
+			throw new InvalidDataException( "Could not parse number" );
+
+		return value;
+	}
+
 	public static bool number ( ref ByteString data, out double value ) {
 		var checkpoint = data;
 

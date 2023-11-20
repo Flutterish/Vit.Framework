@@ -128,7 +128,8 @@ public partial class DrawableSpriteText : DrawableText {
 				var rectangle = new UniformRectangle<float>( anchor, bounds.Size.Cast<float>() * multiplier );
 				vertexPtr[instanceIndex] = new() {
 					UvRectangle = uv,
-					Rectangle = rectangle
+					Rectangle = rectangle,
+					IgnoreTint = page.HasOwnColor( metric.Glyph.Id )
 				};
 			}
 

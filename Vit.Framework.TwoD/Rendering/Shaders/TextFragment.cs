@@ -9,6 +9,7 @@ public static class TextFragment {
 	public static SpirvBytecode Spirv => spirv ??= new SpirvBytecode( @"#version 450
 		layout(location = 0) in vec2 inUv;
 		layout(location = 1) in vec2 inUvRange;
+		layout(location = 2) in float inIgnoreTint;
 
 		layout(location = 0) out vec4 outColor;
 
@@ -46,7 +47,10 @@ public static class TextFragment {
 			vec2 ga = sampleAt( inUv ).ga;
 			vec2 ba = sampleAt( inUv + vec2( subpixelWidth, 0 ) ).ba;
 
-			outColor = vec4( ra.x, ga.x, ba.x, max( max( ra.y, ga.y ), ba.y ) ) * uniforms.tint;
+			outColor = vec4( ra.x, ga.x, ba.x, max( max( ra.y, ga.y ), ba.y ) );
+			if ( inIgnoreTint < 0.5 ) {
+				outColor *= uniforms.tint;
+			}
 		}
 	", ShaderLanguage.GLSL, ShaderPartType.Fragment ); // TODO subpixel renders assuming RGB LCD
 }

@@ -9,20 +9,20 @@ public class Ellipse : SvgElement {
 	double cyValue;
 	double rxValue;
 	double ryValue;
-	ColorSRgb<byte>? fillValue;
+	ColorSRgba<byte>? fillValue;
 	public override void Open ( ref SvgOutline.Context context ) {
 		base.Open( ref context );
 		cxValue = 0;
 		cyValue = 0;
 		rxValue = 0;
 		ryValue = 0;
-		fillValue = ColorSRgb.Black.ToByte();
+		fillValue = ColorSRgba.Black.ToByte();
 	}
 
 	HeapByteString cx = "cx";
 	HeapByteString cy = "cy";
-	HeapByteString rx = "cx";
-	HeapByteString ry = "cy";
+	HeapByteString rx = "rx";
+	HeapByteString ry = "ry";
 	HeapByteString fill = "fill";
 	public override bool SetAttribute ( ref SvgOutline.Context context, ByteString name, ByteString unescapedValue ) {
 		if ( base.SetAttribute( ref context, name, unescapedValue ) )
@@ -57,8 +57,6 @@ public class Ellipse : SvgElement {
 		Vector2<double> offset = (cxValue, cyValue);
 
 		var spline = new Spline2<double>( context.Matrix.Apply( new Point2<double>( 0, a ) + offset ) );
-		//spline.Color = fillValue;
-		//context.Glyph.Outline.Splines.Add( spline );
 		void add ( ref SvgOutline.Context context, Point2<double> a, Point2<double> b, Point2<double> c ) {
 			a.X *= rxValue;
 			b.X *= rxValue;
@@ -77,5 +75,10 @@ public class Ellipse : SvgElement {
 		add( ref context, (c, -b), (b, -c), (0, -a) );
 		add( ref context, (-b, -c), (-c, -b), (-a, 0) );
 		add( ref context, (-c, b), (-b, c), (0, a) );
+
+		context.Outline.Elements.Add( new() {
+			Fill = fillValue,
+			Splines = new[] { spline }
+		} );
 	}
 }

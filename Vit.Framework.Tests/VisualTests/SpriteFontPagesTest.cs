@@ -59,7 +59,7 @@ public class SpriteFontPagesTest : TestScene {
 
 			var fonts = dependencies.Resolve<FontStore>();
 			spriteFontStore = dependencies.Resolve<SpriteFontStore>();
-			font = fonts.GetFont( FrameworkUIScheme.Font );
+			font = fonts.GetFont( FrameworkUIScheme.EmojiFont );
 		}
 
 		protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {

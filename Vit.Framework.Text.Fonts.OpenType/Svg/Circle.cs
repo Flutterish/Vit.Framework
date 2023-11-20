@@ -8,13 +8,13 @@ public class Circle : SvgElement {
 	double cxValue;
 	double cyValue;
 	double rValue;
-	ColorSRgb<byte>? fillValue;
+	ColorSRgba<byte>? fillValue;
 	public override void Open ( ref SvgOutline.Context context ) {
 		base.Open( ref context );
 		cxValue = 0;
 		cyValue = 0;
 		rValue = 0;
-		fillValue = ColorSRgb.Black.ToByte();
+		fillValue = ColorSRgba.Black.ToByte();
 	}
 
 	HeapByteString cx = "cx";
@@ -51,8 +51,6 @@ public class Circle : SvgElement {
 		Vector2<double> offset = (cxValue, cyValue);
 
 		var spline = new Spline2<double>( context.Matrix.Apply(new Point2<double>( 0, a ) + offset) );
-		//spline.Color = fillValue;
-		//context.Glyph.Outline.Splines.Add( spline );
 		void add ( ref SvgOutline.Context context, Point2< double> a, Point2<double> b, Point2<double> c ) {
 			spline!.AddCubicBezier(
 				context.Matrix.Apply( a + offset ),
@@ -65,5 +63,10 @@ public class Circle : SvgElement {
 		add( ref context, (c, -b), (b, -c), (0, -a) );
 		add( ref context, (-b, -c), (-c, -b), (-a, 0) );
 		add( ref context, (-c, b), (-b, c), (0, a) );
+
+		context.Outline.Elements.Add( new() {
+			Fill = fillValue,
+			Splines = new[] { spline }
+		} );
 	}
 }

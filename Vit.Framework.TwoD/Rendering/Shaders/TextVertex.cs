@@ -14,10 +14,12 @@ public static class TextVertex {
 	public static SpirvBytecode Spirv => spirv ??= new SpirvBytecode( @"#version 450
 		layout(location = 0) in vec4 inRect;
 		layout(location = 1) in vec4 inUvRect;
-		layout(location = 2) in vec2 inCorner;
+		layout(location = 2) in float inIgnoreTint;
+		layout(location = 3) in vec2 inCorner;
 
 		layout(location = 0) out vec2 outUv;
 		layout(location = 1) out vec2 outUvRange;
+		layout(location = 2) out float outIgnoreTint;
 
 		layout(binding = 0, set = 0) uniform GlobalUniforms {
 			mat3 proj;
@@ -38,6 +40,8 @@ public static class TextVertex {
 		}
 
 		void main () {
+			outIgnoreTint = inIgnoreTint;
+
 			vec2 screenSpaceBase = toScreenSpace( (globalUniforms.proj * uniforms.model * vec3(inRect.xy, 1)).xy );
 			vec2 screenSpaceEnding = toScreenSpace( (globalUniforms.proj * uniforms.model * vec3(inRect.xy + inRect.zw, 1)).xy );
 			vec2 size = floor(screenSpaceEnding - screenSpaceBase);
@@ -52,8 +56,8 @@ public static class TextVertex {
 
 	static VertexInputDescription? inputDescription;
 	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateGrouped( Spirv.Reflections, 
-		(BufferInputRate.PerInstance, new uint[] { 0, 1 }),
-		(BufferInputRate.PerVertex, new uint[] { 2 })
+		(BufferInputRate.PerInstance, new uint[] { 0, 1, 2 }),
+		(BufferInputRate.PerVertex, new uint[] { 3 })
 	);
 
 	/// <summary>
@@ -62,6 +66,7 @@ public static class TextVertex {
 	public struct Vertex {
 		public required UniformRectangle<float> Rectangle;
 		public required UniformRectangle<float> UvRectangle;
+		public required UniformFloatBool IgnoreTint;
 	}
 
 	/// <summary>
