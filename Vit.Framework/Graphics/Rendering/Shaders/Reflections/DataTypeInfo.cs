@@ -58,6 +58,7 @@ public class DataTypeInfo {
 			PrimitiveType primitive = name switch {
 				spvc_basetype.Fp32 => PrimitiveType.Float32,
 				spvc_basetype.SampledImage => PrimitiveType.Sampler,
+				spvc_basetype.Uint32 => PrimitiveType.UInt32,
 				_ => throw new Exception( "invalid data type primitive" )
 			};
 			return new DataTypeInfo( primitive, false, new[] { rows, columns } );

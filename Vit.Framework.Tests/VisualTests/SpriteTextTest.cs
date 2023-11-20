@@ -16,7 +16,8 @@ public class SpriteTextTest : TestScene {
 
 		AddChild( text = new() {
 			RawText = "Hello, World!",
-			FontSize = 64
+			FontSize = 64,
+			Tint = ColorRgba.White
 		}, new() {
 			Size = (0, 0), // size is expanded to fit requiredSize
 			Anchor = Anchor.BottomRight,

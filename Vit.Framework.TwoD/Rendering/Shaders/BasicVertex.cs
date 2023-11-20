@@ -18,6 +18,7 @@ public static class BasicVertex {
 
 		layout(binding = 0, set = 0) uniform GlobalUniforms {
 			mat3 proj;
+			uvec2 screenSize;
 		} globalUniforms;
 
 		layout(binding = 0, set = 1) uniform Uniforms {

@@ -12,6 +12,8 @@ public class Sampler : DisposableObject, ISampler {
 		GL.SamplerParameter( Handle, SamplerParameterName.TextureBorderColor, new float[] { 1, 1, 1, 1 } );
 		GL.SamplerParameter( Handle, SamplerParameterName.TextureMagFilter, (int)TextureMagFilter.Linear );
 		GL.SamplerParameter( Handle, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Linear );
+		var anisotrophy = GL.GetFloat( GetPName.MaxTextureMaxAnisotropy );
+		GL.SamplerParameter( Handle, SamplerParameterName.TextureMaxAnisotropyExt, anisotrophy );
 	}
 
 	protected override void Dispose ( bool disposing ) {

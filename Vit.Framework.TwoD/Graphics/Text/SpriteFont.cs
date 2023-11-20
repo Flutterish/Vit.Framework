@@ -19,11 +19,13 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.SvgVertex.Vertex;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public class SpriteFontStore : DisposableObject, IDrawDependency {
+	public readonly Size2<uint> AtlasSize;
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public SpriteFontStore ( Size2<uint> pageSize, Size2<uint> glyphSize, ShaderStore shaders ) {
 		PageSize = pageSize;
 		GlyphSize = glyphSize;
+		AtlasSize = new( PageSize.Width * glyphSize.Width, PageSize.Height * glyphSize.Height );
 
 		shader = shaders.GetShader( new() {
 			Vertex = new() {
@@ -133,9 +135,9 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		AxisAlignedBox2<float> getBounds ( GlyphId id ) {
 			var offset = (uint)(id.Value - firstGlyph.Value);
 			return new() {
-				MinX = ((offset % pageSize.Width) * glyphSize.Width) / (float)size.Width * 2 - 1,
+				MinX = ((offset % pageSize.Width) * glyphSize.Width + 1) / (float)size.Width * 2 - 1,
 				MaxX = ((offset % pageSize.Width + 1) * glyphSize.Width - 1) / (float)size.Width * 2 - 1,
-				MinY = ((offset / pageSize.Width) * glyphSize.Height) / (float)size.Height * 2 - 1,
+				MinY = ((offset / pageSize.Width) * glyphSize.Height + 1) / (float)size.Height * 2 - 1,
 				MaxY = ((offset / pageSize.Width + 1) * glyphSize.Height - 1) / (float)size.Height * 2 - 1
 			};
 		}

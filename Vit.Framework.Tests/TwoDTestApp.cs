@@ -200,6 +200,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		struct GlobalUniforms {
 			public Matrix4x3<float> Matrix;
+			public Size2<uint> ScreenSize;
 		}
 		IUniformSet globalSet = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
@@ -217,11 +218,19 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				},
 				Fragment = BasicFragment.Identifier
 			} );
+			var text = ShaderStore.GetShader( new() {
+				Vertex = new() {
+					Shader = TextVertex.Identifier,
+					Input = TextVertex.InputDescription
+				},
+				Fragment = TextFragment.Identifier
+			} );
 
 			ShaderStore.CompileNew( Renderer );
 			globalSet = basic.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
 			basic.Value.SetUniformSet( globalSet );
+			text.Value.SetUniformSet( globalSet );
 
 			return true;
 		}
@@ -229,7 +238,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		protected override void BeforeRender () {
 			var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( Renderer.CreateNdcCorrectionMatrix<float>() );
 			globalUniformBuffer.UploadUniform( new GlobalUniforms {
-				Matrix = new( mat )
+				Matrix = new( mat ),
+				ScreenSize = new( Window.Width, Window.Height )
 			} );
 		}
 

@@ -3,13 +3,14 @@ using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
+using Vit.Framework.Graphics.Rendering.Shaders.Types;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Layout;
-using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Uniforms;
-using Vertex = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Vertex;
+using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.TextVertex.Uniforms;
+using Vertex = Vit.Framework.TwoD.Rendering.Shaders.TextVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
@@ -135,28 +136,26 @@ public partial class DrawableSpriteText : DrawableText {
 
 				var multiplier = (float)metric.SizeMultiplier;
 				Point2<float> anchor = metric.Anchor.Cast<float>() + new Vector2<float>( (float)bounds.MinX * multiplier, (float)bounds.MinY * multiplier );
+				var rectangle = new UniformRectangle<float>( anchor, bounds.Size.Cast<float>() * multiplier );
 				vertexPtr[index * 4 + 0] = new() {
-					UV = uv.Position + (0, uv.Height),
-					Position = anchor + new Vector2<float> {
-						Y = (float)bounds.Height * multiplier
-					}
+					UvRectangle = uv,
+					Rectangle = rectangle,
+					Corner = (0, 1)
 				};
 				vertexPtr[index * 4 + 1] = new() {
-					UV = uv.Position + (uv.Width, uv.Height),
-					Position = anchor + new Vector2<float> {
-						X = (float)bounds.Width * multiplier,
-						Y = (float)bounds.Height * multiplier
-					}
+					UvRectangle = uv,
+					Rectangle = rectangle,
+					Corner = (1, 1)
 				};
 				vertexPtr[index * 4 + 2] = new() {
-					UV = uv.Position + (uv.Width, 0),
-					Position = anchor + new Vector2<float> {
-						X = (float)bounds.Width * multiplier
-					}
+					UvRectangle = uv,
+					Rectangle = rectangle,
+					Corner = (1, 0)
 				};
 				vertexPtr[index * 4 + 3] = new() {
-					UV = uv.Position,
-					Position = anchor
+					UvRectangle = uv,
+					Rectangle = rectangle,
+					Corner = (0, 0)
 				};
 			}
 

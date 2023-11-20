@@ -40,7 +40,7 @@ public class SpirvBytecode { // TODO dispose this at some point?
 		Identifier = identifier;
 
 		if ( shader.Status != CompilationStatus.Success ) {
-			throw new Exception( "Shader compilation failed" );
+			throw new Exception( $"Shader compilation failed: {shader.ErrorMessage}" );
 		}
 
 		Reflections = ShaderInfo.FromSpirv( type, this ); // TODO merge with cross compile when applicable

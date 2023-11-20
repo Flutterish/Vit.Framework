@@ -7,7 +7,7 @@ using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
-using static Vit.Framework.TwoD.Rendering.Shaders.BasicVertex;
+using static Vit.Framework.TwoD.Rendering.Shaders.TextVertex;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
@@ -34,10 +34,10 @@ public partial class DrawableSpriteText {
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
 				Vertex = new() {
-					Shader = BasicVertex.Identifier,
-					Input = BasicVertex.InputDescription
+					Shader = TextVertex.Identifier,
+					Input = TextVertex.InputDescription
 				},
-				Fragment = BasicFragment.Identifier
+				Fragment = TextFragment.Identifier
 			} );
 			basicShader.Compile( renderer );
 			Shader = basicShader.Value;

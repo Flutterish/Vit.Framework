@@ -33,7 +33,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 		ConstantBufferHandles[binding] = (ID3D11BufferHandle)buffer;
 		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.AlignedStride(256)) / 16;
-		ConstantBuffersSizes[binding] = (int)IBuffer<T>.Stride;
+		ConstantBuffersSizes[binding] = ((int)IBuffer<T>.Stride + 15) / 16 * 16;
 	}
 
 	ID3D11ShaderResourceView[] SamplerResources;
