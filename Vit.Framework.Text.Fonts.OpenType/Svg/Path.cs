@@ -1,8 +1,4 @@
-﻿using SixLabors.ImageSharp.Processing.Processors.Transforms;
-using System.Formats.Tar;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml;
-using Vit.Framework.Graphics;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Text.Outlines;
@@ -10,14 +6,14 @@ using Vit.Framework.Text.Outlines;
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;
 
 public class Path : SvgElement {
-	ColorSRgba<byte>? fillValue;
+	ColorRgba<byte>? fillValue;
 	List<Spline2<double>> data = new();
 	FillRule fillRule;
 	FillRule clipRule;
 	double opacity;
 	public override void Open ( ref SvgOutline.Context context ) {
 		base.Open( ref context );
-		fillValue = ColorSRgba.Black.ToByte();
+		fillValue = ColorRgba.Black.ToByte();
 		fillRule = FillRule.EvenOdd;
 		clipRule = FillRule.EvenOdd;
 		opacity = 1;

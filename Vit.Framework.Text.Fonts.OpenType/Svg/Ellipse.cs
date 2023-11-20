@@ -9,14 +9,14 @@ public class Ellipse : SvgElement {
 	double cyValue;
 	double rxValue;
 	double ryValue;
-	ColorSRgba<byte>? fillValue;
+	ColorRgba<byte>? fillValue;
 	public override void Open ( ref SvgOutline.Context context ) {
 		base.Open( ref context );
 		cxValue = 0;
 		cyValue = 0;
 		rxValue = 0;
 		ryValue = 0;
-		fillValue = ColorSRgba.Black.ToByte();
+		fillValue = ColorRgba.Black.ToByte();
 	}
 
 	HeapByteString cx = "cx";

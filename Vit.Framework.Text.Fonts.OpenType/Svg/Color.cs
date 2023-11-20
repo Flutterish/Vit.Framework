@@ -3,7 +3,7 @@
 namespace Vit.Framework.Text.Fonts.OpenType.Svg;
 
 public static class Color {
-	public static ColorSRgba<byte>? Parse ( ByteString data ) {
+	public static ColorRgba<byte>? Parse ( ByteString data ) {
 		var str = data.ToString();
 
 		if ( str.Length == 0 )

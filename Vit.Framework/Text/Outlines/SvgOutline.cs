@@ -10,7 +10,7 @@ public class SvgOutline : IGlyphOutline {
 
 public struct SvgElement { // TODO clip-rule, opacity
 	public required Spline2<double>[] Splines;
-	public ColorSRgba<byte>? Fill;
+	public ColorRgba<byte>? Fill;
 	public FillRule FillRule;
 }
 

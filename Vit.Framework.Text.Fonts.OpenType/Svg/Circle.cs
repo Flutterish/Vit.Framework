@@ -8,13 +8,13 @@ public class Circle : SvgElement {
 	double cxValue;
 	double cyValue;
 	double rValue;
-	ColorSRgba<byte>? fillValue;
+	ColorRgba<byte>? fillValue;
 	public override void Open ( ref SvgOutline.Context context ) {
 		base.Open( ref context );
 		cxValue = 0;
 		cyValue = 0;
 		rValue = 0;
-		fillValue = ColorSRgba.Black.ToByte();
+		fillValue = ColorRgba.Black.ToByte();
 	}
 
 	HeapByteString cx = "cx";

@@ -206,7 +206,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 			};
 
 			foreach ( var element in outline.Elements ) {
-				renderOutline( element.Splines, glyphBounds, bounds, element.Fill?.ToFloat<float>() ?? ColorSRgba.White );
+				renderOutline( element.Splines, glyphBounds, bounds, element.Fill?.ToFloat<float>().ToSRgb() ?? ColorSRgba.White );
 			}
 		}
 
