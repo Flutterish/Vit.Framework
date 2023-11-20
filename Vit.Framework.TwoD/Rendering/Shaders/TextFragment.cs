@@ -22,19 +22,13 @@ public static class TextFragment {
 		vec4 sampleAt ( vec2 uv ) {
 			const int sampleCount = 4;
 			const int totalSamples = sampleCount * sampleCount;
-			vec4 samples[totalSamples];
-			samples[0] = texture( texSampler, uv );
+			vec4 result = texture( texSampler, uv );
 			for ( int x = 0; x < sampleCount; x++ ) {
 				float xOffset = inUvRange.x / (sampleCount + 1) * (x + 0.5) - inUvRange.x / 2;
 				for ( int y = 0; y < sampleCount; y++ ) {
 					float yOffset = inUvRange.y / (sampleCount + 1) * (y + 0.5) - inUvRange.y / 2;
-					samples[x * sampleCount + y] = texture( texSampler, uv + vec2(xOffset, yOffset) );
+					result += texture( texSampler, uv + vec2(xOffset, yOffset) );
 				}
-			}
-
-			vec4 result = texture( texSampler, uv );
-			for ( int i = 0; i < totalSamples; i++ ) {
-				result += samples[i];
 			}
 
 			return result / (totalSamples + 1);
