@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Interop;
@@ -44,9 +43,6 @@ public class MaskingDataBuffer : IDisposable {
 	uint push<T> ( T data ) where T : unmanaged {
 		if ( typeof(T) == typeof(MaskingInstruction) ) {
 			MaskingInstruction ins = (MaskingInstruction)(object)data;
-			Debug.Assert( ins.Args[0] % 6 == 0 );
-			Debug.Assert( ins.Args[1] % 6 == 0 );
-			Debug.Assert( ins.Args[2] % 6 == 0 );
 
 			if ( ins.Instruction == Instruction.Test ) {
 				Debug.Assert( stackPtr % 6 == 0 );

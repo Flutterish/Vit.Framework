@@ -20,6 +20,7 @@ public static class TextVertex {
 		layout(location = 0) out vec2 outUv;
 		layout(location = 1) out vec2 outUvRange;
 		layout(location = 2) out float outIgnoreTint;
+		layout(location = 3) out vec2 outModelSpace;
 
 		layout(binding = 0, set = 0) uniform GlobalUniforms {
 			mat3 proj;
@@ -29,6 +30,7 @@ public static class TextVertex {
 		layout(binding = 0, set = 1) uniform Uniforms {
 			mat3 model;
 			vec4 tint;
+			uint maskingPtr;
 		} uniforms;
 
 		vec2 toScreenSpace ( vec2 ndc ) {
@@ -50,9 +52,10 @@ public static class TextVertex {
 
 			outUv = inUvRect.xy + inUvRect.zw * inCorner;
 			outUvRange = inUvRect.zw / size;
+			outModelSpace = (uniforms.model * vec3(inRect.xy + inRect.zw * inCorner, 1)).xy;
 			gl_Position = vec4(toNdc(positionAligned), 0, 1);
 		}
-	", ShaderLanguage.GLSL, ShaderPartType.Vertex );
+	", ShaderLanguage.GLSL, ShaderPartType.Vertex ); // TODO the outModelSpace is not exactly accurate but its okay for now
 
 	static VertexInputDescription? inputDescription;
 	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateGrouped( Spirv.Reflections, 
@@ -79,5 +82,6 @@ public static class TextVertex {
 	public struct Uniforms {
 		public required Matrix4x3<float> Matrix;
 		public required ColorSRgba<float> Tint;
+		public required uint MaskingPointer;
 	}
 }

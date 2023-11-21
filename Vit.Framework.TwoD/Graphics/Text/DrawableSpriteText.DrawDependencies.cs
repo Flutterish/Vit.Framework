@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Memory;
+using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
 using static Vit.Framework.TwoD.Rendering.Shaders.TextVertex;
@@ -18,6 +19,7 @@ public partial class DrawableSpriteText {
 		public SpriteFontStore Store = null!;
 		public SingleUseBufferSectionStack SingleUseBuffers = null!;
 		public DeviceBufferHeap BufferHeap = null!;
+		public MaskingDataBuffer Masking = null!;
 
 		public IShaderSet Shader = null!;
 		public IDeviceBuffer<TextVertex.Corner> CornerBuffer = null!;
@@ -27,6 +29,7 @@ public partial class DrawableSpriteText {
 			Store = dependencies.Resolve<SpriteFontStore>();
 			SingleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
 			BufferHeap = dependencies.Resolve<DeviceBufferHeap>();
+			Masking = dependencies.Resolve<MaskingDataBuffer>();
 
 			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
 				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );

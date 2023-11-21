@@ -10,6 +10,7 @@ public static class TextFragment {
 		layout(location = 0) in vec2 inUv;
 		layout(location = 1) in vec2 inUvRange;
 		layout(location = 2) in float inIgnoreTint;
+		layout(location = 3) in vec2 inModelSpace;
 
 		layout(location = 0) out vec4 outColor;
 
@@ -17,7 +18,10 @@ public static class TextFragment {
 		layout(binding = 0, set = 1) uniform Uniforms {
 			mat3 model;
 			vec4 tint;
+			uint maskingPtr;
 		} uniforms;
+
+		" + MaskedFragment.IncludeGetMaskingAlpha + @"
 
 		vec4 sampleAt ( vec2 uv ) {
 			const int sampleCount = 4;
@@ -46,6 +50,7 @@ public static class TextFragment {
 			if ( inIgnoreTint < 0.5 ) {
 				outColor *= uniforms.tint;
 			}
+			outColor *= getMaskingAlpha( uniforms.maskingPtr, inModelSpace ); // multiply the whole thing because we use premultiplied alpha
 		}
 	", ShaderLanguage.GLSL, ShaderPartType.Fragment ); // TODO subpixel renders assuming RGB LCD
 }

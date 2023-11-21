@@ -168,7 +168,8 @@ public partial class DrawableSpriteText : DrawableText {
 			commands.SetShaders( shaders );
 			uniforms.Buffer.UploadUniform( new Uniforms {
 				Matrix = new( Matrix3<float>.CreateScale( (float)MetricMultiplier, (float)MetricMultiplier ) * UnitToGlobalMatrix ),
-				Tint = tint
+				Tint = tint,
+				MaskingPointer = Source.drawDependencies.Masking.MaskPointer
 			}, uniforms.Offset );
 			
 			commands.BindVertexBufferRaw( Source.vertices.Buffer, offset: Source.vertices.Offset, binding: 0 );
