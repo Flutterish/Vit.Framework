@@ -29,4 +29,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}
+
+	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
+		throw new NotImplementedException();
+	}
 }

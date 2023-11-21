@@ -218,6 +218,13 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 				},
 				Fragment = BasicFragment.Identifier
 			} );
+			var masked = ShaderStore.GetShader( new() {
+				Vertex = new() {
+					Shader = MaskedVertex.Identifier,
+					Input = MaskedVertex.InputDescription
+				},
+				Fragment = MaskedFragment.Identifier
+			} );
 			var text = ShaderStore.GetShader( new() {
 				Vertex = new() {
 					Shader = TextVertex.Identifier,
@@ -227,10 +234,14 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			} );
 
 			ShaderStore.CompileNew( Renderer );
-			globalSet = basic.Value.CreateUniformSet( 0 );
+			globalSet = masked.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
+			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 1, size: MaskingData.ByteSize );
+			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 2, size: MaskingData.ByteSize );
+
 			basic.Value.SetUniformSet( globalSet );
 			text.Value.SetUniformSet( globalSet );
+			masked.Value.SetUniformSet( globalSet );
 
 			return true;
 		}
@@ -240,6 +251,12 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			globalUniformBuffer.UploadUniform( new GlobalUniforms {
 				Matrix = new( mat ),
 				ScreenSize = new( Window.Width, Window.Height )
+			} );
+
+			MaskingData.Push( new() {
+				ToMaskingSpace = Matrix4x3<float>.CreateScale( 2f / Window.Width, 2f / Window.Height ) * Matrix4x3<float>.CreateTranslation( -1, -1 ),
+				CornerExponents = 2f,
+				CornerRadii = new Vector2<float>( 1 )
 			} );
 		}
 

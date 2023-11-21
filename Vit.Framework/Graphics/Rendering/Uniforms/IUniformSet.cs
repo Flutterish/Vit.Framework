@@ -10,7 +10,7 @@ namespace Vit.Framework.Graphics.Rendering.Uniforms;
 /// <remarks>
 /// In SPIR-V, this is bound to a given <c>layout(set = #)</c>, and its individual components are bound to <c>layout(binding = #)</c>.
 /// </remarks>
-public interface IUniformSet : IDisposable {
+public interface IUniformSet : IDisposable { // TODO use Raw methods
 	/// <summary>
 	/// Binds a uniform buffer to this uniform set.
 	/// </summary>
@@ -18,6 +18,15 @@ public interface IUniformSet : IDisposable {
 	/// <param name="binding">The binding to link the uniform buffer to.</param>
 	/// <param name="offset">Offset in elements into the uniform buffer.</param>
 	void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged;
+
+	/// <summary>
+	/// Binds a storage buffer to this uniform set.
+	/// </summary>
+	/// <param name="buffer">The storage buffer.</param>
+	/// <param name="binding">The binding to link the storage buffer to.</param>
+	/// <param name="size">Length of the storage buffer in bytes.</param>
+	/// <param name="offset">Offset in bytes into the storage buffer.</param>
+	void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 );
 
 	/// <summary>
 	/// Binds a sampler for the texture to this uniform set.

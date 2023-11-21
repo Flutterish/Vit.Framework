@@ -9,6 +9,7 @@ using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.UI.Components;
 using Vit.Framework.Windowing;
@@ -37,6 +38,8 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 	protected virtual void PopulateShaderStore ( ShaderStore shaders ) {
 		shaders.AddShaderPart( BasicVertex.Identifier, BasicVertex.Spirv );
 		shaders.AddShaderPart( BasicFragment.Identifier, BasicFragment.Spirv );
+		shaders.AddShaderPart( MaskedVertex.Identifier, MaskedVertex.Spirv );
+		shaders.AddShaderPart( MaskedFragment.Identifier, MaskedFragment.Spirv );
 		shaders.AddShaderPart( SvgVertex.Identifier, SvgVertex.Spirv );
 		shaders.AddShaderPart( SvgFragment.Identifier, SvgFragment.Spirv );
 		shaders.AddShaderPart( TextVertex.Identifier, TextVertex.Spirv );
@@ -76,6 +79,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		Dependencies.Cache( new SingleUseBufferSectionStack( 1024 * 1024 * 8 ) ); // 8MiB buffer
 		Dependencies.Cache( new DeviceBufferHeap( 1024 * 1024 * 64, 1024 * 16 ) ); // 64MiB buffer, expect 16kiB allocs
+		Dependencies.Cache( new MaskingDataBuffer( 1024 * 1024 ) ); // 1Mi * 16B ~ 1Mi instructions or 209ki masking params
 		Dependencies.Cache( new TexturedQuad.DrawDependencies() );
 		Dependencies.Cache( new DrawableSpriteText.DrawDependencies() );
 

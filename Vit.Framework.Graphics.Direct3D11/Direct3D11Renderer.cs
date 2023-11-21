@@ -68,6 +68,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
 			BufferType.Uniform => BindFlags.ConstantBuffer,
+			BufferType.Storage => BindFlags.ShaderResource | BindFlags.UnorderedAccess,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
 		} );
 	}
@@ -77,6 +78,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
 			BufferType.Uniform => BindFlags.ConstantBuffer,
+			BufferType.Storage => BindFlags.ShaderResource | BindFlags.UnorderedAccess,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
 		} );
 	}

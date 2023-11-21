@@ -41,7 +41,8 @@ public static class TextFragment {
 			vec2 ga = sampleAt( inUv ).ga;
 			vec2 ba = sampleAt( inUv + vec2( subpixelWidth, 0 ) ).ba;
 
-			outColor = vec4( ra.x, ga.x, ba.x, max( max( ra.y, ga.y ), ba.y ) );
+			outColor = vec4( ra.x, ga.x, ba.x, 1 );
+			outColor *= max( max( ra.y, ga.y ), ba.y );
 			if ( inIgnoreTint < 0.5 ) {
 				outColor *= uniforms.tint;
 			}

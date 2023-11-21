@@ -10,7 +10,12 @@ public enum BufferType {
 	/// </summary>
 	Index,
 	/// <summary>
-	/// Stores uniform data. Generally used with <see cref="IHostBuffer"/>, given common updates.
+	/// Stores uniform data. Generally used with <see cref="IHostBuffer"/>, given common updates. Each entry must be aligned to a renderer specific value, usually 256 bytes.
 	/// </summary>
-	Uniform
+	Uniform,
+	/// <summary>
+	/// Stores arbitrary data which can be read and written to from shaders. Generally used for unsized arrays or as a more tightly packed replacment for uniform buffers.
+	/// </summary>
+	/// <remarks>Can only be used with <see cref="IDeviceBuffer"/>.</remarks>
+	Storage
 }

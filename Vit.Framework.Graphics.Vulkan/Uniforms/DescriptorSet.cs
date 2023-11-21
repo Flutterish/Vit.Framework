@@ -50,6 +50,27 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 		Vk.vkUpdateDescriptorSets( uniformBuffer.Device, 1, &write, 0, 0 );
 	}
 
+	public unsafe void SetStorageBufferRaw ( IBuffer _buffer, uint binding, uint size, uint offset = 0 ) {
+		var buffer = (Buffer)_buffer;
+		var bufferInfo = new VkDescriptorBufferInfo {
+			buffer = buffer,
+			offset = offset,
+			range = size
+		};
+
+		var write = new VkWriteDescriptorSet() {
+			sType = VkStructureType.WriteDescriptorSet,
+			dstSet = this,
+			dstBinding = binding,
+			dstArrayElement = 0,
+			descriptorType = VkDescriptorType.StorageBuffer,
+			descriptorCount = 1,
+			pBufferInfo = &bufferInfo
+		};
+
+		Vk.vkUpdateDescriptorSets( buffer.Device, 1, &write, 0, 0 );
+	}
+
 	public unsafe void SetSampler ( ITexture2DView texture, ISampler _sampler, uint binding ) {
 		var imageTexture = (ImageView)texture;
 		VkSampler sampler = ((Sampler)_sampler).Handle;
@@ -91,6 +112,10 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 
 	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
 		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
+	}
+
+	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
+		DescriptorSet.SetStorageBufferRaw( buffer, binding, size, offset );
 	}
 
 	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {

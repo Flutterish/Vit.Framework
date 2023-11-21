@@ -61,4 +61,8 @@ public static class InteropExtensions {
 	public unsafe static TTo BitCast<TFrom, TTo> ( this TFrom from ) where TTo : unmanaged where TFrom : unmanaged {
 		return MemoryMarshal.Cast<TFrom, TTo>( MemoryMarshal.CreateSpan( ref from, 1 ) )[0];
 	}
+
+	public unsafe static Span<byte> ToBytes<T> ( ref this T self ) where T : unmanaged {
+		return MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref self, 1 ) );
+	}
 }

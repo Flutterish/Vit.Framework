@@ -5,7 +5,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Uniforms;
+using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Uniforms;
 
 namespace Vit.Framework.TwoD.Graphics;
 
@@ -89,7 +89,8 @@ public abstract partial class TexturedQuad : Drawable {
 			commands.BindIndexBuffer( indices );
 			uniforms.Buffer.UploadUniform( new Uniforms { // in theory we could make the matrix and tint per-instance to both save space on uniform buffers and batch sprites
 				Matrix = new( UnitToGlobalMatrix ),
-				Tint = tint
+				Tint = tint,
+				MaskingPointer = Source.drawDependencies.Masking.MaskPointer
 			}, uniforms.Offset );
 			commands.DrawIndexed( 6 );
 		}

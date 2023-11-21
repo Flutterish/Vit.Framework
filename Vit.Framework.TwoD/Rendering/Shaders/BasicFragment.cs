@@ -4,7 +4,7 @@ using Vit.Framework.Graphics.Shaders;
 namespace Vit.Framework.TwoD.Rendering.Shaders;
 
 public static class BasicFragment {
-	public static readonly ShaderIdentifier Identifier = new() { Name = "Fragment" };
+	public static readonly ShaderIdentifier Identifier = new() { Name = "Basic Fragment" };
 	static SpirvBytecode? spirv;
 	public static SpirvBytecode Spirv => spirv ??= new SpirvBytecode( @"#version 450
 		layout(location = 0) in vec2 inUv;

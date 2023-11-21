@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+﻿using SPIRVCross;
+using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 using Vulkan;
 
@@ -45,9 +46,10 @@ public static unsafe class ShaderBindingExtensions {
 		foreach ( var resource in shader.Resources ) {
 			var binding = resource.Binding;
 			var stage = resource.Stages.Aggregate( VkShaderStageFlags.None, (a,b) => a | ShaderModule.FlagsFromPartType(b) );
-			var format = resource.Type switch { 
-				{ PrimitiveType: PrimitiveType.Struct } => VkDescriptorType.UniformBuffer, 
-				{ PrimitiveType: PrimitiveType.Sampler } => VkDescriptorType.CombinedImageSampler,
+			var format = resource.ResourceType switch { 
+				spvc_resource_type.StorageBuffer => VkDescriptorType.StorageBuffer,
+				spvc_resource_type.UniformBuffer => VkDescriptorType.UniformBuffer, 
+				spvc_resource_type.SampledImage => VkDescriptorType.CombinedImageSampler,
 				_ => throw new Exception( "Unrecognized format" )
 			};
 

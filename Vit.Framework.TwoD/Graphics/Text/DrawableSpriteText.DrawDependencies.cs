@@ -71,6 +71,8 @@ public partial class DrawableSpriteText {
 		}
 
 		protected override void Dispose ( bool disposing ) {
+			CornerBuffer?.Dispose();
+			IndexBuffer?.Dispose();
 			UniformSetAllocator?.Dispose();
 			UniformAllocator?.Dispose();
 		}

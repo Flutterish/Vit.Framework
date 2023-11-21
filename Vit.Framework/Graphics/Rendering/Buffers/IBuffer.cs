@@ -11,7 +11,7 @@ public interface IBuffer : IDisposable {
 	/// </summary>
 	/// <param name="size">Amount of <b>bytes</b> that this buffer needs to be able to hold. Must be greater than 0.</param>
 	/// <param name="usageHint">Usage hint for the backend to optimize how this buffer is stored.</param>
-	void AllocateRaw ( uint size, BufferUsage usageHint );
+	void AllocateRaw ( uint size, BufferUsage usageHint ); // TODO do we really need this? We can just set the size when creating the buffer
 }
 
 /// <inheritdoc cref="IBuffer"/>

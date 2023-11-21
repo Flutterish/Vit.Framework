@@ -10,6 +10,7 @@ using Vit.Framework.Graphics.Textures;
 using Vit.Framework.Platform;
 using Vit.Framework.Threading;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.Windowing;
 
 namespace Vit.Framework.TwoD.Templates;
@@ -54,6 +55,10 @@ public abstract partial class Basic2DApp<TRoot> {
 			SingleUseBuffers.Initialize( Renderer );
 			DeviceBufferHeap = Dependencies.Resolve<DeviceBufferHeap>();
 			DeviceBufferHeap.Initialize( Renderer );
+			DeviceBufferHeap = Dependencies.Resolve<DeviceBufferHeap>();
+			DeviceBufferHeap.Initialize( Renderer );
+			MaskingData = Dependencies.Resolve<MaskingDataBuffer>();
+			MaskingData.Initialize( Renderer );
 
 			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
 				if ( dep is IDrawDependency drawDependency )
@@ -78,6 +83,7 @@ public abstract partial class Basic2DApp<TRoot> {
 		protected TextureStore TextureStore = null!;
 		protected SingleUseBufferSectionStack SingleUseBuffers = null!;
 		protected DeviceBufferHeap DeviceBufferHeap = null!;
+		protected MaskingDataBuffer MaskingData = null!;
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;
@@ -115,6 +121,7 @@ public abstract partial class Basic2DApp<TRoot> {
 				drawNodeRenderer.Draw( commands, disposeScheduler.Execute );
 			}
 			Swapchain.Present( index );
+			MaskingData.EndFrame();
 			SingleUseBuffers.EndFrame();
 		}
 

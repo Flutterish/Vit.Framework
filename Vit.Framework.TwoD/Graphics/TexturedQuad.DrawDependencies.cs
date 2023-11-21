@@ -6,10 +6,11 @@ using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Interop;
 using Vit.Framework.Memory;
+using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
-using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Uniforms;
-using Vertex = Vit.Framework.TwoD.Rendering.Shaders.BasicVertex.Vertex;
+using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Uniforms;
+using Vertex = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics;
 
@@ -17,6 +18,7 @@ public abstract partial class TexturedQuad {
 	public class DrawDependencies : DisposableObject, IDrawDependency {
 		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
 		public UniformSetPool UniformSetAllocator = null!;
+		public MaskingDataBuffer Masking = null!;
 		public IDeviceBuffer<ushort> Indices = null!;
 		public IDeviceBuffer<Vertex> Vertices = null!;
 
@@ -31,16 +33,17 @@ public abstract partial class TexturedQuad {
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
 				Vertex = new() {
-					Shader = BasicVertex.Identifier,
-					Input = BasicVertex.InputDescription
+					Shader = MaskedVertex.Identifier,
+					Input = MaskedVertex.InputDescription
 				},
-				Fragment = BasicFragment.Identifier
+				Fragment = MaskedFragment.Identifier
 			} );
 			basicShader.Compile( renderer );
 			Shader = basicShader.Value;
 
 			UniformSetAllocator = new( Shader, set: 1, poolSize: 256 );
 			var singleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
+			Masking = dependencies.Resolve<MaskingDataBuffer>();
 			var indices = singleUseBuffers.AllocateStagingBuffer<ushort>( 6 );
 			indices.Upload<ushort>( stackalloc ushort[] {
 				0, 1, 2,
