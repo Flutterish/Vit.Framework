@@ -27,14 +27,13 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 		Vk.vkAllocateDescriptorSets( pool.Device, &info, out Instance ).Validate();
 	}
 
-	public unsafe void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
+	public unsafe void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
 		var uniformBuffer = (Buffer)buffer;
 
 		var bufferInfo = new VkDescriptorBufferInfo() {
 			buffer = uniformBuffer,
-			offset = offset * IBuffer<T>.AlignedStride(256),
-			range = IBuffer<T>.Stride
+			offset = offset,
+			range = size
 		};
 
 		var write = new VkWriteDescriptorSet() {
@@ -108,10 +107,11 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 	public unsafe StandaloneUniformSet ( DescriptorSetLayout layout ) {
 		DescriptorPool = new DescriptorPool( layout, 1 );
 		DescriptorSet = DescriptorPool.CreateSet();
+		DebugMemoryAlignment.SetDebugData( this, layout.Type.Resources );
 	}
 
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DescriptorSet.SetUniformBuffer( buffer, binding, offset );
+	public void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
+		DescriptorSet.SetUniformBufferRaw( buffer, binding, size, offset );
 	}
 
 	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
@@ -125,5 +125,6 @@ public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
 	protected override unsafe void Dispose ( bool disposing ) {
 		DescriptorSet.Dispose();
 		DescriptorPool.Dispose();
+		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }

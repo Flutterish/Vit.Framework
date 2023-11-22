@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders.Types;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;

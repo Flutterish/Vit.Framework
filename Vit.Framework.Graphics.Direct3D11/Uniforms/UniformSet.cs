@@ -28,13 +28,12 @@ public class UniformSet : DisposableObject, IUniformSet {
 	ID3D11Buffer[] ConstantBuffers;
 	int[] ConstantBuffersOffsets;
 	int[] ConstantBuffersSizes;
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
+	public void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
 		binding = layout.BindingLookup[binding];
 
 		ConstantBuffers[binding] = ((ID3D11BufferHandle)buffer).Handle;
-		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.AlignedStride(256)) / 16;
-		ConstantBuffersSizes[binding] = ((int)IBuffer<T>.Stride + 15) / 16 * 16;
+		ConstantBuffersOffsets[binding] = (int)(offset / 16);
+		ConstantBuffersSizes[binding] = ((int)size + 15) / 16 * 16;
 	}
 
 	ID3D11ShaderResourceView[] StorageBufferResources;

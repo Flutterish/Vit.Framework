@@ -28,15 +28,13 @@ public class UniformSet : DisposableObject, IUniformSet {
 	int[] UboBuffers;
 	nint[] UboOffsets;
 	nint[] UboSizes;
-	public void SetUniformBuffer<T> ( IBuffer<T> buffer, uint binding, uint offset = 0 ) where T : unmanaged {
-		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof(T) );
+	public void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
 		var buf = (IGlBuffer)buffer;
 
-		var alignedStride = (IBuffer<T>.Stride + 255) / 256 * 256;
 		binding = layout.BindingLookup[binding];
 		UboBuffers[binding] = buf.Handle;
-		UboOffsets[binding] = (nint)(offset * alignedStride);
-		UboSizes[binding] = (nint)IBuffer<T>.Stride;
+		UboOffsets[binding] = (nint)offset;
+		UboSizes[binding] = (nint)size;
 	}
 
 	int[] SsboBuffers;

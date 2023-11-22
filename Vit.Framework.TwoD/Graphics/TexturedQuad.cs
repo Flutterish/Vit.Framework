@@ -5,6 +5,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Graphics.Rendering.Uniforms;
 using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Uniforms;
 
 namespace Vit.Framework.TwoD.Graphics;
