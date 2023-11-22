@@ -70,16 +70,12 @@ public class Test04_Samplers : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = new( Renderer, BufferType.Vertex );
-		indices = new( Renderer, BufferType.Index );
-		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+		positions = new( Renderer, 4, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices = new( Renderer, 6, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		using var image = Image.Load<Rgba32>( "./texture.jpg" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
-
-		positions.Allocate( 4, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices.Allocate( 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );

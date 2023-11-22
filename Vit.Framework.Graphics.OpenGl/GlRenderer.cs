@@ -39,18 +39,8 @@ public class GlRenderer : IRenderer {
 		return new ShaderProgram( parts.Select( x => (x as UnlinkedShader)! ), vertexInput );
 	}
 
-	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new HostBuffer<T>( type switch {
-			BufferType.Vertex => BufferTarget.ArrayBuffer,
-			BufferType.Index => BufferTarget.ArrayBuffer,
-			BufferType.Uniform => BufferTarget.UniformBuffer,
-			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
-			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
-		} );
-	}
-
-	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new DeviceBuffer<T>( type switch {
+	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( size, type switch {
 			BufferType.Vertex => BufferTarget.ArrayBuffer,
 			BufferType.Index => BufferTarget.ArrayBuffer,
 			BufferType.Uniform => BufferTarget.UniformBuffer,
@@ -59,8 +49,18 @@ public class GlRenderer : IRenderer {
 		} );
 	}
 
-	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
-		return new HostBuffer<T>( BufferTarget.CopyReadBuffer );
+	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new DeviceBuffer<T>( size, type switch {
+			BufferType.Vertex => BufferTarget.ArrayBuffer,
+			BufferType.Index => BufferTarget.ArrayBuffer,
+			BufferType.Uniform => BufferTarget.UniformBuffer,
+			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
+			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
+		} );
+	}
+
+	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( size, BufferTarget.CopyReadBuffer );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {

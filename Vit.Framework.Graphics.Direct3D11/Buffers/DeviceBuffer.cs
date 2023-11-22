@@ -1,4 +1,6 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -8,30 +10,24 @@ namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferHandle where T : unmanaged {
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
-	public readonly BindFlags Type;
-	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11Buffer Handle { get; private set; }
 	public ID3D11ShaderResourceView? ResourceView { get; private set; }
-	public DeviceBuffer ( ID3D11Device device, ID3D11DeviceContext context, BindFlags type ) {
+	public DeviceBuffer ( ID3D11Device device, ID3D11DeviceContext context, uint size, BindFlags type ) {
 		Device = device;
 		Context = context;
-		Type = type;
-	}
-
-	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
-		Handle?.Dispose();
 
 		Device.CreateBuffer( new BufferDescription {
 			ByteWidth = (int)size,
 			Usage = ResourceUsage.Default,
-			BindFlags = Type,
+			BindFlags = type,
 			CPUAccessFlags = CpuAccessFlags.None,
-			MiscFlags = Type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
+			MiscFlags = type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
 		}, null, out var handle ).Validate();
 		Handle = handle;
 
-		if ( !Type.HasFlag( BindFlags.ShaderResource ) )
+		if ( !type.HasFlag( BindFlags.ShaderResource ) )
 			return;
-
+		
 		ResourceView = Device.CreateShaderResourceView( Handle, new(
 			Handle,
 			Format.R32_Typeless,
@@ -43,6 +39,12 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 
 	protected override void Dispose ( bool disposing ) {
 		Handle?.Dispose();
-		Handle = null;
+		deleteHandle();
+	}
+
+	[Conditional( "DEBUG" )]
+	void deleteHandle () {
+		Handle = null!;
+		ResourceView = null;
 	}
 }

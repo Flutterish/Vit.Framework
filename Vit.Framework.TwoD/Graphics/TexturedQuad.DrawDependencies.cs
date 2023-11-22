@@ -26,9 +26,7 @@ public abstract partial class TexturedQuad {
 
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
-				var buffer = r.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-				buffer.AllocateUniform( s, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
-				return buffer;
+				return r.CreateUniformHostBuffer<Uniforms>( s, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 			} );
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
@@ -59,12 +57,10 @@ public abstract partial class TexturedQuad {
 			} );
 
 			using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
-				Indices = renderer.CreateDeviceBuffer<ushort>( BufferType.Index );
-				Indices.Allocate( 6, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				Indices = renderer.CreateDeviceBuffer<ushort>( 6, BufferType.Index, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 				copy.CopyBufferRaw( indices.Buffer, Indices, 6 * SizeOfHelper<ushort>.Size, sourceOffset: indices.Offset );
 
-				Vertices = renderer.CreateDeviceBuffer<Vertex>( BufferType.Vertex );
-				Vertices.Allocate( 4, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				Vertices = renderer.CreateDeviceBuffer<Vertex>( 4, BufferType.Vertex, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
 				copy.CopyBufferRaw( vertices.Buffer, Vertices, 4 * SizeOfHelper<Vertex>.Size, sourceOffset: vertices.Offset );
 			}
 		}

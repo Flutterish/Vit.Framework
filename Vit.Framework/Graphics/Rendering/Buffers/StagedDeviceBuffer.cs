@@ -5,18 +5,9 @@ namespace Vit.Framework.Graphics.Rendering.Buffers;
 public class StagedDeviceBuffer<T> : DisposableObject where T : unmanaged {
 	public readonly IStagingBuffer<T> StagingBuffer;
 	public readonly IDeviceBuffer<T> DeviceBuffer;
-	public StagedDeviceBuffer ( IRenderer renderer, BufferType type ) {
-		StagingBuffer = renderer.CreateStagingBuffer<T>();
-		DeviceBuffer = renderer.CreateDeviceBuffer<T>( type );
-	}
-
-	public void AllocateRaw ( uint size, BufferUsage stagingHint, BufferUsage deviceHint ) {
-		StagingBuffer.AllocateRaw( size, stagingHint | BufferUsage.CpuWrite | BufferUsage.GpuRead );
-		DeviceBuffer.AllocateRaw( size, deviceHint | BufferUsage.GpuWrite );
-	}
-
-	public void Allocate ( uint size, BufferUsage stagingHint, BufferUsage deviceHint ) {
-		AllocateRaw( size * IBuffer<T>.Stride, stagingHint, deviceHint );
+	public StagedDeviceBuffer ( IRenderer renderer, uint size, BufferType type, BufferUsage stagingHint, BufferUsage deviceHint ) {
+		StagingBuffer = renderer.CreateStagingBuffer<T>( size, stagingHint | BufferUsage.CpuWrite | BufferUsage.GpuRead );
+		DeviceBuffer = renderer.CreateDeviceBuffer<T>( size, type, deviceHint | BufferUsage.GpuWrite );
 	}
 
 	public void Upload ( ICommandBuffer commandBuffer, ReadOnlySpan<T> data ) {

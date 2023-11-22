@@ -71,14 +71,12 @@ public class DeviceBufferHeap : IDisposable {
 
 		while ( length > (bufferLength << buffers.Count) ) {
 			var nextBufferLength = bufferLength << buffers.Count;
-			var nextBuffer = renderer.CreateDeviceBuffer<byte>( type );
-			nextBuffer.Allocate( nextBufferLength, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+			var nextBuffer = renderer.CreateDeviceBuffer<byte>( nextBufferLength, type, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
 			buffers.Add(( nextBuffer, new DecoupledHeapAllocator( nextBufferLength, expectedSize << buffers.Count ) ));
 		}
 
 		var newBufferLength = bufferLength << buffers.Count;
-		var newBuffer = renderer.CreateDeviceBuffer<byte>( type );
-		newBuffer.Allocate( newBufferLength, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+		var newBuffer = renderer.CreateDeviceBuffer<byte>( newBufferLength, type, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
 		var allocator = new DecoupledHeapAllocator( newBufferLength, expectedSize << buffers.Count );
 		buffers.Add( (newBuffer, allocator) );
 		var newAllocation = allocator.Allocate( length );

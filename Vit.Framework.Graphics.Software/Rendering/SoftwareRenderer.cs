@@ -74,4 +74,16 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public virtual IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return commandBuffer;
 	}
+
+	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		throw new NotImplementedException();
+	}
+
+	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		throw new NotImplementedException();
+	}
+
+	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
+		throw new NotImplementedException();
+	}
 }

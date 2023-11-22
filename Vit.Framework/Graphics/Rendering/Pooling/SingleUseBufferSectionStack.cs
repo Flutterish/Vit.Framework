@@ -13,9 +13,7 @@ public class SingleUseBufferSectionStack : IDisposable {
 		BufferLength = bufferLength;
 
 		stagingBuffers = new( bufferLength, length => {
-			var buffer = Renderer.CreateStagingBuffer<byte>();
-			buffer.AllocateRaw( length, BufferUsage.GpuRead | BufferUsage.CpuWrite );
-			return buffer;
+			return Renderer.CreateStagingBuffer<byte>( length, BufferUsage.GpuRead | BufferUsage.CpuWrite );
 		} );
 	}
 
@@ -28,14 +26,10 @@ public class SingleUseBufferSectionStack : IDisposable {
 	struct Buffers {
 		public Buffers ( SingleUseBufferSectionStack stack, BufferType type ) {
 			DeviceBuffers = new( stack.BufferLength, length => {
-				var buffer = stack.Renderer.CreateDeviceBuffer<byte>( type );
-				buffer.AllocateRaw( length, BufferUsage.GpuRead | BufferUsage.GpuWrite );
-				return buffer;
+				return stack.Renderer.CreateDeviceBuffer<byte>( length, type, BufferUsage.GpuRead | BufferUsage.GpuWrite );
 			} );
 			HostBuffers = new( stack.BufferLength, length => {
-				var buffer = stack.Renderer.CreateHostBuffer<byte>( type );
-				buffer.AllocateRaw( length, BufferUsage.GpuRead | BufferUsage.CpuWrite );
-				return buffer;
+				return stack.Renderer.CreateHostBuffer<byte>( length, type, BufferUsage.GpuRead | BufferUsage.CpuWrite );
 			} );
 		}
 

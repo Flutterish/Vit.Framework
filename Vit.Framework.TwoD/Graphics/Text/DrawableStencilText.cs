@@ -117,10 +117,8 @@ public class DrawableStencilText : DrawableText {
 			ref var uniformSet = ref Source.uniformSet;
 			if ( uniformSet == null ) {
 				ref var uniforms = ref Source.uniforms;
-				uniforms = renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform ); // TODO no need to reallocate the uniforms
+				uniforms = renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame ); // TODO no need to reallocate the uniforms
 				uniformSet = shaders.CreateUniformSet( set: 1 );
-
-				uniforms.AllocateUniform( 1, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
 
 				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 				uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );

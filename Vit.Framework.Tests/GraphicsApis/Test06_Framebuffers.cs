@@ -83,23 +83,16 @@ public class Test06_Framebuffers : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = new( Renderer, BufferType.Vertex );
-		indices = new( Renderer, BufferType.Index );
-		positions2 = new( Renderer, BufferType.Vertex );
-		indices2 = new( Renderer, BufferType.Index );
-		uniformBuffer = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
-		uniformBuffer2 = Renderer.CreateHostBuffer<Uniforms>( BufferType.Uniform );
+		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
+		positions = new( Renderer, (uint)model.Vertices.Count, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices = new( Renderer, indexCount = (uint)model.Indices.Count, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions2 = new( Renderer, 4, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices2 = new( Renderer, 6, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		uniformBuffer2 = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
-
-		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-		positions.Allocate( (uint)model.Vertices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices.Allocate( indexCount = (uint)model.Indices.Count, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		positions2.Allocate( 4, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices2.Allocate( 6, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer2.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		uniformSet = shaderSet.CreateUniformSet();
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );

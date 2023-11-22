@@ -63,18 +63,18 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new ShaderSet( parts, vertexInput );
 	}
 
-	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new HostBuffer<T>( Device, Context, type switch {
+	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( Device, Context, size, type switch {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
 			BufferType.Uniform => BindFlags.ConstantBuffer,
 			BufferType.ReadonlyStorage => BindFlags.ShaderResource,
-			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
-		} );
+			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
+		}, usage );
 	}
 
-	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new DeviceBuffer<T>( Device, Context, type switch {
+	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new DeviceBuffer<T>( Device, Context, size, type switch {
 			BufferType.Vertex => BindFlags.VertexBuffer,
 			BufferType.Index => BindFlags.IndexBuffer,
 			BufferType.Uniform => BindFlags.ConstantBuffer,
@@ -83,8 +83,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		} );
 	}
 
-	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
-		return new StagingBuffer<T>( Device, Context );
+	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
+		return new StagingBuffer<T>( Device, Context, size );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {

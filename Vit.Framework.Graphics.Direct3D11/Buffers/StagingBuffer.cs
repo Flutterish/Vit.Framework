@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 
@@ -7,11 +8,21 @@ namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 public class StagingBuffer<T> : DisposableObject, IStagingBuffer<T>, ID3D11BufferHandle where T : unmanaged {
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
-	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11Buffer Handle { get; private set; }
 	public ID3D11ShaderResourceView? ResourceView => null;
-	public StagingBuffer ( ID3D11Device device, ID3D11DeviceContext context ) {
+	public StagingBuffer ( ID3D11Device device, ID3D11DeviceContext context, uint size ) {
 		Device = device;
 		Context = context;
+
+		Device.CreateBuffer( new BufferDescription {
+			ByteWidth = (int)size,
+			Usage = ResourceUsage.Staging,
+			BindFlags = BindFlags.None,
+			CPUAccessFlags = CpuAccessFlags.Write
+		}, null, out var handle ).Validate();
+		Handle = handle;
+
+		data = Context.Map( handle, MapMode.Write );
 	}
 
 	MappedSubresource data;
@@ -39,22 +50,13 @@ public class StagingBuffer<T> : DisposableObject, IStagingBuffer<T>, ID3D11Buffe
 		mappable.Unmap();
 	}
 
-	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
-		Handle?.Dispose();
-
-		Device.CreateBuffer( new BufferDescription {
-			ByteWidth = (int)size,
-			Usage = ResourceUsage.Staging,
-			BindFlags = BindFlags.None,
-			CPUAccessFlags = CpuAccessFlags.Write
-		}, null, out var handle ).Validate();
-		Handle = handle;
-
-		data = Context.Map( handle, MapMode.Write );
+	protected override void Dispose ( bool disposing ) {
+		Handle.Dispose();
+		deleteHandle();
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		Handle?.Dispose();
-		Handle = null;
+	[Conditional("DEBUG")]
+	void deleteHandle () {
+		Handle = null!;
 	}
 }

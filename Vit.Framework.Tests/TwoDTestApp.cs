@@ -42,7 +42,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
+		return available.First( x => x.KnownName == KnownGraphicsApiName.OpenGl );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -208,8 +208,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			if ( !base.Initialize() )
 				return false;
 
-			globalUniformBuffer = Renderer.CreateHostBuffer<GlobalUniforms>( BufferType.Uniform );
-			globalUniformBuffer.AllocateUniform( 1, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
+			globalUniformBuffer = Renderer.CreateUniformHostBuffer<GlobalUniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
 			var basic = ShaderStore.GetShader( new() {
 				Vertex = new() {

@@ -6,7 +6,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Interop;
 
-public static class InteropExtensions {
+public static class InteropExtensions { // TODO Im not sure if any of this is legal. It seems to work right, but maybe it will break if the GC compacts in the middle of using a pointer.
 	public static PinnedHandle Pin ( this object? obj ) => new( obj );
 	public static CString Cstr ( this string str ) => new( str );
 

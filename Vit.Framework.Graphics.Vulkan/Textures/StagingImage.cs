@@ -11,11 +11,9 @@ public class StagingImage : HostBuffer<byte>, IStagingTexture2D, IVulkanTexture 
 	public Size2<uint> Size { get; }
 	public PixelFormat Format { get; }
 
-	public StagingImage ( Device device, Size2<uint> size, PixelFormat format ) : base( device, VkBufferUsageFlags.TransferSrc ) {
+	public StagingImage ( Device device, Size2<uint> size, PixelFormat format ) : base( device, sizeof(byte) * 4 * size.Width * size.Height, VkBufferUsageFlags.TransferSrc ) {
 		Debug.Assert( format == PixelFormat.Rgba8 );
 		Size = size;
 		Format = format;
-
-		AllocateRaw( sizeof(byte) * 4 * size.Width * size.Height );
 	}
 }

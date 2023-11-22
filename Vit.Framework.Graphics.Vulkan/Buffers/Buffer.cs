@@ -1,25 +1,22 @@
-﻿using Vulkan;
+﻿using System.Diagnostics;
+using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public abstract class Buffer : DisposableVulkanObject<VkBuffer> {
 	public readonly Device Device;
 	protected VkDeviceMemory Memory;
-	public readonly VkBufferUsageFlags UsageFlags;
 
-	public Buffer ( Device device, VkBufferUsageFlags flags ) {
+	public Buffer ( Device device, uint size, VkBufferUsageFlags flags, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
 		Device = device;
-		UsageFlags = flags;
+		allocate( size, flags, sharingMode );
 	}
 
-	protected unsafe void Allocate ( ulong length, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
-		if ( Instance != VkBuffer.Null )
-			Free();
-
+	unsafe void allocate ( ulong length, VkBufferUsageFlags usageFlags, VkSharingMode sharingMode = VkSharingMode.Exclusive ) {
 		VkBufferCreateInfo info = new() {
 			sType = VkStructureType.BufferCreateInfo,
 			size = length,
-			usage = UsageFlags,
+			usage = usageFlags,
 			sharingMode = sharingMode
 		};
 		Vk.vkCreateBuffer( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
@@ -36,16 +33,14 @@ public abstract class Buffer : DisposableVulkanObject<VkBuffer> {
 
 	protected abstract uint FindMemoryType ( VkMemoryRequirements requirements );
 
-	protected virtual unsafe void Free () {
+	protected unsafe override void Dispose ( bool disposing ) {
 		Vk.vkDestroyBuffer( Device, Instance, VulkanExtensions.TODO_Allocator );
 		Vk.vkFreeMemory( Device, Memory, VulkanExtensions.TODO_Allocator );
-		Instance = VkBuffer.Null;
+		deleteHandle();
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		if ( Instance == VkBuffer.Null )
-			return;
-
-		Free();
+	[Conditional( "DEBUG" )]
+	void deleteHandle () {
+		Instance = VkBuffer.Null;
 	}
 }

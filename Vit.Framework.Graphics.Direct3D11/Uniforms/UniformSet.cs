@@ -15,7 +15,6 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public UniformSet ( UniformLayout layout ) {
 		this.layout = layout;
 
-		ConstantBufferHandles = new ID3D11BufferHandle[layout.ConstantBufferCount];
 		ConstantBuffers = new ID3D11Buffer[layout.ConstantBufferCount];
 		ConstantBuffersOffsets = new int[layout.ConstantBufferCount];
 		ConstantBuffersSizes = new int[layout.ConstantBufferCount];
@@ -26,7 +25,6 @@ public class UniformSet : DisposableObject, IUniformSet {
 		StorageBufferResources = new ID3D11ShaderResourceView[layout.StorageBufferCount];
 	}
 
-	ID3D11BufferHandle[] ConstantBufferHandles;
 	ID3D11Buffer[] ConstantBuffers;
 	int[] ConstantBuffersOffsets;
 	int[] ConstantBuffersSizes;
@@ -34,7 +32,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 		DebugMemoryAlignment.AssertStructAlignment( this, binding, typeof( T ) );
 		binding = layout.BindingLookup[binding];
 
-		ConstantBufferHandles[binding] = (ID3D11BufferHandle)buffer;
+		ConstantBuffers[binding] = ((ID3D11BufferHandle)buffer).Handle;
 		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.AlignedStride(256)) / 16;
 		ConstantBuffersSizes[binding] = ((int)IBuffer<T>.Stride + 15) / 16 * 16;
 	}
@@ -60,11 +58,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public void Apply ( ID3D11DeviceContext ctx ) {
 		var context = (ID3D11DeviceContext1)ctx;
 
-		for ( int i = 0; i < ConstantBufferHandles.Length; i++ ) {
-			ConstantBuffers[i] = ConstantBufferHandles[i].Handle!; // TODO maybe can be removed if we can reallocate withotu changing the pointer
-			// TODO also we need to remove some layers from this api bc some calls are doing unnecessary operations (pretty much everything that uses the C# classes actually)
-			// and also not allowing us to pass pointers which is yucky
-		}
+		// TODO also we need to remove some layers from this api bc some calls are doing unnecessary operations (pretty much everything that uses the C# classes actually)
+		// and also not allowing us to pass pointers which is yucky
 
 		// TODO set only in shaders that need it..?
 		context.VSSetConstantBuffers1( layout.FirstConstantBuffer, layout.ConstantBufferCount, ConstantBuffers, ConstantBuffersOffsets, ConstantBuffersSizes );

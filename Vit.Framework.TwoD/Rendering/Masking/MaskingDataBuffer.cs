@@ -19,8 +19,7 @@ public class MaskingDataBuffer : IDisposable {
 	uint stackPtr;
 	public void Initialize ( IRenderer renderer ) {
 		this.renderer = renderer;
-		stack = renderer.CreateHostBuffer<byte>( BufferType.ReadonlyStorage );
-		stack.AllocateRaw( length * 16, BufferUsage.CpuWrite | BufferUsage.CpuPerFrame | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		stack = renderer.CreateHostBufferRaw<byte>( length * 16, BufferType.ReadonlyStorage, BufferUsage.CpuWrite | BufferUsage.CpuPerFrame | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 	}
 
 	unsafe void ensureCapacity ( uint size ) {
@@ -28,16 +27,6 @@ public class MaskingDataBuffer : IDisposable {
 			return;
 
 		throw new NotImplementedException();
-		var nextStack = renderer.CreateHostBuffer<byte>( BufferType.ReadonlyStorage );
-		nextStack.AllocateRaw( length * 2 * 16, BufferUsage.CpuWrite | BufferUsage.CpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-
-		var data = new Span<byte>( stack.Map(), (int)length * 16 );
-		nextStack.UploadRaw( data );
-		stack.Unmap();
-		stack.Dispose();
-
-		stack = nextStack;
-		length *= 2;
 	}
 
 	uint push<T> ( T data ) where T : unmanaged {

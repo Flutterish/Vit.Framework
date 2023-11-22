@@ -59,18 +59,8 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new ShaderSet( parts.Select( x => (ShaderModule)x ), vertexInput );
 	}
 
-	public IHostBuffer<T> CreateHostBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new HostBuffer<T>( Device, type switch {
-			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
-			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
-			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
-			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
-			_ => throw new ArgumentException( "Buffer type not supported", nameof(type) )
-		} );
-	}
-
-	public IDeviceBuffer<T> CreateDeviceBuffer<T> ( BufferType type ) where T : unmanaged {
-		return new DeviceBuffer<T>( Device, type switch {
+	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( Device, size, type switch {
 			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
 			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
 			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
@@ -79,8 +69,18 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		} );
 	}
 
-	public IStagingBuffer<T> CreateStagingBuffer<T> () where T : unmanaged {
-		return new HostBuffer<T>( Device, VkBufferUsageFlags.TransferSrc );
+	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new DeviceBuffer<T>( Device, size, type switch {
+			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
+			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
+			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
+			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
+			_ => throw new ArgumentException( "Buffer type not supported", nameof( type ) )
+		} );
+	}
+
+	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( Device, size, VkBufferUsageFlags.TransferSrc );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {

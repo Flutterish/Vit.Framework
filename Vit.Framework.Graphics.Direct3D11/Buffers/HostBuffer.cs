@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Rendering.Buffers;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -13,13 +14,38 @@ public interface IMappable {
 public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandle, IMappable where T : unmanaged {
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
-	public readonly BindFlags Type;
-	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11Buffer Handle { get; private set; }
 	public ID3D11ShaderResourceView? ResourceView { get; private set; }
-	public HostBuffer ( ID3D11Device device, ID3D11DeviceContext context, BindFlags type ) {
+	public HostBuffer ( ID3D11Device device, ID3D11DeviceContext context, uint size, BindFlags type, BufferUsage usage ) {
 		Device = device;
 		Context = context;
-		Type = type;
+
+		CpuAccessFlags flags = 0;
+		if ( usage.HasFlag( BufferUsage.CpuRead ) )
+			flags |= CpuAccessFlags.Read;
+		if ( usage.HasFlag( BufferUsage.CpuWrite ) )
+			flags |= CpuAccessFlags.Write;
+
+
+		Device.CreateBuffer( new BufferDescription {
+			ByteWidth = type == BindFlags.ConstantBuffer ? ((int)size + 15) / 16 * 16 : (int)size,
+			Usage = ResourceUsage.Dynamic,
+			BindFlags = type,
+			CPUAccessFlags = flags,
+			MiscFlags = type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
+		}, null, out var handle ).Validate();
+		Handle = handle;
+
+		if ( !type.HasFlag( BindFlags.ShaderResource ) )
+			return;
+
+		ResourceView = Device.CreateShaderResourceView( Handle, new(
+			Handle,
+			Format.R32_Typeless,
+			0,
+			(int)(size / 4),
+			BufferExtendedShaderResourceViewFlags.Raw
+		) );
 	}
 
 	public MappedSubresource Map () {
@@ -50,40 +76,15 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		Context.Unmap( Handle! );
 	}
 
-	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
-		Handle?.Dispose();
+	protected override void Dispose ( bool disposing ) {
+		Handle.Dispose();
 		ResourceView?.Dispose();
-
-		CpuAccessFlags flags = 0;
-		if ( usageHint.HasFlag( BufferUsage.CpuRead ) )
-			flags |= CpuAccessFlags.Read;
-		if ( usageHint.HasFlag( BufferUsage.CpuWrite ) )
-			flags |= CpuAccessFlags.Write;
-
-		
-		Device.CreateBuffer( new BufferDescription {
-			ByteWidth = Type == BindFlags.ConstantBuffer ? ((int)size + 15) / 16 * 16 : (int)size,
-			Usage = ResourceUsage.Dynamic,
-			BindFlags = Type,
-			CPUAccessFlags = flags,
-			MiscFlags = Type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
-		}, null, out var handle ).Validate();
-		Handle = handle;
-
-		if ( !Type.HasFlag( BindFlags.ShaderResource ) )
-			return;
-
-		ResourceView = Device.CreateShaderResourceView( Handle, new( 
-			Handle, 
-			Format.R32_Typeless,
-			0,
-			(int)(size / 4),
-			BufferExtendedShaderResourceViewFlags.Raw
-		) );
+		deleteHandle();
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		Handle?.Dispose();
-		Handle = null;
+	[Conditional( "DEBUG" )]
+	void deleteHandle () {
+		Handle = null!;
+		ResourceView = null;
 	}
 }

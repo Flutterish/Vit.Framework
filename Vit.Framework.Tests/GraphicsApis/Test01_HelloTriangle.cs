@@ -40,11 +40,8 @@ public class Test01_HelloTriangle : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = new( Renderer, BufferType.Vertex );
-		indices = new( Renderer, BufferType.Index );
-
-		positions.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices.Allocate( 3, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions = new( Renderer, 3, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		indices = new( Renderer, 3, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, new Point2<float>[] {
