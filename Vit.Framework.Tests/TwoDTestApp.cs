@@ -251,27 +251,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			var mat = Matrix3<float>.CreateViewport( 1, 1, Window.Width / 2, Window.Height / 2 ) * new Matrix3<float>( Renderer.CreateNdcCorrectionMatrix<float>() );
 			globalUniformBuffer.UploadUniform( new GlobalUniforms {
 				Matrix = new( mat ),
-				ScreenSize = new( Window.Width, Window.Height )
-			} );
-
-			MaskingData.Push( new() {
-				ToMaskingSpace = Matrix4x3<float>.CreateScale( 2f / Window.Width, 2f / Window.Height ) * Matrix4x3<float>.CreateTranslation( -1, -1 ),
-				CornerExponents = 2,
-				CornerRadii = new Vector2<float>( 1 )
-			} );
-			var and = MaskingData.Push( new() {
-				ToMaskingSpace = Matrix4x3<float>.CreateScale( 2f / Window.Width, 2f / Window.Height ) * Matrix4x3<float>.CreateTranslation( -1.5f, -1 ),
-				CornerExponents = 2,
-				CornerRadii = new Vector2<float>( 1 )
-			} );
-			var arg2 = MaskingData.PushTest( new() {
-				ToMaskingSpace = Matrix4x3<float>.CreateScale( 4f / Window.Width, 4f / Window.Height ) * Matrix4x3<float>.CreateTranslation( -.5f, -0.5f ),
-				CornerExponents = 2,
-				CornerRadii = new Vector2<float>( 1 )
-			} );
-			MaskingData.PushInstruction( new MaskingInstruction {
-				Instruction = Instruction.SymmetricDifference,
-				Args = { Item1 = and, Item2 = arg2 }
+				ScreenSize = Window.Size
 			} );
 		}
 

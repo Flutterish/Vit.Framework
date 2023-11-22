@@ -14,17 +14,13 @@ namespace Vit.Framework.TwoD.Rendering.Masking;
 /// </remarks>
 public struct MaskingData { // 96B (16 * 6)
 	/// <summary>
-	/// A matrix that transforms global space (the space resulting from applying the model matrix) such that:
-	/// <list type="bullet">
-	///		<item>The center of the mask is mapped to (0,0).</item>
-	///		<item>The whole mask is mapped to a [-1;1] range.</item>
-	/// </list>
+	/// A matrix that transforms global space (the space resulting from applying the model matrix) such that the whole mask is mapped to a [0;1] range.
 	/// </summary>
 	public required Matrix4x3<float> ToMaskingSpace;
 	/// <summary>
-	/// Radius of each corner respectively, in a [0;1] range.
+	/// Radius of each corner respectively, in a [0;1] range, where 0 is no rounded corner at all and 1 is a rounded corner reaching to the center of the mask.
 	/// </summary>
-	public required Corners<Vector2<float>> CornerRadii;
+	public required Corners<Axes2<float>> CornerRadii;
 	/// <summary>
 	/// Exponent of each corner respecitvely. The equation used is <c>|x|^exponent + |y|^exponent &lt;= 1</c> (adjusted for corner radius).
 	/// <list type="table">

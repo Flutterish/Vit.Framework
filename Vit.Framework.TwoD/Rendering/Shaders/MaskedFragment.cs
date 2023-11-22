@@ -35,7 +35,8 @@ public static class MaskedFragment {
 
 		float maskingTest ( uint maskingPtr, vec2 inModelSpace ) {
 			MaskingParams params = paramBuffer.params[(maskingPtr - 6)/6];
-			vec2 maskingSpace = (params.toMaskingSpace * vec3(inModelSpace, 1)).xy;
+			vec2 maskingSpace = (params.toMaskingSpace * vec3(inModelSpace, 1)).xy; // [0;1]
+			maskingSpace = maskingSpace * 2 - 1; // [-1;1]
 			uint index = maskingSpace.x < 0 ? 0 : 1;
 			index += maskingSpace.y < 0 ? 2 : 0;
 			maskingSpace = abs(maskingSpace);
