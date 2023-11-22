@@ -11,14 +11,14 @@ namespace Vit.Framework.Graphics.Rendering.Uniforms;
 /// <remarks>
 /// In SPIR-V, this is bound to a given <c>layout(set = #)</c>, and its individual components are bound to <c>layout(binding = #)</c>.
 /// </remarks>
-public interface IUniformSet : IDisposable { // TODO use Raw methods
+public interface IUniformSet : IDisposable {
 	/// <summary>
 	/// Binds a uniform buffer to this uniform set.
 	/// </summary>
 	/// <param name="buffer">The uniform buffer containing uniform data.</param>
 	/// <param name="binding">The binding to link the uniform buffer to.</param>
 	/// <param name="size">Size of the uniform data in bytes.</param>
-	/// <param name="offset">Offset in bytes into the uniform buffer.</param>
+	/// <param name="offset">Offset in bytes into the uniform buffer. Must be a multiple of 16.</param>
 	void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 );
 
 	/// <summary>

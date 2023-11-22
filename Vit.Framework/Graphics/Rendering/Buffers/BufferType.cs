@@ -10,7 +10,7 @@ public enum BufferType {
 	/// </summary>
 	Index,
 	/// <summary>
-	/// Stores uniform data. Generally used with <see cref="IHostBuffer"/>, given common updates. Each entry must be aligned to a renderer specific value, usually 256 bytes.
+	/// Stores uniform data. Generally used with <see cref="IHostBuffer"/>, given common updates. Each entry must be aligned to a renderer specific value, usually 256 bytes and at minimum 16.
 	/// </summary>
 	Uniform,
 	/// <summary>
