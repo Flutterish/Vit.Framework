@@ -236,7 +236,6 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			globalSet = masked.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
 			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 1, size: MaskingData.ByteSize );
-			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 2, size: MaskingData.ByteSize );
 
 			basic.Value.SetUniformSet( globalSet );
 			text.Value.SetUniformSet( globalSet );

@@ -29,7 +29,7 @@ public static class MaskedFragment {
 		layout(binding = 1, set = 0) readonly buffer InstructionBuffer {
 			Instruction instructions[];
 		} instructionBuffer;
-		layout(binding = 2, set = 0) readonly buffer ParamBuffer {
+		layout(binding = 1, set = 0) readonly buffer ParamBuffer {
 			MaskingParams params[];
 		} paramBuffer;
 
