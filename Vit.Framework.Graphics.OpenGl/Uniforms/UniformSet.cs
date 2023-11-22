@@ -17,6 +17,10 @@ public class UniformSet : DisposableObject, IUniformSet {
 		UboOffsets = new nint[layout.UboCount];
 		UboSizes = new nint[layout.UboCount];
 
+		SsboBuffers = new int[layout.SsboCount];
+		SsboOffsets = new nint[layout.SsboCount];
+		SsboSizes = new nint[layout.SsboCount];
+
 		Textures = new int[layout.SamplerCount];
 		Samplers = new int[layout.SamplerCount];
 	}
@@ -35,6 +39,18 @@ public class UniformSet : DisposableObject, IUniformSet {
 		UboSizes[binding] = (nint)buf.Stride;
 	}
 
+	int[] SsboBuffers;
+	nint[] SsboOffsets;
+	nint[] SsboSizes;
+	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
+		var buf = (IGlBuffer)buffer;
+
+		binding = layout.BindingLookup[binding];
+		SsboBuffers[binding] = buf.Handle;
+		SsboOffsets[binding] = (nint)offset;
+		SsboSizes[binding] = (nint)size;
+	}
+
 	int[] Textures;
 	int[] Samplers;
 	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
@@ -45,15 +61,12 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 	public void Apply () {
 		GL.BindBuffersRange( BufferRangeTarget.UniformBuffer, layout.FirstUbo, layout.UboCount, UboBuffers, UboOffsets, UboSizes );
+		GL.BindBuffersRange( BufferRangeTarget.ShaderStorageBuffer, layout.FirstSsbo, layout.SsboCount, SsboBuffers, SsboOffsets, SsboSizes );
 		GL.BindTextures( layout.FirstSampler, layout.SamplerCount, Textures );
 		GL.BindSamplers( layout.FirstSampler, layout.SamplerCount, Samplers );
 	}
 
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
-	}
-
-	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
-		throw new NotImplementedException();
 	}
 }

@@ -9,6 +9,9 @@ public class UniformLayout {
 	public readonly int FirstUbo;
 	public readonly int UboCount;
 
+	public readonly int FirstSsbo;
+	public readonly int SsboCount;
+
 	public readonly int FirstSampler;
 	public readonly int SamplerCount;
 
@@ -27,6 +30,10 @@ public class UniformLayout {
 
 				case SPIRVCross.spvc_resource_type.SampledImage:
 					(FirstSampler, SamplerCount) = (first, count);
+					break;
+
+				case SPIRVCross.spvc_resource_type.StorageBuffer:
+					(FirstSsbo, SsboCount) = (first, count);
 					break;
 
 				default:
