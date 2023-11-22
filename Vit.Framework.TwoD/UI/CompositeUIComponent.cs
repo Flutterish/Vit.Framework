@@ -2,7 +2,10 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
+using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.Rendering.Masking;
 
 namespace Vit.Framework.TwoD.UI;
 
@@ -18,6 +21,64 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 	public IReadOnlyDependencyCache Dependencies { get; private set; } = null!;
+
+	bool isMaskingActive;
+	/// <summary>
+	/// Masking hides parts of children which are outside of the parent.
+	/// It also enables border effects such as rounded corners.
+	/// </summary>
+	/// <remarks>
+	/// Masking containers <b>can</b> be nested - the resulting mask is a set intersection of both masks.
+	/// More complex masks (such as mask unions or symmetric differences) can be created with custom draw nodes using the <see cref="MaskingDataBuffer"/>.
+	/// </remarks>
+	protected bool IsMaskingActive {
+		get => isMaskingActive;
+		set {
+			if ( value.TrySet( ref isMaskingActive ) )
+				invalidateDrawNodes();
+		}
+	}
+
+	Corners<float> cornerExponents = 2.5f;
+	/// <summary>
+	/// Exponent of each corner respecitvely. The equation used is <c>|x|^exponent + |y|^exponent &lt;= 1</c> (adjusted for size and corner radius).
+	/// <list type="table">
+	///		<item>A value of 0 results in a completely cut-out corner.</item>
+	///		<item>A value of 0-1 results in convave arcs.</item>
+	///		<item>A value of 1 results in straight lines.</item>
+	///		<item>A value of 1-2 results in bevels with sharp corners.</item>
+	///		<item>A value of 2 results in circular arcs.</item>
+	///		<item>A value of 2.5 results in something similar to apple's smooth corner (the default value).</item>
+	///		<item>Higher values results in progressively more square squircles.</item>
+	///		<item>We do not speak about negative values.</item>
+	/// </list>
+	/// </summary>
+	/// <remarks>
+	/// Requires <see cref="IsMaskingActive"/> to be <see langword="true"/> to have any effect.
+	/// An interactive demo can be found <see href="https://www.desmos.com/calculator/bdnfusuk9o">here</see>.
+	/// </remarks>
+	protected Corners<float> CornerExponents {
+		get => cornerExponents;
+		set {
+			if ( value.TrySet( ref cornerExponents ) )
+				invalidateDrawNodes();
+		}
+	}
+
+	Corners<Axes2<float>> cornerRadii;
+	/// <summary>
+	/// Radius of each corner respectively.
+	/// </summary>
+	/// <remarks>
+	/// Requires <see cref="IsMaskingActive"/> to be <see langword="true"/> to have any effect.
+	/// </remarks>
+	protected Corners<Axes2<float>> CornerRadii {
+		get => cornerRadii;
+		set {
+			if ( value.TrySet( ref cornerRadii ) )
+				invalidateDrawNodes();
+		}
+	}
 
 	protected void AddInternalChild ( T child ) {
 		if ( child.Parent != null )
@@ -129,6 +190,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		base.OnLoad( dependencies );
 		RenderThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
+		maskingData = dependencies.Resolve<MaskingDataBuffer>();
 		Dependencies = CreateDependencies( dependencies );
 		foreach ( var i in internalChildren ) {
 			i.Load( Dependencies );
@@ -153,7 +215,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	protected override void OnDispose () {
-		RenderThreadScheduler.ScheduleDrawNodeDisposal( this );
+		RenderThreadScheduler.ScheduleDrawNodeDisposal( this ); // TODO do we need this? supposedly drawables already have this
 		foreach ( var i in internalChildren.Reverse<T>() ) {
 			i.Dispose();
 		}
@@ -196,7 +258,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	public override Rendering.DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) {
-		if ( internalChildren.Count == 1 ) {
+		if ( internalChildren.Count == 1 && !isMaskingActive ) {
 			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
 			return internalChildren[0].GetDrawNode<TRenderer>( subtreeIndex );
 		}
@@ -212,11 +274,42 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
+	MaskingDataBuffer maskingData = null!;
 	public class DrawNode<TRenderer> : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode, TRenderer> where TRenderer : IRenderer {
 		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override bool ValidateChildList () {
 			return Source.drawNodeInvalidations.ValidateDrawNode( SubtreeIndex );
+		}
+
+		bool isMaskingActive;
+		Corners<float> cornerExponents;
+		Corners<Axes2<float>> cornerRadii;
+		Matrix3<float> globalToUnit;
+		public override void Update () {
+			base.Update();
+
+			isMaskingActive = Source.isMaskingActive;
+			if ( isMaskingActive ) {
+				globalToUnit = Source.GlobalToUnitMatrix * Matrix3<float>.CreateScale( 1f / Source.Width * Source.ScaleX, 1f / Source.Height * Source.ScaleY );
+				cornerExponents = Source.cornerExponents;
+				cornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
+			}
+		}
+
+		public override void Draw ( ICommandBuffer commands ) {
+			if ( isMaskingActive ) {
+				Source.maskingData.Push( new() {
+					ToMaskingSpace = new( globalToUnit ),
+					CornerExponents = cornerExponents,
+					CornerRadii = cornerRadii
+				} );
+				base.Draw( commands );
+				Source.maskingData.Pop();
+			}
+			else {
+				base.Draw( commands );
+			}
 		}
 	}
 

@@ -36,4 +36,22 @@ public struct MaskingData { // 96B (16 * 6)
 	/// </summary>
 	/// <remarks>An interactive demo can be found <see href="https://www.desmos.com/calculator/bdnfusuk9o">here</see>.</remarks>
 	public required Corners<float> CornerExponents;
+
+	public static Corners<Axes2<float>> NormalizeCornerRadii ( Corners<Axes2<float>> radii, Size2<float> size ) {
+		var inverseX = 2f / size.Width;
+		var inverseY = 2f / size.Height;
+		Axes2<float> normalize ( Axes2<float> radii ) {
+			return new() {
+				X = float.Clamp( radii.X * inverseX, 0, 1 ),
+				Y = float.Clamp( radii.Y * inverseY, 0, 1 )
+			};
+		}
+
+		return new() {
+			TopLeft = normalize( radii.TopLeft ),
+			TopRight = normalize( radii.TopRight ),
+			BottomLeft = normalize( radii.BottomLeft ),
+			BottomRight = normalize( radii.BottomRight )
+		};
+	}
 }

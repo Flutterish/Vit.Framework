@@ -12,6 +12,15 @@ public static class StructExtensions {
 		field = value;
 		return true;
 	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static bool TrySet ( this bool value, ref bool field ) {
+		if ( field == value )
+			return false;
+
+		field = value;
+		return true;
+	}
 }
 
 public static class ClassExtenions {

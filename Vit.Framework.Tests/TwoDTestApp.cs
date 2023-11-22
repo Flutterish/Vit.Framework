@@ -19,7 +19,6 @@ using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
-using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
 using Vit.Framework.TwoD.UI;

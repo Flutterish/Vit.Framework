@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics;
+using Vit.Framework.TwoD.Rendering.Masking;
 
 namespace Vit.Framework.TwoD.UI;
 
@@ -88,6 +89,22 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 	public void ClearChildren ( bool dispose ) {
 		parameters.Clear();
 		ClearInternalChildren( dispose );
+	}
+
+	/// <inheritdoc cref="CompositeUIComponent{T}.IsMaskingActive"/>
+	new public bool IsMaskingActive {
+		get => base.IsMaskingActive;
+		set => base.IsMaskingActive = value;
+	}
+	/// <inheritdoc cref="CompositeUIComponent{T}.CornerExponents"/>
+	new public Corners<float> CornerExponents {
+		get => base.CornerExponents;
+		set => base.CornerExponents = value;
+	}
+	/// <inheritdoc cref="CompositeUIComponent{T}.CornerRadii"/>
+	new public Corners<Axes2<float>> CornerRadii {
+		get => base.CornerRadii;
+		set => base.CornerRadii = value;
 	}
 }
 
