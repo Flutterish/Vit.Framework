@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Graphics.Direct3D11.Buffers;
+﻿using System.Diagnostics;
+using Vit.Framework.Graphics.Direct3D11.Buffers;
 using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
@@ -21,6 +22,8 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 		SamplerResources = new ID3D11ShaderResourceView[layout.SamplerCount];
 		SamplerStates = new ID3D11SamplerState[layout.SamplerCount];
+
+		StorageBufferResources = new ID3D11ShaderResourceView[layout.StorageBufferCount];
 	}
 
 	ID3D11BufferHandle[] ConstantBufferHandles;
@@ -34,6 +37,15 @@ public class UniformSet : DisposableObject, IUniformSet {
 		ConstantBufferHandles[binding] = (ID3D11BufferHandle)buffer;
 		ConstantBuffersOffsets[binding] = (int)(offset * IBuffer<T>.AlignedStride(256)) / 16;
 		ConstantBuffersSizes[binding] = ((int)IBuffer<T>.Stride + 15) / 16 * 16;
+	}
+
+	ID3D11ShaderResourceView[] StorageBufferResources;
+	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
+		var buf = (ID3D11BufferHandle)buffer;
+		binding = layout.BindingLookup[binding];
+
+		Debug.Assert( offset == 0 );
+		StorageBufferResources[binding] = buf.ResourceView!;
 	}
 
 	ID3D11ShaderResourceView[] SamplerResources;
@@ -60,13 +72,11 @@ public class UniformSet : DisposableObject, IUniformSet {
 
 		context.PSSetShaderResources( layout.FirstSampler, SamplerResources );
 		context.PSSetSamplers( layout.FirstSampler, SamplerStates );
+
+		context.PSSetShaderResources( layout.FirstStorageBuffer, layout.StorageBufferCount, StorageBufferResources );
 	}
 
 	protected override void Dispose ( bool disposing ) {
 		DebugMemoryAlignment.ClearDebugData( this );
-	}
-
-	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
-		throw new NotImplementedException();
 	}
 }

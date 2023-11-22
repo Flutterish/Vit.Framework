@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
@@ -14,6 +15,7 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
 	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11ShaderResourceView? ResourceView { get; private set; }
 	public HostBuffer ( ID3D11Device device, ID3D11DeviceContext context, BindFlags type ) {
 		Device = device;
 		Context = context;
@@ -50,6 +52,7 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 
 	public void AllocateRaw ( uint size, BufferUsage usageHint ) {
 		Handle?.Dispose();
+		ResourceView?.Dispose();
 
 		CpuAccessFlags flags = 0;
 		if ( usageHint.HasFlag( BufferUsage.CpuRead ) )
@@ -57,13 +60,26 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		if ( usageHint.HasFlag( BufferUsage.CpuWrite ) )
 			flags |= CpuAccessFlags.Write;
 
+		
 		Device.CreateBuffer( new BufferDescription {
 			ByteWidth = Type == BindFlags.ConstantBuffer ? ((int)size + 15) / 16 * 16 : (int)size,
 			Usage = ResourceUsage.Dynamic,
 			BindFlags = Type,
-			CPUAccessFlags = flags
+			CPUAccessFlags = flags,
+			MiscFlags = Type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
 		}, null, out var handle ).Validate();
 		Handle = handle;
+
+		if ( !Type.HasFlag( BindFlags.ShaderResource ) )
+			return;
+
+		ResourceView = Device.CreateShaderResourceView( Handle, new( 
+			Handle, 
+			Format.R32_Typeless,
+			0,
+			(int)(size / 4),
+			BufferExtendedShaderResourceViewFlags.Raw
+		) );
 	}
 
 	protected override void Dispose ( bool disposing ) {

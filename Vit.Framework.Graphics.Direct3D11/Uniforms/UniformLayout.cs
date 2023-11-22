@@ -12,6 +12,9 @@ public class UniformLayout {
 	public readonly int FirstSampler;
 	public readonly int SamplerCount;
 
+	public readonly int FirstStorageBuffer;
+	public readonly int StorageBufferCount;
+
 	public UniformLayout ( uint set, UniformSetInfo type, UniformFlatMapping mapping ) {
 		Type = type;
 
@@ -23,6 +26,10 @@ public class UniformLayout {
 			switch ( resourceType ) {
 				case SPIRVCross.spvc_resource_type.UniformBuffer:
 					(FirstConstantBuffer, ConstantBufferCount) = (first, count);
+					break;
+
+				case SPIRVCross.spvc_resource_type.StorageBuffer:
+					(FirstStorageBuffer, StorageBufferCount) = (first, count);
 					break;
 
 				case SPIRVCross.spvc_resource_type.SampledImage:

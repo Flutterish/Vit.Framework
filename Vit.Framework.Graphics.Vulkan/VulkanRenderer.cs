@@ -64,7 +64,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
 			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
 			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
-			BufferType.Storage => VkBufferUsageFlags.StorageBuffer,
+			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
 			_ => throw new ArgumentException( "Buffer type not supported", nameof(type) )
 		} );
 	}
@@ -74,7 +74,7 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
 			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
 			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
-			BufferType.Storage => VkBufferUsageFlags.StorageBuffer,
+			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
 			_ => throw new ArgumentException( "Buffer type not supported", nameof( type ) )
 		} );
 	}

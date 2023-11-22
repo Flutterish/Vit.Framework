@@ -14,8 +14,13 @@ public enum BufferType {
 	/// </summary>
 	Uniform,
 	/// <summary>
-	/// Stores arbitrary data which can be read and written to from shaders. Generally used for unsized arrays or as a more tightly packed replacment for uniform buffers.
+	/// Stores arbitrary data which can be read from shaders. Generally used for unsized arrays or as a more tightly packed replacment for uniform buffers.
+	/// </summary>
+	/// <remarks>Can not be used with <see cref="BufferUsage.CpuRead"/>.</remarks>
+	ReadonlyStorage,
+	/// <summary>
+	/// Stores arbitrary data which can be read and written to from shaders.
 	/// </summary>
 	/// <remarks>Can only be used with <see cref="IDeviceBuffer"/>.</remarks>
-	Storage
+	//ReadWriteStorage
 }

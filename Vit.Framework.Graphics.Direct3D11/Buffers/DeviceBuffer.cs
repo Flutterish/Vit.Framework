@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace Vit.Framework.Graphics.Direct3D11.Buffers;
 
@@ -9,6 +10,7 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 	public readonly ID3D11DeviceContext Context;
 	public readonly BindFlags Type;
 	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11ShaderResourceView? ResourceView { get; private set; }
 	public DeviceBuffer ( ID3D11Device device, ID3D11DeviceContext context, BindFlags type ) {
 		Device = device;
 		Context = context;
@@ -22,9 +24,21 @@ public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, ID3D11BufferH
 			ByteWidth = (int)size,
 			Usage = ResourceUsage.Default,
 			BindFlags = Type,
-			CPUAccessFlags = CpuAccessFlags.None
+			CPUAccessFlags = CpuAccessFlags.None,
+			MiscFlags = Type.HasFlag( BindFlags.ShaderResource ) ? ResourceOptionFlags.BufferAllowRawViews : 0
 		}, null, out var handle ).Validate();
 		Handle = handle;
+
+		if ( !Type.HasFlag( BindFlags.ShaderResource ) )
+			return;
+
+		ResourceView = Device.CreateShaderResourceView( Handle, new(
+			Handle,
+			Format.R32_Typeless,
+			0,
+			(int)(size / 4),
+			BufferExtendedShaderResourceViewFlags.Raw
+		) );
 	}
 
 	protected override void Dispose ( bool disposing ) {

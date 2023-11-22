@@ -46,7 +46,7 @@ public class Direct3D11WindowSurface : WindowGraphicsSurface {
 			out var context
 		) );
 
-		var renderer = new Direct3D11Renderer( dx, device!, new ID3D11DeviceContext1( context!.NativePointer ) );
+		var renderer = new Direct3D11Renderer( dx, new ID3D11Device1( device!.NativePointer ), new ID3D11DeviceContext1( context!.NativePointer ) );
 
 		return (new Queues.Swapchain( swapchain!, renderer, window, Args ), renderer);
 	}

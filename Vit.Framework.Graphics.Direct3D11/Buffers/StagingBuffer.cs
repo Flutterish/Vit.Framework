@@ -8,6 +8,7 @@ public class StagingBuffer<T> : DisposableObject, IStagingBuffer<T>, ID3D11Buffe
 	public readonly ID3D11Device Device;
 	public readonly ID3D11DeviceContext Context;
 	public ID3D11Buffer? Handle { get; private set; }
+	public ID3D11ShaderResourceView? ResourceView => null;
 	public StagingBuffer ( ID3D11Device device, ID3D11DeviceContext context ) {
 		Device = device;
 		Context = context;

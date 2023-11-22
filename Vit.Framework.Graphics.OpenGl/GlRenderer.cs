@@ -44,7 +44,7 @@ public class GlRenderer : IRenderer {
 			BufferType.Vertex => BufferTarget.ArrayBuffer,
 			BufferType.Index => BufferTarget.ArrayBuffer,
 			BufferType.Uniform => BufferTarget.UniformBuffer,
-			BufferType.Storage => BufferTarget.ShaderStorageBuffer,
+			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof(type) )
 		} );
 	}
@@ -54,7 +54,7 @@ public class GlRenderer : IRenderer {
 			BufferType.Vertex => BufferTarget.ArrayBuffer,
 			BufferType.Index => BufferTarget.ArrayBuffer,
 			BufferType.Uniform => BufferTarget.UniformBuffer,
-			BufferType.Storage => BufferTarget.ShaderStorageBuffer,
+			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
 		} );
 	}
