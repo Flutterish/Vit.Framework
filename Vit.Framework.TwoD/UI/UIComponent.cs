@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Animations;
-using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -261,7 +261,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		AnimationTimeline.Update( Clock.CurrentTime );
 	}
 
-	public abstract DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) where TRenderer : IRenderer;
+	public abstract DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 	public abstract void DisposeDrawNodes ();
 
 	public bool IsDisposed { get; private set; }

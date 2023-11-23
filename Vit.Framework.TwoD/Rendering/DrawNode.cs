@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.TwoD.Rendering;
@@ -47,8 +48,8 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// </summary>
 	/// <param name="subtreeIndex">The subtree index. Can be 0, 1 or 2 as draw node trees are stored in a triple buffer.</param>
 	/// <returns>The up-to-date draw node at the given subtree index.</returns>
-	/// <typeparam name="TRenderer">The type of renderer to specialise the draw node for, if possible.</typeparam>
-	T GetDrawNode<TRenderer> ( int subtreeIndex ) where TRenderer : IRenderer;
+	/// <typeparam name="TSpecialisation">The type of renderer to specialise the draw node for, if possible.</typeparam>
+	T GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 
 	/// <summary>
 	/// [Draw Thread] <br/>
@@ -63,7 +64,7 @@ public interface IHasCompositeDrawNodes<out T> where T : DrawNode {
 	IReadOnlyList<IHasDrawNodes<T>> CompositeDrawNodeSources { get; }
 }
 
-public abstract class CompositeDrawNode<TSource, TNode, TRenderer> : DrawNode where TSource : IHasCompositeDrawNodes<TNode> where TNode : DrawNode where TRenderer : IRenderer {
+public abstract class CompositeDrawNode<TSource, TNode, TSpecialisation> : DrawNode where TSource : IHasCompositeDrawNodes<TNode> where TNode : DrawNode where TSpecialisation : unmanaged, IRendererSpecialisation {
 	protected readonly TSource Source;
 	public CompositeDrawNode ( TSource source, int subtreeIndex ) : base( subtreeIndex ) {
 		Source = source;
@@ -85,7 +86,7 @@ public abstract class CompositeDrawNode<TSource, TNode, TRenderer> : DrawNode wh
 		ChildNodes.Clear();
 		ChildNodes.ReallocateStorage( count );
 		for ( int i = 0; i < count; i++ ) {
-			ChildNodes[i] = Source.CompositeDrawNodeSources[i].GetDrawNode<TRenderer>( SubtreeIndex );
+			ChildNodes[i] = Source.CompositeDrawNodeSources[i].GetDrawNode<TSpecialisation>( SubtreeIndex );
 		}
 	}
 

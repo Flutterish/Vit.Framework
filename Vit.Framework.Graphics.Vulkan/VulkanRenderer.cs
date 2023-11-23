@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Vulkan.Buffers;
 using Vit.Framework.Graphics.Vulkan.Queues;
@@ -161,6 +162,9 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		pipelines.Add( args, pipeline );
 		return pipeline;
 	}
+
+	IRendererSpecialisation IRenderer.Specialisation => Specialisation;
+	public static readonly VulkanRendererSpecialisation Specialisation = default;
 
 	protected override void Dispose ( bool disposing ) {
 		foreach ( var (_, pipeline) in pipelines ) {

@@ -27,7 +27,7 @@ public class Sprite : TexturedQuad {
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );
 	}
 
-	protected override Rendering.DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+	protected override Rendering.DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 

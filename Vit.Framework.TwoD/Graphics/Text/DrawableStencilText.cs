@@ -55,7 +55,7 @@ public class DrawableStencilText : DrawableText {
 		bufferHeap = deps.Resolve<DeviceBufferHeap>();
 	}
 
-	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+	protected override DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 

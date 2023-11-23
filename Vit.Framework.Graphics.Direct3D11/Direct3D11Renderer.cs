@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -221,6 +222,9 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 
 		return value;
 	}
+
+	IRendererSpecialisation IRenderer.Specialisation => Specialisation;
+	public static readonly Direct3D11Specialisation Specialisation = default;
 
 	protected override void Dispose ( bool disposing ) {
 		foreach ( var (_, i) in depthStencilStates ) {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Rendering;

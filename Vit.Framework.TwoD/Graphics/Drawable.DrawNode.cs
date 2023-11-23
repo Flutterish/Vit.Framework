@@ -1,4 +1,4 @@
-﻿using Vit.Framework.Graphics.Rendering;
+﻿using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Rendering;
 
@@ -16,9 +16,9 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 	public Action? DrawNodesInvalidated;
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
-	protected abstract DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) where TRenderer : IRenderer;
-	public DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) where TRenderer : IRenderer {
-		var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TRenderer>( subtreeIndex );
+	protected abstract DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
+	public DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+		var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TSpecialisation>( subtreeIndex );
 		node.Update();
 		return node;
 	}

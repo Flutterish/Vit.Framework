@@ -1,5 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
@@ -85,11 +85,11 @@ public class DrawableBatch<T> : Drawable, IHasCompositeDrawNodes<DrawNode> where
 	}
 
 	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => internalChildren;
-	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
-		return new DrawNode<TRenderer>( this, subtreeIndex );
+	protected override DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
+		return new DrawNode<TSpecialisation>( this, subtreeIndex );
 	}
 
-	public class DrawNode<TRenderer> : CompositeDrawNode<DrawableBatch<T>, Rendering.DrawNode, TRenderer> where TRenderer : IRenderer {
+	public class DrawNode<TSpecialisation> : CompositeDrawNode<DrawableBatch<T>, Rendering.DrawNode, TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
 		public DrawNode ( DrawableBatch<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override bool ValidateChildList () {

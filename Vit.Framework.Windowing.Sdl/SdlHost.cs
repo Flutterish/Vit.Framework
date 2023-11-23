@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Vit.Framework.Graphics.Direct3D11;
 using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Vulkan;
 using Vit.Framework.Input;
 using Vit.Framework.Interop;

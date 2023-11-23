@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Curses;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Input;
 using Vit.Framework.Platform;
 

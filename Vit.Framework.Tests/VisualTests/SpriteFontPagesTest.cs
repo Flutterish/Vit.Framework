@@ -62,7 +62,7 @@ public class SpriteFontPagesTest : TestScene {
 			font = fonts.GetFont( FrameworkUIScheme.EmojiFont );
 		}
 
-		protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+		protected override DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
 			return new DrawNode( this, subtreeIndex );
 		}
 

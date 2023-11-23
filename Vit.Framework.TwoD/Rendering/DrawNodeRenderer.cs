@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Threading.Synchronisation;
 
 namespace Vit.Framework.TwoD.Rendering;
@@ -30,7 +31,7 @@ public class DrawNodeRenderer {
 		action?.Invoke( index );
 	}
 	DrawNode getDrawNode ( IRenderer renderer, int index ) {
-		var type = renderer.GetType();
+		var type = renderer.Specialisation.GetType();
 		if ( specialisationCache.TryGetValue( type, out var func ) ) {
 			return func( Root, index );
 		}
@@ -44,8 +45,8 @@ public class DrawNodeRenderer {
 		return func( Root, index );
 	}
 
-	static DrawNode getSpecialisedDrawNode<TRenderer> ( IHasDrawNodes<DrawNode> root, int index ) where TRenderer :IRenderer {
-		return root.GetDrawNode<TRenderer>( index );
+	static DrawNode getSpecialisedDrawNode<TSpecialisation> ( IHasDrawNodes<DrawNode> root, int index ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+		return root.GetDrawNode<TSpecialisation>( index );
 	}
 
 	public void Draw ( ICommandBuffer commands, Action<int>? action = null ) {

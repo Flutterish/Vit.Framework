@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
@@ -257,13 +258,13 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
-	public override Rendering.DrawNode GetDrawNode<TRenderer> ( int subtreeIndex ) {
+	public override Rendering.DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) {
 		if ( internalChildren.Count == 1 && !isMaskingActive ) {
 			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
-			return internalChildren[0].GetDrawNode<TRenderer>( subtreeIndex );
+			return internalChildren[0].GetDrawNode<TSpecialisation>( subtreeIndex );
 		}
 
-		var node = drawNodes[subtreeIndex] ??= new DrawNode<TRenderer>( this, subtreeIndex );
+		var node = drawNodes[subtreeIndex] ??= new DrawNode<TSpecialisation>( this, subtreeIndex );
 		node.Update();
 		return node;
 	}
@@ -275,7 +276,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	MaskingDataBuffer maskingData = null!;
-	public class DrawNode<TRenderer> : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode, TRenderer> where TRenderer : IRenderer {
+	public class DrawNode<TSpecialisation> : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode, TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
 		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override bool ValidateChildList () {

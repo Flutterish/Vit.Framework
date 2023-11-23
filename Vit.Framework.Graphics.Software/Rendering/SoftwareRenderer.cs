@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Software.Buffers;
 using Vit.Framework.Graphics.Software.Shaders;
@@ -86,4 +87,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
 		throw new NotImplementedException();
 	}
+
+	IRendererSpecialisation IRenderer.Specialisation => Specialisation;
+	public static readonly StandardFeatureLevelSpecialisation Specialisation = default;
 }

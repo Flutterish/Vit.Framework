@@ -7,6 +7,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -82,6 +83,9 @@ public class GlRenderer : IRenderer {
 	public IImmediateCommandBuffer CreateImmediateCommandBuffer () {
 		return new GlImmediateCommandBuffer( this ); // TODO instead of creating a new one, we can pool them
 	}
+
+	IRendererSpecialisation IRenderer.Specialisation => Specialisation;
+	public static readonly GlRendererSpecialisation Specialisation = default;
 
 	public void Dispose () {
 		

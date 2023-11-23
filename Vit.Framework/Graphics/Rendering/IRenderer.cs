@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
+using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -56,6 +57,8 @@ public interface IRenderer : IDisposable {
 	IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer (); // TODO currently all implementations behave as if the commands finished when disposed. this will not be true in the future
+
+	IRendererSpecialisation Specialisation { get; }
 }
 
 public static class IRendererExtensions {

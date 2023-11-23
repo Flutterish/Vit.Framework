@@ -34,7 +34,7 @@ public partial class DrawableSpriteText : DrawableText {
 		}
 	}
 
-	protected override DrawNode CreateDrawNode<TRenderer> ( int subtreeIndex ) {
+	protected override DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
 		return new DrawNode( this, subtreeIndex );
 	}
 
