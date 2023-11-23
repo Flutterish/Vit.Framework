@@ -12,7 +12,7 @@ namespace Vit.Framework.Tests.VisualTests;
 public class LayoutAnimationTest : TestScene {
 	public LayoutAnimationTest () {
 		Box box;
-		AddChild( box = new() { Tint = ColorRgba.Green }, new() {
+		AddChild( box = new() { Tint = ColorRgb.Green }, new() {
 			Size = (200, 200),
 			Anchor = Anchor.TopLeft,
 			Origin = Anchor.TopLeft

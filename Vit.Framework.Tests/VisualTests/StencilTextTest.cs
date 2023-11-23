@@ -9,7 +9,7 @@ public class StencilTextTest : TestScene {
 	Box sizeBox;
 
 	public StencilTextTest () {
-		AddChild( sizeBox = new() { Tint = ColorRgba.Green }, new() {
+		AddChild( sizeBox = new() { Tint = ColorRgb.Green }, new() {
 			Anchor = Anchor.BottomRight,
 			Origin = Anchor.BottomRight
 		} );

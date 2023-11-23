@@ -10,32 +10,32 @@ using Vit.Framework.TwoD.UI.Graphics;
 namespace Vit.Framework.TwoD.UI.Input;
 
 public class BasicButton : Button {
-	ColorRgba<float> hoverColour = FrameworkUIScheme.ElementHovered;
-	ColorRgba<float> backgroundColour = FrameworkUIScheme.Element;
-	ColorRgba<float> pressedColour = FrameworkUIScheme.ElementPressed;
-	ColorRgba<float> flashColour = FrameworkUIScheme.ElementFlash;
-	public ColorRgba<float> HoverColour {
+	ColorRgb<float> hoverColour = FrameworkUIScheme.ElementHovered;
+	ColorRgb<float> backgroundColour = FrameworkUIScheme.Element;
+	ColorRgb<float> pressedColour = FrameworkUIScheme.ElementPressed;
+	ColorRgb<float> flashColour = FrameworkUIScheme.ElementFlash;
+	public ColorRgb<float> HoverColour {
 		get => hoverColour;
 		set {
 			if ( value.TrySet( ref hoverColour ) )
 				OnStateChanged( State );
 		}
 	}
-	public ColorRgba<float> BackgroundColour {
+	public ColorRgb<float> BackgroundColour {
 		get => backgroundColour;
 		set {
 			if ( value.TrySet( ref backgroundColour ) )
 				OnStateChanged( State );
 		}
 	}
-	public ColorRgba<float> PressedColour {
+	public ColorRgb<float> PressedColour {
 		get => pressedColour;
 		set {
 			if ( value.TrySet( ref pressedColour ) )
 				OnStateChanged( State );
 		}
 	}
-	public ColorRgba<float> FlashColour {
+	public ColorRgb<float> FlashColour {
 		get => flashColour;
 		set {
 			if ( value.TrySet( ref flashColour ) )

@@ -16,10 +16,10 @@ public class TimelineTest : TestScene {
 	public TimelineTest () {
 		Padding = new( all: 10 );
 		void entered ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FlashColour( ColorRgba.HotPink, ColorRgba.Red, 200.Millis(), Easing.Out );
+			v.Value.Animate().FlashColour( ColorRgb.HotPink, ColorRgb.Red, 200.Millis(), Easing.Out );
 		}
 		void exited ( Timeline<EventBox>.Event v ) {
-			v.Value.Animate().FadeColour( ColorRgba.Blue, 400.Millis() );
+			v.Value.Animate().FadeColour( ColorRgb.Blue, 400.Millis() );
 		}
 
 		timeline.EventStarted = entered;
@@ -53,7 +53,7 @@ public class TimelineTest : TestScene {
 	void Add ( double start, double end ) {
 		var events = timeline.EventsBetween( start, end );
 		var y = events.Any() ? events.Max( x => x.Value.TimelineY ) : 0;
-		var box = new EventBox() { Tint = ColorRgba.Gray, TimelineY = y + 1 };
+		var box = new EventBox() { Tint = ColorRgb.Gray, TimelineY = y + 1 };
 
 		AddChild( box, new() {
 			Origin = Anchor.TopLeft,
@@ -65,7 +65,7 @@ public class TimelineTest : TestScene {
 	}
 
 	void AddButton ( double time ) {
-		AddChild( new Box { Tint = ColorRgba.Yellow }, new() {
+		AddChild( new Box { Tint = ColorRgb.Yellow }, new() {
 			Size = new( 2, 1f.Relative() ),
 			Origin = Anchor.BottomCentre,
 			Anchor = Anchor<float>.BottomLeft + new RelativeAxes2<float>( ((float)time).Relative(), 0 )

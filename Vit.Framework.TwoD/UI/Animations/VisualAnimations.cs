@@ -4,25 +4,6 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.UI.Animations;
 
-public class AlphaTintAnimation : Animation<IHasAlphaTint, ColorRgba<float>> {
-	public AlphaTintAnimation ( IHasAlphaTint target, ColorRgba<float> endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) { }
-
-	protected override ColorRgba<float> GetValue () {
-		return Target.Tint;
-	}
-
-	public override void SetValue ( ColorRgba<float> value ) {
-		Target.Tint = value;
-	}
-
-	public override ColorRgba<float> Interpolate ( ColorRgba<float> from, ColorRgba<float> to, double t ) {
-		return from.Interpolate( to, (float)t );
-	}
-
-	static readonly IReadOnlyList<AnimationDomain> domains = new[] { IHasTint.AnimationDomain, IHasAlpha.AnimationDomain };
-	public override IReadOnlyList<AnimationDomain> Domains => domains;
-}
-
 public class TintAnimation : Animation<IHasTint, ColorRgb<float>> {
 	public TintAnimation ( IHasTint target, ColorRgb<float> endValue, Millis startTime, Millis endTime, EasingFunction easing ) : base( target, endValue, startTime, endTime, easing ) { }
 
@@ -73,10 +54,5 @@ public static class VisualAnimations {
 	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgb<float> tint, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasTint
 		=> sequence.Add( new TintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
 	public static AnimationSequence<T> FlashColour<T> ( this AnimationSequence<T> sequence, ColorRgb<float> flashTint, ColorRgb<float> tint, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasTint
-		=> sequence.FadeColour( flashTint, 0.Millis() ).Then().FadeColour( tint, duration, easing );
-
-	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> tint, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasAlphaTint
-		=> sequence.Add( new AlphaTintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
-	public static AnimationSequence<T> FlashColour<T> ( this AnimationSequence<T> sequence, ColorRgba<float> flashTint, ColorRgba<float> tint, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasAlphaTint
 		=> sequence.FadeColour( flashTint, 0.Millis() ).Then().FadeColour( tint, duration, easing );
 }

@@ -16,11 +16,20 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.TextVertex.Vertex;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public partial class DrawableSpriteText : DrawableText {
-	ColorRgba<float> tint = ColorRgba.Black;
-	public ColorRgba<float> Tint {
+	ColorRgb<float> tint = ColorRgb.Black;
+	public ColorRgb<float> Tint {
 		get => tint;
 		set {
 			if ( value.TrySet( ref tint ) )
+				InvalidateDrawNodes();
+		}
+	}
+
+	float alpha = 1f;
+	public float Alpha {
+		get => alpha;
+		set {
+			if ( value.TrySet( ref alpha ) )
 				InvalidateDrawNodes();
 		}
 	}
@@ -74,7 +83,7 @@ public partial class DrawableSpriteText : DrawableText {
 
 		protected override void UpdateState () {
 			base.UpdateState();
-			tint = Source.Tint.ToSRgb();
+			tint = Source.Tint.WithOpacity( Source.Alpha ).ToSRgb();
 		}
 
 		unsafe void updateTextMesh ( IRenderer renderer ) {

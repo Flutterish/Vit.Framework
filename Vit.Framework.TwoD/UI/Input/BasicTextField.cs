@@ -77,10 +77,10 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 
 	public BasicTextField () {
 		AutoSizeDirection = LayoutDirection.Both;
-		AddChild( new Box { Tint = ColorRgba.YellowGreen }, new() {
+		AddChild( new Box { Tint = ColorRgb.YellowGreen }, new() {
 			Size = new(1f.Relative())
 		} );
-		AddChild( selectionBox = new Box { Tint = ColorRgba.LightBlue }, new() {
+		AddChild( selectionBox = new Box { Tint = ColorRgb.LightBlue }, new() {
 			Origin = Anchor.BottomLeft,
 			Anchor = Anchor.BottomLeft,
 			IngoreAutosize = LayoutDirection.Both

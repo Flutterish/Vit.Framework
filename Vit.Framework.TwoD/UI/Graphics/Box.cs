@@ -6,12 +6,16 @@ using Vit.Framework.TwoD.UI.Input.Events;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
-public class Box : Visual<Sprite>, IHandlesPositionalInput, IHasAlphaTint {
+public class Box : Visual<Sprite>, IHandlesPositionalInput, IHasPremultipliedTint {
 	public Box () : base( new() ) { }
 
-	public ColorRgba<float> Tint {
+	public ColorRgb<float> Tint {
 		get => Displayed.Tint;
 		set => Displayed.Tint = value;
+	}
+	public float Alpha {
+		get => Displayed.Alpha;
+		set => Displayed.Alpha = value;
 	}
 
 	public Texture Texture {

@@ -73,7 +73,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ), Dependencies.Resolve<ShaderStore>() ) );
 		Dependencies.Cache( new LocalisationStore() );
 
-		Root.AddChild( new Box() { Tint = ColorRgba.DarkGray }, new() {
+		Root.AddChild( new Box() { Tint = ColorRgb.DarkGray }, new() {
 			Size = new( 1f.Relative() )
 		} );
 		var _instance = Activator.CreateInstance( type );
@@ -126,7 +126,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 			inputTrackers.Update( detected => {
 				if ( detected is CursorState.Tracker cursor ) {
-					var visual = new Visual<Sprite>( new() { Tint = ColorRgba.HotPink } );
+					var visual = new Visual<Sprite>( new() { Tint = ColorRgb.HotPink } );
 					cursors.Add( cursor, visual );
 					Root.AddChild( visual, new() {
 						Size = new( 18 ),
@@ -180,10 +180,10 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			var pos = Root.ScreenSpaceToLocalSpace( cursorTracker.State.ScreenSpacePosition );
 			Root.UpdateLayoutParameters( cursor, x => x with { Anchor = pos - new Vector2<float>( Root.Padding.Left, Root.Padding.Bottom ) } );
 			cursor.Displayed.Tint = cursorTracker.State.IsDown( CursorButton.Left )
-				? ColorRgba.Red
+				? ColorRgb.Red
 				: cursorTracker.State.IsDown( CursorButton.Right )
-				? ColorRgba.Blue
-				: ColorRgba.HotPink;
+				? ColorRgb.Blue
+				: ColorRgb.HotPink;
 
 			onInputEventEmitted( src, e );
 		}

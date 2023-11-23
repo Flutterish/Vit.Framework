@@ -17,15 +17,21 @@ public abstract partial class TexturedQuad : Drawable {
 		drawDependencies = deps.Resolve<DrawDependencies>();
 	}
 
-	ColorRgba<float> tint = ColorRgba.White;
-	public ColorRgba<float> Tint {
+	ColorRgb<float> tint = ColorRgb.White;
+	public ColorRgb<float> Tint {
 		get => tint;
 		set {
-			if ( tint == value )
-				return;
+			if ( value.TrySet( ref tint ) )
+				InvalidateDrawNodes();
+		}
+	}
 
-			tint = value;
-			InvalidateDrawNodes();
+	float alpha = 1f;
+	public float Alpha {
+		get => alpha;
+		set {
+			if ( value.TrySet( ref alpha ) )
+				InvalidateDrawNodes();
 		}
 	}
 
@@ -50,7 +56,7 @@ public abstract partial class TexturedQuad : Drawable {
 		ColorSRgba<float> tint;
 		protected override void UpdateState () {
 			base.UpdateState();
-			tint = Source.tint.ToSRgb();
+			tint = Source.tint.WithOpacity( Source.alpha ).ToSRgb();
 		}
 
 		void initializeSharedData () {

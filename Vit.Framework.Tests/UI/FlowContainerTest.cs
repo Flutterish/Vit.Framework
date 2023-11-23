@@ -13,13 +13,13 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 	const float padding = 50;
 
 	public FlowContainerTest () {
-		AddChild( new Box { Tint = ColorRgba.Blue }, new() {
+		AddChild( new Box { Tint = ColorRgb.Blue }, new() {
 			Size = new( 1f.Relative() )
 		} );
 		AddChild( new LayoutContainer {
 			Padding = new( padding ),
 			LayoutChildren = new (UIComponent, LayoutParams)[] {
-				(new Box { Tint = ColorRgba.Green }, new() { Size = new( 1f.Relative() ) })
+				(new Box { Tint = ColorRgb.Green }, new() { Size = new( 1f.Relative() ) })
 			}
 		}, new() {
 			Size = new( 1f.Relative() )
@@ -42,8 +42,8 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 			container.AddChild( new LayoutContainer<Visual<Sprite>> {
 				Padding = new( -margin ),
 				LayoutChildren = new (Visual<Sprite>, LayoutParams)[] {
-					(new Box { Tint = ColorRgba.White }, new() { Size = new( 1f.Relative() ) }),
-					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba( 1 ) }, new() {
+					(new Box { Tint = ColorRgb.White }, new() { Size = new( 1f.Relative() ) }),
+					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgb() }, new() {
 						Origin = Anchor.Centre,
 						Anchor = Anchor.Centre,
 						Size = new( (i + 1) * 10 )
@@ -71,7 +71,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 
 		for ( int i = 0; i < 30; i++ ) {
 			container.AddChild( new Box {
-				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgba( 1 )
+				Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgb()
 			}, new() {
 				Margins = new( margin ),
 				Size = new() {

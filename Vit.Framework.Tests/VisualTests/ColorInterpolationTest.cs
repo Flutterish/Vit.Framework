@@ -6,28 +6,28 @@ namespace Vit.Framework.Tests.VisualTests;
 
 public class ColorInterpolationTest : TestScene {
 	public ColorInterpolationTest () {
-		var red = new ColorRgba<float>( 1f, 0, 0, 1f );
-		var green = new ColorRgba<float>( 0, 1f, 0, 1f );
-		var blue = new ColorRgba<float>( 0, 0, 1f, 1f );
+		var red = new ColorRgb<float>( 1f, 0, 0 );
+		var green = new ColorRgb<float>( 0, 1f, 0 );
+		var blue = new ColorRgb<float>( 0, 0, 1f );
 
-		var antiRed = new ColorRgba<float>( 0, 1f, 1f, 1f );
-		var antiGreen = new ColorRgba<float>( 1f, 0, 1f, 1f );
-		var antiBlue = new ColorRgba<float>( 1f, 1f, 0, 1f );
+		var antiRed = new ColorRgb<float>( 0, 1f, 1f );
+		var antiGreen = new ColorRgb<float>( 1f, 0, 1f );
+		var antiBlue = new ColorRgb<float>( 1f, 1f, 0 );
 
-		var tests = new (ColorRgba<float> start, ColorRgba<float> end)[] {
-			(ColorRgba.White, ColorRgba.Black),
+		var tests = new (ColorRgb<float> start, ColorRgb<float> end)[] {
+			(ColorRgb.White, ColorRgb.Black),
 			(red, blue),
 			(blue, green),
 			(green, red),
 			(antiRed, antiBlue),
 			(antiBlue, antiGreen),
 			(antiGreen, antiRed),
-			(ColorRgba.White, red),
-			(ColorRgba.White, green),
-			(ColorRgba.White, blue),
-			(ColorRgba.Black, red),
-			(ColorRgba.Black, green),
-			(ColorRgba.Black, blue)
+			(ColorRgb.White, red),
+			(ColorRgb.White, green),
+			(ColorRgb.White, blue),
+			(ColorRgb.Black, red),
+			(ColorRgb.Black, green),
+			(ColorRgb.Black, blue)
 		};
 
 		var steps = 50;

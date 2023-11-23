@@ -44,12 +44,12 @@ public class BasicTabVisualizer : CompositeUIComponent {
 	class BoxCursor : LayoutContainer {
 		public BoxCursor () {
 			foreach ( var anchor in new[] { Anchor.TopRight, Anchor.TopLeft, Anchor.BottomRight, Anchor.BottomLeft } ) {
-				AddChild( new Box { Tint = ColorRgba.HotPink }, new() {
+				AddChild( new Box { Tint = ColorRgb.HotPink }, new() {
 					Size = (20, 14),
 					Anchor = anchor,
 					Origin = anchor
 				} );
-				AddChild( new Box { Tint = ColorRgba.HotPink }, new() {
+				AddChild( new Box { Tint = ColorRgb.HotPink }, new() {
 					Size = (14, 20),
 					Anchor = anchor,
 					Origin = anchor

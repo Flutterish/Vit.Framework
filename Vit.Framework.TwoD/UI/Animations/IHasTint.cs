@@ -3,10 +3,12 @@ using Vit.Framework.Graphics.Animations;
 
 namespace Vit.Framework.TwoD.UI.Animations;
 
-public interface IHasAlphaTint : IHasAlpha, IHasTint {
-	new ColorRgba<float> Tint { get; set; }
-	ColorRgb<float> IHasTint.Tint { get => Tint.GetRgb(); set => Tint = Tint.WithRgb( value ); }
-	float IHasAlpha.Alpha { get => Tint.A; set => Tint = Tint.WithOpacity( value ); }
+public interface IHasPremultipliedTint : IHasAlpha, IHasTint { }
+
+public static class IHasPremultipliedTintExtensions {
+	public static ColorRgba<float> GetPremultipliedTint<T> ( this T self ) where T : IHasTint, IHasAlpha {
+		return self.Tint.WithOpacity( self.Alpha );
+	}
 }
 
 public interface IHasTint {
