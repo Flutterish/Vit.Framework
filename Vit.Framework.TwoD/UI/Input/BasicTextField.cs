@@ -83,7 +83,7 @@ public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction
 		AddChild( selectionBox = new Box { Tint = ColorRgb.LightBlue }, new() {
 			Origin = Anchor.BottomLeft,
 			Anchor = Anchor.BottomLeft,
-			IngoreAutosize = LayoutDirection.Both
+			IgnoreAutosize = LayoutDirection.Both
 		} );
 		AddChild( spriteText = new() { FontSize = 32 }, new() {
 			Size = (20, 0),

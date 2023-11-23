@@ -117,4 +117,8 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 			} );
 		};
 	}
+
+	protected void SwitchBackend () {
+
+	}
 }

@@ -37,12 +37,19 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		this.type = type;
 	}
 
+	KnownGraphicsApiName targetBackend = KnownGraphicsApiName.Vulkan;
+	public void SwitchBackends ( KnownGraphicsApiName backend ) {
+		targetBackend = backend;
+
+		SwitchBackend();
+	}
+
 	protected override Host GetHost () {
 		return new SdlHost( primaryApp: this );
 	}
 
 	protected override GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available ) {
-		return available.First( x => x.KnownName == KnownGraphicsApiName.Vulkan );
+		return available.First( x => x.KnownName == targetBackend );
 	}
 
 	protected override ViewportContainer<UIComponent> CreateRoot () {
@@ -72,6 +79,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		Dependencies.Cache( new StencilFontStore() );
 		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ), Dependencies.Resolve<ShaderStore>() ) );
 		Dependencies.Cache( new LocalisationStore() );
+		Dependencies.Cache( this );
 
 		Root.AddChild( new Box() { Tint = ColorRgb.DarkGray }, new() {
 			Size = new( 1f.Relative() )

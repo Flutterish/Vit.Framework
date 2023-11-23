@@ -47,9 +47,9 @@ public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> w
 		foreach ( var (i, param) in LayoutChildren ) {
 			var childSize = param.Size.GetSize( size ).Contain( i.RequiredSize );
 
-			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) && !param.IngoreAutosize.HasFlag( LayoutDirection.Horizontal ) ) 
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Horizontal ) && !param.IgnoreAutosize.HasFlag( LayoutDirection.Horizontal ) ) 
 				result.Width = float.Max( result.Width, childSize.Width );
-			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) && !param.IngoreAutosize.HasFlag( LayoutDirection.Vertical ) ) 
+			if ( AutoSizeDirection.HasFlag( LayoutDirection.Vertical ) && !param.IgnoreAutosize.HasFlag( LayoutDirection.Vertical ) ) 
 				result.Height = float.Max( result.Height, childSize.Height );
 		}
 
@@ -77,14 +77,14 @@ public struct LayoutParams : IInterpolatable<LayoutParams, float> {
 	/// <summary>
 	/// The directions to ignore autosize for this element.
 	/// </summary>
-	public LayoutDirection IngoreAutosize;
+	public LayoutDirection IgnoreAutosize;
 
 	public LayoutParams Lerp ( LayoutParams goal, float time ) {
 		return new() {
 			Size = Size.Lerp( goal.Size, time ),
 			Origin = Origin.Lerp( goal.Origin, time ),
 			Anchor = Anchor.Lerp( goal.Anchor, time ),
-			IngoreAutosize = goal.IngoreAutosize
+			IgnoreAutosize = goal.IgnoreAutosize
 		};
 	}
 }

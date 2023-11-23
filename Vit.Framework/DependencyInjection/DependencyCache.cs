@@ -32,7 +32,7 @@ public interface IDependencyCache : IReadOnlyDependencyCache {
 	void Cache ( object? value, DependencyIdentifier identifier );
 }
 
-public interface IReadOnlyDependencyCache {
+public interface IReadOnlyDependencyCache { // TODO a TryResolve
 	object? Resolve ( DependencyIdentifier identifier );
 }
 
