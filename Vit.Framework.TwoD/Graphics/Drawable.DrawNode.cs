@@ -31,10 +31,6 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 		}
 	}
 
-	public void DisposeDrawNodeSubtree () {
-		DisposeDrawNodes();
-	}
-
 	public abstract class DrawableDrawNode<T> : DrawNode where T : Drawable {
 		protected readonly T Source;
 		protected DrawableDrawNode ( T source, int subtreeIndex ) : base( subtreeIndex ) {

@@ -58,7 +58,7 @@ public partial class DrawableSpriteText : DrawableText {
 		}
 		if ( batches.Count != 0 ) {
 			clearBatches();
-		}	
+		}
 	}
 
 	struct PageBatch {

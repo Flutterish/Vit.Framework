@@ -263,20 +263,17 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 
 	public abstract DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 	public abstract void DisposeDrawNodes ();
-	public virtual void DisposeDrawNodeSubtree () {
-		DisposeDrawNodes();
-	}
 
 	public bool IsDisposed { get; private set; }
-	public void Dispose () {
+	public void Dispose ( RenderThreadScheduler disposeScheduler ) {
 		if ( IsDisposed )
 			return;
 
+		disposeScheduler.ScheduleDrawNodeDisposal( this );
 		IsDisposed = true;
+
 		Unload();
-		OnDispose();
 	}
-	protected virtual void OnDispose () { }
 	#endregion
 	#region Events
 	static Dictionary<Type, EventTree<UIComponent>> nullEventTree = new();
@@ -353,7 +350,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	#endregion
 }
 
-public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput, IDisposable {
+public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput {
 	new ICompositeUIComponent<UIComponent>? Parent { get; }
 	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
 	/// <summary>
@@ -384,4 +381,11 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 	/// and the top right corner in global space is mapped to (width,height).
 	/// </summary>
 	Matrix3<float> GlobalToUnitMatrix { get; }
+
+	/// <summary>
+	/// <inheritdoc cref="IDisposable.Dispose"/>
+	/// </summary>
+	/// <remarks>After disposing a component, you must ensure that it nor its children are accessed from the update thread.</remarks>
+	/// <param name="disposeScheduler">The scheduler that will perform batch disposal of draw nodes.</param>
+	void Dispose ( RenderThreadScheduler disposeScheduler );
 }

@@ -134,7 +134,7 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		void disposeGraphics () {
 			MainRenderThread.Renderer.WaitIdle();
 
-			Root.DisposeDrawNodeSubtree();
+			Root.DisposeDrawNodes();
 			MainRenderThread.DisposeRenderer();
 
 			performGcCheck();

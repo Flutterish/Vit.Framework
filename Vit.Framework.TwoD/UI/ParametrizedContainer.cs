@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics;
+using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Masking;
 
 namespace Vit.Framework.TwoD.UI;
@@ -19,8 +20,7 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 				yield return (i, parameters[i.Depth]);
 			}
 		}
-		set {
-			ClearChildren( dispose: true );
+		init {
 			foreach ( var (child, param) in value ) {
 				AddChild( child, param );
 			}
@@ -86,9 +86,13 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 		OnChildParameterUpdated( child, param, null );
 	}
 
-	public void ClearChildren ( bool dispose ) {
+	public void ClearChildren () {
 		parameters.Clear();
-		ClearInternalChildren( dispose );
+		ClearInternalChildren();
+	}
+
+	public void DisposeChildren ( RenderThreadScheduler disposeScheduler ) {
+		DisposeInternalChildren( disposeScheduler );
 	}
 
 	/// <inheritdoc cref="CompositeUIComponent{T}.IsMaskingActive"/>

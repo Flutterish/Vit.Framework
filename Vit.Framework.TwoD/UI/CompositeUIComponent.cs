@@ -15,8 +15,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children {
 		get => internalChildren;
-		protected set {
-			ClearInternalChildren( dispose: true );
+		init {
 			foreach ( var i in value )
 				AddInternalChild( i );
 		}
@@ -127,12 +126,17 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		onChildRemoved( child );
 	}
 
-	protected void ClearInternalChildren ( bool dispose ) {
-		while ( internalChildren.Any() ) {
+	protected void ClearInternalChildren () {
+		while ( internalChildren.Count != 0 ) {
+			RemoveInternalChildAt( internalChildren.Count - 1 );
+		}
+	}
+
+	protected void DisposeInternalChildren ( RenderThreadScheduler disposeScheduler ) {
+		while ( internalChildren.Count != 0 ) {
 			var child = internalChildren[^1];
 			RemoveInternalChildAt( internalChildren.Count - 1 );
-			if ( dispose )
-				child.Dispose();
+			child.Dispose( disposeScheduler );
 		}
 	}
 
@@ -187,10 +191,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		return parent;
 	}
 
-	protected RenderThreadScheduler RenderThreadScheduler { get; private set; } = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		base.OnLoad( dependencies );
-		RenderThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
 		maskingData = dependencies.Resolve<MaskingDataBuffer>();
 		Dependencies = CreateDependencies( dependencies );
 		foreach ( var i in internalChildren ) {
@@ -213,14 +215,6 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		foreach ( var i in internalChildren ) {
 			i.Update();
 		}
-	}
-
-	protected override void OnDispose () {
-		RenderThreadScheduler.ScheduleDrawNodeDisposal( this ); // TODO do we need this? supposedly drawables already have this
-		foreach ( var i in internalChildren.Reverse<T>() ) {
-			i.Dispose();
-		}
-		base.OnDispose();
 	}
 
 	protected override void OnMatrixInvalidated () {
@@ -275,12 +269,9 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			drawNodes[i]?.Dispose();
 			drawNodes[i] = null;
 		}
-	}
 
-	public override void DisposeDrawNodeSubtree () {
-		DisposeDrawNodes();
 		foreach ( var i in Children ) {
-			i.DisposeDrawNodeSubtree();
+			i.DisposeDrawNodes();
 		}
 	}
 

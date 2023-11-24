@@ -7,10 +7,9 @@ namespace Vit.Framework.TwoD.Graphics;
 /// <summary>
 /// An object containing state and computations required for drawing a specific thing. It creates up to 3 subtrees of <see cref="DrawNode"/>s for use in a triple-buffer.
 /// </summary>
-public abstract partial class Drawable : IDisposable {
+public abstract partial class Drawable {
 	public bool IsLoaded { get; private set; }
 
-	protected RenderThreadScheduler DrawThreadScheduler { get; private set; } = null!;
 	public void Load ( IReadOnlyDependencyCache dependencies ) {
 		if ( IsLoaded )
 			return;
@@ -18,9 +17,7 @@ public abstract partial class Drawable : IDisposable {
 		OnLoad( dependencies );
 		IsLoaded = true;
 	}
-	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) {
-		DrawThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
-	}
+	protected virtual void OnLoad ( IReadOnlyDependencyCache dependencies ) { }
 
 	public void Unload () {
 		if ( !IsLoaded )
@@ -41,8 +38,11 @@ public abstract partial class Drawable : IDisposable {
 	}
 
 	public bool IsDisposed { get; private set; }
-	public virtual void Dispose () {
-		DrawThreadScheduler.ScheduleDrawNodeDisposal( this );
+	public void Dispose ( RenderThreadScheduler disposeScheduler ) {
+		if ( IsDisposed )
+			return;
+
+		disposeScheduler.ScheduleDrawNodeDisposal( this );
 		IsDisposed = true;
 	}
 }

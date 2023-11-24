@@ -136,9 +136,9 @@ public abstract class DrawableText : Drawable {
 		textLayoutInvalidations.Invalidate();
 	}
 
-	public override void Dispose () {
+	protected override void OnUnload () {
 		layout.Dispose();
-		base.Dispose();
+		base.OnUnload();
 	}
 
 	public abstract class TextDrawNode<TSource> : DrawableDrawNode<TSource> where TSource : DrawableText {

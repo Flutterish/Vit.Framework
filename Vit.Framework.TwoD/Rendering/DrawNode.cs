@@ -53,21 +53,12 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 
 	/// <summary>
 	/// [Draw Thread] <br/>
-	/// Disposes of owned draw nodes and any shared data.
-	/// </summary>
-	/// <remarks>
-	/// While this call is in progress, the update thread either does not have access to this component or is suspended.
-	/// </remarks>
-	void DisposeDrawNodes ();
-
-	/// <summary>
-	/// [Draw Thread] <br/>
 	/// Disposes of own draw nodes and any shared data, and that of any owned <see cref="IHasDrawNodes{T}"/>.
 	/// </summary>
 	/// <remarks>
 	/// While this call is in progress, the update thread either does not have access to this component or is suspended.
 	/// </remarks>
-	void DisposeDrawNodeSubtree (); // TODO since we now have this call, we can batch disposals. Given that dispoals only happen from specific points, we can remove the renderThreadScheduler dependency from most components by parametrizing the dispose method
+	void DisposeDrawNodes ();
 
 	bool IsDisposed { get; }
 }

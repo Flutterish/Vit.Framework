@@ -1,4 +1,7 @@
-﻿using Vit.Framework.TwoD.Layout;
+﻿using System.Reflection;
+using Vit.Framework.DependencyInjection;
+using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Input;
 using Vit.Framework.TwoD.UI.Layout;
@@ -9,12 +12,13 @@ public class VisualTestRunner : Flexbox {
 	LayoutContainer testArea;
 	FlowContainer sidebar;
 
+	TypeInfo[] tests;
 	public VisualTestRunner () {
 		ContentAlignment = Anchor.TopLeft;
 		FlowDirection = FlowDirection.Right;
 		LineJustification = LineJustification.Stretch;
 
-		var tests = typeof(VisualTestRunner).Assembly.DefinedTypes.Where( x => !x.IsAbstract && x.IsAssignableTo( typeof(TestScene) ) ).ToArray();
+		tests = typeof(VisualTestRunner).Assembly.DefinedTypes.Where( x => !x.IsAbstract && x.IsAssignableTo( typeof(TestScene) ) ).ToArray();
 
 		AddChild( sidebar = new FlowContainer {
 			ContentAlignment = Anchor.TopLeft,
@@ -41,11 +45,18 @@ public class VisualTestRunner : Flexbox {
 			} );
 		}
 
+	}
+
+	RenderThreadScheduler RenderThreadScheduler = null!;
+	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
+		RenderThreadScheduler = dependencies.Resolve<RenderThreadScheduler>();
+		base.OnLoad( dependencies );
+
 		runTest( tests[0] );
 	}
 
 	void runTest ( Type type ) {
-		testArea.ClearChildren( dispose: true );
+		testArea.DisposeChildren( RenderThreadScheduler );
 		var instance = Activator.CreateInstance( type )!;
 
 		testArea.AddChild( (UIComponent)instance, new() {

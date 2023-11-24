@@ -1,4 +1,5 @@
 ﻿using Vit.Framework.Mathematics;
+using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Masking;
 
 namespace Vit.Framework.TwoD.UI;
@@ -6,7 +7,7 @@ namespace Vit.Framework.TwoD.UI;
 public class Container<T> : CompositeUIComponent<T> where T : UIComponent {
 	new public IReadOnlyList<T> Children {
 		get => base.Children;
-		set => base.Children = value;
+		init => base.Children = value;
 	}
 
 	public void AddChild ( T child ) {
@@ -23,8 +24,12 @@ public class Container<T> : CompositeUIComponent<T> where T : UIComponent {
 		RemoveInternalChildAt( index );
 	}
 
-	public void ClearChildren ( bool dispose ) {
-		ClearInternalChildren( dispose );
+	public void ClearChildren () {
+		ClearInternalChildren();
+	}
+
+	public void DisposeChildren ( RenderThreadScheduler disposeScheduler ) {
+		DisposeInternalChildren( disposeScheduler );
 	}
 
 	/// <inheritdoc cref="CompositeUIComponent{T}.IsMaskingActive"/>
