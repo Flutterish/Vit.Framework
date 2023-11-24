@@ -92,8 +92,8 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new StagingImage( Device, size, format );
 	}
 
-	public ISampler CreateSampler () {
-		return new Sampler( Device, 0 );
+	public ISampler CreateSampler ( SamplerDescription description ) {
+		return new Sampler( Device, description );
 	}
 
 	public unsafe IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {

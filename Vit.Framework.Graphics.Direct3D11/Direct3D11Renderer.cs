@@ -96,8 +96,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 		return new Texture2D( Device, size, format, isStaging: true );
 	}
 
-	public ISampler CreateSampler () {
-		return new SamplerState( Device );
+	public ISampler CreateSampler ( Graphics.Rendering.Textures.SamplerDescription description ) {
+		return new SamplerState( Device, description );
 	}
 
 	public IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {

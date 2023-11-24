@@ -64,7 +64,7 @@ public abstract class SoftwareRenderer : DisposableObject, IRenderer {
 	public IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format ) {
 		return (IStagingTexture2D)CreateDeviceTexture( size, format );
 	}
-	public ISampler CreateSampler () {
+	public ISampler CreateSampler ( SamplerDescription description ) {
 		return new Sampler();
 	}
 	public IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {

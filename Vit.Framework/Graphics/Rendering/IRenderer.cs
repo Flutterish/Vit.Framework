@@ -53,7 +53,7 @@ public interface IRenderer : IDisposable {
 
 	IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format );
 	IStagingTexture2D CreateStagingTexture ( Size2<uint> size, PixelFormat format );
-	ISampler CreateSampler ();
+	ISampler CreateSampler ( SamplerDescription description );
 	IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null );
 
 	IImmediateCommandBuffer CreateImmediateCommandBuffer (); // TODO currently all implementations behave as if the commands finished when disposed. this will not be true in the future
@@ -144,5 +144,9 @@ public static class IRendererExtensions {
 	/// <param name="size">Size of the buffer in <b>elements</b>. Must be greater than 0.</param>
 	public static IStagingBuffer<T> CreateUniformStagingBuffer<T> ( this IRenderer renderer, uint size, BufferUsage usage, uint alignment = 256 ) where T : unmanaged {
 		return renderer.CreateAlignedStagingBuffer<T>( size, usage, alignment );
+	}
+
+	public static ISampler CreateSampler ( this IRenderer renderer ) {
+		return renderer.CreateSampler( SamplerDescription.DefaultBilinear );
 	}
 }

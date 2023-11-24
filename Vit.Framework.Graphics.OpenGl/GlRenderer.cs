@@ -72,8 +72,8 @@ public class GlRenderer : IRenderer {
 		return new PixelBuffer( size, format );
 	}
 
-	public ISampler CreateSampler () {
-		return new Sampler();
+	public ISampler CreateSampler ( SamplerDescription description ) {
+		return new Sampler( description );
 	}
 
 	public IFramebuffer CreateFramebuffer ( IEnumerable<IDeviceTexture2D> attachments, IDeviceTexture2D? depthStencilAttachment = null ) {
