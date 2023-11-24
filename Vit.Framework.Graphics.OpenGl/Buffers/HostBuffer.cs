@@ -8,11 +8,11 @@ public unsafe class HostBuffer<T> : DisposableObject, IGlBuffer, IHostStagingBuf
 	public int Handle { get; private set; }
 	public void* Data;
 	public HostBuffer ( uint size, BufferTarget type ) {
-		Handle = GL.GenBuffer();
+		GL.CreateBuffers( 1, out int handle );
 
-		GL.BindBuffer( type, Handle );
-		GL.BufferStorage( type, (int)size, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
-		Data = (void*)GL.MapBufferRange( type, 0, (int)size, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+		GL.NamedBufferStorage( handle, (int)size, (nint)null, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit | BufferStorageFlags.ClientStorageBit );
+		Data = (void*)GL.MapNamedBufferRange( handle, 0, (int)size, BufferAccessMask.MapWriteBit | BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit );
+		Handle = handle;
 	}
 
 	public void* GetData () {
