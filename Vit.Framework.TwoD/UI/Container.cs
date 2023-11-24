@@ -24,8 +24,19 @@ public class Container<T> : CompositeUIComponent<T> where T : UIComponent {
 		RemoveInternalChildAt( index );
 	}
 
+	public void NoUnloadRemoveChild ( T child ) {
+		NoUnloadRemoveInternalChild( child );
+	}
+	public void NoUnloadRemoveChildAt ( int index ) {
+		NoUnloadRemoveInternalChildAt( index );
+	}
+
 	public void ClearChildren () {
 		ClearInternalChildren();
+	}
+
+	public void NoUnloadClearChildren () {
+		NoUnloadClearInternalChildren();
 	}
 
 	public void DisposeChildren ( RenderThreadScheduler disposeScheduler ) {

@@ -132,7 +132,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override void OnUpdate () {
-			if ( Root.IsDisposed )
+			if ( !Root.IsLoaded )
 				return;
 
 			inputTrackers.Update( detected => {
@@ -201,6 +201,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 
 		protected override void Dispose ( bool disposing ) {
 			inputTrackers.Dispose();
+			Root.Unload();
 			base.Dispose( disposing );
 		}
 	}

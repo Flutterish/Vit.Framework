@@ -106,10 +106,17 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 
 		Window.Closed += _ => {
 			MainUpdateThread.Scheduler.Enqueue( () => {
-				if ( Root is IDisposable disposableRoot )
-					disposableRoot.Dispose();
+				MainUpdateThread.Renderer = null;
+				MainUpdateThread.IsUpdatingActive = false;
 
-				Task.Delay( 1000 ).ContinueWith( _ => Quit() );
+				MainRenderThread.Scheduler.Enqueue( () => {
+					MainRenderThread.IsRenderingEnabled = false;
+					MainRenderThread.Renderer.WaitIdle();
+
+					Root.DisposeDrawNodes();
+
+					Quit();
+				} );
 			} );
 		};
 	}

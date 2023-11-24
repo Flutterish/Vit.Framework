@@ -59,8 +59,6 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// While this call is in progress, the update thread either does not have access to this component or is suspended.
 	/// </remarks>
 	void DisposeDrawNodes ();
-
-	bool IsDisposed { get; }
 }
 
 public interface IHasCompositeDrawNodes<out T> where T : DrawNode {

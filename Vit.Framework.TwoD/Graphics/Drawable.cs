@@ -37,12 +37,7 @@ public abstract partial class Drawable {
 		}
 	}
 
-	public bool IsDisposed { get; private set; }
 	public void Dispose ( RenderThreadScheduler disposeScheduler ) {
-		if ( IsDisposed )
-			return;
-
 		disposeScheduler.ScheduleDrawNodeDisposal( this );
-		IsDisposed = true;
 	}
 }

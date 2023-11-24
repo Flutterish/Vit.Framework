@@ -86,9 +86,28 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 		OnChildParameterUpdated( child, param, null );
 	}
 
+	public void NoUnloadRemoveChild ( T child ) {
+		var param = parameters[child.Depth];
+		parameters.RemoveAt( child.Depth );
+		NoUnloadRemoveInternalChild( child );
+		OnChildParameterUpdated( child, param, null );
+	}
+	public void NoUnloadRemoveChildAt ( int index ) {
+		var param = parameters[index];
+		parameters.RemoveAt( index );
+		var child = Children[index];
+		NoUnloadRemoveInternalChildAt( index );
+		OnChildParameterUpdated( child, param, null );
+	}
+
 	public void ClearChildren () {
 		parameters.Clear();
 		ClearInternalChildren();
+	}
+
+	public void NoUnloadClearChildren () {
+		parameters.Clear();
+		NoUnloadClearInternalChildren();
 	}
 
 	public void DisposeChildren ( RenderThreadScheduler disposeScheduler ) {

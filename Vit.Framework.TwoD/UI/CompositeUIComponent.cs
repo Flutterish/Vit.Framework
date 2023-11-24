@@ -126,9 +126,33 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		onChildRemoved( child );
 	}
 
+	protected void NoUnloadRemoveInternalChild ( T child ) {
+		var index = child.Depth;
+		if ( internalChildren[index] != child )
+			throw new InvalidOperationException( "Child does not belong to this parent" );
+
+		NoUnloadRemoveInternalChildAt( index );
+	}
+	protected void NoUnloadRemoveInternalChildAt ( int index ) {
+		var child = internalChildren[index];
+
+		child.Parent = null;
+		internalChildren.RemoveAt( index );
+		for ( int i = index; i < internalChildren.Count; i++ ) {
+			internalChildren[i].Depth--;
+		}
+		onChildRemoved( child );
+	}
+
 	protected void ClearInternalChildren () {
 		while ( internalChildren.Count != 0 ) {
 			RemoveInternalChildAt( internalChildren.Count - 1 );
+		}
+	}
+
+	protected void NoUnloadClearInternalChildren () {
+		while ( internalChildren.Count != 0 ) {
+			NoUnloadRemoveInternalChildAt( internalChildren.Count - 1 );
 		}
 	}
 

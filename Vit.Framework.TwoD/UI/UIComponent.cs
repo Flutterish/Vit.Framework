@@ -240,9 +240,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	}
 	public void Load ( IReadOnlyDependencyCache dependencies ) {
 		if ( IsLoaded )
-			throw new InvalidOperationException( "Component is already loaded" );
-		if ( IsDisposed )
-			throw new InvalidOperationException( "Can not load a disposed component" );
+			return;
 
 		OnLoad( dependencies );
 		IsLoaded = true;
@@ -264,14 +262,8 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	public abstract DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 	public abstract void DisposeDrawNodes ();
 
-	public bool IsDisposed { get; private set; }
 	public void Dispose ( RenderThreadScheduler disposeScheduler ) {
-		if ( IsDisposed )
-			return;
-
 		disposeScheduler.ScheduleDrawNodeDisposal( this );
-		IsDisposed = true;
-
 		Unload();
 	}
 	#endregion

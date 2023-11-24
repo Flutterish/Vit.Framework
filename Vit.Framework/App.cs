@@ -29,5 +29,7 @@ public abstract class App {
 		HasQuit = true;
 	}
 
+	protected virtual void BeforeQuit () { }
+
 	protected abstract void Initialize ();
 }

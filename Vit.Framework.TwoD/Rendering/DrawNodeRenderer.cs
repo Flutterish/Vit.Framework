@@ -22,12 +22,7 @@ public class DrawNodeRenderer {
 	/// <param name="action">An action to perform using the subtree index after collecting draw data.</param>
 	public void CollectDrawData ( IRenderer renderer, Action<int>? action = null ) {
 		using var _ = drawNodeSwapchain.GetForWrite( out var index );
-		if ( Root.IsDisposed ) {
-			drawNodes[index] = null;
-		}
-		else {
-			drawNodes[index] = (renderer, getDrawNode( renderer, index ));
-		}
+		drawNodes[index] = (renderer, getDrawNode( renderer, index ));
 		action?.Invoke( index );
 	}
 	DrawNode getDrawNode ( IRenderer renderer, int index ) {
