@@ -131,9 +131,9 @@ public abstract class DrawableText : Drawable {
 		layout.Length = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public override void Dispose () {
 		layout.Dispose();
-		base.Dispose( disposing );
+		base.Dispose();
 	}
 
 	public abstract class TextDrawNode<TSource> : DrawableDrawNode<TSource> where TSource : DrawableText {

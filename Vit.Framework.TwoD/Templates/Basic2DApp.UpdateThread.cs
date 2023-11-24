@@ -22,29 +22,27 @@ public abstract partial class Basic2DApp<TRoot> {
 			clock = dependencies.Resolve<StopwatchClock>();
 		}
 
-		IRenderer? renderer;
-		public IRenderer? Renderer {
-			get => renderer;
-			set {
-				if ( renderer != null )
-					throw new NotImplementedException( "Can not swith renderer at runtime yet" );
+		/// <summary>
+		/// The renderer for which draw nodes are created.
+		/// </summary>
+		public IRenderer? Renderer;
 
-				renderer = value;
-			}
-		}
-
+		public bool IsUpdatingActive = true;
 		protected sealed override void Loop () {
 			while ( Scheduler.TryDequeue( out var action ) ) {
 				action();
 			}
 
+			if ( !IsUpdatingActive )
+				return;
+
 			clock.Update();
 			OnUpdate();
 
-			if ( renderer == null )
+			if ( Renderer == null )
 				return;
 
-			drawNodeRenderer.CollectDrawData( renderer, disposeScheduler.Swap );
+			drawNodeRenderer.CollectDrawData( Renderer, disposeScheduler.Swap );
 		}
 
 		protected abstract void OnUpdate ();

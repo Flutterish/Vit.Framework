@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.OpenGl;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Graphics.Vulkan;
+using Vit.Framework.Memory;
 using Vit.Framework.Platform;
 using Vit.Framework.Tests.AudioApis;
 using Vit.Framework.Tests.GraphicsApis;
@@ -30,6 +31,7 @@ public partial class Program : App {
 		Thread.Sleep( 1_000 );
 		GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
 		Thread.Sleep( 1_000 );
+		DisposableObject.ValidateEverythingIsDisposed();
 	}
 
 	protected override void Initialize () {

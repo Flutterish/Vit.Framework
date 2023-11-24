@@ -1,8 +1,10 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Diagnostics;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
+using Vit.Framework.Memory;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Timing;
@@ -107,18 +109,48 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 				if ( Root is IDisposable disposableRoot )
 					disposableRoot.Dispose();
 
-				foreach ( var (id, dep) in Dependencies.EnumerateCached() ) {
-					if ( dep is IDisposable disposable ) {
-						DisposeScheduler.ScheduleDisposal( disposable );
-					}
-				}
-
 				Task.Delay( 1000 ).ContinueWith( _ => Quit() );
 			} );
 		};
 	}
 
 	protected void SwitchBackend () {
+		MainUpdateThread.Scheduler.Enqueue( stopUpdating );
 
+		void stopUpdating () {
+			MainUpdateThread.Renderer = null;
+			MainUpdateThread.IsUpdatingActive = false;
+
+			MainRenderThread.Scheduler.Enqueue( stopRendering );
+		}
+
+		void stopRendering () {
+			MainRenderThread.IsRenderingEnabled = false;
+			disposeGraphics();
+		}
+
+		void disposeGraphics () {
+			MainRenderThread.Renderer.WaitIdle();
+
+			Root.DisposeDrawNodeSubtree();
+			MainRenderThread.DisposeRenderer();
+
+			performGcCheck();
+			swapBackend();
+		}
+
+		void swapBackend () {
+
+		}
+
+		[Conditional("DEBUG")]
+		static void performGcCheck () {
+			Console.WriteLine( "Performing GC check before renderer switch..." );
+			GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
+			Thread.Sleep( 1_000 );
+			GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
+			Thread.Sleep( 1_000 );
+			DisposableObject.ValidateEverythingIsDisposed();
+		}
 	}
 }

@@ -270,8 +270,16 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	public override void DisposeDrawNodes () {
-		foreach ( var i in drawNodes ) {
-			i?.Dispose();
+		for ( int i = 0; i < 3; i++ ) {
+			drawNodes[i]?.Dispose();
+			drawNodes[i] = null;
+		}
+	}
+
+	public override void DisposeDrawNodeSubtree () {
+		DisposeDrawNodes();
+		foreach ( var i in Children ) {
+			i.DisposeDrawNodeSubtree();
 		}
 	}
 

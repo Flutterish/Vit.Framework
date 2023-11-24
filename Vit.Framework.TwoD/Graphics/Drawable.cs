@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Mathematics.LinearAlgebra;
-using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics;
@@ -8,7 +7,7 @@ namespace Vit.Framework.TwoD.Graphics;
 /// <summary>
 /// An object containing state and computations required for drawing a specific thing. It creates up to 3 subtrees of <see cref="DrawNode"/>s for use in a triple-buffer.
 /// </summary>
-public abstract partial class Drawable : DisposableObject {
+public abstract partial class Drawable : IDisposable {
 	public bool IsLoaded { get; private set; }
 
 	protected RenderThreadScheduler DrawThreadScheduler { get; private set; } = null!;
@@ -41,7 +40,9 @@ public abstract partial class Drawable : DisposableObject {
 		}
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public bool IsDisposed { get; private set; }
+	public virtual void Dispose () {
 		DrawThreadScheduler.ScheduleDrawNodeDisposal( this );
+		IsDisposed = true;
 	}
 }

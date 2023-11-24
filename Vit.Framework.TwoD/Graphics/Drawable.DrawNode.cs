@@ -24,9 +24,14 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 	}
 
 	public virtual void DisposeDrawNodes () {
-		foreach ( var node in drawNodes ) {
-			node?.Dispose();
+		for ( int i = 0; i < 3; i++ ) {
+			drawNodes[i]?.Dispose();
+			drawNodes[i] = null;
 		}
+	}
+
+	public void DisposeDrawNodeSubtree () {
+		DisposeDrawNodes();
 	}
 
 	public abstract class DrawableDrawNode<T> : DrawNode where T : Drawable {

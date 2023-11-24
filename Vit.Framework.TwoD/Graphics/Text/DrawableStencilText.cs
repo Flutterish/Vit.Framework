@@ -59,10 +59,6 @@ public class DrawableStencilText : DrawableText {
 		return new DrawNode( this, subtreeIndex );
 	}
 
-	protected override void Dispose ( bool disposing ) {
-		base.Dispose( disposing );
-	}
-
 	IUniformSet? uniformSet;
 	DeviceBufferHeap.Allocation<uint> indices;
 	DeviceBufferHeap.Allocation<Vertex> vertices;

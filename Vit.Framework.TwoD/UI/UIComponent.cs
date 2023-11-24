@@ -263,6 +263,9 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 
 	public abstract DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 	public abstract void DisposeDrawNodes ();
+	public virtual void DisposeDrawNodeSubtree () {
+		DisposeDrawNodes();
+	}
 
 	public bool IsDisposed { get; private set; }
 	public void Dispose () {

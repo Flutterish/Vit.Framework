@@ -115,6 +115,7 @@ public class SingleUseBufferSectionStack : IDisposable {
 			foreach ( var (i, _) in buffers ) {
 				i.Dispose();
 			}
+			buffers.Clear();
 		}
 	}
 

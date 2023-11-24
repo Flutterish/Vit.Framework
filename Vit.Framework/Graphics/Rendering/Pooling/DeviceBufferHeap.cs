@@ -109,6 +109,7 @@ public class DeviceBufferHeap : IDisposable {
 			foreach ( var (buffer, _) in i ) {
 				buffer.Dispose();
 			}
+			i.Clear();
 		}
 	}
 }

@@ -34,6 +34,8 @@ public interface IDependencyCache : IReadOnlyDependencyCache {
 
 public interface IReadOnlyDependencyCache { // TODO a TryResolve
 	object? Resolve ( DependencyIdentifier identifier );
+
+	IEnumerable<KeyValuePair<DependencyIdentifier, object?>> EnumerateCached ();
 }
 
 public static class DependencyCacheExtensions {

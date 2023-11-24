@@ -41,7 +41,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	public void SwitchBackends ( KnownGraphicsApiName backend ) {
 		targetBackend = backend;
 
-		SwitchBackend();
+		SwitchBackend(); // TODO ensure you cant do this again while its switching already
 	}
 
 	protected override Host GetHost () {
@@ -260,10 +260,10 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			} );
 		}
 
-		protected override void DisposeGraphics ( bool disposing ) {
+		protected override void DisposeGraphics () {
 			globalSet.Dispose();
 			globalUniformBuffer.Dispose();
-			base.DisposeGraphics( disposing );
+			base.DisposeGraphics();
 		}
 	}
 }

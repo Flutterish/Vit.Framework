@@ -38,7 +38,7 @@ public abstract partial class Basic2DApp<TRoot> {
 		Task<WindowGraphicsSurface>? initializationTask;
 		protected WindowGraphicsSurface GraphicsSurface = null!;
 		protected ISwapchain Swapchain = null!;
-		protected IRenderer Renderer = null!;
+		public IRenderer Renderer { get; private set; } = null!;
 		protected override bool Initialize () {
 			initializationTask ??= Window.CreateGraphicsSurface( Api, new() {
 				Depth = DepthFormat.Bits24,
@@ -54,8 +54,6 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
 			SingleUseBuffers.Initialize( Renderer );
-			DeviceBufferHeap = Dependencies.Resolve<DeviceBufferHeap>();
-			DeviceBufferHeap.Initialize( Renderer );
 			DeviceBufferHeap = Dependencies.Resolve<DeviceBufferHeap>();
 			DeviceBufferHeap.Initialize( Renderer );
 			MaskingData = Dependencies.Resolve<MaskingDataBuffer>();
@@ -90,10 +88,17 @@ public abstract partial class Basic2DApp<TRoot> {
 			windowResized = true;
 		}
 
+		/// <summary>
+		/// Controls whether any rendering will happen.
+		/// </summary>
+		public bool IsRenderingEnabled = true;
 		protected sealed override void Loop () {
 			while ( Scheduler.TryDequeue( out var action ) ) {
 				action();
 			}
+
+			if ( !IsRenderingEnabled )
+				return;
 
 			if ( windowResized ) { // BUG this can crash and is laggy
 				windowResized = false;
@@ -136,8 +141,11 @@ public abstract partial class Basic2DApp<TRoot> {
 				return;
 
 			Renderer.WaitIdle();
+			DisposeRenderer();
+		}
 
-			DisposeGraphics( disposing );
+		public void DisposeRenderer () {
+			DisposeGraphics();
 			disposeScheduler.DisposeAll();
 
 			Swapchain.Dispose();
@@ -147,10 +155,22 @@ public abstract partial class Basic2DApp<TRoot> {
 
 		protected virtual void DisposeManaged ( bool disposing ) { }
 
-		protected virtual void DisposeGraphics ( bool disposing ) { }
+		protected virtual void DisposeGraphics () {
+			foreach ( var (_, dep) in Dependencies.EnumerateCached() ) {
+				if ( dep is IDrawDependency disposable ) {
+					disposable.Dispose();
+				}
+			}
+
+			TextureStore.Dispose();
+			ShaderStore.Dispose();
+			MaskingData.Dispose();
+			DeviceBufferHeap.Dispose();
+			SingleUseBuffers.Dispose();
+		}
 	}
 }
 
-public interface IDrawDependency {
+public interface IDrawDependency : IDisposable {
 	void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies );
 }
