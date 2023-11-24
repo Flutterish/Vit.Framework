@@ -16,7 +16,7 @@ public class Direct3D11Api : GraphicsApi {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		throw new NotImplementedException();
+		
 	}
 
 	public static Dictionary<PixelFormat, Format> formats = new() {

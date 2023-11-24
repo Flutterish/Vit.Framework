@@ -39,7 +39,6 @@ public class Swapchain : DisposableObject, ISwapchain {
 			BindFlags = BindFlags.DepthStencil
 		} );
 		backBuffer = new( new[] { framebuffer }, depthStencil );
-		framebuffer!.Release();
 	}
 
 	public Size2<uint> BackbufferSize { get; }

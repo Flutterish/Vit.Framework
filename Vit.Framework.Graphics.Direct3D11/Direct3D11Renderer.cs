@@ -40,8 +40,8 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 
 	public GraphicsApi GraphicsApi { get; }
 
-	public void WaitIdle () {
-		throw new NotImplementedException();
+	public void WaitIdle () { // TODO wait idle (dx)
+		
 	}
 
 	public Matrix4<T> CreateNdcCorrectionMatrix<T> () where T : INumber<T> {
