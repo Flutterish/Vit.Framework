@@ -2,11 +2,10 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Shaders;
 
-public class ShaderStore : DisposableObject {
+public class ShaderStore : IDisposable {
 	ConcurrentQueue<Shader> shadersToCompile = new();
 	Dictionary<ShaderIdentifier, ShaderPart> shaderParts = new();
 
@@ -35,9 +34,10 @@ public class ShaderStore : DisposableObject {
 		}
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		foreach ( var (_, i) in shaders ) {
 			i.Dispose();
+			shadersToCompile.Enqueue( i );
 		}
 
 		foreach ( var (_, i) in shaderParts ) {

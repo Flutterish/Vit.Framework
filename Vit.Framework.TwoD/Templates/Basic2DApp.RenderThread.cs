@@ -25,7 +25,9 @@ public abstract partial class Basic2DApp<TRoot> {
 		public readonly ConcurrentQueue<Action> Scheduler = new();
 		protected TRoot Root => (TRoot)drawNodeRenderer.Root;
 		protected readonly IReadOnlyDependencyCache Dependencies;
+		Host host;
 		public RenderThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Host host, Window window, GraphicsApiType api, IReadOnlyDependencyCache dependencies, string name ) : base( name ) {
+			this.host = host;
 			this.Api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 			this.Window = window;
 			this.drawNodeRenderer = drawNodeRenderer;
@@ -39,7 +41,12 @@ public abstract partial class Basic2DApp<TRoot> {
 		protected WindowGraphicsSurface GraphicsSurface = null!;
 		protected ISwapchain Swapchain = null!;
 		public IRenderer Renderer { get; private set; } = null!;
-		protected override bool Initialize () {
+
+		protected sealed override bool Initialize () {
+			return InitializeGraphics();
+		}
+
+		public virtual bool InitializeGraphics () {
 			initializationTask ??= Window.CreateGraphicsSurface( Api, new() {
 				Depth = DepthFormat.Bits24,
 				Stencil = StencilFormat.Bits8,
@@ -51,6 +58,7 @@ public abstract partial class Basic2DApp<TRoot> {
 
 			GraphicsSurface = initializationTask.Result;
 			(Swapchain, Renderer) = (GraphicsSurface.Swapchain, GraphicsSurface.Renderer);
+			initializationTask = null;
 
 			SingleUseBuffers = Dependencies.Resolve<SingleUseBufferSectionStack>();
 			SingleUseBuffers.Initialize( Renderer );
@@ -59,16 +67,16 @@ public abstract partial class Basic2DApp<TRoot> {
 			MaskingData = Dependencies.Resolve<MaskingDataBuffer>();
 			MaskingData.Initialize( Renderer );
 
-			foreach ( var (id, dep) in ((DependencyCache)Dependencies).EnumerateCached() ) {
-				if ( dep is IDrawDependency drawDependency )
-					drawDependency.Initialize( Renderer, Dependencies );
-			}
-
 			ShaderStore = Dependencies.Resolve<ShaderStore>();
 			TextureStore = Dependencies.Resolve<TextureStore>();
 
 			ShaderStore.CompileNew( Renderer );
 			TextureStore.UploadNew( Renderer );
+
+			foreach ( var (id, dep) in Dependencies.EnumerateCached() ) {
+				if ( dep is IDrawDependency drawDependency )
+					drawDependency.Initialize( Renderer, Dependencies );
+			}
 
 			var updateThread = Dependencies.Resolve<UpdateThread>();
 			updateThread.Scheduler.Enqueue( () => {
@@ -76,6 +84,10 @@ public abstract partial class Basic2DApp<TRoot> {
 			} );
 
 			return true;
+		}
+
+		public void ChangeApi ( GraphicsApiType api ) {
+			Api = host.CreateGraphicsApi( api, new[] { RenderingCapabilities.DrawToWindow } );
 		}
 
 		protected ShaderStore ShaderStore = null!;

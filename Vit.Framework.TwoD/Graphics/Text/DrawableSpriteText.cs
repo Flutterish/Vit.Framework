@@ -54,6 +54,7 @@ public partial class DrawableSpriteText : DrawableText {
 		if ( areUniformsInitialized ) {
 			drawDependencies.UniformAllocator.Free( uniforms );
 			sampler!.Dispose();
+			areUniformsInitialized = false;
 		}
 		if ( batches.Count != 0 ) {
 			clearBatches();

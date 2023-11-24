@@ -5,7 +5,6 @@ using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Interop;
-using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
@@ -15,7 +14,7 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Vertex;
 namespace Vit.Framework.TwoD.Graphics;
 
 public abstract partial class TexturedQuad {
-	public class DrawDependencies : DisposableObject, IDrawDependency {
+	public class DrawDependencies : IDrawDependency {
 		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
 		public UniformSetPool UniformSetAllocator = null!;
 		public MaskingDataBuffer Masking = null!;
@@ -65,7 +64,7 @@ public abstract partial class TexturedQuad {
 			}
 		}
 
-		protected override void Dispose ( bool disposing ) {
+		public void Dispose () {
 			UniformSetAllocator?.Dispose();
 			UniformAllocator?.Dispose();
 			Indices?.Dispose();

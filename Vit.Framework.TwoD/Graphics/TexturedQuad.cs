@@ -48,6 +48,7 @@ public abstract partial class TexturedQuad : Drawable {
 
 		drawDependencies.UniformSetAllocator.Free( uniformSet );
 		drawDependencies.UniformAllocator.Free( uniforms );
+		areUniformsInitialized = false;
 	}
 
 	public abstract class DrawNode<T> : DrawableDrawNode<T> where T : TexturedQuad {

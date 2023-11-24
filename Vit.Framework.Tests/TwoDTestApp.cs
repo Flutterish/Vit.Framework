@@ -41,7 +41,10 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 	public void SwitchBackends ( KnownGraphicsApiName backend ) {
 		targetBackend = backend;
 
-		SwitchBackend(); // TODO ensure you cant do this again while its switching already
+		Window.Title = $"New Window [{Name}] [Switching to: {backend}] (Testing {type})";
+		SwitchBackend().ContinueWith( _ => {
+			Window.Title = $"New Window [{Name}] [{GraphicsApiType}] (Testing {type})";
+		} ); // TODO ensure you cant do this again while its switching already
 	}
 
 	protected override Host GetHost () {
@@ -212,8 +215,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 		IUniformSet globalSet = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
-		protected override bool Initialize () {
-			if ( !base.Initialize() )
+		public override bool InitializeGraphics () {
+			if ( !base.InitializeGraphics() )
 				return false;
 
 			globalUniformBuffer = Renderer.CreateUniformHostBuffer<GlobalUniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );

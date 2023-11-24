@@ -1,10 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using Vit.Framework.Graphics.Rendering;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Textures;
 
-public class TextureStore : DisposableObject {
+public class TextureStore : IDisposable {
 	ConcurrentQueue<Texture> texturesToUpload = new();
 
 	Dictionary<TextureIdentifier, Texture> textures = new();
@@ -34,8 +33,9 @@ public class TextureStore : DisposableObject {
 		}
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		foreach ( var (_, i) in textures ) {
+			texturesToUpload.Enqueue( i );
 			i.Dispose();
 		}
 	}

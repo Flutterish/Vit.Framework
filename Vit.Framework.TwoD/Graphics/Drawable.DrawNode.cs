@@ -24,6 +24,7 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 	}
 
 	public virtual void DisposeDrawNodes () {
+		InvalidateDrawNodes();
 		for ( int i = 0; i < 3; i++ ) {
 			drawNodes[i]?.Dispose();
 			drawNodes[i] = null;

@@ -114,8 +114,10 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		};
 	}
 
-	protected void SwitchBackend () {
+	protected Task SwitchBackend () {
+		TaskCompletionSource taskSource = new();
 		MainUpdateThread.Scheduler.Enqueue( stopUpdating );
+		return taskSource.Task;
 
 		void stopUpdating () {
 			MainUpdateThread.Renderer = null;
@@ -140,16 +142,29 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 		}
 
 		void swapBackend () {
+			GraphicsApiType = SelectGraphicsApi( Host.SupportedRenderingApis );
+			MainRenderThread.ChangeApi( GraphicsApiType );
+			initializeGraphics();
+		}
 
+		void initializeGraphics () {
+			if ( !MainRenderThread.InitializeGraphics() ) {
+				MainRenderThread.Scheduler.Enqueue( initializeGraphics );
+			}
+			else {
+				MainRenderThread.IsRenderingEnabled = true;
+				MainUpdateThread.Scheduler.Enqueue( resumeUpdating );
+			}
+		}
+
+		void resumeUpdating () {
+			MainUpdateThread.IsUpdatingActive = true;
+			taskSource.SetResult();
 		}
 
 		[Conditional("DEBUG")]
 		static void performGcCheck () {
 			Console.WriteLine( "Performing GC check before renderer switch..." );
-			GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
-			Thread.Sleep( 1_000 );
-			GC.Collect( GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true );
-			Thread.Sleep( 1_000 );
 			DisposableObject.ValidateEverythingIsDisposed();
 		}
 	}

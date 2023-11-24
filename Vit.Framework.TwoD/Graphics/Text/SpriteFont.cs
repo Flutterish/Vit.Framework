@@ -10,7 +10,6 @@ using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.Curves;
 using Vit.Framework.Mathematics.LinearAlgebra;
-using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Outlines;
 using Vit.Framework.TwoD.Rendering.Shaders;
@@ -19,7 +18,7 @@ using Vertex = Vit.Framework.TwoD.Rendering.Shaders.SvgVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public class SpriteFontStore : DisposableObject, IDrawDependency {
+public class SpriteFontStore : IDrawDependency {
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public SpriteFontStore ( Size2<uint> pageSize, Size2<uint> glyphSize, ShaderStore shaders ) {
@@ -40,61 +39,75 @@ public class SpriteFontStore : DisposableObject, IDrawDependency {
 	public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 		this.renderer = renderer;
 		this.singleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
+
+		foreach ( var (_, i) in fonts ) {
+			i.Initialize( renderer, shader.Value );
+		}
 	}
 
 	Shader shader;
 	Dictionary<Font, SpriteFont> fonts = new();
 	public SpriteFont GetSpriteFont ( Font font ) {
 		if ( !fonts.TryGetValue( font, out var spriteFont ) ) {
-			fonts.Add( font, spriteFont = new( font, renderer, singleUseBuffers, shader.Value, PageSize, GlyphSize ) );
+			fonts.Add( font, spriteFont = new( font, singleUseBuffers, PageSize, GlyphSize ) );
+			spriteFont.Initialize( renderer, shader.Value );
 		}
 
 		return spriteFont;
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		foreach ( var (_, i) in fonts ) {
 			i.Dispose();
 		}
 	}
 }
 
-public class SpriteFont : DisposableObject {
+public class SpriteFont : IDisposable {
 	public readonly Font Font;
 	public readonly Size2<uint> PageSize;
 	public readonly Size2<uint> GlyphSize;
 	public readonly uint GlyphsPerPage;
-	public SpriteFont ( Font font, IRenderer renderer, SingleUseBufferSectionStack singleUseBuffers, IShaderSet shaders, Size2<uint> pageSize, Size2<uint> glyphSize ) {
+	public SpriteFont ( Font font, SingleUseBufferSectionStack singleUseBuffers, Size2<uint> pageSize, Size2<uint> glyphSize ) {
 		PageSize = pageSize;
 		GlyphSize = glyphSize;
 		Font = font;
-		Renderer = renderer;
 		SingleUseBuffers = singleUseBuffers;
 
 		GlyphsPerPage = PageSize.Width * pageSize.Height;
+	}
+
+	public void Initialize ( IRenderer renderer, IShaderSet shaders ) {
 		Shaders = shaders;
+		Renderer = renderer;
+
+		foreach ( var (index, page) in pages ) {
+			page.Initialize( this, new( index * GlyphsPerPage ) );
+		}
 	}
 
 	public readonly SingleUseBufferSectionStack SingleUseBuffers;
-	public readonly IShaderSet Shaders;
-	public readonly IRenderer Renderer;
+	public IShaderSet Shaders = null!;
+	public IRenderer Renderer = null!;
 	Dictionary<uint, SpriteFontPage> pages = new();
 	public SpriteFontPage GetPage ( GlyphId glyph ) {
 		var index = (uint)(glyph.Value / GlyphsPerPage);
-		if ( !pages.TryGetValue( index, out var page ) )
+		if ( !pages.TryGetValue( index, out var page ) ) {
 			pages.Add( index, page = new( this, new( index * GlyphsPerPage ) ) );
+			page.Initialize( this, new( index * GlyphsPerPage ) );
+		}
 
 		return page;
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		foreach ( var (_, i) in pages ) {
 			i.Dispose();
 		}
 	}
 }
 
-public class SpriteFontPage : DisposableObject { // TODO maybe we should also use a temp canvas (then downscale)?
+public class SpriteFontPage : IDisposable { // TODO maybe we should also use a temp canvas (then downscale)?
 	IDeviceTexture2D texture = null!;
 	ITexture2DView view = null!;
 
@@ -118,6 +131,9 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 	public SpriteFontPage ( SpriteFont font, GlyphId firstGlyph ) {
 		boundingBoxes = new AxisAlignedBox2<float>[font.PageSize.Width * font.PageSize.Height];
 		hasOwnColor = new bool[font.PageSize.Width * font.PageSize.Height];
+	}
+
+	public void Initialize ( SpriteFont font, GlyphId firstGlyph ) {
 		generate( font, firstGlyph );
 	}
 
@@ -231,7 +247,7 @@ public class SpriteFontPage : DisposableObject { // TODO maybe we should also us
 		unresolvedGlyphs.Clear();
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		canvas.Dispose();
 		stencil.Dispose();
 		view.Dispose();

@@ -1,8 +1,6 @@
-﻿using Vit.Framework.Memory;
+﻿namespace Vit.Framework.Graphics.Rendering.Buffers;
 
-namespace Vit.Framework.Graphics.Rendering.Buffers;
-
-public class StagedDeviceBuffer<T> : DisposableObject where T : unmanaged {
+public class StagedDeviceBuffer<T> : IDisposable where T : unmanaged {
 	public readonly IStagingBuffer<T> StagingBuffer;
 	public readonly IDeviceBuffer<T> DeviceBuffer;
 	public StagedDeviceBuffer ( IRenderer renderer, uint size, BufferType type, BufferUsage stagingHint, BufferUsage deviceHint ) {
@@ -15,7 +13,7 @@ public class StagedDeviceBuffer<T> : DisposableObject where T : unmanaged {
 		commandBuffer.CopyBuffer( StagingBuffer, DeviceBuffer, (uint)data.Length );
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		DeviceBuffer.Dispose();
 		StagingBuffer.Dispose();
 	}

@@ -1,10 +1,9 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Shaders;
 
-public class ShaderPart : DisposableObject {
+public class ShaderPart : IDisposable {
 	public readonly SpirvBytecode Bytecode;
 	public ShaderPart ( SpirvBytecode bytecode ) {
 		Bytecode = bytecode;
@@ -20,7 +19,8 @@ public class ShaderPart : DisposableObject {
 			Value = renderer.CompileShaderPart( Bytecode );
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		Value?.Dispose();
+		Value = null!;
 	}
 }

@@ -22,6 +22,11 @@ public class Sprite : TexturedQuad {
 		}
 	}
 
+	public override void DisposeDrawNodes () {
+		base.DisposeDrawNodes();
+		textureInvalidations.Invalidate();
+	}
+
 	protected override void OnLoad ( IReadOnlyDependencyCache deps ) {
 		base.OnLoad( deps );
 		texture ??= deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );

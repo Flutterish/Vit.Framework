@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Shaders;
-using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
@@ -13,7 +12,7 @@ using static Vit.Framework.TwoD.Rendering.Shaders.TextVertex;
 namespace Vit.Framework.TwoD.Graphics.Text;
 
 public partial class DrawableSpriteText {
-	public class DrawDependencies : DisposableObject, IDrawDependency {
+	public class DrawDependencies : IDrawDependency {
 		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
 		public UniformSetPool UniformSetAllocator = null!;
 		public SpriteFontStore Store = null!;
@@ -70,7 +69,7 @@ public partial class DrawableSpriteText {
 			copy.CopyBufferRaw( indexStaging.Buffer, IndexBuffer, indexStaging.Length, sourceOffset: indexStaging.Offset );
 		}
 
-		protected override void Dispose ( bool disposing ) {
+		public void Dispose () {
 			CornerBuffer?.Dispose();
 			IndexBuffer?.Dispose();
 			UniformSetAllocator?.Dispose();

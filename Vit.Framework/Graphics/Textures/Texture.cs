@@ -2,12 +2,11 @@
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Textures;
 
-public class Texture : DisposableObject {
-	Image<Rgba32>? data;
+public class Texture : IDisposable {
+	Image<Rgba32> data; // TODO this is kept so switching backends preserves texture data. We need a mechanism for recreating the data instead of hogging memory
 	public Texture ( Image<Rgba32> data ) {
 		this.data = data;
 	}
@@ -33,17 +32,17 @@ public class Texture : DisposableObject {
 		if ( data == null )
 			return;
 
-		if ( Value == null ) {
-			Value = commands.Renderer.CreateDeviceTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
-			View = Value.CreateView();
-			Sampler = commands.Renderer.CreateSampler();
-		}
+		if ( Value != null )
+			return;
+
+		Value = commands.Renderer.CreateDeviceTexture( new( (uint)data.Size.Width, (uint)data.Size.Height ), PixelFormat.Rgba8 );
+		View = Value.CreateView();
+		Sampler = commands.Renderer.CreateSampler();
 
 		data.DangerousTryGetSinglePixelMemory( out var memory );
 		// TODO detect if image is premultiplied
 		// TODO detect image gamma
-		stagingTexture?.Dispose(); // TODO delete this buffer after upload is complete
-		stagingTexture = commands.Renderer.CreateStagingTexture( Value.Size, Value.Format );
+		stagingTexture = commands.Renderer.CreateStagingTexture( Value.Size, Value.Format ); // TODO delete this buffer after upload is complete
 		foreach ( ref var i in memory.Span ) {
 			i = i.BitCast<Rgba32, ColorRgba<byte>>().ToSRgb().BitCast<ColorSRgba<byte>, Rgba32>();
 		}
@@ -51,14 +50,16 @@ public class Texture : DisposableObject {
 		Size2<uint> size = ((uint)data.Width, (uint)data.Height);
 		commands.CopyTexture( stagingTexture, Value, size, (0,0) );
 
-		data.Dispose();
-		data = null;
+		//data.Dispose();
+		//data = null;
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		stagingTexture?.Dispose();
 		Sampler?.Dispose();
 		View?.Dispose();
 		Value?.Dispose();
+
+		Value = null!;
 	}
 }

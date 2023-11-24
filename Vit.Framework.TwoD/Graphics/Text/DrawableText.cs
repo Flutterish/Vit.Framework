@@ -131,6 +131,11 @@ public abstract class DrawableText : Drawable {
 		layout.Length = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
 	}
 
+	public override void DisposeDrawNodes () {
+		base.DisposeDrawNodes();
+		textLayoutInvalidations.Invalidate();
+	}
+
 	public override void Dispose () {
 		layout.Dispose();
 		base.Dispose();

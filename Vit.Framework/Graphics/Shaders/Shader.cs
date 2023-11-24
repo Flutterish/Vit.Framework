@@ -2,11 +2,10 @@
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
-using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Shaders;
 
-public class Shader : DisposableObject {
+public class Shader : IDisposable {
 	public readonly VertexInputDescription? VertexInput;
 	public readonly ImmutableArray<ShaderPart> Parts;
 	public Shader ( ReadOnlySpan<ShaderPart> parts, VertexInputDescription? vertexInput ) {
@@ -27,7 +26,8 @@ public class Shader : DisposableObject {
 		}
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		Value?.Dispose();
+		Value = null!;
 	}
 }

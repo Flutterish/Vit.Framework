@@ -70,12 +70,7 @@ public class SdlWindow : Window, IGlWindow, IDirect3D11Window, IVulkanWindow {
 		SdlWindowCreated?.Invoke( this );
 	}
 
-	bool surfaceCreated;
 	public override async Task<WindowGraphicsSurface> CreateGraphicsSurface ( GraphicsApi api, WindowSurfaceArgs args ) {
-		if ( surfaceCreated )
-			throw new NotImplementedException( "Surface recreation not implemented" );
-		surfaceCreated = true;
-
 		backend = SdlBackend.GetBackend( api.Type );
 		this.surfaceArgs = args;
 		this.api = api;
