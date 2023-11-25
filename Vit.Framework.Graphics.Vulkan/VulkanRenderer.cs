@@ -153,24 +153,10 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		} );
 	}
 
-	Dictionary<PipelineArgs, Pipeline> pipelines = new(); // TODO move this into render pass?
-	public Pipeline GetPipeline ( PipelineArgs args ) {
-		if ( pipelines.TryGetValue( args, out var pipeline ) )
-			return pipeline;
-
-		pipeline = new Pipeline( Device, args );
-		pipelines.Add( args, pipeline );
-		return pipeline;
-	}
-
 	IRendererSpecialisation IRenderer.Specialisation => Specialisation;
 	public static readonly VulkanRendererSpecialisation Specialisation = default;
 
 	protected override void Dispose ( bool disposing ) {
-		foreach ( var (_, pipeline) in pipelines ) {
-			pipeline.Dispose();
-		}
-
 		GraphicsCommandPool.Dispose();
 		CopyCommandPool.Dispose();
 		Device.Dispose();

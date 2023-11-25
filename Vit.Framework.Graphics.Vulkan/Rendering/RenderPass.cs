@@ -164,7 +164,21 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 		Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 	}
 
+	Dictionary<PipelineArgs, Pipeline> pipelines = new();
+	public Pipeline GetPipeline ( PipelineArgs args ) {
+		if ( pipelines.TryGetValue( args, out var pipeline ) )
+			return pipeline;
+
+		pipeline = new Pipeline( Device, args );
+		pipelines.Add( args, pipeline );
+		return pipeline;
+	}
+
 	protected override unsafe void Dispose ( bool disposing ) {
+		foreach ( var (_, pipeline) in pipelines ) {
+			pipeline.Dispose();
+		}
+
 		Vk.vkDestroyRenderPass( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
 }

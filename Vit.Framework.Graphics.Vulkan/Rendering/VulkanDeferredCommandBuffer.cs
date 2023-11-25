@@ -149,7 +149,7 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 	protected override void UpdatePieline ( PipelineInvalidations invalidations ) {
 		if ( (invalidations & pipelineInvalidations) != 0 ) {
 			Debug.Assert( Topology == Topology.Triangles ); // TODO topology
-			pipeline = Renderer.GetPipeline( new() { 
+			pipeline = Framebuffer!.RenderPass.GetPipeline( new() { 
 				Shaders = ShaderSet,
 				RenderPass = Framebuffer!.RenderPass,
 				DepthTest = DepthTest.IsEnabled ? DepthTest : new BufferTest() { IsEnabled = false },
