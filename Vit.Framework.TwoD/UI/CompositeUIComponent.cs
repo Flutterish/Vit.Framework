@@ -215,7 +215,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	void sortEventTree ( EventTree<UIComponent> tree ) {
-		tree.Sort( static ( a, b ) => a.Source.Depth - b.Source.Depth );
+		tree.Sort( static ( a, b ) => b.Source.Depth - a.Source.Depth );
 	}
 
 	protected virtual IReadOnlyDependencyCache CreateDependencies ( IReadOnlyDependencyCache parent ) {

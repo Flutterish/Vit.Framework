@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Vit.Framework.Input.Events;
 
@@ -103,6 +104,9 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		}
 	}
 
+	/// <summary>
+	/// Returns the next child as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// </summary>
 	public EventTree<TTarget>? Next {
 		get {
 			if ( Children.Any() == true )
@@ -122,6 +126,9 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		}
 	}
 
+	/// <summary>
+	/// Returns the next child with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// </summary>
 	public EventTree<TTarget>? NextWithHandler {
 		get {
 			var node = Next;
@@ -136,6 +143,9 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		}
 	}
 
+	/// <summary>
+	/// Returns the previous child as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// </summary>
 	public EventTree<TTarget>? Previous {
 		get {
 			var parent = Parent;
@@ -153,6 +163,9 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		}
 	}
 
+	/// <summary>
+	/// Returns the previous child with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// </summary>
 	public EventTree<TTarget>? PreviousWithHandler {
 		get {
 			var node = Previous;
@@ -169,80 +182,103 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 
 	public bool ShouldBeCulled => Handler == null && Children.Any() != true;
 
-	[ThreadStatic]
-	static Stack<EventTree<TTarget>>? enumerationStack;
 	public IEnumerable<EventTree<TTarget>> EnumerateHandlers () {
-		var stack = enumerationStack ??= new();
+		var node = this;
 
-		try {
-			stack.Push( this );
+		if ( node.Handler != null )
+			yield return node;
 
-			while ( stack.TryPop( out var node ) ) {
+		loop:
+		if ( node.Children.Count != 0 ) {
+			node = node.Children[0];
+			if ( node.Handler != null )
+				yield return node;
+			goto loop;
+		}
+
+		var parent = node.Parent;
+		while ( parent != null ) {
+			if ( parent.Children.Count > node.Depth + 1 ) {
+				node = parent.Children[node.Depth + 1];
 				if ( node.Handler != null )
 					yield return node;
-
-				if ( node.children == null )
-					continue;
-
-				foreach ( var i in node.children ) {
-					stack.Push( i );
-				}
+				goto loop;
 			}
-		}
-		finally {
-			enumerationStack.Clear();
+
+			node = parent;
+			parent = node.Parent;
 		}
 	}
 
 	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers ( Func<TTarget, bool> predicate ) {
-		var stack = enumerationStack ??= new();
-		
-		try {
-			stack.Push( this );
+		var node = this;
 
-			while ( stack.TryPop( out var node ) ) {
-				if ( !predicate( node.Source ) )
-					continue;
+		if ( !predicate( node.Source ) )
+			yield break;
+		if ( node.Handler != null )
+			yield return node;
 
+		loop:
+		for ( int i = 0; i < node.Children.Count; i++ ) {
+			var child = node.Children[i];
+			if ( predicate( child.Source ) ) {
+				node = node.Children[i];
 				if ( node.Handler != null )
 					yield return node;
-
-				if ( node.children == null )
-					continue;
-
-				foreach ( var i in node.children ) {
-					stack.Push( i );
-				}
+				goto loop;
 			}
 		}
-		finally {
-			enumerationStack.Clear();
+
+		var parent = node.Parent;
+		while ( parent != null ) {
+			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
+				var child = parent.Children[i];
+				if ( predicate( child.Source ) ) {
+					node = parent.Children[i];
+					if ( node.Handler != null )
+						yield return node;
+					goto loop;
+				}
+			}
+
+			node = parent;
+			parent = node.Parent;
 		}
 	}
 
 	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers<TData> ( TData data, Func<TTarget, TData, bool> predicate ) {
-		var stack = enumerationStack ??= new();
-		
-		try {
-			stack.Push( this );
+		var node = this;
 
-			while ( stack.TryPop( out var node ) ) {
-				if ( !predicate( node.Source, data ) )
-					continue;
+		if ( !predicate( node.Source, data ) )
+			yield break;
+		if ( node.Handler != null )
+			yield return node;
 
+		loop:
+		for ( int i = 0; i < node.Children.Count; i++ ) {
+			var child = node.Children[i];
+			if ( predicate( child.Source, data ) ) {
+				node = node.Children[i];
 				if ( node.Handler != null )
 					yield return node;
-
-				if ( node.children == null )
-					continue;
-
-				foreach ( var i in node.children ) {
-					stack.Push( i );
-				}
+				goto loop;
 			}
 		}
-		finally {
-			enumerationStack.Clear();
+
+		var parent = node.Parent;
+		while ( parent != null ) {
+			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
+				var child = parent.Children[i];
+				if ( predicate( child.Source, data ) ) {
+					node = parent.Children[i];
+					if ( node.Handler != null )
+						yield return node;
+					goto loop;
+				}
+			}
+
+			node = parent;
+			parent = node.Parent;
 		}
 	}
 
