@@ -76,7 +76,7 @@ public abstract class Animation<TTarget, TValue> : Animation, IValueInterpolatin
 	}
 
 	public sealed override void OnEnded () {
-		SetValue( Interpolate( interpolatedStartValue, EndValue, 1 ) );
+		SetValue( EndValue );
 	}
 	public sealed override void OnEndRewound () {
 		
@@ -84,9 +84,9 @@ public abstract class Animation<TTarget, TValue> : Animation, IValueInterpolatin
 
 	public override string ToString () {
 		if ( !hasStarted )
-			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {StringifyValue(EndValue)} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {StringifyValue(EndValue)} in {Duration:N1}";
 		else
-			return $"{GetType().Name} ({string.Join( ", ", Domains)}) {StringifyValue(StartValue)} -> {StringifyValue(EndValue)} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains)}) {StringifyValue(StartValue)} -> {StringifyValue(EndValue)} in {Duration:N1}";
 	}
 
 	protected virtual string StringifyValue ( TValue value ) => $"{value}";
@@ -126,11 +126,11 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation, IValueInter
 		interpolatedStartValue = value;
 	}
 	public sealed override void OnStartRewound () {
-		SetValue( StartValue! );
+		SetValue( StartValue );
 	}
 
 	public sealed override void OnEnded () {
-		SetValue( Interpolate( interpolatedStartValue, EndValue, 1 ) );
+		SetValue( EndValue );
 	}
 	public sealed override void OnEndRewound () {
 
@@ -138,9 +138,9 @@ public abstract class DynamicAnimation<TTarget, TValue> : Animation, IValueInter
 
 	public override string ToString () {
 		if ( !hasStarted )
-			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {{End Value Not Generated Yet}} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains )}) Not Started -> {{End Value Not Generated Yet}} in {Duration:N1}";
 		else
-			return $"{GetType().Name} ({string.Join( ", ", Domains )}) {StringifyValue( StartValue )} -> {StringifyValue( EndValue )} in {Duration:N1}ms";
+			return $"{GetType().Name} ({string.Join( ", ", Domains )}) {StringifyValue( StartValue )} -> {StringifyValue( EndValue )} in {Duration:N1}";
 	}
 
 	protected virtual string StringifyValue ( TValue value ) => $"{value}";

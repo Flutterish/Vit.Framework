@@ -1,18 +1,28 @@
 ﻿using Vit.Framework.Graphics;
+using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Animations;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
+
 public class DrawVisualizerCursor : CompositeUIComponent {
 	BoxCursor cursor = new();
 	public DrawVisualizerCursor () {
 		AddInternalChild( cursor );
 	}
 
-	public IViewableInDrawVisualiser? Target;
+	IViewableInDrawVisualiser? target;
+	public IViewableInDrawVisualiser? Target {
+		get => target;
+		set {
+			if ( value.TrySet( ref target ) )
+				cursor.Flash();
+		}
+	}
 	protected override void PerformSelfLayout () {
 		if ( Target == null ) {
 			cursor.Scale = Axes2<float>.Zero;
@@ -42,8 +52,9 @@ public class DrawVisualizerCursor : CompositeUIComponent {
 	}
 
 	class BoxCursor : LayoutContainer {
+		Box background;
 		public BoxCursor () {
-			AddChild( new Box { Tint = ColorRgb.HotPink, Alpha = 0.4f }, new() {
+			AddChild( background = new Box { Tint = ColorRgb.HotPink, Alpha = 0.4f }, new() {
 				Size = new( 1f.Relative() )
 			} );
 			foreach ( var anchor in new[] { Anchor.TopRight, Anchor.TopLeft, Anchor.BottomRight, Anchor.BottomLeft } ) {
@@ -58,6 +69,12 @@ public class DrawVisualizerCursor : CompositeUIComponent {
 					Origin = anchor
 				} );
 			}
+		}
+
+		public void Flash () {
+			background.Animate()
+				.FlashColour( ColorRgb.White, ColorRgb.HotPink, 600.Millis() )
+				.FlashAlpha( 0.8f, 0.4f, 200.Millis() );
 		}
 	}
 }

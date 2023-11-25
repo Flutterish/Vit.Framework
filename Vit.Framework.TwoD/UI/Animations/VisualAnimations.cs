@@ -50,6 +50,8 @@ public static class VisualAnimations {
 		=> sequence.FadeTo( 1, duration, easing );
 	public static AnimationSequence<T> FadeOut<T> ( this AnimationSequence<T> sequence, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasAlpha
 		=> sequence.FadeTo( 0, duration, easing );
+	public static AnimationSequence<T> FlashAlpha<T> ( this AnimationSequence<T> sequence, float flashAlpha, float alpha, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasAlpha
+		=> sequence.FadeTo( flashAlpha, 0.Millis() ).Then().FadeTo( alpha, duration, easing );
 
 	public static AnimationSequence<T> FadeColour<T> ( this AnimationSequence<T> sequence, ColorRgb<float> tint, Millis duration, EasingFunction? easing = null ) where T : ICanBeAnimated, IHasTint
 		=> sequence.Add( new TintAnimation( sequence.Source, tint, sequence.StartTime, sequence.StartTime + duration, easing ?? Easing.None ) );
