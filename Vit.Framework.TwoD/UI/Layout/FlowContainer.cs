@@ -22,7 +22,10 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
 	}
 	public override void OnChildLayoutInvalidated ( UIComponent child, LayoutInvalidations invalidations ) {
-		InvalidateLayout( LayoutInvalidations.Children | LayoutInvalidations.RequiredSize | LayoutInvalidations.Self );
+		if ( invalidations.HasFlag( LayoutInvalidations.RequiredSize | LayoutInvalidations.Self ) )
+			InvalidateLayout( LayoutInvalidations.Children | LayoutInvalidations.RequiredSize | LayoutInvalidations.Self );
+		else
+			InvalidateLayout( LayoutInvalidations.Children );
 	}
 
 	FlowSize2<float> contentFlowSize;

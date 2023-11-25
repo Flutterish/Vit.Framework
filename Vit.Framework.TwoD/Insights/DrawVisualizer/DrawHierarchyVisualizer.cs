@@ -16,6 +16,7 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 	}
 
 	Node? topNode;
+	public Action<IViewableInDrawVisualiser?>? Selected;
 	public void View ( IViewableInDrawVisualiser? target ) {
 		if ( target == null ) {
 			if ( topNode != null ) {
@@ -31,6 +32,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			}
 			topNode.View( target );
 		}
+
+		Selected?.Invoke( target );
 	}
 
 	public override void DisposeDrawNodes () {
@@ -42,8 +45,11 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 
 	Stack<Node> nodePool = new();
 	Node getNode () {
-		if ( !nodePool.TryPop( out var node ) )
-			return new( this );
+		if ( !nodePool.TryPop( out var node ) ) {
+			node = new( this );
+			node.Selected = t => Selected?.Invoke(t);
+			return node;
+		}
 		return node;
 	}
 	void freeNode ( Node node ) {
@@ -58,7 +64,10 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			this.source = source;
 			FlowDirection = FlowDirection.Down;
 			AddChild( button = new() {
-				Clicked = () => IsOpened = !IsOpened,
+				Clicked = () => {
+					IsOpened = !IsOpened;
+					Selected?.Invoke( target );
+				},
 				TextAnchor = Anchor.Centre,
 				TextOrigin = Anchor.Centre
 			}, new() {
@@ -149,5 +158,7 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 
 			base.Update();
 		}
+
+		public Action<IViewableInDrawVisualiser?>? Selected;
 	}
 }

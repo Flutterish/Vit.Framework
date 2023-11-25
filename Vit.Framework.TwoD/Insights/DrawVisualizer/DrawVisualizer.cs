@@ -7,11 +7,15 @@ namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 /// </summary>
 public class DrawVisualizer : CompositeUIComponent {
 	DrawHierarchyVisualizer hierarchy;
+	DrawVisualizerCursor cursor;
 
 	public DrawVisualizer () {
 		AddInternalChild( hierarchy = new DrawHierarchyVisualizer {
 			Size = (800, 1000)
 		} );
+		AddInternalChild( cursor = new() );
+
+		hierarchy.Selected = t => cursor.Target = t;
 	}
 
 	public void View ( IViewableInDrawVisualiser? target ) {

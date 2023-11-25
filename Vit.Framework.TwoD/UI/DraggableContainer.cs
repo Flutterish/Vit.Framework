@@ -16,7 +16,7 @@ public class DraggableContainer : Flexbox {
 		AddChild( header = new() {
 			Tint = FrameworkUIScheme.Element,
 			Dragged = delta => {
-				Position += ScreenSpaceDeltaToLocalSpace( delta );
+				Position += Parent!.ScreenSpaceDeltaToLocalSpace( delta );
 			}
 		}, new() {
 			Size = new( 1f.Relative(), 80 )

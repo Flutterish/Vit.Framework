@@ -205,9 +205,9 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		=> UnitToGlobalMatrix.Apply( point );
 	public Vector2<float> LocalSpaceDeltaToScreenSpace ( Vector2<float> delta )
 		=> UnitToGlobalMatrix.Apply( delta ) - UnitToGlobalMatrix.Apply( Vector2<float>.Zero );
-	public Point2<float> LocalSpaceToAnotherSpace ( Point2<float> point, UIComponent other )
+	public Point2<float> LocalSpaceToAnotherSpace ( Point2<float> point, IUIComponent other )
 		=> other.ScreenSpaceToLocalSpace( LocalSpaceToScreenSpace( point ) );
-	public Vector2<float> LocalSpaceDeltaToAnotherSpace ( Vector2<float> delta, UIComponent other )
+	public Vector2<float> LocalSpaceDeltaToAnotherSpace ( Vector2<float> delta, IUIComponent other )
 		=> other.ScreenSpaceDeltaToLocalSpace( LocalSpaceDeltaToScreenSpace( delta ) );
 
 	Matrix3<float>? unitToLocal;
@@ -349,6 +349,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	#endregion
 
 	public virtual DrawVisualizerBlueprint? CreateBlueprint () => null;
+	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
 }
 
 public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput, IViewableInDrawVisualiser {
@@ -390,11 +391,24 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 	/// <param name="disposeScheduler">The scheduler that will perform batch disposal of draw nodes.</param>
 	void Dispose ( RenderThreadScheduler disposeScheduler );
 
+	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
+		=> GlobalToUnitMatrix.Apply( point );
+	public Vector2<float> ScreenSpaceDeltaToLocalSpace ( Vector2<float> delta )
+		=> GlobalToUnitMatrix.Apply( delta ) - GlobalToUnitMatrix.Apply( Vector2<float>.Zero );
+	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
+		=> UnitToGlobalMatrix.Apply( point );
+	public Vector2<float> LocalSpaceDeltaToScreenSpace ( Vector2<float> delta )
+		=> UnitToGlobalMatrix.Apply( delta ) - UnitToGlobalMatrix.Apply( Vector2<float>.Zero );
+	public Point2<float> LocalSpaceToAnotherSpace ( Point2<float> point, IUIComponent other )
+		=> other.ScreenSpaceToLocalSpace( LocalSpaceToScreenSpace( point ) );
+	public Vector2<float> LocalSpaceDeltaToAnotherSpace ( Vector2<float> delta, IUIComponent other )
+		=> other.ScreenSpaceDeltaToLocalSpace( LocalSpaceDeltaToScreenSpace( delta ) );
+
 	Size2<float> Size { get; }
 	public float Width => Size.Width;
 	public float Height => Size.Height;
 
-	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => UnitToGlobalMatrix * Matrix3<float>.CreateScale( Width, Height );
+	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
 	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => Parent;
 	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => Array.Empty<IViewableInDrawVisualiser>();
 	string IViewableInDrawVisualiser.Name => GetType().Name;
