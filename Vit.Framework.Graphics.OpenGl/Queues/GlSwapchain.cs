@@ -20,6 +20,7 @@ public class GlSwapchain : ISwapchain {
 		context = window.CreateContext();
 		OpenGlApi.loadBindings(); // bindings have to be loaded after a context is created to load all functions
 		GL.Enable( EnableCap.FramebufferSrgb ); // TODO this should only be done for the default framebuffer, but the enable cap does it for all framebuffers
+		GL.Enable( EnableCap.Multisample );
 		enableDebug();
 	}
 

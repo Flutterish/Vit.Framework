@@ -1,5 +1,6 @@
 ﻿using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
+using Vit.Framework.Interop;
 using Vit.Framework.Windowing;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -26,7 +27,7 @@ public class Direct3D11WindowSurface : WindowGraphicsSurface {
 			},
 			SampleDescription = {
 				Count = int.Max( 1, (int)Args.Multisample.Ideal ),
-				Quality = 0
+				Quality = (0xffffffff).BitCast<uint, int>()
 			},
 			BufferUsage = Usage.RenderTargetOutput,
 			BufferCount = 1,

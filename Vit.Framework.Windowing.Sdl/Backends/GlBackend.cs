@@ -11,14 +11,21 @@ class GlBackend : SdlBackend {
 		var minDepth = (int)args.Depth.Minimum;
 		var minStencil = (int)args.Stencil.Minimum;
 
+		flags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
 		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
 		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 6 );
 		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE );
-		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, multisamples );
+
 		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, minDepth );
 		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_STENCIL_SIZE, minStencil );
-
-		flags |= SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+		SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1 );
+		if ( multisamples > 1 ) {
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1 );
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, multisamples );
+		}
+		else {
+			SDL.SDL_GL_SetAttribute( SDL.SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 0 );
+		}
 	}
 
 	public override WindowGraphicsSurface CreateSurface ( GraphicsApi api, WindowSurfaceArgs args, SdlWindow window ) {

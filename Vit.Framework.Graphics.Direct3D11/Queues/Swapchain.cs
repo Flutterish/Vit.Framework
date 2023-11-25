@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Queues;
 using Vit.Framework.Graphics.Rendering.Textures;
+using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.Windowing;
@@ -33,7 +34,8 @@ public class Swapchain : DisposableObject, ISwapchain {
 			MipLevels = 1,
 			ArraySize = 1,
 			SampleDescription = {
-				Count = int.Max( 1, (int)args.Multisample.Ideal )
+				Count = int.Max( 1, (int)args.Multisample.Ideal ),
+				Quality = (0xffffffff).BitCast<uint, int>()
 			},
 			Format = Format.D24_UNorm_S8_UInt, // TODO use args for depth. idc for now
 			BindFlags = BindFlags.DepthStencil
