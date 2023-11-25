@@ -19,7 +19,10 @@ public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContai
 	}
 
 	protected override void OnChildParameterUpdated ( T child, FlowParams? previous, FlowParams? current ) {
-		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize ); // TODO calculate required size?
+		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+	}
+	public override void OnChildLayoutInvalidated ( UIComponent child, LayoutInvalidations invalidations ) {
+		InvalidateLayout( LayoutInvalidations.Children | LayoutInvalidations.RequiredSize | LayoutInvalidations.Self );
 	}
 
 	FlowSize2<float> contentFlowSize;

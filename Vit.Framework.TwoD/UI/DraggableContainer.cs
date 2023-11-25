@@ -9,7 +9,7 @@ namespace Vit.Framework.TwoD.UI;
 
 public class DraggableContainer : Flexbox {
 	Header header;
-	public readonly FlowContainer Content;
+	public readonly LayoutContainer Content;
 	public DraggableContainer () {
 		FlowDirection = FlowDirection.Down;
 		
@@ -22,8 +22,8 @@ public class DraggableContainer : Flexbox {
 			Size = new( 1f.Relative(), 80 )
 		} );
 		AddChild( Content = new() {
-			LayoutChildren = new (UIComponent, FlowParams)[] {
-				(new Box { Tint = FrameworkUIScheme.Background }, new FlowParams() {
+			LayoutChildren = new (UIComponent, LayoutParams)[] {
+				(new Box { Tint = FrameworkUIScheme.Background }, new LayoutParams() {
 					Size = new( 1f.Relative(), 1f.Relative() )
 				})
 			}

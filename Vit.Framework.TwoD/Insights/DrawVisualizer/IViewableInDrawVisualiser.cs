@@ -8,7 +8,8 @@ namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 public interface IViewableInDrawVisualiser {
 	Matrix3<float> UnitToGlobalMatrix { get; }
 	IViewableInDrawVisualiser? Parent { get; }
-	IReadOnlyList<IViewableInDrawVisualiser> Children { get; }
+	IEnumerable<IViewableInDrawVisualiser> Children { get; }
+	string Name { get; }
 
 	DrawVisualizerBlueprint? CreateBlueprint ();
 }

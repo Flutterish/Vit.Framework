@@ -1,7 +1,7 @@
 ﻿using Vit.Framework.DependencyInjection;
-using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Graphics;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.UI;
@@ -9,7 +9,7 @@ namespace Vit.Framework.TwoD.UI;
 public class Visual : Visual<Drawable> {
 	public Visual ( Drawable displayed ) : base( displayed ) { }
 }
-public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
+public class Visual<T> : UIComponent, IViewableInDrawVisualiser where T : Drawable {
 	public Visual ( T displayed ) {
 		Displayed = displayed;
 		displayed.DrawNodesInvalidated = onDrawNodesInvalidated;
@@ -43,5 +43,11 @@ public class Visual<T> : UIComponent, IHasAnimationTimeline where T : Drawable {
 
 	public override void DisposeDrawNodes () {
 		Displayed.DisposeDrawNodes();
+	}
+
+	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children {
+		get {
+			yield return Displayed;
+		}
 	}
 }

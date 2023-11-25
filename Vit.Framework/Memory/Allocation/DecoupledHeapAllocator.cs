@@ -236,6 +236,7 @@ public class DecoupledHeapAllocator {
 			node.Size += next.Size;
 			next.Previous = null;
 			next.NextFreeBySize = null;
+			next.PreviousFreeBySize = null;
 			freeMetadata( next );
 		}
 
@@ -245,6 +246,8 @@ public class DecoupledHeapAllocator {
 			previous.Size += node.Size;
 
 			node.Previous = null;
+			node.PreviousFreeBySize = null;
+			node.NextFreeBySize = null;
 			freeMetadata( node );
 			node = previous;
 		}

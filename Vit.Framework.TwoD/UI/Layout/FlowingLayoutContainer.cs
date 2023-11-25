@@ -1,4 +1,5 @@
-﻿using Vit.Framework.Memory;
+﻿using Vit.Framework.Mathematics;
+using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Layout;
 
 namespace Vit.Framework.TwoD.UI.Layout;
@@ -78,6 +79,47 @@ public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : Parametriz
 			lineJustification = value;
 			InvalidateLayout( LayoutInvalidations.Self );
 		}
+	}
+
+	protected override Size2<float> ComputeRequiredSize () {
+		if ( !Children.Any() || FlowDirection.HasFlag( FlowDirection.HasCrossBit ) )
+			return base.ComputeRequiredSize();
+
+		CalculateLayoutConstants();
+		using var children = new RentedArray<TChildArgs>( Children.Count );
+		using var layout = new RentedArray<ChildLayout>( Children.Count );
+		for ( int i = 0; i < Children.Count; i++ ) {
+			var child = Children[i];
+			children[i] = GetChildArgs( child, GetLayoutParameters( child ) );
+		}
+
+		var zeroSize = new Size2<float>( 0, 0 );
+
+		contentSize = flowDirection.ToFlow( zeroSize );
+		var axes = flowOrigin.ToFlow( flowDirection, zeroSize );
+		flowOriginAxes = new() {
+			Flow = axes.Flow / contentSize.Flow,
+			Cross = axes.Cross / contentSize.Cross
+		};
+
+		var flowPadding = flowDirection.ToFlow( Padding );
+		var crossSize = PerformLayout( new() {
+			Children = children,
+			Layout = layout,
+			Padding = flowDirection.ToFlow( Padding ),
+			Size = flowDirection.ToFlow( zeroSize ),
+			ContentSize = contentSize
+		} );
+
+		float maxFlow = 0;
+		foreach ( var i in lines ) {
+			maxFlow += i.size.Flow;
+		}
+		lines.Clear();
+		return flowDirection.FromFlow( new FlowSize2<float>() {
+			Cross = crossSize + flowPadding.Cross,
+			Flow = maxFlow + flowPadding.Flow
+		} );
 	}
 
 	FlowSize2<float> contentSize;

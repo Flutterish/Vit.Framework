@@ -361,7 +361,7 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 		remove => ChildRemoved -= value;
 	}
 
-	IReadOnlyList<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => (this as IReadOnlyCompositeComponent<UIComponent, T>).Children;
+	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => (this as IReadOnlyCompositeComponent<UIComponent, T>).Children;
 }
 
 [Flags]

@@ -101,11 +101,17 @@ public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T>
 	}
 
 	public void ClearChildren () {
+		foreach ( var i in Children ) {
+			OnChildParameterUpdated( i, parameters[i.Depth], null );
+		}
 		parameters.Clear();
 		ClearInternalChildren();
 	}
 
 	public void NoUnloadClearChildren () {
+		foreach ( var i in Children ) {
+			OnChildParameterUpdated( i, parameters[i.Depth], null );
+		}
 		parameters.Clear();
 		NoUnloadClearInternalChildren();
 	}
