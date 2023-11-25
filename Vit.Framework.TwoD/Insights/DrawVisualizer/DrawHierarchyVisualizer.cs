@@ -63,11 +63,12 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 		public Node ( DrawHierarchyVisualizer source ) {
 			this.source = source;
 			FlowDirection = FlowDirection.Down;
-			AddChild( button = new() {
+			AddChild( button = new HoverableBasicButton() {
 				Clicked = () => {
 					IsOpened = !IsOpened;
 					Selected?.Invoke( target );
 				},
+				Hovered = () => Selected?.Invoke( target ),
 				TextAnchor = Anchor.Centre,
 				TextOrigin = Anchor.Centre
 			}, new() {
@@ -130,6 +131,9 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			}
 
 			foreach ( var target in target.Children ) {
+				if ( target is DrawVisualizer )
+					continue;
+
 				if ( childBySource.TryGetValue( target, out var node ) )
 					continue;
 
@@ -144,6 +148,9 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 
 			int index = 0;
 			foreach ( var target in target.Children ) {
+				if ( target is DrawVisualizer )
+					continue;
+
 				var node = childBySource[target];
 				if ( node.Depth != index ) {
 					children.NoUnloadRemoveChild( node );
@@ -160,5 +167,14 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 		}
 
 		public Action<IViewableInDrawVisualiser?>? Selected;
+		class HoverableBasicButton : BasicButton {
+			protected override void OnStateChanged ( ButtonState state ) {
+				if ( state is ButtonState.Hovered )
+					Hovered?.Invoke();
+				base.OnStateChanged( state );
+			}
+
+			public Action? Hovered;
+		}
 	}
 }
