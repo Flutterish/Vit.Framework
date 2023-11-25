@@ -1,13 +1,15 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Layout;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Graphics.Text;
 
-public abstract class DrawableText : Drawable {
+public abstract class DrawableText : Drawable, IViewableInDrawVisualiser {
 	FontCollection font = null!;
 	public FontCollection Font {
 		get => font;
@@ -130,6 +132,11 @@ public abstract class DrawableText : Drawable {
 
 		layout.Length = SingleLineTextLayoutEngine.ComputeLayout( Text, Font, layout, out boundingBox );
 	}
+
+	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix 
+		=> Matrix3<float>.CreateTranslation( (float)(BoundingBox.MinX * MetricMultiplier), (float)(BoundingBox.MinY * MetricMultiplier) ) 
+		* Matrix3<float>.CreateScale( (float)(BoundingBox.Width * MetricMultiplier), (float)(BoundingBox.Height * MetricMultiplier) ) 
+		* UnitToGlobalMatrix;
 
 	public override void DisposeDrawNodes () {
 		base.DisposeDrawNodes();

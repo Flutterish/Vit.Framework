@@ -10,6 +10,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Memory;
 using Vit.Framework.Text.Layout;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.TextVertex.Uniforms;
 using Vertex = Vit.Framework.TwoD.Rendering.Shaders.TextVertex.Vertex;
 
