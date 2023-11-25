@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct RelativeSize2<T> : IInterpolatable<RelativeSize2<T>, T> where T : INumber<T> {
+public struct RelativeSize2<T> : IEqualityOperators<RelativeSize2<T>, RelativeSize2<T>, bool>, IInterpolatable<RelativeSize2<T>, T> where T : INumber<T> {
 	public LayoutUnit<T> Width;
 	public LayoutUnit<T> Height;
 
@@ -47,5 +47,15 @@ public struct RelativeSize2<T> : IInterpolatable<RelativeSize2<T>, T> where T : 
 			Width = Width.Lerp( goal.Width, time ),
 			Height = Height.Lerp( goal.Height, time )
 		};
+	}
+
+	public static bool operator == ( RelativeSize2<T> left, RelativeSize2<T> right ) {
+		return left.Width == right.Width
+			&& left.Height == right.Height;
+	}
+
+	public static bool operator != ( RelativeSize2<T> left, RelativeSize2<T> right ) {
+		return left.Width != right.Width
+			|| left.Height != right.Height;
 	}
 }

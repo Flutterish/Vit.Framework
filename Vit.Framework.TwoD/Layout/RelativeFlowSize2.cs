@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct RelativeFlowSize2<T> where T : INumber<T> {
+public struct RelativeFlowSize2<T> : IEqualityOperators<RelativeFlowSize2<T>, RelativeFlowSize2<T>, bool> where T : INumber<T> {
 	public LayoutUnit<T> Flow;
 	public LayoutUnit<T> Cross;
 
@@ -32,5 +32,15 @@ public struct RelativeFlowSize2<T> where T : INumber<T> {
 
 	public override string ToString () {
 		return $"{Flow}x{Cross}";
+	}
+
+	public static bool operator == ( RelativeFlowSize2<T> left, RelativeFlowSize2<T> right ) {
+		return left.Cross == right.Cross
+			&& left.Flow == right.Flow;
+	}
+
+	public static bool operator != ( RelativeFlowSize2<T> left, RelativeFlowSize2<T> right ) {
+		return left.Cross != right.Cross
+			|| left.Flow != right.Flow;
 	}
 }

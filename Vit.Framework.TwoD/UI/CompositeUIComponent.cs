@@ -16,11 +16,17 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children {
 		get => internalChildren;
-		init {
+		protected init {
 			foreach ( var i in value )
 				AddInternalChild( i );
 		}
 	}
+
+	public T InternalChild {
+		get => internalChildren.Single();
+		protected init => AddInternalChild( value );
+	}
+
 	public IReadOnlyDependencyCache Dependencies { get; private set; } = null!;
 
 	bool isMaskingActive;

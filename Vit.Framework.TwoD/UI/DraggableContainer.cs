@@ -7,7 +7,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI;
 
-public class DraggableContainer : Flexbox {
+public class DraggableContainer : Flexbox { // TODO do this better
 	Header header;
 	public readonly LayoutContainer Content;
 	public DraggableContainer () {

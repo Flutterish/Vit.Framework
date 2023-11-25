@@ -3,7 +3,7 @@ using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.TwoD.Layout;
 
-public struct RelativeAxes2<T> : IInterpolatable<RelativeAxes2<T>, T>, IEquatable<RelativeAxes2<T>> where T : INumber<T> {
+public struct RelativeAxes2<T> : IEqualityOperators<RelativeAxes2<T>, RelativeAxes2<T>, bool>, IInterpolatable<RelativeAxes2<T>, T>, IEquatable<RelativeAxes2<T>> where T : INumber<T> {
 	public LayoutUnit<T> X;
 	public LayoutUnit<T> Y;
 

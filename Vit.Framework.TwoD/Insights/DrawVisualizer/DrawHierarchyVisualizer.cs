@@ -7,9 +7,15 @@ namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 
 public class DrawHierarchyVisualizer : DraggableContainer {
 	LayoutContainer contenter;
+	ScrollContainer scrollContainer;
 	public DrawHierarchyVisualizer () {
-		Content.AddChild( contenter = new() {
-			Padding = new( 10 )
+		Content.AddChild( scrollContainer = new() {
+			ContentSize = new( 1f.Relative(), 0 ),
+			ContentAnchor = Anchor.TopLeft,
+			ContentOrigin = Anchor.TopLeft,
+			Content = contenter = new() {
+				Padding = new( 10 )
+			}
 		}, new() {
 			Size = new( 1f.Relative() )
 		} );
@@ -27,7 +33,9 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 		else {
 			if ( topNode == null ) {
 				contenter.AddChild( topNode = getNode(), new() {
-					Size = new( 1f.Relative(), 1f.Relative() )
+					Size = new( 1f.Relative(), 1f.Relative() ),
+					Anchor = Anchor.TopLeft,
+					Origin = Anchor.TopLeft
 				} );
 			}
 			topNode.View( target );
