@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.CompilerServices;
 
 namespace Vit.Framework.Input.Events;
 
@@ -49,28 +49,24 @@ public static class IHasEventTreesExtensions {
 		return self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.Handler is Func<Event, bool> handler && handler( @event );
 	}
 
-	public static TSelf? TriggerEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
+	public static TSelf? TriggerEvent<TSelf, TCuller> ( this IHasEventTrees<TSelf> self, Event @event, TCuller culler ) where TSelf : class, IHasEventTrees<TSelf> where TCuller : struct, EventTree<TSelf>.IEventTreeCuller {
 		var type = @event.GetType();
-		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event ) is TSelf handler )
+		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event, culler ) is TSelf handler )
 			return handler;
 
 		return null;
+	}
+
+	public static TSelf? TriggerEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
+		return self.TriggerEvent( @event, new EventTree<TSelf>.NullEventTreeCuller() );
 	}
 
 	public static TSelf? TriggerCulledEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event, Func<TSelf, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
-		var type = @event.GetType();
-		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, predicate ) is TSelf handler )
-			return handler;
-
-		return null;
+		return self.TriggerEvent( @event, new EventTree<TSelf>.PredicateEventTreeCuller { Predicate = predicate } );
 	}
 
 	public static TSelf? TriggerCulledEvent<TSelf, TData> ( this IHasEventTrees<TSelf> self, Event @event, TData data, Func<TSelf, TData, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
-		var type = @event.GetType();
-		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerCulledEvent( @event, data, predicate ) is TSelf handler )
-			return handler;
-
-		return null;
+		return self.TriggerEvent( @event, new EventTree<TSelf>.PredicateWithDataEventTreeCuller<TData> { Data = data, Predicate = predicate } );
 	}
 }
 
@@ -105,7 +101,7 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 	}
 
 	/// <summary>
-	/// Returns the next child as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// Returns the next node as if performing a depth-first enumeration where the parent is yielded before its children.
 	/// </summary>
 	public EventTree<TTarget>? Next {
 		get {
@@ -127,7 +123,7 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 	}
 
 	/// <summary>
-	/// Returns the next child with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// Returns the next node with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
 	/// </summary>
 	public EventTree<TTarget>? NextWithHandler {
 		get {
@@ -144,7 +140,7 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 	}
 
 	/// <summary>
-	/// Returns the previous child as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// Returns the previous node as if performing a depth-first enumeration where the parent is yielded before its children.
 	/// </summary>
 	public EventTree<TTarget>? Previous {
 		get {
@@ -164,7 +160,7 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 	}
 
 	/// <summary>
-	/// Returns the previous child with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
+	/// Returns the previous node with a handler as if performing a depth-first enumeration where the parent is yielded before its children.
 	/// </summary>
 	public EventTree<TTarget>? PreviousWithHandler {
 		get {
@@ -180,110 +176,196 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		}
 	}
 
-	public bool ShouldBeCulled => Handler == null && Children.Any() != true;
+	/// <summary>
+	/// Returns the next node as if performing a depth-first enumeration where the children are yielded before the parent.
+	/// </summary>
+	public EventTree<TTarget>? ChildFirstNext {
+		get {
+			var parent = Parent;
 
-	public IEnumerable<EventTree<TTarget>> EnumerateHandlers () {
+			if ( parent != null && parent.Children.Count > Depth + 1 ) {
+				var node = parent.Children[Depth + 1];
+				while ( node.Children.Count != 0 ) {
+					node = node.Children[0];
+				}
+
+				return node;
+			}
+			return parent;
+		}
+	}
+
+	/// <summary>
+	/// Returns the next node with a handler as if performing a depth-first enumeration where the children are yielded before the parent.
+	/// </summary>
+	public EventTree<TTarget>? ChildFirstNextWithHandler {
+		get {
+			var node = Next;
+			while ( node != null ) {
+				if ( node.Handler != null )
+					return node;
+
+				node = node.ChildFirstNext;
+			}
+
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Returns the previous node as if performing a depth-first enumeration where the children are yielded before the parent.
+	/// </summary>
+	public EventTree<TTarget>? ChildFirstPrevious {
+		get {
+			if ( Children.Count != 0 ) {
+				return Children[^1];
+			}
+
+			var parent = Parent;
+			var node = this;
+			while ( parent != null ) {
+				if ( node.Depth != 0 ) {
+					return parent.Children[node.Depth - 1];
+				}
+
+				node = parent;
+				parent = node.Parent;
+			}
+
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Returns the previous node with a handler as if performing a depth-first enumeration where the children are yielded before the parent.
+	/// </summary>
+	public EventTree<TTarget>? ChildFirstPreviousWithHandler {
+		get {
+			var node = Previous;
+			while ( node != null ) {
+				if ( node.Handler != null )
+					return node;
+
+				node = node.ChildFirstPrevious;
+			}
+
+			return null;
+		}
+	}
+
+	public bool ShouldBeCulled => Handler == null && Children.Count == 0;
+
+	public interface IEventTreeCuller {
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		bool ShouldNotBeCulled ( EventTree<TTarget> node );
+	}
+
+	public struct NullEventTreeCuller : IEventTreeCuller {
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		public readonly bool ShouldNotBeCulled ( EventTree<TTarget> node ) {
+			return true;
+		}
+	}
+
+	public struct PredicateEventTreeCuller : IEventTreeCuller {
+		public required Func<TTarget, bool> Predicate;
+
+		public bool ShouldNotBeCulled ( EventTree<TTarget> node ) {
+			return Predicate( node.Source );
+		}
+	}
+
+	public struct PredicateWithDataEventTreeCuller<TData> : IEventTreeCuller {
+		public required Func<TTarget, TData, bool> Predicate;
+		public required TData Data;
+
+		public bool ShouldNotBeCulled ( EventTree<TTarget> node ) {
+			return Predicate( node.Source, Data );
+		}
+	}
+
+	/// <summary>
+	/// Performs a depth-first enumeration where the parent is yielded before its children.
+	/// </summary>
+	public IEnumerable<EventTree<TTarget>> EnumerateHandlers<TCuller> ( TCuller culler ) where TCuller : struct, IEventTreeCuller {
 		var node = this;
+
+		if ( !culler.ShouldNotBeCulled( node ) )
+			yield break;
+		if ( node.Handler != null )
+			yield return node;
+
+		loop:
+		for ( int i = 0; i < node.Children.Count; i++ ) {
+			var child = node.Children[i];
+			if ( culler.ShouldNotBeCulled( child ) ) {
+				node = node.Children[i];
+				if ( node.Handler != null )
+					yield return node;
+				goto loop;
+			}
+		}
+
+		var parent = node.Parent;
+		while ( parent != null ) {
+			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
+				var child = parent.Children[i];
+				if ( culler.ShouldNotBeCulled( child ) ) {
+					node = parent.Children[i];
+					if ( node.Handler != null )
+						yield return node;
+					goto loop;
+				}
+			}
+
+			node = parent;
+			parent = node.Parent;
+		}
+	}
+
+	/// <summary>
+	/// Performs a depth-first enumeration where the children are yielded before the parent.
+	/// </summary>
+	public IEnumerable<EventTree<TTarget>> EnumerateHandlersChildFirst<TCuller> ( TCuller culler ) where TCuller : struct, IEventTreeCuller {
+		var node = this;
+
+		if ( !culler.ShouldNotBeCulled( node ) )
+			yield break;
+
+		while ( node.Children.Count != 0 && culler.ShouldNotBeCulled( node.Children[0] ) ) {
+			node = node.Children[0];
+		}
 
 		if ( node.Handler != null )
 			yield return node;
 
 		loop:
-		if ( node.Children.Count != 0 ) {
-			node = node.Children[0];
+		var parent = node.Parent;
+		if ( parent != null ) {
+			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
+				var child = parent.Children[i];
+				if ( !culler.ShouldNotBeCulled( child ) )
+					continue;
+
+				while ( child.Children.Count != 0 && culler.ShouldNotBeCulled( child.Children[0] ) ) {
+					child = child.Children[0];
+				}
+
+				node = child;
+				if ( node.Handler != null )
+					yield return node;
+				goto loop;
+			}
+
+			node = parent;
 			if ( node.Handler != null )
 				yield return node;
 			goto loop;
 		}
-
-		var parent = node.Parent;
-		while ( parent != null ) {
-			if ( parent.Children.Count > node.Depth + 1 ) {
-				node = parent.Children[node.Depth + 1];
-				if ( node.Handler != null )
-					yield return node;
-				goto loop;
-			}
-
-			node = parent;
-			parent = node.Parent;
-		}
 	}
 
-	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers ( Func<TTarget, bool> predicate ) {
-		var node = this;
-
-		if ( !predicate( node.Source ) )
-			yield break;
-		if ( node.Handler != null )
-			yield return node;
-
-		loop:
-		for ( int i = 0; i < node.Children.Count; i++ ) {
-			var child = node.Children[i];
-			if ( predicate( child.Source ) ) {
-				node = node.Children[i];
-				if ( node.Handler != null )
-					yield return node;
-				goto loop;
-			}
-		}
-
-		var parent = node.Parent;
-		while ( parent != null ) {
-			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
-				var child = parent.Children[i];
-				if ( predicate( child.Source ) ) {
-					node = parent.Children[i];
-					if ( node.Handler != null )
-						yield return node;
-					goto loop;
-				}
-			}
-
-			node = parent;
-			parent = node.Parent;
-		}
-	}
-
-	public IEnumerable<EventTree<TTarget>> EnumerateCulledHandlers<TData> ( TData data, Func<TTarget, TData, bool> predicate ) {
-		var node = this;
-
-		if ( !predicate( node.Source, data ) )
-			yield break;
-		if ( node.Handler != null )
-			yield return node;
-
-		loop:
-		for ( int i = 0; i < node.Children.Count; i++ ) {
-			var child = node.Children[i];
-			if ( predicate( child.Source, data ) ) {
-				node = node.Children[i];
-				if ( node.Handler != null )
-					yield return node;
-				goto loop;
-			}
-		}
-
-		var parent = node.Parent;
-		while ( parent != null ) {
-			for ( int i = node.Depth + 1; i < parent.Children.Count; i++ ) {
-				var child = parent.Children[i];
-				if ( predicate( child.Source, data ) ) {
-					node = parent.Children[i];
-					if ( node.Handler != null )
-						yield return node;
-					goto loop;
-				}
-			}
-
-			node = parent;
-			parent = node.Parent;
-		}
-	}
-
-	public TTarget? TriggerEvent ( Event @event ) {
-		foreach ( var node in EnumerateHandlers() ) {
+	public TTarget? TriggerEvent<TCuller> ( Event @event, TCuller culler ) where TCuller : struct, IEventTreeCuller {
+		foreach ( var node in EnumerateHandlers( culler ) ) {
 			if ( node.Handler!( @event ) )
 				return node.Source;
 		}
@@ -291,8 +373,8 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		return null;
 	}
 
-	public TTarget? TriggerCulledEvent ( Event @event, Func<TTarget, bool> predicate ) {
-		foreach ( var node in EnumerateCulledHandlers( predicate ) ) {
+	public TTarget? TriggerEventChildFirst<TCuller> ( Event @event, TCuller culler ) where TCuller : struct, IEventTreeCuller {
+		foreach ( var node in EnumerateHandlersChildFirst( culler ) ) {
 			if ( node.Handler!( @event ) )
 				return node.Source;
 		}
@@ -300,27 +382,13 @@ public class EventTree<TTarget> where TTarget : class, IHasEventTrees<TTarget> {
 		return null;
 	}
 
-	public TTarget? TriggerCulledEvent<TData> ( Event @event, TData data, Func<TTarget, TData, bool> predicate ) {
-		foreach ( var node in EnumerateCulledHandlers( data, predicate ) ) {
-			if ( node.Handler!( @event ) )
-				return node.Source;
-		}
-
-		return null;
-	}
-
-	public void CreateHandlerQueue ( ICollection<EventTree<TTarget>> collection ) {
-		foreach ( var node in EnumerateHandlers() )
+	public void CreateHandlerQueue<TCuller> ( ICollection<EventTree<TTarget>> collection, TCuller culler ) where TCuller : struct, IEventTreeCuller {
+		foreach ( var node in EnumerateHandlers( culler ) )
 			collection.Add( node );
 	}
 
-	public void CreateCulledHandlerQueue ( ICollection<EventTree<TTarget>> collection, Func<TTarget, bool> predicate ) {
-		foreach ( var node in EnumerateCulledHandlers( predicate ) )
-			collection.Add( node );
-	}
-
-	public void CreateCulledHandlerQueue<TData> ( ICollection<EventTree<TTarget>> collection, TData data, Func<TTarget, TData, bool> predicate ) {
-		foreach ( var node in EnumerateCulledHandlers( data, predicate ) )
+	public void CreateChildFirstHandlerQueue<TCuller> ( ICollection<EventTree<TTarget>> collection, TCuller culler ) where TCuller : struct, IEventTreeCuller {
+		foreach ( var node in EnumerateHandlersChildFirst( culler ) )
 			collection.Add( node );
 	}
 }
