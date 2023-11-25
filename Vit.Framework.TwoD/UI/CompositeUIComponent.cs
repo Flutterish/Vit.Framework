@@ -283,9 +283,13 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			return internalChildren[0].GetDrawNode<TSpecialisation>( subtreeIndex );
 		}
 
-		var node = drawNodes[subtreeIndex] ??= new DrawNode<TSpecialisation>( this, subtreeIndex );
+		var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TSpecialisation>( subtreeIndex );
 		node.Update();
 		return node;
+	}
+
+	protected virtual Rendering.DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+		return new DrawNode<TSpecialisation>( this, subtreeIndex );
 	}
 
 	public override void DisposeDrawNodes () {
@@ -308,27 +312,27 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			return Source.drawNodeInvalidations.ValidateDrawNode( SubtreeIndex );
 		}
 
-		bool isMaskingActive;
-		Corners<float> cornerExponents;
-		Corners<Axes2<float>> cornerRadii;
-		Matrix3<float> globalToUnit;
+		protected bool IsMaskingActive;
+		protected Corners<float> CornerExponents;
+		protected Corners<Axes2<float>> CornerRadii;
+		protected Matrix3<float> GlobalToUnit;
 		public override void Update () {
 			base.Update();
 
-			isMaskingActive = Source.isMaskingActive;
-			if ( isMaskingActive ) {
-				globalToUnit = Source.GlobalToUnitMatrix * Matrix3<float>.CreateScale( 1f / Source.Width * Source.ScaleX, 1f / Source.Height * Source.ScaleY );
-				cornerExponents = Source.cornerExponents;
-				cornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
+			IsMaskingActive = Source.isMaskingActive;
+			if ( IsMaskingActive ) {
+				GlobalToUnit = Source.GlobalToUnitMatrix * Matrix3<float>.CreateScale( 1f / Source.Width, 1f / Source.Height );
+				CornerExponents = Source.cornerExponents;
+				CornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
 			}
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
-			if ( isMaskingActive ) {
+			if ( IsMaskingActive ) {
 				Source.maskingData.Push( new() {
-					ToMaskingSpace = new( globalToUnit ),
-					CornerExponents = cornerExponents,
-					CornerRadii = cornerRadii
+					ToMaskingSpace = new( GlobalToUnit ),
+					CornerExponents = CornerExponents,
+					CornerRadii = CornerRadii
 				} );
 				base.Draw( commands );
 				Source.maskingData.Pop();

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vit.Framework.Graphics;
+﻿using Vit.Framework.Graphics;
 using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
-using Vit.Framework.TwoD.UI;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 public class DrawVisualizerCursor : CompositeUIComponent {

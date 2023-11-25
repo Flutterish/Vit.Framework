@@ -408,7 +408,6 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 	public float Width => Size.Width;
 	public float Height => Size.Height;
 
-	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
 	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => Parent;
 	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => Array.Empty<IViewableInDrawVisualiser>();
 	string IViewableInDrawVisualiser.Name => GetType().Name;

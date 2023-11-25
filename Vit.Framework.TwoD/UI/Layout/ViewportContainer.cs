@@ -1,10 +1,13 @@
-﻿using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Graphics.Rendering.Specialisation;
+using Vit.Framework.Mathematics;
+using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Layout;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class ViewportContainer : ViewportContainer<UIComponent> { }
-public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where T : UIComponent {
+public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IViewableInDrawVisualiser where T : UIComponent {
 	Size2<float> size;
 	/// <summary>
 	/// The size available to lay out child elements in, in local space.
@@ -113,6 +116,23 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams> where
 		}
 		else {
 			throw new NotImplementedException();
+		}
+	}
+
+	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width / ScaleX, Height / ScaleY ) * UnitToGlobalMatrix;
+
+	protected override DrawNode<TSpecialisation> CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
+		return new( this, subtreeIndex );
+	}
+
+	new protected class DrawNode<TSpecialisation> : CompositeUIComponent<T>.DrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
+		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+
+		public override void Update () {
+			base.Update();
+			if ( IsMaskingActive ) {
+				GlobalToUnit *= Matrix3<float>.CreateScale( Source.Scale );
+			}
 		}
 	}
 }
