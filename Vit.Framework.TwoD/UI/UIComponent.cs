@@ -9,6 +9,7 @@ using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Timing;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.UI.Input.Events;
 
@@ -198,10 +199,16 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 
 	public Point2<float> ScreenSpaceToLocalSpace ( Point2<float> point )
 		=> GlobalToUnitMatrix.Apply( point );
+	public Vector2<float> ScreenSpaceDeltaToLocalSpace ( Vector2<float> delta )
+		=> GlobalToUnitMatrix.Apply( delta ) - GlobalToUnitMatrix.Apply( Vector2<float>.Zero );
 	public Point2<float> LocalSpaceToScreenSpace ( Point2<float> point )
 		=> UnitToGlobalMatrix.Apply( point );
+	public Vector2<float> LocalSpaceDeltaToScreenSpace ( Vector2<float> delta )
+		=> UnitToGlobalMatrix.Apply( delta ) - UnitToGlobalMatrix.Apply( Vector2<float>.Zero );
 	public Point2<float> LocalSpaceToAnotherSpace ( Point2<float> point, UIComponent other )
 		=> other.ScreenSpaceToLocalSpace( LocalSpaceToScreenSpace( point ) );
+	public Vector2<float> LocalSpaceDeltaToAnotherSpace ( Vector2<float> delta, UIComponent other )
+		=> other.ScreenSpaceDeltaToLocalSpace( LocalSpaceDeltaToScreenSpace( delta ) );
 
 	Matrix3<float>? unitToLocal;
 	Matrix3<float>? unitToLocalInverse;
@@ -340,9 +347,11 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	public event Action<Type, EventTree<UIComponent>>? EventHandlerAdded;
 	public event Action<Type, EventTree<UIComponent>>? EventHandlerRemoved;
 	#endregion
+
+	public virtual DrawVisualizerBlueprint? CreateBlueprint () => null;
 }
 
-public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput {
+public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput, IViewableInDrawVisualiser {
 	new ICompositeUIComponent<UIComponent>? Parent { get; }
 	IReadOnlyCompositeComponent<UIComponent, UIComponent>? IComponent<UIComponent>.Parent => Parent;
 	/// <summary>
@@ -367,7 +376,7 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 	/// A matrix such that (0,0) is mapped to the bottom left corner,
 	/// and (width,height) is mapped to the top right corner in global space.
 	/// </summary>
-	Matrix3<float> UnitToGlobalMatrix { get; }
+	new Matrix3<float> UnitToGlobalMatrix { get; }
 	/// <summary>
 	/// A matrix such that the bottom left corner in global space is mapped to (0,0)
 	/// and the top right corner in global space is mapped to (width,height).
@@ -380,4 +389,12 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 	/// <remarks>After disposing a component, you must ensure that it nor its children are accessed from the update thread.</remarks>
 	/// <param name="disposeScheduler">The scheduler that will perform batch disposal of draw nodes.</param>
 	void Dispose ( RenderThreadScheduler disposeScheduler );
+
+	Size2<float> Size { get; }
+	public float Width => Size.Width;
+	public float Height => Size.Height;
+
+	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => UnitToGlobalMatrix * Matrix3<float>.CreateScale( Width, Height );
+	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => Parent;
+	IReadOnlyList<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => Array.Empty<IViewableInDrawVisualiser>();
 }

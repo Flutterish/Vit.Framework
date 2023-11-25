@@ -5,6 +5,7 @@ using Vit.Framework.Hierarchy;
 using Vit.Framework.Input.Events;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Masking;
 
@@ -359,6 +360,8 @@ public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyComposite
 		add => ChildRemoved += value;
 		remove => ChildRemoved -= value;
 	}
+
+	IReadOnlyList<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => (this as IReadOnlyCompositeComponent<UIComponent, T>).Children;
 }
 
 [Flags]

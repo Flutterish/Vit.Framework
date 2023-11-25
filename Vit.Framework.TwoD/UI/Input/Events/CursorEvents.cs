@@ -8,6 +8,12 @@ public abstract record PositionalUIEvent : UIEvent, IPositionalEvent {
 	public required Point2<float> EventPosition { get; init; }
 }
 
+public abstract record MovingPositionalUIEvent : PositionalUIEvent {
+	public required Point2<float> EventStartPosition { get; init; }
+	public required Point2<float> LastEventPosition { get; init; }
+	public Vector2<float> DeltaPosition => EventPosition - LastEventPosition;
+}
+
 /// <summary>
 /// A cursor is now over this element. Needs to handle <see cref="HoveredEvent"/> to trigger.
 /// </summary>
@@ -44,8 +50,31 @@ public record ReleasedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableE
 }
 
 /// <summary>
-/// A cursor pressed and released a button over this element. Must have handled <see cref="PressedEvent"/> for this to trigger.
+/// A cursor pressed and released a button over this element. Must have handled <see cref="PressedEvent"/> for this to trigger. 
+/// Handling <see cref="DragStartedEvent"/> will cause this event not to trigger.
 /// </summary>
 public record ClickedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
+	public required CursorButton Button { get; init; }
+}
+
+/// <summary>
+/// A cursor pressed a button over this element and moved. Must have handled <see cref="PressedEvent"/> for this to trigger. 
+/// Handling this event will cause <see cref="ClickedEvent"/> not to trigger.
+/// </summary>
+public record DragStartedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
+	public required CursorButton Button { get; init; }
+}
+
+/// <summary>
+/// A cursor moved while dragging this element. Must have handled <see cref="DragStartedEvent"/> for this to trigger. 
+/// </summary>
+public record DraggedEvent : MovingPositionalUIEvent, INonPropagableEvent {
+	public required CursorButton Button { get; init; }
+}
+
+/// <summary>
+/// A cursor released a button while dragging this element. Must have handled <see cref="DragStartedEvent"/> for this to trigger. 
+/// </summary>
+public record DragEndedEvent : MovingPositionalUIEvent, ILoggableEvent, INonPropagableEvent {
 	public required CursorButton Button { get; init; }
 }

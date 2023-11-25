@@ -17,6 +17,7 @@ using Vit.Framework.Text.Fonts;
 using Vit.Framework.Text.Fonts.OpenType;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Graphics.Text;
+using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Shaders;
@@ -99,8 +100,13 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Origin = Anchor.BottomLeft,
 			Anchor = Anchor.BottomLeft
 		} );
+		DrawVisualizer visualizer;
+		Root.AddChild( visualizer = new DrawVisualizer(), new() {
+			Size = new( 1f.Relative() )
+		} );
 
 		Root.Load( Dependencies );
+		visualizer.View( Root );
 	}
 
 	protected override UpdateThread CreateUpdateThread () {
