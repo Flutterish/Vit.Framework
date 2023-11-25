@@ -5,7 +5,7 @@ using Vit.Framework.TwoD.UI.Input.Events;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class ScrollContainer : ScrollContainer<UIComponent> { }
-public class ScrollContainer<T> : CompositeUIComponent<T>, IDraggable where T : UIComponent {
+public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 	public ScrollContainer () {
 		IsMaskingActive = true;
 	}
@@ -37,9 +37,15 @@ public class ScrollContainer<T> : CompositeUIComponent<T>, IDraggable where T : 
 		}
 	}
 
+	DragReceptor dragReceptor = null!;
 	public required T Content {
-		get => InternalChild;
-		init => InternalChild = value;
+		get => (T)Children[1];
+		init {
+			AddInternalChild( dragReceptor = new DragReceptor {
+				Dragged = OnDragged
+			} );
+			AddInternalChild( value );
+		}
 	}
 
 	Vector2<float> scrollValue;
@@ -64,32 +70,40 @@ public class ScrollContainer<T> : CompositeUIComponent<T>, IDraggable where T : 
 			X = contentAnchor.X.GetValue( Width ) - contentOrigin.X.GetValue( Content.Width ),
 			Y = contentAnchor.Y.GetValue( Height ) - contentOrigin.Y.GetValue( Content.Height )
 		} + scrollValue;
+
+		dragReceptor.Size = Size;
 	}
 
-	public bool OnPressed ( PressedEvent @event ) {
-		return true;
-	}
-
-	public bool OnDragStarted ( DragStartedEvent @event ) {
-		return true;
-	}
-
-	public bool OnDragged ( DraggedEvent @event ) { // TODO middle button scroll
+	public void OnDragged ( DraggedEvent @event ) { // TODO middle button scroll
 		if ( @event.Button == Framework.Input.CursorButton.Right ) {
 			ScrollValue -= ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 		}
 		else if ( @event.Button == Framework.Input.CursorButton.Left ) {
 			ScrollValue += ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 		}
-
-		return true;
 	}
 
-	public bool OnDragEnded ( DragEndedEvent @event ) {
-		return true;
-	}
+	class DragReceptor : EmptyUIComponent, IDraggable {
+		public bool OnPressed ( PressedEvent @event ) {
+			return true;
+		}
 
-	public bool OnHovered ( HoveredEvent @event ) {
-		return true;
+		public bool OnDragStarted ( DragStartedEvent @event ) {
+			return true;
+		}
+
+		public required Action<DraggedEvent> Dragged;
+		public bool OnDragged ( DraggedEvent @event ) {
+			Dragged( @event );
+			return true;
+		}
+
+		public bool OnDragEnded ( DragEndedEvent @event ) {
+			return true;
+		}
+
+		public bool OnHovered ( HoveredEvent @event ) {
+			return true;
+		}
 	}
 }

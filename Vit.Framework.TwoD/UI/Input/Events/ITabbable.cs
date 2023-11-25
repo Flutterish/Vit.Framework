@@ -6,7 +6,7 @@ public abstract record TabEvent : UIEvent { }
 
 public record TabbedOverEvent : TabEvent { }
 
-public interface ITabable : IEventHandler<TabbedOverEvent>, IFocusable {
+public interface ITabbable : IEventHandler<TabbedOverEvent>, IFocusable {
 	bool OnTabbedOver ( TabbedOverEvent @event );
 
 	bool IEventHandler<TabbedOverEvent>.OnEvent ( TabbedOverEvent @event ) {

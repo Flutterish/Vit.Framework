@@ -5,7 +5,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public abstract class Button : LayoutContainer, IClickable, IHoverable, ITabable, IKeyBindingHandler<Key> {
+public abstract class Button : LayoutContainer, IClickable, IHoverable, ITabbable, IKeyBindingHandler<Key> {
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		base.OnLoad( dependencies );
 		updateState();

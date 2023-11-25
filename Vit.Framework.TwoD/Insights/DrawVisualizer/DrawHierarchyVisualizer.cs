@@ -1,6 +1,7 @@
 ﻿using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Input;
+using Vit.Framework.TwoD.UI.Input.Events;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
@@ -14,6 +15,7 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			ContentAnchor = Anchor.TopLeft,
 			ContentOrigin = Anchor.TopLeft,
 			Content = contenter = new() {
+				AutoSizeDirection = LayoutDirection.Vertical,
 				Padding = new( 10 )
 			}
 		}, new() {
@@ -139,8 +141,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			}
 
 			foreach ( var target in target.Children ) {
-				if ( target is DrawVisualizer )
-					continue;
+				//if ( target is DrawVisualizer )
+				//	continue;
 
 				if ( childBySource.TryGetValue( target, out var node ) )
 					continue;
@@ -156,8 +158,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 
 			int index = 0;
 			foreach ( var target in target.Children ) {
-				if ( target is DrawVisualizer )
-					continue;
+				//if ( target is DrawVisualizer )
+				//	continue;
 
 				var node = childBySource[target];
 				if ( node.Depth != index ) {
@@ -175,7 +177,7 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 		}
 
 		public Action<IViewableInDrawVisualiser?>? Selected;
-		class HoverableBasicButton : BasicButton {
+		class HoverableBasicButton : BasicButton, IFocusable {
 			protected override void OnStateChanged ( ButtonState state ) {
 				if ( state is ButtonState.Hovered )
 					Hovered?.Invoke();
@@ -183,6 +185,14 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			}
 
 			public Action? Hovered;
+
+			bool IFocusable.OnFocused ( FocusGainedEvent @event ) {
+				if ( base.OnFocused( @event ) ) {
+					Hovered?.Invoke();
+					return true;
+				}
+				return false;
+			}
 		}
 	}
 }

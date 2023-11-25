@@ -14,7 +14,7 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI.Input;
 
-public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler, IClickable, IFocusable, ITabable {
+public class BasicTextField : LayoutContainer, IKeyBindingHandler<PlatformAction>, ITextInputHandler, IClickable, IFocusable, ITabbable {
 	SpriteText spriteText;
 	Box selectionBox;
 	int cursorIndex => selection.start;
