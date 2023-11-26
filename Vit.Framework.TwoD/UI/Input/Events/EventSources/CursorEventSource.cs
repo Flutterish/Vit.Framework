@@ -10,7 +10,7 @@ public class CursorEventSource<THandler> where THandler : class, IHasEventTrees<
 	Dictionary<CursorButton, (THandler handler, Point2<float> startPosition)> pressHandlers = new();
 	public float DragDeadzone = 10;
 
-	public THandler? Hovered { get; private set; }
+	public THandler? Hovered { get; private set; } // TODO fall-through hover
 
 	public THandler? Dragged { get; private set; }
 	CursorButton dragButton;

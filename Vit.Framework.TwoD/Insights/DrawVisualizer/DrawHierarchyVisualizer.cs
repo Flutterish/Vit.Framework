@@ -11,6 +11,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 	ScrollContainer scrollContainer;
 	public DrawHierarchyVisualizer () {
 		Content.AddChild( scrollContainer = new() {
+			ScrollDirection = LayoutDirection.Vertical,
+			AllowedOverscroll = new() { Bottom = 1f.Relative() - 40 - 30 },
 			ContentSize = new( 1f.Relative(), 0 ),
 			ContentAnchor = Anchor.TopLeft,
 			ContentOrigin = Anchor.TopLeft,
@@ -141,8 +143,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 			}
 
 			foreach ( var target in target.Children ) {
-				//if ( target is DrawVisualizer )
-				//	continue;
+				if ( target is DrawVisualizer )
+					continue;
 
 				if ( childBySource.TryGetValue( target, out var node ) )
 					continue;
@@ -158,8 +160,8 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 
 			int index = 0;
 			foreach ( var target in target.Children ) {
-				//if ( target is DrawVisualizer )
-				//	continue;
+				if ( target is DrawVisualizer )
+					continue;
 
 				var node = childBySource[target];
 				if ( node.Depth != index ) {

@@ -10,6 +10,9 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		IsMaskingActive = true;
 	}
 
+	public required LayoutDirection ScrollDirection;
+	public RelativeSpacing<float> AllowedOverscroll;
+
 	RelativeAxes2<float> contentOrigin;
 	public RelativeAxes2<float> ContentOrigin {
 		get => contentOrigin;
@@ -66,6 +69,20 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 
 	protected override void PerformSelfLayout () {
 		Content.Size = contentSize.GetSize( Size ).Contain( Content.RequiredSize );
+		if ( !ScrollDirection.HasFlag( LayoutDirection.Vertical ) )
+			scrollValue.Y = 0;
+		if ( !ScrollDirection.HasFlag( LayoutDirection.Horizontal ) )
+			scrollValue.X = 0;
+
+		var overflowX = float.Max( Content.Width - Width, 0 );
+		var overflowY = float.Max( Content.Height - Height, 0 );
+		var minX = -AllowedOverscroll.Right.GetValue( float.Min( Width, Content.Width ) );
+		var minY = -AllowedOverscroll.Top.GetValue( float.Min( Height, Content.Height ) );
+		var maxX = overflowX + AllowedOverscroll.Left.GetValue( float.Min( Width, Content.Width ) );
+		var maxY = overflowY + AllowedOverscroll.Bottom.GetValue( float.Min( Height, Content.Height ) );
+
+		scrollValue.X = float.Max( float.Min( scrollValue.X, maxX ), minX );
+		scrollValue.Y = float.Max( float.Min( scrollValue.Y, maxY ), minY );
 		Content.Position = new Point2<float>() {
 			X = contentAnchor.X.GetValue( Width ) - contentOrigin.X.GetValue( Content.Width ),
 			Y = contentAnchor.Y.GetValue( Height ) - contentOrigin.Y.GetValue( Content.Height )
