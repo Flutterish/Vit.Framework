@@ -14,7 +14,9 @@ public class EmptyUIComponent : UIComponent {
 
 	static EmptyDrawNode emptyDrawNode = new( -1 );
 	public class EmptyDrawNode : DrawNode {
-		public EmptyDrawNode ( int subtreeIndex ) : base( subtreeIndex ) { }
+		public EmptyDrawNode ( int subtreeIndex ) : base( subtreeIndex ) {
+			Dispose();
+		}
 
 		public override void Update () { }
 

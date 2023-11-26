@@ -45,7 +45,9 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		get => (T)Children[1];
 		init {
 			AddInternalChild( dragReceptor = new DragReceptor {
-				Dragged = OnDragged
+				Dragged = OnDragged,
+				DragStarted = DragStarted,
+				DragEnded = DragEnded
 			} );
 			AddInternalChild( value );
 		}
@@ -98,7 +100,26 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		};
 	}
 
-	public void OnDragged ( DraggedEvent @event ) { // TODO middle button scroll
+	bool usingMiddleDrag;
+	Vector2<float> middleDragStrength;
+	public override void Update () {
+		if ( usingMiddleDrag ) {
+			scrollValue -= middleDragStrength * (float)(Clock.ElapsedTime * 0.01d.PerMilli());
+		}
+		base.Update();
+	}
+
+	public void DragStarted ( DragStartedEvent @event ) {
+		if ( @event.Button == Framework.Input.CursorButton.Middle )
+			usingMiddleDrag = true;
+	}
+
+	public void DragEnded ( DragEndedEvent @event ) {
+		if ( @event.Button == Framework.Input.CursorButton.Middle )
+			usingMiddleDrag = false;
+	}
+
+	public void OnDragged ( DraggedEvent @event ) { // TODO middle button scroll visual
 		if ( @event.Button == Framework.Input.CursorButton.Right ) {
 			var delta = ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 			var scrollBounds = getScrollBounds();
@@ -110,6 +131,9 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		else if ( @event.Button == Framework.Input.CursorButton.Left ) {
 			ScrollValue += ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 		}
+		else if ( @event.Button == Framework.Input.CursorButton.Middle ) {
+			middleDragStrength = ScreenSpaceDeltaToLocalSpace( @event.EventPosition - @event.EventStartPosition );
+		}
 	}
 
 	class DragReceptor : EmptyUIComponent, IDraggable {
@@ -117,7 +141,9 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 			return true;
 		}
 
+		public required Action<DragStartedEvent> DragStarted;
 		public bool OnDragStarted ( DragStartedEvent @event ) {
+			DragStarted( @event );
 			return true;
 		}
 
@@ -127,7 +153,9 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 			return true;
 		}
 
+		public required Action<DragEndedEvent> DragEnded;
 		public bool OnDragEnded ( DragEndedEvent @event ) {
+			DragEnded( @event );
 			return true;
 		}
 
