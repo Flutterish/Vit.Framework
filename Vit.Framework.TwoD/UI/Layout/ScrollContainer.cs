@@ -74,15 +74,10 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		if ( !ScrollDirection.HasFlag( LayoutDirection.Horizontal ) )
 			scrollValue.X = 0;
 
-		var overflowX = float.Max( Content.Width - Width, 0 );
-		var overflowY = float.Max( Content.Height - Height, 0 );
-		var minX = -AllowedOverscroll.Right.GetValue( float.Min( Width, Content.Width ) );
-		var minY = -AllowedOverscroll.Top.GetValue( float.Min( Height, Content.Height ) );
-		var maxX = overflowX + AllowedOverscroll.Left.GetValue( float.Min( Width, Content.Width ) );
-		var maxY = overflowY + AllowedOverscroll.Bottom.GetValue( float.Min( Height, Content.Height ) );
+		var scrollBounds = getScrollBounds();
 
-		scrollValue.X = float.Max( float.Min( scrollValue.X, maxX ), minX );
-		scrollValue.Y = float.Max( float.Min( scrollValue.Y, maxY ), minY );
+		scrollValue.X = float.Max( float.Min( scrollValue.X, scrollBounds.MaxX ), scrollBounds.MinX );
+		scrollValue.Y = float.Max( float.Min( scrollValue.Y, scrollBounds.MaxY ), scrollBounds.MinY );
 		Content.Position = new Point2<float>() {
 			X = contentAnchor.X.GetValue( Width ) - contentOrigin.X.GetValue( Content.Width ),
 			Y = contentAnchor.Y.GetValue( Height ) - contentOrigin.Y.GetValue( Content.Height )
@@ -91,9 +86,26 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		dragReceptor.Size = Size;
 	}
 
+	AxisAlignedBox2<float> getScrollBounds () {
+		var overflowX = float.Max( Content.Width - Width, 0 );
+		var overflowY = float.Max( Content.Height - Height, 0 );
+
+		return new() {
+			MinX = -AllowedOverscroll.Right.GetValue( float.Min( Width, Content.Width ) ),
+			MinY = -AllowedOverscroll.Top.GetValue( float.Min( Height, Content.Height ) ),
+			MaxX = overflowX + AllowedOverscroll.Left.GetValue( float.Min( Width, Content.Width ) ),
+			MaxY = overflowY + AllowedOverscroll.Bottom.GetValue( float.Min( Height, Content.Height ) )
+		};
+	}
+
 	public void OnDragged ( DraggedEvent @event ) { // TODO middle button scroll
 		if ( @event.Button == Framework.Input.CursorButton.Right ) {
-			ScrollValue -= ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
+			var delta = ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
+			var scrollBounds = getScrollBounds();
+			scrollValue -= new Vector2<float>() {
+				X = delta.X / Width * scrollBounds.Width,
+				Y = delta.Y / Height * scrollBounds.Height
+			};
 		}
 		else if ( @event.Button == Framework.Input.CursorButton.Left ) {
 			ScrollValue += ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
