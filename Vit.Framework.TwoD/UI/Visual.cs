@@ -9,20 +9,20 @@ namespace Vit.Framework.TwoD.UI;
 public class Visual : Visual<Drawable> {
 	public Visual ( Drawable displayed ) : base( displayed ) { }
 }
-public class Visual<T> : UIComponent, IViewableInDrawVisualiser where T : Drawable {
+public class Visual<T> : UIComponent, IViewableInDrawVisualiser, IDrawableParent where T : Drawable {
 	public Visual ( T displayed ) {
 		Displayed = displayed;
-		displayed.DrawNodesInvalidated = onDrawNodesInvalidated;
+		displayed.Parent = this;
 	}
 
 	public readonly T Displayed;
 
-	protected override void OnMatrixInvalidated () {
-		InvalidateLayout( LayoutInvalidations.Self );
+	public void OnDrawableDrawNodesInvalidated ( Drawable drawable ) {
+		Parent?.OnChildDrawNodesInvalidated();
 	}
 
-	void onDrawNodesInvalidated () {
-		Parent?.OnChildDrawNodesInvalidated();
+	protected override void OnMatrixInvalidated () {
+		InvalidateLayout( LayoutInvalidations.Self );
 	}
 
 	protected override void PerformLayout () {

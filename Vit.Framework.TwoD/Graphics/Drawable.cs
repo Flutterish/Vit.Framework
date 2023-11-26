@@ -43,8 +43,12 @@ public abstract partial class Drawable : IViewableInDrawVisualiser {
 	}
 
 	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => UnitToGlobalMatrix;
-	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => null;
+	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => (IViewableInDrawVisualiser?)Parent;
 	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => Array.Empty<IViewableInDrawVisualiser>();
 	DrawVisualizerBlueprint? IViewableInDrawVisualiser.CreateBlueprint () => null;
 	string IViewableInDrawVisualiser.Name => GetType().Name;
+}
+
+public interface IDrawableParent {
+	void OnDrawableDrawNodesInvalidated ( Drawable drawable );
 }

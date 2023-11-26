@@ -10,10 +10,10 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 		if ( !DrawNodeInvalidations.InvalidateDrawNodes() )
 			return;
 
-		DrawNodesInvalidated?.Invoke();
+		Parent?.OnDrawableDrawNodesInvalidated( this );
 	}
 
-	public Action? DrawNodesInvalidated;
+	public IDrawableParent? Parent;
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	protected abstract DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
