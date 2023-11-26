@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using Vit.Framework.Hierarchy;
 
 namespace Vit.Framework.Input.Events;
 
@@ -44,12 +45,24 @@ public interface IHasEventTrees<TSelf> where TSelf : class, IHasEventTrees<TSelf
 }
 
 public static class IHasEventTreesExtensions {
-	public static bool TriggerEventOnSelf<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
+	public static bool TriggerEventOnSelf<TSelf> ( this TSelf self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
 		var type = @event.GetType();
 		return self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.Handler is Func<Event, bool> handler && handler( @event );
 	}
 
-	public static TSelf? TriggerEvent<TSelf, TCuller> ( this IHasEventTrees<TSelf> self, Event @event, TCuller culler ) where TSelf : class, IHasEventTrees<TSelf> where TCuller : struct, EventTree<TSelf>.IEventTreeCuller {
+	public static TSelf? TriggerEventUpTree<TSelf> ( this TSelf self, Event @event ) where TSelf : class, IHasEventTrees<TSelf>, IComponent<TSelf> {
+		var type = @event.GetType();
+		do {
+			if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.Handler is Func<Event, bool> handler && handler( @event ) )
+				return self;
+			self = (TSelf)self.Parent!;
+		}
+		while ( self != null );
+
+		return null;
+	}
+
+	public static TSelf? TriggerEvent<TSelf, TCuller> ( this TSelf self, Event @event, TCuller culler ) where TSelf : class, IHasEventTrees<TSelf> where TCuller : struct, EventTree<TSelf>.IEventTreeCuller {
 		var type = @event.GetType();
 		if ( self.HandledEventTypes.TryGetValue( type, out var tree ) && tree.TriggerEvent( @event, culler ) is TSelf handler )
 			return handler;
@@ -57,15 +70,15 @@ public static class IHasEventTreesExtensions {
 		return null;
 	}
 
-	public static TSelf? TriggerEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
+	public static TSelf? TriggerEvent<TSelf> ( this TSelf self, Event @event ) where TSelf : class, IHasEventTrees<TSelf> {
 		return self.TriggerEvent( @event, new EventTree<TSelf>.NullEventTreeCuller() );
 	}
 
-	public static TSelf? TriggerCulledEvent<TSelf> ( this IHasEventTrees<TSelf> self, Event @event, Func<TSelf, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
+	public static TSelf? TriggerCulledEvent<TSelf> ( this TSelf self, Event @event, Func<TSelf, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
 		return self.TriggerEvent( @event, new EventTree<TSelf>.PredicateEventTreeCuller { Predicate = predicate } );
 	}
 
-	public static TSelf? TriggerCulledEvent<TSelf, TData> ( this IHasEventTrees<TSelf> self, Event @event, TData data, Func<TSelf, TData, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
+	public static TSelf? TriggerCulledEvent<TSelf, TData> ( this TSelf self, Event @event, TData data, Func<TSelf, TData, bool> predicate ) where TSelf : class, IHasEventTrees<TSelf> {
 		return self.TriggerEvent( @event, new EventTree<TSelf>.PredicateWithDataEventTreeCuller<TData> { Data = data, Predicate = predicate } );
 	}
 }

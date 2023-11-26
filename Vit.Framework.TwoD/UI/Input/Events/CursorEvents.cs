@@ -58,10 +58,10 @@ public record ClickedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEv
 }
 
 /// <summary>
-/// A cursor pressed a button over this element and moved. Must have handled <see cref="PressedEvent"/> for this to trigger. 
+/// A cursor pressed a button over this element and moved. Needs to either handle <see cref="PressedEvent"/> or fall through to trigger. 
 /// Handling this event will cause <see cref="ClickedEvent"/> not to trigger.
 /// </summary>
-public record DragStartedEvent : PositionalUIEvent, ILoggableEvent, INonPropagableEvent {
+public record DragStartedEvent : PositionalUIEvent, ILoggableEvent, IUpPropagableEvent {
 	public required CursorButton Button { get; init; }
 }
 

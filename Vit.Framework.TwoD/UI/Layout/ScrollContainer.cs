@@ -5,7 +5,7 @@ using Vit.Framework.TwoD.UI.Input.Events;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class ScrollContainer : ScrollContainer<UIComponent> { }
-public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
+public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIComponent {
 	public ScrollContainer () {
 		IsMaskingActive = true;
 	}
@@ -40,15 +40,11 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		}
 	}
 
-	DragReceptor dragReceptor = null!;
+	EmptyHoverableUIComponent dragReceptor = null!;
 	public required T Content {
 		get => (T)Children[1];
 		init {
-			AddInternalChild( dragReceptor = new DragReceptor {
-				Dragged = OnDragged,
-				DragStarted = DragStarted,
-				DragEnded = DragEnded
-			} );
+			AddInternalChild( dragReceptor = new() );
 			AddInternalChild( value );
 		}
 	}
@@ -109,17 +105,17 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		base.Update();
 	}
 
-	public void DragStarted ( DragStartedEvent @event ) {
+	public bool OnPressed ( PressedEvent @event ) {
+		return true;
+	}
+
+	public bool OnDragStarted ( DragStartedEvent @event ) {
 		if ( @event.Button == Framework.Input.CursorButton.Middle )
 			usingMiddleDrag = true;
+		return true;
 	}
 
-	public void DragEnded ( DragEndedEvent @event ) {
-		if ( @event.Button == Framework.Input.CursorButton.Middle )
-			usingMiddleDrag = false;
-	}
-
-	public void OnDragged ( DraggedEvent @event ) { // TODO middle button scroll visual
+	public bool OnDragged ( DraggedEvent @event ) { // TODO middle button scroll visual
 		if ( @event.Button == Framework.Input.CursorButton.Right ) {
 			var delta = ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 			var scrollBounds = getScrollBounds();
@@ -134,33 +130,17 @@ public class ScrollContainer<T> : CompositeUIComponent where T : UIComponent {
 		else if ( @event.Button == Framework.Input.CursorButton.Middle ) {
 			middleDragStrength = ScreenSpaceDeltaToLocalSpace( @event.EventPosition - @event.EventStartPosition );
 		}
+
+		return true;
 	}
 
-	class DragReceptor : EmptyUIComponent, IDraggable {
-		public bool OnPressed ( PressedEvent @event ) {
-			return true;
-		}
+	public bool OnDragEnded ( DragEndedEvent @event ) {
+		if ( @event.Button == Framework.Input.CursorButton.Middle )
+			usingMiddleDrag = false;
+		return true;
+	}
 
-		public required Action<DragStartedEvent> DragStarted;
-		public bool OnDragStarted ( DragStartedEvent @event ) {
-			DragStarted( @event );
-			return true;
-		}
-
-		public required Action<DraggedEvent> Dragged;
-		public bool OnDragged ( DraggedEvent @event ) {
-			Dragged( @event );
-			return true;
-		}
-
-		public required Action<DragEndedEvent> DragEnded;
-		public bool OnDragEnded ( DragEndedEvent @event ) {
-			DragEnded( @event );
-			return true;
-		}
-
-		public bool OnHovered ( HoveredEvent @event ) {
-			return true;
-		}
+	public bool OnHovered ( HoveredEvent @event ) {
+		return false;
 	}
 }

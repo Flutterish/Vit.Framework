@@ -304,7 +304,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		TryTrimEventTree( type, tree );
 	}
 	protected void TryTrimEventTree ( Type type, EventTree<UIComponent> tree ) {
-		if ( tree.Handler != null || tree.Children?.Any() == true )
+		if ( tree.Handler != null || tree.Children.Count != 0 )
 			return;
 
 		handledEvents!.Remove( type );
