@@ -100,7 +100,7 @@ public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIC
 	Vector2<float> middleDragStrength;
 	public override void Update () {
 		if ( usingMiddleDrag ) {
-			scrollValue -= middleDragStrength * (float)(Clock.ElapsedTime * 0.01d.PerMilli());
+			ScrollValue -= middleDragStrength * (float)(Clock.ElapsedTime * 0.01d.PerMilli());
 		}
 		base.Update();
 	}
@@ -109,7 +109,7 @@ public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIC
 		return true;
 	}
 
-	public bool OnDragStarted ( DragStartedEvent @event ) {
+	public bool OnDragStarted ( DragStartedEvent @event ) { // TODO after reaching scroll limit, fall through again
 		if ( @event.Button == Framework.Input.CursorButton.Middle )
 			usingMiddleDrag = true;
 		return true;
@@ -119,7 +119,7 @@ public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIC
 		if ( @event.Button == Framework.Input.CursorButton.Right ) {
 			var delta = ScreenSpaceDeltaToLocalSpace( @event.DeltaPosition );
 			var scrollBounds = getScrollBounds();
-			scrollValue -= new Vector2<float>() {
+			ScrollValue -= new Vector2<float>() {
 				X = delta.X / Width * scrollBounds.Width,
 				Y = delta.Y / Height * scrollBounds.Height
 			};

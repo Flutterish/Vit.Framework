@@ -75,6 +75,7 @@ public struct RentedArray<T> : IDisposable {
 		}
 
 		source.Return( array );
+		Length = size;
 		array = source.Rent( size );
 	}
 

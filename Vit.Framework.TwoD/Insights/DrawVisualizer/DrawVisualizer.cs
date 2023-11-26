@@ -1,4 +1,5 @@
-﻿using Vit.Framework.TwoD.UI;
+﻿using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 
@@ -7,13 +8,17 @@ namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 /// </summary>
 public class DrawVisualizer : CompositeUIComponent {
 	DrawHierarchyVisualizer hierarchy;
+	DraggableContainer container;
 	DrawVisualizerCursor cursor;
 
 	public DrawVisualizer () {
-		AddInternalChild( hierarchy = new DrawHierarchyVisualizer {
+		AddInternalChild( cursor = new() );
+		AddInternalChild( container = new() {
 			Size = (800, 1000)
 		} );
-		AddInternalChild( cursor = new() );
+		container.Content.AddChild( hierarchy = new(), new() {
+			Size = new( 1f.Relative() )
+		} );
 
 		hierarchy.Selected = t => cursor.Target = t;
 	}

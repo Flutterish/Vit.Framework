@@ -1,28 +1,23 @@
-﻿using Vit.Framework.TwoD.Layout;
-using Vit.Framework.TwoD.UI;
+﻿using System.Diagnostics.CodeAnalysis;
+using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI.Input;
 using Vit.Framework.TwoD.UI.Input.Events;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 
-public class DrawHierarchyVisualizer : DraggableContainer {
-	LayoutContainer contenter;
-	ScrollContainer scrollContainer;
+public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
+	[SetsRequiredMembers]
 	public DrawHierarchyVisualizer () {
-		Content.AddChild( scrollContainer = new() {
-			ScrollDirection = LayoutDirection.Vertical,
-			AllowedOverscroll = new() { Bottom = 1f.Relative() - 40 - 30 },
-			ContentSize = new( 1f.Relative(), 0 ),
-			ContentAnchor = Anchor.TopLeft,
-			ContentOrigin = Anchor.TopLeft,
-			Content = contenter = new() {
-				AutoSizeDirection = LayoutDirection.Vertical,
-				Padding = new( 10 )
-			}
-		}, new() {
-			Size = new( 1f.Relative() )
-		} );
+		ScrollDirection = LayoutDirection.Vertical;
+		AllowedOverscroll = new() { Bottom = 1f.Relative() - 40 - 30 };
+		ContentSize = new( 1f.Relative(), 0 );
+		ContentAnchor = Anchor.TopLeft;
+		ContentOrigin = Anchor.TopLeft;
+		Content = new() {
+			AutoSizeDirection = LayoutDirection.Vertical,
+			Padding = new( 10 )
+		};
 	}
 
 	Node? topNode;
@@ -30,13 +25,13 @@ public class DrawHierarchyVisualizer : DraggableContainer {
 	public void View ( IViewableInDrawVisualiser? target ) {
 		if ( target == null ) {
 			if ( topNode != null ) {
-				contenter.NoUnloadRemoveChild( topNode );
+				Content.NoUnloadRemoveChild( topNode );
 				freeNode( topNode );
 			}
 		}
 		else {
 			if ( topNode == null ) {
-				contenter.AddChild( topNode = getNode(), new() {
+				Content.AddChild( topNode = getNode(), new() {
 					Size = new( 1f.Relative(), 1f.Relative() ),
 					Anchor = Anchor.TopLeft,
 					Origin = Anchor.TopLeft

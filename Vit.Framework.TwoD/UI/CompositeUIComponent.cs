@@ -350,6 +350,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => internalChildren;
+	string IViewableInDrawVisualiser.Name => $"{GetType().Name} ({Size}) [{Children.Count} Child{(Children.Count == 1 ? "" : "ren")}]";
 }
 
 public interface ICompositeUIComponent<out T> : IUIComponent, IReadOnlyCompositeComponent<UIComponent, T> where T : UIComponent {

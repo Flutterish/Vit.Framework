@@ -3,6 +3,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders;
+using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
@@ -23,6 +24,7 @@ public partial class DrawableSpriteText {
 		public IShaderSet Shader = null!;
 		public IDeviceBuffer<TextVertex.Corner> CornerBuffer = null!;
 		public IDeviceBuffer<ushort> IndexBuffer = null!;
+		public ISampler Sampler = null!;
 
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
 			Store = dependencies.Resolve<SpriteFontStore>();
@@ -67,6 +69,7 @@ public partial class DrawableSpriteText {
 
 			copy.CopyBufferRaw( cornerStaging.Buffer, CornerBuffer, cornerStaging.Length, sourceOffset: cornerStaging.Offset );
 			copy.CopyBufferRaw( indexStaging.Buffer, IndexBuffer, indexStaging.Length, sourceOffset: indexStaging.Offset );
+			Sampler = renderer.CreateSampler();
 		}
 
 		public void Dispose () {
@@ -74,6 +77,7 @@ public partial class DrawableSpriteText {
 			IndexBuffer?.Dispose();
 			UniformSetAllocator?.Dispose();
 			UniformAllocator?.Dispose();
+			Sampler?.Dispose();
 		}
 	}
 }

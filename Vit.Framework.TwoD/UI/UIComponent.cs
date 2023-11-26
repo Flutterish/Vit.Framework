@@ -410,5 +410,5 @@ public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UICompon
 
 	IViewableInDrawVisualiser? IViewableInDrawVisualiser.Parent => Parent;
 	IEnumerable<IViewableInDrawVisualiser> IViewableInDrawVisualiser.Children => Array.Empty<IViewableInDrawVisualiser>();
-	string IViewableInDrawVisualiser.Name => GetType().Name;
+	string IViewableInDrawVisualiser.Name => $"{GetType().Name} ({Size})";
 }

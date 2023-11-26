@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Shaders.Types;
-using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
@@ -53,7 +52,6 @@ public partial class DrawableSpriteText : DrawableText {
 
 		if ( areUniformsInitialized ) {
 			drawDependencies.UniformAllocator.Free( uniforms );
-			sampler!.Dispose();
 			areUniformsInitialized = false;
 		}
 		if ( batches.Count != 0 ) {
@@ -68,7 +66,6 @@ public partial class DrawableSpriteText : DrawableText {
 	}
 	DeviceBufferHeap.Allocation<Vertex> vertices;
 	List<PageBatch> batches = new();
-	ISampler? sampler;
 
 	void clearBatches () {
 		foreach ( var i in batches ) {
@@ -114,7 +111,6 @@ public partial class DrawableSpriteText : DrawableText {
 			ref var uniforms = ref Source.uniforms;
 			if ( !Source.areUniformsInitialized ) {
 				uniforms = Source.drawDependencies.UniformAllocator.Allocate();
-				Source.sampler = renderer.CreateSampler();
 				Source.areUniformsInitialized = true;
 			}
 
@@ -154,7 +150,7 @@ public partial class DrawableSpriteText : DrawableText {
 
 				var uniformSet = Source.drawDependencies.UniformSetAllocator.Allocate();
 				uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
-				uniformSet.UniformSet.SetSampler( page.View, Source.sampler!, binding: 1 );
+				uniformSet.UniformSet.SetSampler( page.View, Source.drawDependencies.Sampler, binding: 1 );
 
 				var batch = new PageBatch {
 					InstanceOffset = offset - size,

@@ -32,4 +32,13 @@ public static class ClassExtenions {
 		field = value;
 		return true;
 	}
+
+	[MethodImpl( MethodImplOptions.AggressiveInlining )]
+	public static bool TrySet ( this string value, ref string field ) {
+		if ( field == value )
+			return false;
+
+		field = value;
+		return true;
+	}
 }
