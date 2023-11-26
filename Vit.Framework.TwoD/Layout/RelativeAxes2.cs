@@ -43,7 +43,21 @@ public struct RelativeAxes2<T> : IEqualityOperators<RelativeAxes2<T>, RelativeAx
 		};
 	}
 
+	public static RelativeAxes2<T> operator + ( RelativeAxes2<T> left, Vector2<T> right ) {
+		return new() {
+			X = left.X + right.X,
+			Y = left.Y + right.Y
+		};
+	}
+
 	public static RelativeAxes2<T> operator - ( RelativeAxes2<T> left, RelativeAxes2<T> right ) {
+		return new() {
+			X = left.X - right.X,
+			Y = left.Y - right.Y
+		};
+	}
+
+	public static RelativeAxes2<T> operator - ( RelativeAxes2<T> left, Vector2<T> right ) {
 		return new() {
 			X = left.X - right.X,
 			Y = left.Y - right.Y

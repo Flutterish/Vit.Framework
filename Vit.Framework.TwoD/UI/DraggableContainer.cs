@@ -7,31 +7,31 @@ using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.UI;
 
-public class DraggableContainer : Flexbox { // TODO do this better
+public class DraggableContainer : DraggableContainer<UIComponent> { }
+public class DraggableContainer<T> : Flexbox where T : UIComponent {
 	Header header;
-	public readonly LayoutContainer Content;
 	public DraggableContainer () {
 		FlowDirection = FlowDirection.Down;
 		
 		AddChild( header = new() {
 			Tint = FrameworkUIScheme.Element,
-			Dragged = delta => {
-				Position += Parent!.ScreenSpaceDeltaToLocalSpace( delta );
-			}
+			Dragged = delta => Dragged?.Invoke( delta )
 		}, new() {
 			Size = new( 1f.Relative(), 80 )
 		} );
-		AddChild( Content = new() {
-			LayoutChildren = new (UIComponent, LayoutParams)[] {
-				(new Box { Tint = FrameworkUIScheme.Background }, new LayoutParams() {
-					Size = new( 1f.Relative(), 1f.Relative() )
-				})
-			}
-		}, new() {
-			Size = new( 1f.Relative(), 20 ),
-			Grow = 1
-		} );
 	}
+
+	public required T Content {
+		get => (T)Children[1];
+		init {
+			AddChild( value, new() {
+				Size = new( 1f.Relative(), 0 ),
+				Grow = 1
+			} );
+		}
+	}
+
+	public Action<Vector2<float>>? Dragged;
 
 	protected class Header : Box, IDraggable {
 		public bool OnPressed ( PressedEvent @event ) {

@@ -125,8 +125,9 @@ public class UIEventSource {
 				break;
 
 			case KeyDownEvent down:
-				if ( focused != null )
-					keyboardEvents.Press( down.Key, eventTimestamp, focused );
+				if ( focused == null || !keyboardEvents.Press( down.Key, eventTimestamp, focused ) )
+					keyboardEvents.Press( down.Key, eventTimestamp );
+
 				platformBindings.Add( down.Key );
 				break;
 

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Vit.Framework.DependencyInjection;
+using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.UI;
@@ -37,7 +38,7 @@ public class VisualTestRunner : Flexbox {
 			var button = new BasicButton() {
 				Clicked = () => runTest( i ),
 				RawText = i.Name,
-				TextAnchor = Anchor<float>.CentreLeft + (10, 0)
+				TextAnchor = Anchor<float>.CentreLeft + new Vector2<float>(10, 0)
 			};
 			sidebar.AddChild( button, new() {
 				Size = new( 1f.Relative(), 80 ),

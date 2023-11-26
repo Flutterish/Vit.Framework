@@ -133,7 +133,8 @@ public class SpriteFontPage : IDisposable { // TODO maybe we should also use a t
 		hasOwnColor = new bool[font.PageSize.Width * font.PageSize.Height];
 	}
 
-	public void Initialize ( SpriteFont font, GlyphId firstGlyph ) {
+	public void Initialize ( SpriteFont font, GlyphId firstGlyph ) { // TODO some method of logging
+		Console.WriteLine( $"Generating {font.PageSize.Width * font.PageSize.Height} glyphs for sprite font {font.Font.Name} ({firstGlyph.Value}-{firstGlyph.Value+ font.PageSize.Width * font.PageSize.Height})" );
 		generate( font, firstGlyph );
 	}
 

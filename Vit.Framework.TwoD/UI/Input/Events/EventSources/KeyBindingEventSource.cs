@@ -21,7 +21,7 @@ public class KeyBindingEventSource<TKey, THandler> where TKey : struct, Enum whe
 	public bool Press ( TKey key, Millis timestamp ) {
 		Release( key, timestamp );
 
-		var handler = Root.TriggerEvent( new KeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
+		var handler = Root.TriggerEvent( new GlobalKeyDownEvent<TKey> { Key = key, Timestamp = timestamp } );
 		if ( handler == null )
 			return false;
 

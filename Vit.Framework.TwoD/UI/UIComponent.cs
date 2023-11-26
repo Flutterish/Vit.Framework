@@ -350,6 +350,10 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 
 	public virtual DrawVisualizerBlueprint? CreateBlueprint () => null;
 	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width, Height ) * UnitToGlobalMatrix;
+
+	public override string ToString () {
+		return $"{GetType().Name} ({Size})";
+	}
 }
 
 public interface IUIComponent : IComponent<UIComponent>, IHasEventTrees<UIComponent>, IHasDrawNodes<DrawNode>, ICanReceivePositionalInput, IViewableInDrawVisualiser {

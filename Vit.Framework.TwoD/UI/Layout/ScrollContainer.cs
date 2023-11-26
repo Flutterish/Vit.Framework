@@ -89,9 +89,9 @@ public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIC
 		var overflowY = float.Max( Content.Height - Height, 0 );
 
 		return new() {
-			MinX = -AllowedOverscroll.Right.GetValue( float.Min( Width, Content.Width ) ),
+			MinX = -overflowX - AllowedOverscroll.Left.GetValue( float.Min( Width, Content.Width ) ) ,
 			MinY = -AllowedOverscroll.Top.GetValue( float.Min( Height, Content.Height ) ),
-			MaxX = overflowX + AllowedOverscroll.Left.GetValue( float.Min( Width, Content.Width ) ),
+			MaxX = AllowedOverscroll.Right.GetValue( float.Min( Width, Content.Width ) ),
 			MaxY = overflowY + AllowedOverscroll.Bottom.GetValue( float.Min( Height, Content.Height ) )
 		};
 	}

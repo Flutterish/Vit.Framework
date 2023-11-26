@@ -101,12 +101,11 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Anchor = Anchor.BottomLeft
 		} );
 		DrawVisualizer visualizer;
-		Root.AddChild( visualizer = new DrawVisualizer(), new() {
+		Root.AddChild( visualizer = new DrawVisualizer( Root ), new() {
 			Size = new( 1f.Relative() )
 		} );
 
 		Root.Load( Dependencies );
-		visualizer.View( Root );
 	}
 
 	protected override UpdateThread CreateUpdateThread () {

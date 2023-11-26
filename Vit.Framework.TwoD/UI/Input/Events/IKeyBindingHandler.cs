@@ -6,7 +6,8 @@ public abstract record KeyEvent<TKey> : UIEvent where TKey : struct, Enum {
 	public required TKey Key { get; init; }
 }
 
-public record KeyDownEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { } // TODO also create propagable keybinds
+public record KeyDownEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { }
+public record GlobalKeyDownEvent<TKey> : KeyEvent<TKey> where TKey : struct, Enum { }
 public record KeyUpEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { }
 public record KeyRepeatEvent<TKey> : KeyEvent<TKey>, INonPropagableEvent where TKey : struct, Enum { }
 
@@ -22,5 +23,11 @@ public interface IKeyBindingHandler<TKey> : IEventHandler<KeyDownEvent<TKey>>, I
 	}
 	bool IEventHandler<KeyUpEvent<TKey>>.OnEvent ( KeyUpEvent<TKey> @event ) {
 		return OnKeyUp( @event.Key );
+	}
+}
+
+public interface IGlobalKeyBindingHandler<TKey> : IKeyBindingHandler<TKey>, IEventHandler<GlobalKeyDownEvent<TKey>> where TKey : struct, Enum {
+	bool IEventHandler<GlobalKeyDownEvent<TKey>>.OnEvent ( GlobalKeyDownEvent<TKey> @event ) {
+		return OnKeyDown( @event.Key, isRepeat: false );
 	}
 }

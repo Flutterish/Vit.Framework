@@ -38,6 +38,7 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 				} );
 			}
 			topNode.View( target );
+			topNode.IsOpened = true;
 		}
 
 		Selected?.Invoke( target );
@@ -54,7 +55,8 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 	Node getNode () {
 		if ( !nodePool.TryPop( out var node ) ) {
 			node = new( this );
-			node.Selected = t => Selected?.Invoke(t);
+			node.Hovered = t => Selected?.Invoke(t);
+			node.Selected = t => View( t?.Parent ?? t );
 			return node;
 		}
 		return node;
@@ -73,9 +75,12 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 			AddChild( button = new HoverableBasicButton() {
 				Clicked = () => {
 					IsOpened = !IsOpened;
+					Hovered?.Invoke( target );
+				},
+				Hovered = () => Hovered?.Invoke( target ),
+				Selected = () => {
 					Selected?.Invoke( target );
 				},
-				Hovered = () => Selected?.Invoke( target ),
 				TextAnchor = Anchor.Centre,
 				TextOrigin = Anchor.Centre
 			}, new() {
@@ -97,7 +102,7 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 
 		bool isOpened;
 		Dictionary<IViewableInDrawVisualiser, Node> childBySource = new();
-		bool IsOpened {
+		public bool IsOpened {
 			get => isOpened;
 			set {
 				if ( !value.TrySet( ref isOpened ) )
@@ -173,8 +178,9 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 			base.Update();
 		}
 
+		public Action<IViewableInDrawVisualiser?>? Hovered;
 		public Action<IViewableInDrawVisualiser?>? Selected;
-		class HoverableBasicButton : BasicButton, IFocusable {
+		class HoverableBasicButton : BasicButton, IFocusable, IClickable {
 			protected override void OnStateChanged ( ButtonState state ) {
 				if ( state is ButtonState.Hovered )
 					Hovered?.Invoke();
@@ -182,6 +188,7 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 			}
 
 			public Action? Hovered;
+			public Action? Selected;
 
 			bool IFocusable.OnFocused ( FocusGainedEvent @event ) {
 				if ( base.OnFocused( @event ) ) {
@@ -189,6 +196,21 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 					return true;
 				}
 				return false;
+			}
+
+			bool IClickable.OnPressed( PressedEvent @event ) {
+				if ( @event.Button == Input.CursorButton.Right )
+					return true;
+				return base.OnPressed( @event );
+			}
+
+			bool IClickable.OnClicked( ClickedEvent @event ) {
+				if ( @event.Button == Input.CursorButton.Right ) {
+					Selected?.Invoke();
+					return true;
+				}
+
+				return base.OnClicked( @event );
 			}
 		}
 	}
