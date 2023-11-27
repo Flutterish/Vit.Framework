@@ -14,6 +14,7 @@ public class DrawHierarchyVisualizer : ScrollContainer<LayoutContainer> {
 		ContentSize = new( 1f.Relative(), 0 );
 		ContentAnchor = Anchor.TopLeft;
 		ContentOrigin = Anchor.TopLeft;
+
 		Content = new() {
 			AutoSizeDirection = LayoutDirection.Vertical,
 			Padding = new( 10 )

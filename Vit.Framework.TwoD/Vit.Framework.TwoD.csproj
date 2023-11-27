@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Insights\TextureVisualizer\" />
     <Folder Include="Input\" />
   </ItemGroup>
 

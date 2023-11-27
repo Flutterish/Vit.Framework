@@ -100,8 +100,8 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			Origin = Anchor.BottomLeft,
 			Anchor = Anchor.BottomLeft
 		} );
-		DrawVisualizer visualizer;
-		Root.AddChild( visualizer = new DrawVisualizer( Root ), new() {
+
+		Root.AddChild( new DrawVisualizer( Root ), new() {
 			Size = new( 1f.Relative() )
 		} );
 
