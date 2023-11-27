@@ -17,12 +17,14 @@ public class DrawVisualizer : LayoutContainer, IGlobalKeyBindingHandler<Input.Ke
 	PropertyPanel properties;
 	DraggableContainer container;
 	DrawVisualizerCursor cursor;
+	BlueprintContainer blueprintContainer;
 
 	UIComponent root;
 	public DrawVisualizer ( UIComponent root ) {
 		this.root = root;
 
-		AddChild( cursor = new(), new() );
+		AddChild( cursor = new(), new() { Size = new( 1f.Relative() ) } );
+		AddChild( blueprintContainer = new(), new() { Size = new( 1f.Relative() ) } );
 		container = new() {
 			Dragged = delta => {
 				UpdateLayoutParameters( container!, delta, ( param, delta ) => param with { Anchor = param.Anchor + ScreenSpaceDeltaToLocalSpace( delta ) } );
@@ -55,6 +57,9 @@ public class DrawVisualizer : LayoutContainer, IGlobalKeyBindingHandler<Input.Ke
 		hierarchy.Selected = t => {
 			cursor.Target = t;
 			properties.Target = t;
+
+			blueprintContainer.Target = t;
+			blueprintContainer.Blueprint = t?.CreateBlueprint();
 		};
 	}
 
@@ -120,5 +125,11 @@ public class DrawVisualizer : LayoutContainer, IGlobalKeyBindingHandler<Input.Ke
 		}
 
 		return true;
+	}
+
+	public override void DisposeDrawNodes () {
+		base.DisposeDrawNodes();
+		if ( container.Parent == null )
+			container.DisposeDrawNodes();
 	}
 }

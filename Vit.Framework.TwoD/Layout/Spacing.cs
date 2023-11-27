@@ -30,4 +30,8 @@ public struct Spacing<T> : IInterpolatable<Spacing<T>, T> where T : INumber<T> {
 			Right = Right.Lerp( goal.Right, time )
 		};
 	}
+
+	public override string ToString () {
+		return $"[Left = {Left}; Right = {Right}; Top = {Top}; Bottom = {Bottom}]";
+	}
 }

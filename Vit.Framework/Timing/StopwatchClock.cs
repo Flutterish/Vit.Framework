@@ -19,4 +19,8 @@ public class StopwatchClock : IClock {
 	public DateTime ClockEpoch { get; }
 	public Millis ElapsedTime { get; private set; }
 	public Millis CurrentTime { get; private set; }
+
+	public override string ToString () {
+		return $"{CurrentTime}; Elapsed = {ElapsedTime}";
+	}
 }
