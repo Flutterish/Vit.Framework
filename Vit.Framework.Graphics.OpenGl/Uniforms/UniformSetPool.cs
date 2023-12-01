@@ -1,9 +1,10 @@
 ﻿using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
+using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
-public class UniformSetPool : IUniformSetPool {
+public class UniformSetPool : DisposableObject, IUniformSetPool {
 	UniformLayout layout;
 	Stack<IUniformSet> uniforms = new();
 	public UniformSetPool ( UniformLayout layout ) {
@@ -23,7 +24,7 @@ public class UniformSetPool : IUniformSetPool {
 		uniforms.Push( set );
 	}
 
-	public void Dispose () { 
+	protected override void Dispose ( bool disposing ) {
 		foreach ( var i in uniforms ) {
 			i.Dispose();
 		}

@@ -8,7 +8,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
-public class UniformSet : DisposableObject, IUniformSet {
+public class UniformSet : IDisposable, IUniformSet {
 	UniformLayout layout;
 	public UniformSet ( UniformLayout layout ) {
 		this.layout = layout;
@@ -64,7 +64,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 		GL.BindSamplers( layout.FirstSampler, layout.SamplerCount, Samplers );
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }

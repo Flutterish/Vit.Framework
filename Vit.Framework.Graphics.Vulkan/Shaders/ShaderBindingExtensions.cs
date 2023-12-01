@@ -27,7 +27,7 @@ public static unsafe class ShaderBindingExtensions {
 					attribs[attributeIndex++] = new() {
 						binding = buffer,
 						location = location + i,
-						offset = attribute.Offset + i * attribute.LocationSize,
+						offset = attribute.Offset + i * attribute.LocationByteSize,
 						format = format
 					};
 				}

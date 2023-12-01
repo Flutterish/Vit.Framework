@@ -19,16 +19,19 @@ public class VertexInputLayout : DisposableObject {
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.UInt32, []) => VertexAttribType.UnsignedInt,
 					(PrimitiveType.Float32, []) => VertexAttribType.Float,
-					(PrimitiveType.Float32, [2]) => VertexAttribType.Float,
-					(PrimitiveType.Float32, [3]) => VertexAttribType.Float,
-					(PrimitiveType.Float32, [4]) => VertexAttribType.Float,
+					(PrimitiveType.Float32, [2, ..]) => VertexAttribType.Float,
+					(PrimitiveType.Float32, [3, ..]) => VertexAttribType.Float,
+					(PrimitiveType.Float32, [4, ..]) => VertexAttribType.Float,
 					_ => throw new Exception( "Unrecognized format" )
 				};
 
-				GL.EnableVertexAttribArray( location );
-				GL.VertexAttribFormat( (int)location, (int)attribute.DataType.FlattendedDimensions, format, false, (int)attribute.Offset );
-				GL.VertexAttribBinding( location, buffer );
+				for ( uint i = 0; i < attribute.Locations; i++ ) {
+					GL.EnableVertexAttribArray( location + i );
+					GL.VertexAttribFormat( (int)(location + i), (int)attribute.LocationElementSize, format, false, (int)(attribute.Offset + i * attribute.LocationByteSize) );
+					GL.VertexAttribBinding( location + i, buffer );
+				}
 			}
 
 			strides[buffer] = (int)attributes.Stride;

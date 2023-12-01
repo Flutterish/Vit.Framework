@@ -17,9 +17,14 @@ public record VertexAttributeDescription {
 			return DataType.Dimensions.Length == 2 ? DataType.Dimensions[1] : 1;
 		}
 	}
-	public uint LocationSize {
+	public uint LocationByteSize {
 		get {
-			return (DataType.Dimensions.Length == 0 ? 1 : DataType.Dimensions[0]) *DataType.PrimitiveType.SizeOf();
+			return LocationElementSize * DataType.PrimitiveType.SizeOf();
+		}
+	}
+	public uint LocationElementSize {
+		get {
+			return DataType.Dimensions.Length == 0 ? 1 : DataType.Dimensions[0];
 		}
 	}
 	public string? DebugName { get; init; }
