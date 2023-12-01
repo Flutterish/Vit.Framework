@@ -9,8 +9,8 @@ public class DrawNodeRenderer {
 	TripleBuffer drawNodeSwapchain = new();
 	public readonly IHasDrawNodes<DrawNode> Root;
 
-	Dictionary<Type, Func<IHasDrawNodes<DrawNode>, int, DrawNode>> specialisationCache = new();
-	(IRenderer renderer, DrawNode node)?[] drawNodes = new (IRenderer, DrawNode)?[3];
+	Dictionary<Type, Action<IHasDrawNodes<DrawNode>, int, DrawNodeCollection>> specialisationCache = new();
+	(IRenderer renderer, DrawNodeCollection collection)?[] drawNodes = new (IRenderer, DrawNodeCollection)?[3];
 	public DrawNodeRenderer ( IHasDrawNodes<DrawNode> root ) {
 		Root = root;
 	}
@@ -22,26 +22,33 @@ public class DrawNodeRenderer {
 	/// <param name="action">An action to perform using the subtree index after collecting draw data.</param>
 	public void CollectDrawData ( IRenderer renderer, Action<int>? action = null ) {
 		using var _ = drawNodeSwapchain.GetForWrite( out var index );
-		drawNodes[index] = (renderer, getDrawNode( renderer, index ));
+		var data = drawNodes[index];
+		var collection = data?.collection ?? new();
+
+		populateDrawNodes( renderer, index, collection );
+		drawNodes[index] = (renderer, collection);
 		action?.Invoke( index );
 	}
-	DrawNode getDrawNode ( IRenderer renderer, int index ) {
+	void populateDrawNodes ( IRenderer renderer, int index, DrawNodeCollection collection ) {
+		collection.Clear();
+
 		var type = renderer.Specialisation.GetType();
 		if ( specialisationCache.TryGetValue( type, out var func ) ) {
-			return func( Root, index );
+			func( Root, index, collection );
+			return;
 		}
 
-		var method = typeof( DrawNodeRenderer ).GetMethod( nameof( getSpecialisedDrawNode ), BindingFlags.Static | BindingFlags.NonPublic )!;
+		var method = typeof( DrawNodeRenderer ).GetMethod( nameof( populateSpecialisedDrawNode ), BindingFlags.Static | BindingFlags.NonPublic )!;
 		var generic = method.MakeGenericMethod( type );
 
-		func = generic.CreateDelegate<Func<IHasDrawNodes<DrawNode>, int, DrawNode>>();
+		func = generic.CreateDelegate<Action<IHasDrawNodes<DrawNode>, int, DrawNodeCollection>>();
 		specialisationCache[type] = func;
 
-		return func( Root, index );
+		func( Root, index, collection );
 	}
 
-	static DrawNode getSpecialisedDrawNode<TSpecialisation> ( IHasDrawNodes<DrawNode> root, int index ) where TSpecialisation : unmanaged, IRendererSpecialisation {
-		return root.GetDrawNode<TSpecialisation>( index );
+	static void populateSpecialisedDrawNode<TSpecialisation> ( IHasDrawNodes<DrawNode> root, int index, DrawNodeCollection collection ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+		root.PopulateDrawNodes<TSpecialisation>( index, collection );
 	}
 
 	public void Draw ( ICommandBuffer commands, Action<int>? action = null ) {
@@ -60,12 +67,12 @@ public class DrawNodeRenderer {
 	}
 
 	void draw ( int index, ICommandBuffer commands ) {
-		if ( drawNodes[index] is not var (renderer, drawNode) )
+		if ( drawNodes[index] is not var (renderer, collection) )
 			return;
 
 		if ( commands.Renderer != renderer )
 			return;
 
-		drawNode.Draw( commands );
+		collection.Draw( commands );
 	}
 }

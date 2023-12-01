@@ -266,7 +266,7 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		AnimationTimeline.Update( Clock.CurrentTime );
 	}
 
-	public abstract DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
+	public abstract void PopulateDrawNodes<TSpecialisation> ( int subtreeIndex, DrawNodeCollection collection ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 	public abstract void DisposeDrawNodes ();
 
 	public void Dispose ( RenderThreadScheduler disposeScheduler ) {

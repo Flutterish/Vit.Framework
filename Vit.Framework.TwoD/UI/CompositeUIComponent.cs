@@ -12,7 +12,7 @@ using Vit.Framework.TwoD.Rendering.Masking;
 namespace Vit.Framework.TwoD.UI;
 
 public abstract class CompositeUIComponent : CompositeUIComponent<UIComponent> { }
-public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T>, IHasCompositeDrawNodes<DrawNode> where T : UIComponent {
+public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> where T : UIComponent {
 	List<T> internalChildren = new();
 	public IReadOnlyList<T> Children {
 		get => internalChildren;
@@ -283,19 +283,23 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 	DrawNodeInvalidations drawNodeInvalidations;
 	DrawNode?[] drawNodes = new DrawNode?[3];
-	public override Rendering.DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) {
-		if ( internalChildren.Count == 1 && !isMaskingActive ) {
-			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
-			return internalChildren[0].GetDrawNode<TSpecialisation>( subtreeIndex );
-		}
 
-		var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TSpecialisation>( subtreeIndex );
-		node.Update();
-		return node;
+	public override void PopulateDrawNodes<TSpecialisation> ( int subtreeIndex, DrawNodeCollection collection ) {
+		if ( IsMaskingActive ) {
+			var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TSpecialisation>( subtreeIndex );
+			node.Update();
+			collection.Add( node );
+		}
+		else {
+			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
+			foreach ( var i in Children ) {
+				i.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection );
+			}
+		}
 	}
 
 	protected virtual Rendering.DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
-		return new DrawNode<TSpecialisation>( this, subtreeIndex );
+		return new MaskingDrawNode<TSpecialisation>( this, subtreeIndex );
 	}
 
 	public override void DisposeDrawNodes () {
@@ -311,41 +315,45 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	MaskingDataBuffer maskingData = null!;
-	public class DrawNode<TSpecialisation> : CompositeDrawNode<CompositeUIComponent<T>, Rendering.DrawNode, TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
-		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
-
-		protected override bool ValidateChildList () {
-			return Source.drawNodeInvalidations.ValidateDrawNode( SubtreeIndex );
+	public class MaskingDrawNode<TSpecialisation> : DrawNode where TSpecialisation : unmanaged, IRendererSpecialisation {
+		protected readonly CompositeUIComponent<T> Source;
+		public MaskingDrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( subtreeIndex ) {
+			Source = source;
 		}
 
-		protected bool IsMaskingActive;
 		protected Corners<float> CornerExponents;
 		protected Corners<Axes2<float>> CornerRadii;
 		protected Matrix3<float> GlobalToUnit;
-		public override void Update () {
-			base.Update();
+		DrawNodeCollection children = new();
+		public sealed override void Update () {
+			if ( !Source.drawNodeInvalidations.ValidateDrawNode( SubtreeIndex ) )
+				return;
 
-			IsMaskingActive = Source.isMaskingActive;
-			if ( IsMaskingActive ) {
-				GlobalToUnit = Source.GlobalToUnitMatrix * Matrix3<float>.CreateScale( 1f / Source.Width, 1f / Source.Height );
-				CornerExponents = Source.cornerExponents;
-				CornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
+			UpdateState();
+		}
+
+		protected virtual void UpdateState () {
+			GlobalToUnit = Source.GlobalToUnitMatrix * Matrix3<float>.CreateScale( 1f / Source.Width, 1f / Source.Height );
+			CornerExponents = Source.cornerExponents;
+			CornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
+			children.Clear();
+			foreach ( var i in Source.Children ) {
+				i.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children );
 			}
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {
-			if ( IsMaskingActive ) {
-				Source.maskingData.Push( new() {
-					ToMaskingSpace = new( GlobalToUnit ),
-					CornerExponents = CornerExponents,
-					CornerRadii = CornerRadii
-				} );
-				base.Draw( commands );
-				Source.maskingData.Pop();
-			}
-			else {
-				base.Draw( commands );
-			}
+			Source.maskingData.Push( new() {
+				ToMaskingSpace = new( GlobalToUnit ),
+				CornerExponents = CornerExponents,
+				CornerRadii = CornerRadii
+			} );
+			children.Draw( commands );
+			Source.maskingData.Pop();
+		}
+
+		public override void ReleaseResources ( bool willBeReused ) {
+			children.Clear();
 		}
 	}
 

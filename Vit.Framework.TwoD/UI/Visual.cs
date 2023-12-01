@@ -37,8 +37,8 @@ public class Visual<T> : UIComponent, IViewableInDrawVisualiser, IDrawableParent
 		Displayed.Unload();
 	}
 
-	public override DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) {
-		return Displayed.GetDrawNode<TSpecialisation>( subtreeIndex );
+	public override void PopulateDrawNodes<TSpecialisation> ( int subtreeIndex, DrawNodeCollection collection ) {
+		Displayed.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection );
 	}
 
 	public override void DisposeDrawNodes () {

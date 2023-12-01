@@ -17,10 +17,14 @@ public partial class Drawable : IHasDrawNodes<DrawNode> {
 
 	DrawNode?[] drawNodes = new DrawNode?[3];
 	protected abstract DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
-	public DrawNode GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+	DrawNode getDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
 		var node = drawNodes[subtreeIndex] ??= CreateDrawNode<TSpecialisation>( subtreeIndex );
 		node.Update();
 		return node;
+	}
+
+	public void PopulateDrawNodes<TSpecialisation> ( int subtreeIndex, DrawNodeCollection collection ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+		collection.Add( getDrawNode<TSpecialisation>( subtreeIndex ) );
 	}
 
 	public virtual void DisposeDrawNodes () {

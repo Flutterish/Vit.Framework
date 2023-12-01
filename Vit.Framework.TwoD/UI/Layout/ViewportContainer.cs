@@ -121,23 +121,21 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IVie
 
 	Matrix3<float> IViewableInDrawVisualiser.UnitToGlobalMatrix => Matrix3<float>.CreateScale( Width / ScaleX, Height / ScaleY ) * UnitToGlobalMatrix;
 
-	protected override DrawNode<TSpecialisation> CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
+	protected override MaskingDrawNode<TSpecialisation> CreateDrawNode<TSpecialisation> ( int subtreeIndex ) {
 		return new( this, subtreeIndex );
 	}
 
-	new protected class DrawNode<TSpecialisation> : CompositeUIComponent<T>.DrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
-		public DrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+	new protected class MaskingDrawNode<TSpecialisation> : CompositeUIComponent<T>.MaskingDrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
+		public MaskingDrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
-		public override void Update () {
-			base.Update();
-			if ( IsMaskingActive ) {
-				GlobalToUnit *= Matrix3<float>.CreateScale( Source.Scale );
-			}
+		protected override void UpdateState () {
+			base.UpdateState();
+			GlobalToUnit *= Matrix3<float>.CreateScale( Source.Scale );
 		}
 	}
 }
 
-public enum FillMode {
+public enum FillMode { // TODO pixel-perfect mode
 	/// <summary>
 	/// The target area will be fully contained inside available space.
 	/// </summary>

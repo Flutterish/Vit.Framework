@@ -44,12 +44,12 @@ public abstract class DrawNode : DisposableObject {
 public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// <summary>
 	/// [Update Thread] <br/>
-	/// Retreives and updates (via <see cref="DrawNode.Update"/>) the draw node at a given subtree index.
+	/// Populates the <paramref name="collection"/> with updated (via <see cref="DrawNode.Update"/>) draw nodes at a given subtree index.
 	/// </summary>
 	/// <param name="subtreeIndex">The subtree index. Can be 0, 1 or 2 as draw node trees are stored in a triple buffer.</param>
-	/// <returns>The up-to-date draw node at the given subtree index.</returns>
+	/// <param name="collection">The collection to populate.</param>
 	/// <typeparam name="TSpecialisation">The type of renderer to specialise the draw node for, if possible.</typeparam>
-	T GetDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation;
+	void PopulateDrawNodes<TSpecialisation> ( int subtreeIndex, DrawNodeCollection collection ) where TSpecialisation : unmanaged, IRendererSpecialisation;
 
 	/// <summary>
 	/// [Draw Thread] <br/>
@@ -59,49 +59,4 @@ public interface IHasDrawNodes<out T> where T : DrawNode {
 	/// While this call is in progress, the update thread either does not have access to this component or is suspended.
 	/// </remarks>
 	void DisposeDrawNodes ();
-}
-
-public interface IHasCompositeDrawNodes<out T> where T : DrawNode {
-	IReadOnlyList<IHasDrawNodes<T>> CompositeDrawNodeSources { get; }
-}
-
-public abstract class CompositeDrawNode<TSource, TNode, TSpecialisation> : DrawNode where TSource : IHasCompositeDrawNodes<TNode> where TNode : DrawNode where TSpecialisation : unmanaged, IRendererSpecialisation {
-	protected readonly TSource Source;
-	public CompositeDrawNode ( TSource source, int subtreeIndex ) : base( subtreeIndex ) {
-		Source = source;
-		ChildNodes = new( source.CompositeDrawNodeSources.Count );
-	}
-
-	/// <summary>
-	/// Validates the child list invalidation.
-	/// </summary>
-	/// <returns><see langword="true"/> if the child list should be updated, <see langword="false"/> otherwise.</returns>
-	protected abstract bool ValidateChildList ();
-
-	protected RentedArray<TNode> ChildNodes;
-	public override void Update () {
-		if ( !ValidateChildList() )
-			return;
-
-		var count = Source.CompositeDrawNodeSources.Count;
-		ChildNodes.Clear();
-		ChildNodes.ReallocateStorage( count );
-		for ( int i = 0; i < count; i++ ) {
-			ChildNodes[i] = Source.CompositeDrawNodeSources[i].GetDrawNode<TSpecialisation>( SubtreeIndex );
-		}
-	}
-
-	public override void Draw ( ICommandBuffer commands ) {
-		foreach ( var i in ChildNodes.AsSpan() ) {
-			i.Draw( commands );
-		}
-	}
-
-	public override void ReleaseResources ( bool willBeReused ) {
-		if ( willBeReused )
-			return;
-
-		ChildNodes.Clear();
-		ChildNodes.Dispose();
-	}
 }
