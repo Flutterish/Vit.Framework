@@ -5,12 +5,11 @@ using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
-using Vit.Framework.Memory;
 using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Uniforms;
 
-public class UniformSet : DisposableObject, IUniformSet {
+public class UniformSet : IDisposable, IUniformSet {
 	UniformLayout layout;
 	public UniformSet ( UniformLayout layout ) {
 		this.layout = layout;
@@ -70,7 +69,7 @@ public class UniformSet : DisposableObject, IUniformSet {
 		context.PSSetShaderResources( layout.FirstStorageBuffer, layout.StorageBufferCount, StorageBufferResources );
 	}
 
-	protected override void Dispose ( bool disposing ) {
+	public void Dispose () {
 		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }

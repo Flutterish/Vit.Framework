@@ -39,7 +39,7 @@ public class UniformInfo {
 	/// The resulting mapping's resources are contigious by resource type globally (within a set each type is contigious too).
 	/// </summary>
 	/// <remarks>
-	/// Example mapping: <c>[unifrom buffers[set 0[1, 2]; set 1[3, 4, 5]]; samplers[set 0[6]; set 1[7, 8]]</c>
+	/// Example mapping: <c>[uniform buffers[set 0[1, 2]; set 1[3, 4, 5]]; samplers[set 0[6]; set 1[7, 8]]</c>
 	/// </remarks>
 	public UniformFlatMapping CreateFlatMapping () {
 		UniformFlatMapping mapping = new();

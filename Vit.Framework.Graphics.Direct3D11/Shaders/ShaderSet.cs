@@ -16,6 +16,14 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public readonly ImmutableArray<UnlinkedShader> Shaders;
 	public readonly ImmutableArray<Shader> LinkedShaders;
 
+	const string TEXCOORD = "TEXCOORD";
+	static string[] TEXCOORDN_ = new string[] {
+		"TEXCOORD0_",
+		"TEXCOORD1_",
+		"TEXCOORD2_",
+		"TEXCOORD3_"
+	};
+
 	public readonly ID3D11InputLayout? Layout;
 	public ShaderSet ( IEnumerable<IShaderPart> parts, VertexInputDescription? vertexInput ) {
 		Shaders = parts.Select( x => (UnlinkedShader)x ).ToImmutableArray();
@@ -37,27 +45,43 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		var bufferCount = vertexInput.BufferBindings.Any() ? vertexInput.BufferBindings.Max( x => x.Key ) + 1 : 0;
 		BufferStrides = new int[bufferCount];
 
-		var inputs = new InputElementDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Count)];
+		var inputs = new InputElementDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Sum( x => x.Value.Locations ))];
 		var inputIndex = 0;
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.UInt32, []) => Format.R32_UInt,
 					(PrimitiveType.Float32, []) => Format.R32_Float,
-					(PrimitiveType.Float32, [2]) => Format.R32G32_Float,
-					(PrimitiveType.Float32, [3]) => Format.R32G32B32_Float,
-					(PrimitiveType.Float32, [4]) => Format.R32G32B32A32_Float,
+					(PrimitiveType.Float32, [2, ..]) => Format.R32G32_Float,
+					(PrimitiveType.Float32, [3, ..]) => Format.R32G32B32_Float,
+					(PrimitiveType.Float32, [4, ..]) => Format.R32G32B32A32_Float,
 					_ => throw new Exception( "Unrecognized format" )
 				};
 
-				inputs[inputIndex++] = new() {
-					SemanticName = "TEXCOORD",
-					SemanticIndex = (int)location,
-					Format = format,
-					Slot = (int)buffer,
-					AlignedByteOffset = (int)attribute.Offset,
-					Classification = attributes.InputRate == BufferInputRate.PerVertex ? InputClassification.PerVertexData : InputClassification.PerInstanceData,
-					InstanceDataStepRate = attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1
-				};
+				for ( uint i = 0; i < attribute.Locations; i++ ) {
+					if ( attribute.Locations == 1 ) {
+						inputs[inputIndex++] = new() {
+							SemanticName = TEXCOORD,
+							SemanticIndex = (int)location,
+							Format = format,
+							Slot = (int)buffer,
+							AlignedByteOffset = (int)attribute.Offset,
+							Classification = attributes.InputRate == BufferInputRate.PerVertex ? InputClassification.PerVertexData : InputClassification.PerInstanceData,
+							InstanceDataStepRate = attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1
+						};
+					}
+					else {
+						inputs[inputIndex++] = new() {
+							SemanticName = TEXCOORDN_[location],
+							SemanticIndex = (int)i,
+							Format = format,
+							Slot = (int)buffer,
+							AlignedByteOffset = (int)(attribute.Offset + i * attribute.LocationByteSize),
+							Classification = attributes.InputRate == BufferInputRate.PerVertex ? InputClassification.PerVertexData : InputClassification.PerInstanceData,
+							InstanceDataStepRate = attributes.InputRate == BufferInputRate.PerVertex ? 0 : 1
+						};
+					}
+				}
 			}
 
 			BufferStrides[buffer] = (int)attributes.Stride;
@@ -67,7 +91,7 @@ public class ShaderSet : DisposableObject, IShaderSet {
 		Layout = vert.Handle.Device.CreateInputLayout( inputs, vert.Source.Span );
 	}
 
-	public int[] BufferStrides;
+	public int[] BufferStrides = null!;
 
 	public UniformLayout[] UniformLayouts;
 	public UniformSet[] UniformSets;

@@ -40,10 +40,12 @@ public abstract class Shader : DisposableObject {
 	protected static unsafe string CrossCompile ( SpirvBytecode bytecode, UniformFlatMapping mapping ) {
 		return bytecode.CrossCompile( ShaderLanguage.HLSL, compiler => {
 			foreach ( var ((set, originalBinding), binding) in mapping.Bindings ) {
-				if ( !bytecode.Reflections.Uniforms.Sets.TryGetValue( set, out var setInfo ) || setInfo.Resources.FirstOrDefault( x => x.Binding == originalBinding ) is not UniformResourceInfo resource )
+				if ( !bytecode.Reflections.Uniforms.Sets.TryGetValue( set, out var setInfo ) )
 					continue;
 
-				SPIRV.spvc_compiler_set_decoration( compiler, resource.Id, SpvDecoration.SpvDecorationBinding, binding );
+				foreach ( var resource in setInfo.Resources.Where( x => x.Binding == originalBinding ) ) {
+					SPIRV.spvc_compiler_set_decoration( compiler, resource.Id, SpvDecoration.SpvDecorationBinding, binding );
+				}
 			}
 		} );
 	}
