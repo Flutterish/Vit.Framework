@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
 
@@ -10,6 +11,17 @@ public record VertexAttributeDescription {
 	/// </summary>
 	public required uint Offset { get; init; }
 	public required DataTypeInfo DataType { get; init; }
+	public uint Locations {
+		get {
+			Debug.Assert( DataType.Dimensions.Length is 0 or 1 or 2 );
+			return DataType.Dimensions.Length == 2 ? DataType.Dimensions[1] : 1;
+		}
+	}
+	public uint LocationSize {
+		get {
+			return (DataType.Dimensions.Length == 0 ? 1 : DataType.Dimensions[0]) *DataType.PrimitiveType.SizeOf();
+		}
+	}
 	public string? DebugName { get; init; }
 
 	public override string ToString () {

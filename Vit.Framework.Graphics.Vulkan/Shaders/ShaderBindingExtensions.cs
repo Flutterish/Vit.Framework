@@ -7,7 +7,7 @@ namespace Vit.Framework.Graphics.Vulkan.Shaders;
 
 public static unsafe class ShaderBindingExtensions {
 	public static (VkVertexInputAttributeDescription[] attribs, VkVertexInputBindingDescription[] bindings) GenerateVertexBindings ( this VertexInputDescription vertexInput ) {
-		var attribs = new VkVertexInputAttributeDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Count )];
+		var attribs = new VkVertexInputAttributeDescription[vertexInput.BufferBindings.Sum( x => x.Value.AttributesByLocation.Sum( x => x.Value.Locations ) )];
 		var bindings = new VkVertexInputBindingDescription[vertexInput.BufferBindings.Count];
 
 		uint bindingIndex = 0;
@@ -15,19 +15,22 @@ public static unsafe class ShaderBindingExtensions {
 		foreach ( var (buffer, attributes) in vertexInput.BufferBindings ) {
 			foreach ( var (location, attribute) in attributes.AttributesByLocation ) {
 				var format = (attribute.DataType.PrimitiveType, attribute.DataType.Dimensions) switch {
+					(PrimitiveType.UInt32, [] ) => VkFormat.A8b8g8r8UintPack32,
 					(PrimitiveType.Float32, [] ) => VkFormat.R32Sfloat,
-					(PrimitiveType.Float32, [2] ) => VkFormat.R32g32Sfloat,
-					(PrimitiveType.Float32, [3] ) => VkFormat.R32g32b32Sfloat,
-					(PrimitiveType.Float32, [4] ) => VkFormat.R32g32b32a32Sfloat,
+					(PrimitiveType.Float32, [2, ..] ) => VkFormat.R32g32Sfloat,
+					(PrimitiveType.Float32, [3, ..] ) => VkFormat.R32g32b32Sfloat,
+					(PrimitiveType.Float32, [4, ..] ) => VkFormat.R32g32b32a32Sfloat,
 					_ => throw new Exception( "Unrecognized format" )
 				};
 
-				attribs[attributeIndex++] = new() {
-					binding = buffer,
-					location = location,
-					offset = attribute.Offset,
-					format = format
-				};
+				for ( uint i = 0; i < attribute.Locations; i++ ) {
+					attribs[attributeIndex++] = new() {
+						binding = buffer,
+						location = location + i,
+						offset = attribute.Offset + i * attribute.LocationSize,
+						format = format
+					};
+				}
 			}
 
 			bindings[bindingIndex++] = new() {

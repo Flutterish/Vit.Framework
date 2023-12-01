@@ -79,5 +79,9 @@ public partial class DrawableSpriteText {
 			UniformAllocator?.Dispose();
 			Sampler?.Dispose();
 		}
+
+		public void EndFrame () {
+			
+		}
 	}
 }

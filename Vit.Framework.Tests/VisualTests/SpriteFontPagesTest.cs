@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vit.Framework.DependencyInjection;
+﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Text.Fonts;
@@ -84,22 +83,15 @@ public class SpriteFontPagesTest : TestScene {
 
 			SpriteFontPage? page;
 			ISampler? sampler;
-			public override void Draw ( ICommandBuffer commands ) {
+			public override (ITexture2DView, ISampler) GetTextureSampler ( IRenderer renderer ) {
 				if ( page == null ) {
 					var spriteFont = spriteFontStore.GetSpriteFont( font );
 					page = spriteFont.GetPage( pageId );
 
-					sampler ??= commands.Renderer.CreateSampler();
+					sampler ??= renderer.CreateSampler();
 				}
 
-				base.Draw( commands );
-			}
-
-			protected override bool UpdateTexture ( [NotNullWhen(true)] out ITexture2DView? texture, [NotNullWhen(true)] out ISampler? sampler ) {
-				texture = page!.View;
-				sampler = this.sampler!;
-
-				return true;
+				return (page.View, sampler!);
 			}
 
 			public override void ReleaseResources ( bool willBeReused ) {

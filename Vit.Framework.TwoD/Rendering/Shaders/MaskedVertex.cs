@@ -14,30 +14,35 @@ public static class MaskedVertex {
 		layout(location = 0) in vec2 inPosition;
 		layout(location = 1) in vec2 inUv;
 
+		layout(location = 2) in mat3 instanceModel;
+		layout(location = 5) in vec4 instanceTint;
+		layout(location = 6) in uint instanceMaskingPtr;
+
 		layout(location = 0) out vec2 outUv;
 		layout(location = 1) out vec2 outModelSpace;
+		layout(location = 2) out vec4 outInstanceTint;
+		layout(location = 3) out uint outInstanceMaskingPtr;
 
 		layout(binding = 0, set = 0) uniform GlobalUniforms {
 			mat3 proj;
 			uvec2 screenSize;
 		} globalUniforms;
 
-		layout(binding = 0, set = 1) uniform Uniforms {
-			mat3 model;
-			vec4 tint;
-			uint maskingPtr;
-		} uniforms;
-
 		void main () {
+			outInstanceTint = instanceTint;
+			outInstanceMaskingPtr = instanceMaskingPtr;
 			outUv = inUv;
-			vec3 modelSpace = uniforms.model * vec3(inPosition, 1);
+			vec3 modelSpace = instanceModel * vec3(inPosition, 1);
 			outModelSpace = modelSpace.xy;
 			gl_Position = vec4((globalUniforms.proj * modelSpace).xy, 0, 1);
 		}
 	", ShaderLanguage.GLSL, ShaderPartType.Vertex );
 
 	static VertexInputDescription? inputDescription;
-	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateSingle( Spirv.Reflections );
+	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateGrouped( Spirv.Reflections,
+		(BufferInputRate.PerVertex, new uint[] { 0, 1 }),
+		(BufferInputRate.PerInstance, new uint[] { 2, 5, 6 })
+	);
 
 	public struct Vertex {
 		public Point2<float> Position;
@@ -51,8 +56,8 @@ public static class MaskedVertex {
 		}
 	}
 
-	public struct Uniforms {
-		public Matrix4x3<float> Matrix;
+	public struct InstanceData {
+		public Matrix3<float> Matrix;
 		public ColorSRgba<float> Tint;
 		public uint MaskingPointer;
 	}

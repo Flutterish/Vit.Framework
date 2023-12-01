@@ -8,15 +8,14 @@ using Vit.Framework.Interop;
 using Vit.Framework.TwoD.Rendering.Masking;
 using Vit.Framework.TwoD.Rendering.Shaders;
 using Vit.Framework.TwoD.Templates;
-using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Uniforms;
 using Vertex = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Vertex;
 
 namespace Vit.Framework.TwoD.Graphics;
 
 public abstract partial class TexturedQuad {
 	public class DrawDependencies : IDrawDependency {
-		public BufferSectionPool<IHostBuffer<Uniforms>> UniformAllocator = null!;
-		public UniformSetPool UniformSetAllocator = null!;
+		public SingleUseBufferSectionStack BatchAllocator = null!;
+		public SingleUseUniformSetPool UniformSetAllocator = null!;
 		public MaskingDataBuffer Masking = null!;
 		public IDeviceBuffer<ushort> Indices = null!;
 		public IDeviceBuffer<Vertex> Vertices = null!;
@@ -24,9 +23,7 @@ public abstract partial class TexturedQuad {
 		public IShaderSet Shader = null!;
 
 		public void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies ) {
-			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
-				return r.CreateUniformHostBuffer<Uniforms>( s, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
-			} );
+			BatchAllocator = dependencies.Resolve<SingleUseBufferSectionStack>();
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
 				Vertex = new() {
@@ -39,15 +36,14 @@ public abstract partial class TexturedQuad {
 			Shader = basicShader.Value;
 
 			UniformSetAllocator = new( Shader, set: 1, poolSize: 256 );
-			var singleUseBuffers = dependencies.Resolve<SingleUseBufferSectionStack>();
 			Masking = dependencies.Resolve<MaskingDataBuffer>();
-			var indices = singleUseBuffers.AllocateStagingBuffer<ushort>( 6 );
+			var indices = BatchAllocator.AllocateStagingBuffer<ushort>( 6 );
 			indices.Upload<ushort>( stackalloc ushort[] {
 				0, 1, 2,
 				0, 2, 3
 			} );
 
-			var vertices = singleUseBuffers.AllocateStagingBuffer<Vertex>( 4 );
+			var vertices = BatchAllocator.AllocateStagingBuffer<Vertex>( 4 );
 			vertices.Upload<Vertex>( stackalloc Vertex[] {
 				new() { PositionAndUV = new( 0, 1 ) },
 				new() { PositionAndUV = new( 1, 1 ) },
@@ -66,9 +62,12 @@ public abstract partial class TexturedQuad {
 
 		public void Dispose () {
 			UniformSetAllocator?.Dispose();
-			UniformAllocator?.Dispose();
 			Indices?.Dispose();
 			Vertices?.Dispose();
+		}
+
+		public void EndFrame () {
+			UniformSetAllocator.EndFrame();
 		}
 	}
 }

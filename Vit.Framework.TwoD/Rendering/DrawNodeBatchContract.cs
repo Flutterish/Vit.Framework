@@ -11,7 +11,7 @@ public abstract class DrawNodeBatchContract {
 	public abstract void Draw ( ICommandBuffer commands, ReadOnlySpan<DrawNode> drawNodes );
 }
 
-public abstract class DrawNodeBatchContract<TNode> : DrawNodeBatchContract where TNode : DrawNode {
+public abstract class DrawNodeBatchContract<TNode> : DrawNodeBatchContract {
 	public sealed override void Draw ( ICommandBuffer commands, ReadOnlySpan<DrawNode> drawNodes ) {
 		ref DrawNode first = ref MemoryMarshal.GetReference( drawNodes );
 		Draw( commands, MemoryMarshal.CreateReadOnlySpan( ref Unsafe.As<DrawNode, TNode>( ref first ), drawNodes.Length ) );

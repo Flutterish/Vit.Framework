@@ -162,20 +162,18 @@ public static class MaskedFragment {
 		layout(location = 0) in vec2 inUv;
 		layout(location = 1) in vec2 inModelSpace;
 
+		layout(location = 2) in vec4 instanceTint;
+		layout(location = 3) flat in uint instanceMaskingPtr;
+
 		layout(location = 0) out vec4 outColor;
 
-		layout(binding = 1, set = 1) uniform sampler2D texSampler;
-		layout(binding = 0, set = 1) uniform Uniforms {
-			mat3 model;
-			vec4 tint;
-			uint maskingPtr;
-		} uniforms;
+		layout(binding = 0, set = 1) uniform sampler2D texSampler;
 
 		" + IncludeGetMaskingAlpha + @"
 
 		void main () {
-			outColor = texture( texSampler, inUv ) * uniforms.tint;
-			float maskingAlpha = getMaskingAlpha( uniforms.maskingPtr, inModelSpace );
+			outColor = texture( texSampler, inUv ) * instanceTint;
+			float maskingAlpha = getMaskingAlpha( instanceMaskingPtr, inModelSpace );
 			outColor *= maskingAlpha; // multiply the whole thing because we use premultiplied alpha
 		}
 	", ShaderLanguage.GLSL, ShaderPartType.Fragment );

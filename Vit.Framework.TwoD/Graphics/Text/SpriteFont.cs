@@ -61,6 +61,10 @@ public class SpriteFontStore : IDrawDependency {
 			i.Dispose();
 		}
 	}
+
+	public void EndFrame () {
+		
+	}
 }
 
 public class SpriteFont : IDisposable {

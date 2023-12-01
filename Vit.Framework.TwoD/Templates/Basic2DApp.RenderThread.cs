@@ -95,6 +95,7 @@ public abstract partial class Basic2DApp<TRoot> {
 		protected SingleUseBufferSectionStack SingleUseBuffers = null!;
 		protected DeviceBufferHeap DeviceBufferHeap = null!;
 		protected MaskingDataBuffer MaskingData = null!;
+
 		bool windowResized;
 		void onWindowResized ( Window _ ) {
 			windowResized = true;
@@ -141,6 +142,10 @@ public abstract partial class Basic2DApp<TRoot> {
 			Swapchain.Present( index );
 			MaskingData.EndFrame();
 			SingleUseBuffers.EndFrame();
+			foreach ( var (id, dep) in Dependencies.EnumerateCached() ) {
+				if ( dep is IDrawDependency drawDependency )
+					drawDependency.EndFrame();
+			}
 		}
 
 		protected abstract void BeforeRender ();
@@ -185,4 +190,5 @@ public abstract partial class Basic2DApp<TRoot> {
 
 public interface IDrawDependency : IDisposable {
 	void Initialize ( IRenderer renderer, IReadOnlyDependencyCache dependencies );
+	void EndFrame ();
 }

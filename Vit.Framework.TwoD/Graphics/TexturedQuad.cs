@@ -1,12 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Vit.Framework.DependencyInjection;
+﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
-using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Graphics.Rendering.Uniforms;
-using Uniforms = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.Uniforms;
+using Vit.Framework.TwoD.Rendering;
+using InstanceData = Vit.Framework.TwoD.Rendering.Shaders.MaskedVertex.InstanceData;
 
 namespace Vit.Framework.TwoD.Graphics;
 
@@ -36,22 +34,14 @@ public abstract partial class TexturedQuad : Drawable {
 	}
 
 	DrawDependencies drawDependencies = null!;
-	bool areUniformsInitialized = false;
-	UniformSetPool.Allocation uniformSet;
-	BufferSectionPool<IHostBuffer<Uniforms>>.Allocation uniforms;
 
-	public override void DisposeDrawNodes () {
-		base.DisposeDrawNodes();
-
-		if ( !areUniformsInitialized )
-			return;
-
-		drawDependencies.UniformSetAllocator.Free( uniformSet );
-		drawDependencies.UniformAllocator.Free( uniforms );
-		areUniformsInitialized = false;
+	interface ITexturedQuadDrawNode {
+		(ITexture2DView, ISampler) GetTextureSampler ( IRenderer renderer );
+		DrawDependencies Dependencies { get; }
+		InstanceData GetInstanceData ();
 	}
-
-	public abstract class DrawNode<T> : DrawableDrawNode<T> where T : TexturedQuad {
+	public abstract class DrawNode<T> : DrawableDrawNode<T>, ITexturedQuadDrawNode where T : TexturedQuad {
+		public override DrawNodeBatchContract BatchContract => TexturedQuadBatchContract.Instance;
 		public DrawNode ( T source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		ColorSRgba<float> tint;
@@ -60,49 +50,69 @@ public abstract partial class TexturedQuad : Drawable {
 			tint = Source.tint.WithOpacity( Source.alpha ).ToSRgb();
 		}
 
-		void initializeSharedData () {
-			ref var uniforms = ref Source.uniforms;
-			ref var uniformSet = ref Source.uniformSet;
+		public override void Draw ( ICommandBuffer commands ) { }
 
-			uniforms = Source.drawDependencies.UniformAllocator.Allocate();
-			uniformSet = Source.drawDependencies.UniformSetAllocator.Allocate();
-
-			uniformSet.UniformSet.SetUniformBuffer( uniforms.Buffer, binding: 0, uniforms.Offset );
-		}
-
-		protected abstract bool UpdateTexture ( [NotNullWhen( true )] out ITexture2DView? texture, [NotNullWhen( true )] out ISampler? sampler );
-
-		public override void Draw ( ICommandBuffer commands ) {
-			ref var uniforms = ref Source.uniforms;
-			ref var uniformSet = ref Source.uniformSet.UniformSet;
-
-			var shaders = Source.drawDependencies.Shader;
-
-			if ( !Source.areUniformsInitialized ) {
-				initializeSharedData();
-				Source.areUniformsInitialized = true;
-			}
-
-			var indices = Source.drawDependencies.Indices;
-			var vertices = Source.drawDependencies.Vertices;
-
-			if ( UpdateTexture( out var texture, out var sampler ) ) {
-				uniformSet.SetSampler( texture, sampler, binding: 1 );
-			}
-			
-			shaders.SetUniformSet( uniformSet, set: 1 );
-
-			commands.SetShaders( shaders );
-			commands.BindVertexBuffer( vertices );
-			commands.BindIndexBuffer( indices );
-			uniforms.Buffer.UploadUniform( new Uniforms { // in theory we could make the matrix and tint per-instance to both save space on uniform buffers and batch sprites
-				Matrix = new( UnitToGlobalMatrix ),
-				Tint = tint,
-				MaskingPointer = Source.drawDependencies.Masking.MaskPointer
-			}, uniforms.Offset );
-			commands.DrawIndexed( 6 );
-		}
+		public abstract (ITexture2DView, ISampler) GetTextureSampler ( IRenderer renderer );
+		public DrawDependencies Dependencies => Source.drawDependencies;
+		public InstanceData GetInstanceData () => new() {
+			Matrix = UnitToGlobalMatrix,
+			Tint = tint,
+			MaskingPointer = Source.drawDependencies.Masking.MaskPointer
+		};
 
 		public override void ReleaseResources ( bool willBeReused ) { }
+	}
+
+	class TexturedQuadBatchContract : DrawNodeBatchContract<ITexturedQuadDrawNode> {
+		public static readonly TexturedQuadBatchContract Instance = new();
+
+		public override unsafe void Draw ( ICommandBuffer commands, ReadOnlySpan<ITexturedQuadDrawNode> drawNodes ) {
+			var first = drawNodes[0];
+			var deps = first.Dependencies;
+			var vertex = deps.Vertices;
+			var indices = deps.Indices;
+			var shader = deps.Shader;
+
+			var instance = deps.BatchAllocator.AllocateHostBuffer<InstanceData>( (uint)drawNodes.Length, BufferType.Vertex );
+			var dataPtr = instance.Map();
+
+			commands.SetShaders( shader );
+			commands.BindIndexBuffer( indices );
+			commands.BindVertexBuffer( vertex, binding: 0 );
+			commands.BindVertexBufferRaw( instance.Buffer, binding: 1, offset: instance.Offset );
+
+			uint length = 0;
+			uint instanceOffset = 0;
+			var renderder = commands.Renderer;
+			var textureSampler = first.GetTextureSampler( renderder );
+
+			void draw () {
+				var set = deps.UniformSetAllocator.Allocate();
+
+				set.SetSampler( textureSampler.Item1, textureSampler.Item2, binding: 0 );
+
+				shader.SetUniformSet( set, set: 1 );
+				commands.UpdateUniforms();
+
+				commands.DrawInstancesIndexed( 6, length, instanceOffset: instanceOffset );
+			}
+
+			foreach ( var i in drawNodes ) {
+				*dataPtr = i.GetInstanceData();
+				dataPtr++;
+
+				var nextTextureSampler = i.GetTextureSampler( renderder );
+				if ( nextTextureSampler != textureSampler ) {
+					draw();
+					textureSampler = nextTextureSampler;
+					instanceOffset += length;
+					length = 0;
+				}
+
+				length++;
+			}
+
+			draw();
+		}
 	}
 }
