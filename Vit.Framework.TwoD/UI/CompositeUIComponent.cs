@@ -298,7 +298,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
-	protected virtual Rendering.DrawNode CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
+	protected virtual MaskingDrawNode<TSpecialisation> CreateDrawNode<TSpecialisation> ( int subtreeIndex ) where TSpecialisation : unmanaged, IRendererSpecialisation {
 		return new MaskingDrawNode<TSpecialisation>( this, subtreeIndex );
 	}
 
@@ -340,6 +340,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			foreach ( var i in Source.Children ) {
 				i.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children );
 			}
+			children.Compile();
 		}
 
 		public override void Draw ( ICommandBuffer commands ) {

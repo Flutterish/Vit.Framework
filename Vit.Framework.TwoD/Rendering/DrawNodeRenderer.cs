@@ -49,6 +49,7 @@ public class DrawNodeRenderer {
 
 	static void populateSpecialisedDrawNode<TSpecialisation> ( IHasDrawNodes<DrawNode> root, int index, DrawNodeCollection collection ) where TSpecialisation : unmanaged, IRendererSpecialisation {
 		root.PopulateDrawNodes<TSpecialisation>( index, collection );
+		collection.Compile();
 	}
 
 	public void Draw ( ICommandBuffer commands, Action<int>? action = null ) {

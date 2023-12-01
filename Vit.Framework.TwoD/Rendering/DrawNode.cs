@@ -5,6 +5,7 @@ using Vit.Framework.Memory;
 namespace Vit.Framework.TwoD.Rendering;
 
 public abstract class DrawNode : DisposableObject {
+	public virtual DrawNodeBatchContract BatchContract { get => NullDrawNodeBatchContract.Instance; }
 	protected readonly int SubtreeIndex;
 	protected DrawNode ( int subtreeIndex ) {
 		SubtreeIndex = subtreeIndex;
@@ -23,6 +24,9 @@ public abstract class DrawNode : DisposableObject {
 	/// [Draw Thread] <br/>
 	/// Creates required resources and draws the element represented by this draw node.
 	/// </summary>
+	/// <remarks>
+	/// Usually only called when <see cref="BatchContract"/> is <see cref="NullDrawNodeBatchContract"/>.
+	/// </remarks>
 	public abstract void Draw ( ICommandBuffer commands );
 
 	/// <summary>
