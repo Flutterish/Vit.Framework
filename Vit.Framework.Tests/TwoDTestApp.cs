@@ -179,7 +179,7 @@ public class TwoDTestApp : Basic2DApp {
 			Root.ComputeLayout();
 		}
 
-		private void onInputEventEmitted ( IInputTracker src, TimestampedEvent e ) {
+		void onInputEventEmitted ( IInputTracker src, TimestampedEvent e ) {
 			var translated = uiEventSource.TriggerEvent( e );
 
 			if ( translated || e is not ILoggableEvent )
