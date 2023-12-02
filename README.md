@@ -1,5 +1,5 @@
 # Vit.Framework
-Vit is a freeform app framework with minimal bloat.
+Vit is a freeform app framework with minimal bloat. Still a work-in-progress and subject to breaking API changes.
 
 ## Structure
 The framework is separated into the main project(s) which contains utility code and interfaces, and add-on projects which implement specific functionality, such as the SDL window host, BASS audio, a specific rendering backend such as OpenGL, Direct3D11, Vulkan or specialised renderers for 2D or 3D scenes. You are free to include only the ones you need.
