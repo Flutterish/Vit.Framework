@@ -33,7 +33,7 @@ using Vit.Framework.Windowing.Sdl;
 
 namespace Vit.Framework.Tests;
 
-public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
+public class TwoDTestApp : Basic2DApp {
 	Type type;
 	public TwoDTestApp ( Type type ) : base( "Test App" ) {
 		this.type = type;
@@ -57,6 +57,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		return available.First( x => x.KnownName == targetBackend );
 	}
 
+	new protected ViewportContainer<UIComponent> Root => (ViewportContainer<UIComponent>)base.Root;
 	protected override ViewportContainer<UIComponent> CreateRoot () {
 		return new() {
 			TargetSize = (1920, 1080),
@@ -124,6 +125,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		UIEventSource uiEventSource;
 		Window window;
 		InputTrackerCollection inputTrackers;
+		new protected ViewportContainer<UIComponent> Root => (ViewportContainer<UIComponent>)base.Root;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			inputTrackers = window.CreateInputTrackers();
 			uiEventSource = new( Root, dependencies );

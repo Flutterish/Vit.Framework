@@ -18,7 +18,7 @@ using Vit.Framework.Windowing;
 
 namespace Vit.Framework.TwoD.Templates;
 
-public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasDrawNodes<DrawNode> {
+public abstract partial class Basic2DApp : App {
 	public Basic2DApp ( string name ) : base( name ) { }
 
 	protected Host Host = null!;
@@ -31,11 +31,11 @@ public abstract partial class Basic2DApp<TRoot> : App where TRoot : class, IHasD
 	protected UpdateThread MainUpdateThread = null!;
 	protected RenderThread MainRenderThread = null!;
 
-	protected TRoot Root = null!;
+	protected IHasDrawNodes<DrawNode> Root = null!;
 
 	protected abstract Host GetHost ();
 	protected abstract GraphicsApiType SelectGraphicsApi ( IEnumerable<GraphicsApiType> available );
-	protected abstract TRoot CreateRoot ();
+	protected abstract IHasDrawNodes<DrawNode> CreateRoot ();
 
 	protected virtual void PopulateShaderStore ( ShaderStore shaders ) {
 		shaders.AddShaderPart( BasicVertex.Identifier, BasicVertex.Spirv );

@@ -7,13 +7,13 @@ using Vit.Framework.TwoD.Rendering;
 
 namespace Vit.Framework.TwoD.Templates;
 
-public abstract partial class Basic2DApp<TRoot> {
+public abstract partial class Basic2DApp {
 	protected abstract class UpdateThread : AppThread {
 		DrawNodeRenderer drawNodeRenderer;
 		RenderThreadScheduler disposeScheduler;
 		StopwatchClock clock;
 		public readonly ConcurrentQueue<Action> Scheduler = new();
-		protected TRoot Root => (TRoot)drawNodeRenderer.Root;
+		protected IHasDrawNodes<DrawNode> Root => drawNodeRenderer.Root;
 		protected IReadOnlyDependencyCache Dependencies;
 		public UpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, IReadOnlyDependencyCache dependencies, string name ) : base( name ) {
 			this.drawNodeRenderer = drawNodeRenderer;

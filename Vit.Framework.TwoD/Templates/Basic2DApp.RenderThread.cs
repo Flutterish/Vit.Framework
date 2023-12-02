@@ -16,14 +16,14 @@ using Vit.Framework.Windowing;
 
 namespace Vit.Framework.TwoD.Templates;
 
-public abstract partial class Basic2DApp<TRoot> {
+public abstract partial class Basic2DApp {
 	protected abstract class RenderThread : AppThread {
 		DrawNodeRenderer drawNodeRenderer;
 		RenderThreadScheduler disposeScheduler;
 		protected GraphicsApi Api;
 		protected Window Window;
 		public readonly ConcurrentQueue<Action> Scheduler = new();
-		protected TRoot Root => (TRoot)drawNodeRenderer.Root;
+		protected IHasDrawNodes<DrawNode> Root => drawNodeRenderer.Root;
 		protected readonly IReadOnlyDependencyCache Dependencies;
 		Host host;
 		public RenderThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Host host, Window window, GraphicsApiType api, IReadOnlyDependencyCache dependencies, string name ) : base( name ) {
