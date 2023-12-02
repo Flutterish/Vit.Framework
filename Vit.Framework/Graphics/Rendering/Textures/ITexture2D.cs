@@ -1,5 +1,4 @@
-﻿using Vit.Framework.Interop;
-using Vit.Framework.Mathematics;
+﻿using Vit.Framework.Mathematics;
 
 namespace Vit.Framework.Graphics.Rendering.Textures;
 
@@ -23,15 +22,15 @@ public unsafe interface IStagingTexture2D : ITexture2D {
 	/// <param name="offset">The offset into this texture in pixels.</param>
 	public unsafe void Upload<TPixel> ( ReadOnlySpan<TPixel> data, Size2<uint> dataSize, AxisAlignedBox2<uint> dataRect, Point2<uint> offset ) where TPixel : unmanaged {
 		var ptr = (TPixel*)GetData();
-		var dataPtr = data.Data();
+		fixed ( TPixel* _dataPtr = data ) {
+			var dataPtr = _dataPtr + dataRect.MinX + dataRect.MinY * dataSize.Width;
+			ptr += offset.X + offset.Y * Size.Width;
 
-		dataPtr += dataRect.MinX + dataRect.MinY * dataSize.Width;
-		ptr += offset.X + offset.Y * Size.Width;
-
-		for ( int i = 0; i < dataRect.Height; i++ ) {
-			new Span<TPixel>( dataPtr, (int)dataRect.Width ).CopyTo( new Span<TPixel>( ptr, (int)dataRect.Width ) );
-			dataPtr += dataSize.Width;
-			ptr += Size.Width;
+			for ( int i = 0; i < dataRect.Height; i++ ) {
+				new Span<TPixel>( dataPtr, (int)dataRect.Width ).CopyTo( new Span<TPixel>( ptr, (int)dataRect.Width ) );
+				dataPtr += dataSize.Width;
+				ptr += Size.Width;
+			}
 		}
 	}
 

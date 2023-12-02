@@ -1,7 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 
@@ -36,8 +35,9 @@ public class Texture<TPixel> : DisposableObject, ISoftwareTexture where TPixel :
 	public IDeviceTexture2D Source => this;
 
 	public unsafe void* GetData () {
-		Image.DangerousTryGetSinglePixelMemory( out var data );
-		return data.Span.Data();
+		throw new NotImplementedException();
+		//Image.DangerousTryGetSinglePixelMemory( out var data );
+		//return data.Span.Data();
 	}
 
 	public void CopyTo ( ISoftwareTexture other, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

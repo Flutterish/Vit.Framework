@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
@@ -42,7 +41,9 @@ public class Shader : DisposableObject {
 		var dataArray = new RentedArray<byte>( spirv.Data );
 		mapping.Apply( spirv, dataArray );
 
-		GL.ShaderBinary( 1, &handle, BinaryFormat.ShaderBinaryFormatSpirV, (nint)dataArray.Data(), dataArray.Length );
+		fixed ( byte* dataArayPtr = dataArray.AsSpan() ) {
+			GL.ShaderBinary( 1, &handle, BinaryFormat.ShaderBinaryFormatSpirV, (nint)dataArayPtr, dataArray.Length );
+		}
 		Handle = handle;
 
 		GL.SpecializeShader( handle, spirv.EntryPoint, 0, (int*)null, (int*)null );

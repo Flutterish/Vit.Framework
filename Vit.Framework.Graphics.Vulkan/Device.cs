@@ -37,18 +37,22 @@ public class Device : DisposableVulkanObject<VkDevice> {
 		fixed ( VkDeviceQueueCreateInfo* queuesPtr = queueInfos ) {
 			var extensionNames = extensions.MakeArray();
 			var layerNames = layers.MakeArray();
-			VkDeviceCreateInfo info = new() {
-				sType = VkStructureType.DeviceCreateInfo,
-				pQueueCreateInfos = queuesPtr,
-				queueCreateInfoCount = (uint)queueInfos.Length,
-				pEnabledFeatures = &features,
-				enabledLayerCount = (uint)layers.Count,
-				ppEnabledLayerNames = layerNames.Data(),
-				enabledExtensionCount = (uint)extensions.Count,
-				ppEnabledExtensionNames = extensionNames.Data()
-			};
+			fixed ( byte** extensionNamesPtr = extensionNames ) {
+				fixed ( byte** layerNamesPtr = layerNames ) {
+					VkDeviceCreateInfo info = new() {
+						sType = VkStructureType.DeviceCreateInfo,
+						pQueueCreateInfos = queuesPtr,
+						queueCreateInfoCount = (uint)queueInfos.Length,
+						pEnabledFeatures = &features,
+						enabledLayerCount = (uint)layers.Count,
+						ppEnabledLayerNames = layerNamesPtr,
+						enabledExtensionCount = (uint)extensions.Count,
+						ppEnabledExtensionNames = extensionNamesPtr
+					};
 
-			Vk.vkCreateDevice( physicalDevice, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+					Vk.vkCreateDevice( physicalDevice, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+				}
+			}
 		}	
 	}
 

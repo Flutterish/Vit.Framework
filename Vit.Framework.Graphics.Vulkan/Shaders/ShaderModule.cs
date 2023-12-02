@@ -1,7 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using Vit.Framework.Graphics.Rendering.Shaders;
+﻿using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Reflections;
-using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Shaders;
@@ -9,7 +7,7 @@ namespace Vit.Framework.Graphics.Vulkan.Shaders;
 public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart {
 	public readonly Device Device;
 	public readonly VkPipelineShaderStageCreateInfo StageCreateInfo;
-	public readonly CString EntryPoint;
+	public readonly string EntryPoint;
 	public readonly SpirvBytecode Spirv;
 
 	public ShaderPartType Type => ShaderInfo.Type;
@@ -18,13 +16,15 @@ public class ShaderModule : DisposableVulkanObject<VkShaderModule>, IShaderPart 
 	public unsafe ShaderModule ( Device device, SpirvBytecode bytecode ) {
 		Spirv = bytecode;
 		Device = device;
-		VkShaderModuleCreateInfo info = new() {
-			sType = VkStructureType.ShaderModuleCreateInfo,
-			codeSize = (uint)bytecode.Data.Length,
-			pCode = MemoryMarshal.Cast<byte, uint>( bytecode.Data ).Data()
-		};
+		fixed ( byte* bytecodePtr = bytecode.Data ) {
+			VkShaderModuleCreateInfo info = new() {
+				sType = VkStructureType.ShaderModuleCreateInfo,
+				codeSize = (uint)bytecode.Data.Length,
+				pCode = (uint*)bytecodePtr
+			};
 
-		Vk.vkCreateShaderModule( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+			Vk.vkCreateShaderModule( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+		}
 
 		EntryPoint = bytecode.EntryPoint;
 		StageCreateInfo = new() {

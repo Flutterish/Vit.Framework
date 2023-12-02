@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Vit.Framework.Interop;
 
 namespace Vit.Framework.Text.Fonts;
 
@@ -17,9 +16,9 @@ public unsafe readonly struct UnicodeExtendedGraphemeCluster {
 	public int ByteLength => length;
 	public int CodepointLength => (length + 3) / 4;
 
-	public UnicodeExtendedGraphemeCluster ( ReadOnlySpan<byte> bytes ) {
-		ptr = bytes.Data();
-		length = bytes.Length;
+	public UnicodeExtendedGraphemeCluster ( byte* bytes, int length ) {
+		ptr = bytes;
+		this.length = length;
 	}
 
 	public ReadOnlySpan<byte> Bytes => new( ptr, length );

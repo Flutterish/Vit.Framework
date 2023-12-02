@@ -30,11 +30,12 @@ public abstract class Font {
 
 		return glyph;
 	}
-	public Glyph GetGlyph ( ReadOnlySpan<char> graphemeCluster ) {
-		Span<byte> bytes = stackalloc byte[Encoding.UTF32.GetByteCount( graphemeCluster )];
-		Encoding.UTF32.GetBytes( graphemeCluster, bytes );
+	public unsafe Glyph GetGlyph ( ReadOnlySpan<char> graphemeCluster ) {
+		var length = Encoding.UTF32.GetByteCount( graphemeCluster );
+		byte* bytes = stackalloc byte[length];
+		Encoding.UTF32.GetBytes( graphemeCluster, new Span<byte>( bytes, length ) );
 
-		return GetGlyph( new UnicodeExtendedGraphemeCluster( bytes ) );
+		return GetGlyph( new UnicodeExtendedGraphemeCluster( bytes, length ) );
 	}
 	public Glyph? TryGetGlyph ( GlyphId id ) { // TODO try loading the glyph by id
 		if ( !GlyphsById.TryGetValue( id, out var glyph ) )

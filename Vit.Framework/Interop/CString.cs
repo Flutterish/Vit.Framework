@@ -1,15 +1,13 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Vit.Framework.Interop;
 
 /// <summary>
-/// UTF-8 encoded null-terminated string.
+/// UTF-8 encoded null-terminated string pointer.
 /// </summary>
 public unsafe struct CString {
 	byte* ptr;
-	byte[]? data;
 
 	public CString ( byte* ptr ) {
 		this.ptr = ptr;
@@ -19,15 +17,17 @@ public unsafe struct CString {
 		this.ptr = (byte*)ptr;
 	}
 
-	public CString ( string? str ) {
-		if ( str == null ) {
-			ptr = (byte*)0;
-			return;
-		}
+	public static CString CreateStaticPinned ( string str ) {
+		return CreatePinned( str ).str;
+	}
 
-		data = new byte[Encoding.UTF8.GetByteCount( str ) + 1];
+	public static (CString str, GCHandle handle) CreatePinned ( string str ) {
+		var data = new byte[Encoding.UTF8.GetByteCount( str ) + 1];
 		Encoding.UTF8.GetBytes( str.AsSpan(), data.AsSpan( 0, data.Length - 1 ) );
 		data[^1] = 0;
+		var pin = GCHandle.Alloc( data, GCHandleType.Pinned );
+
+		return (new CString( pin.AddrOfPinnedObject() ), pin);
 	}
 
 	/// <summary>
@@ -40,9 +40,6 @@ public unsafe struct CString {
 	public static implicit operator string ( CString cstr )
 		=> Marshal.PtrToStringUTF8( (nint)(byte*)cstr )!;
 
-	public static implicit operator CString ( string? str )
-		=> new( str );
-
 	public static explicit operator CString ( byte* str )
 		=> new( str );
 
@@ -50,13 +47,7 @@ public unsafe struct CString {
 		=> new( str );
 
 	public static unsafe implicit operator byte* ( CString str ) {
-		if ( str.ptr != null )
-			return str.ptr;
-
-		if ( str.data == null )
-			return null;
-
-		return (byte*)Unsafe.AsPointer( ref MemoryMarshal.GetArrayDataReference( str.data ) );
+		return str.ptr;
 	}
 }
 

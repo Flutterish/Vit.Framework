@@ -26,8 +26,9 @@ public class SwapchainInfo {
 		};
 	}
 
+	static readonly CString VK_KHR_swapchain = CString.CreateStaticPinned( "VK_KHR_swapchain" );
 	public static readonly IReadOnlyList<string> RequiredExtensions = new[] { "VK_KHR_swapchain" };
-	public static readonly IReadOnlyList<CString> RequiredExtensionsCstr = RequiredExtensions.Select( x => (CString)x ).ToArray();
+	public static readonly IReadOnlyList<CString> RequiredExtensionsCstr = new[] { VK_KHR_swapchain };
 }
 
 public struct SwapchainFormat {

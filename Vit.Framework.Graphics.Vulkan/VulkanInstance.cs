@@ -15,16 +15,20 @@ public class VulkanInstance : DisposableVulkanObject<VkInstance> {
 
 		var extensionNames = extensions.MakeArray();
 		var layerNames = layers.MakeArray();
-		VkInstanceCreateInfo info = new() {
-			sType = VkStructureType.InstanceCreateInfo,
-			pApplicationInfo = &appInfo,
-			enabledExtensionCount = (uint)extensions.Count,
-			ppEnabledExtensionNames = extensionNames.Data(),
-			enabledLayerCount = (uint)layers.Count,
-			ppEnabledLayerNames = layerNames.Data()
-		};
+		fixed ( byte** extensionNamesPtr = extensionNames ) {
+			fixed ( byte** layerNamesPtr = layerNames ) {
+				VkInstanceCreateInfo info = new() {
+					sType = VkStructureType.InstanceCreateInfo,
+					pApplicationInfo = &appInfo,
+					enabledExtensionCount = (uint)extensions.Count,
+					ppEnabledExtensionNames = extensionNamesPtr,
+					enabledLayerCount = (uint)layers.Count,
+					ppEnabledLayerNames = layerNamesPtr
+				};
 
-		Vk.vkCreateInstance( &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+				Vk.vkCreateInstance( &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+			}
+		}
 
 		if ( extensions.Any( x => x.ToString() == "VK_EXT_debug_utils" ) ) {
 			// TODO setup debug calls
@@ -57,8 +61,8 @@ public class VulkanInstance : DisposableVulkanObject<VkInstance> {
 		).First();
 	}
 
-	public static unsafe string[] GetSupportedExtensions ( string? layer = null ) {
-		var props = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)(CString)layer, Vk.vkEnumerateInstanceExtensionProperties );
+	public static unsafe string[] GetSupportedExtensions ( CString layer ) {
+		var props = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( (byte*)layer, Vk.vkEnumerateInstanceExtensionProperties );
 		return props.Select( VulkanExtensions.GetName ).ToArray();
 	}
 

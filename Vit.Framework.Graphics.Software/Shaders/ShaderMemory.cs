@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
-using Vit.Framework.Interop;
 
 namespace Vit.Framework.Graphics.Software.Shaders;
 
@@ -60,11 +59,13 @@ public ref struct ShaderMemory {
 		=> Memory.Slice( offset, length );
 
 	public unsafe T* GetPointer<T> ( int address ) where T : unmanaged {
-		return (T*)( Memory.Data() + address );
+		throw new NotImplementedException();
+		//return (T*)( Memory.Data() + address );
 	}
 
 	public unsafe void* GetPointer ( int address ) {
-		return Memory.Data() + address;
+		throw new NotImplementedException();
+		//return Memory.Data() + address;
 	}
 
 	public T Read<T> ( int address ) where T : unmanaged {

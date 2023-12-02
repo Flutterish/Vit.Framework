@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
-using Vit.Framework.Interop;
 using Vit.Framework.Memory;
 using PrimitiveType = Vit.Framework.Graphics.Rendering.Shaders.Reflections.PrimitiveType;
 
@@ -44,7 +43,13 @@ public class VertexInputLayout : DisposableObject {
 	}
 
 	public unsafe void BindBuffers ( ReadOnlySpan<int> buffers, ReadOnlySpan<nint> offsets ) {
-		GL.BindVertexBuffers( 0, BindingPoints, buffers.Data(), offsets.Data(), strides.Data() );
+		fixed ( int* buffersPtr = buffers ) {
+			fixed ( nint* offsetsPtr = offsets ) {
+				fixed ( int* stridesPtr = strides ) {
+					GL.BindVertexBuffers( 0, BindingPoints, buffersPtr, offsetsPtr, stridesPtr );
+				}
+			}
+		}
 	}
 
 	protected override void Dispose ( bool disposing ) {

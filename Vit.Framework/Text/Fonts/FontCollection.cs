@@ -8,15 +8,16 @@ public class FontCollection {
 		this.fonts.AddRange( fonts );
 	}
 
-	public Glyph GetGlyph ( ReadOnlySpan<char> graphemeCluster ) {
-		Span<byte> bytes = stackalloc byte[Encoding.UTF32.GetByteCount( graphemeCluster )];
-		Encoding.UTF32.GetBytes( graphemeCluster, bytes );
+	public unsafe Glyph GetGlyph ( ReadOnlySpan<char> graphemeCluster ) {
+		var length = Encoding.UTF32.GetByteCount( graphemeCluster );
+		byte* bytes = stackalloc byte[length];
+		Encoding.UTF32.GetBytes( graphemeCluster, new Span<byte>( bytes, length ) );
 
-		return GetGlyph( new UnicodeExtendedGraphemeCluster( bytes ) );
+		return GetGlyph( new UnicodeExtendedGraphemeCluster( bytes, length ) );
 	}
 
 	CodepointPrefixTree<Glyph> resolvedGlyphs = new();
-	public Glyph GetGlyph ( UnicodeExtendedGraphemeCluster cluster ) {
+	public unsafe Glyph GetGlyph ( UnicodeExtendedGraphemeCluster cluster ) {
 		if ( resolvedGlyphs.TryGetValue( cluster, out var cached ) )
 			return cached;
 
@@ -28,9 +29,12 @@ public class FontCollection {
 			}
 		}
 
-		Span<byte> nullVector = stackalloc byte[4];
-		nullVector.Fill( 0 );
-		var nullGlyph = fonts[0].GetGlyph( new UnicodeExtendedGraphemeCluster( nullVector ) );
+		byte* nullVector = stackalloc byte[4];
+		nullVector[0] = 0;
+		nullVector[1] = 0;
+		nullVector[2] = 0;
+		nullVector[3] = 0;
+		var nullGlyph = fonts[0].GetGlyph( new UnicodeExtendedGraphemeCluster( nullVector, 4 ) );
 		resolvedGlyphs.Add( cluster, nullGlyph );
 		return nullGlyph;
 	}

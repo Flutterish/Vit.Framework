@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Rendering.Validation;
-using Vit.Framework.Interop;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Uniforms;
@@ -20,13 +19,15 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 			};
 		}
 
-		var info = new VkDescriptorPoolCreateInfo() {
-			sType = VkStructureType.DescriptorPoolCreateInfo,
-			poolSizeCount = (uint)values.Length,
-			pPoolSizes = values.Data(),
-			maxSets = size
-		};
-		Vk.vkCreateDescriptorPool( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+		fixed ( VkDescriptorPoolSize* valuesPtr = values ) {
+			var info = new VkDescriptorPoolCreateInfo() {
+				sType = VkStructureType.DescriptorPoolCreateInfo,
+				poolSizeCount = (uint)values.Length,
+				pPoolSizes = valuesPtr,
+				maxSets = size
+			};
+			Vk.vkCreateDescriptorPool( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+		}
 
 		created = new( (int)size );
 	}

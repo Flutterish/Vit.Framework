@@ -130,13 +130,16 @@ public class SdlHost : Host {
 		_ => throw new ArgumentException( $"Unsupported rendering api: {api}", nameof(api) )
 	};
 
-	VulkanApi createVulkanApi ( IEnumerable<RenderingCapabilities> capabilities ) {
+	static readonly CString VK_LAYER_KHRONOS_validation = CString.CreateStaticPinned( "VK_LAYER_KHRONOS_validation" );
+	static readonly CString VK_EXT_debug_utils = CString.CreateStaticPinned( "VK_EXT_debug_utils" );
+
+	unsafe VulkanApi createVulkanApi ( IEnumerable<RenderingCapabilities> capabilities ) {
 		List<CString> layers = new();
 		List<CString> extensions = new();
 
 		if ( Debugger.IsAttached ) {
-			layers.Add( "VK_LAYER_KHRONOS_validation" );
-			extensions.Add( "VK_EXT_debug_utils" );
+			layers.Add( VK_LAYER_KHRONOS_validation );
+			extensions.Add( VK_EXT_debug_utils );
 		}
 
 		foreach ( var i in capabilities ) {

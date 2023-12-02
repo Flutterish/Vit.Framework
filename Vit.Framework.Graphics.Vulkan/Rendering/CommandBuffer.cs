@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Interop;
 using Vulkan;
 using Buffer = Vit.Framework.Graphics.Vulkan.Buffers.Buffer;
 
@@ -30,16 +29,14 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 		Vk.vkBeginCommandBuffer( this, &info ).Validate();
 	}
 
-	public unsafe void BeginRenderPass ( FrameBuffer framebuffer, params VkClearValue[] clear ) {
+	public unsafe void BeginRenderPass ( FrameBuffer framebuffer ) {
 		var info = new VkRenderPassBeginInfo() {
 			sType = VkStructureType.RenderPassBeginInfo,
 			renderPass = framebuffer.RenderPass,
 			framebuffer = framebuffer,
 			renderArea = {
 				extent = framebuffer.Size
-			},
-			clearValueCount = (uint)clear.Length,
-			pClearValues = clear.Data()
+			}
 		};
 
 		Vk.vkCmdBeginRenderPass( this, &info, VkSubpassContents.Inline );
@@ -50,7 +47,9 @@ public class CommandBuffer : VulkanObject<VkCommandBuffer> {
 	}
 
 	public unsafe void BindDescriptors ( VkPipelineLayout layout, ReadOnlySpan<VkDescriptorSet> descriptors ) {
-		Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, (uint)descriptors.Length, descriptors.Data(), 0, 0 );
+		fixed ( VkDescriptorSet* descriptorsPtr = descriptors ) {
+			Vk.vkCmdBindDescriptorSets( this, VkPipelineBindPoint.Graphics, layout, 0, (uint)descriptors.Length, descriptorsPtr, 0, 0 );
+		}
 	}
 
 	public unsafe void BindVertexBuffer ( IVulkanHandle<VkBuffer> buffer ) {

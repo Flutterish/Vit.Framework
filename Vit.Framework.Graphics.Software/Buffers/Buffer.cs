@@ -12,7 +12,8 @@ public class Buffer<T> : IDeviceBuffer<T>, IHostStagingBuffer<T>, IByteBuffer wh
 	}
 
 	public unsafe void* GetData () {
-		return Data.Data();
+		throw new NotImplementedException();
+		//return Data.Data();
 	}
 
 	public void Dispose () {

@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Interop;
+﻿using Vit.Framework.Graphics.Rendering.Textures;
 using Vulkan;
 
 namespace Vit.Framework.Graphics.Vulkan.Rendering;
@@ -79,17 +77,19 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 			dstAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.DepthStencilAttachmentWrite
 		};
 
-		var info = new VkRenderPassCreateInfo() {
-			sType = VkStructureType.RenderPassCreateInfo,
-			attachmentCount = (uint)attachments.Length,
-			pAttachments = attachments.Data(),
-			subpassCount = 1,
-			pSubpasses = &subpass,
-			dependencyCount = 1,
-			pDependencies = &dependency
-		};
+		fixed ( VkAttachmentDescription* attachmentsPtr = attachments ) {
+			var info = new VkRenderPassCreateInfo() {
+				sType = VkStructureType.RenderPassCreateInfo,
+				attachmentCount = (uint)attachments.Length,
+				pAttachments = attachmentsPtr,
+				subpassCount = 1,
+				pSubpasses = &subpass,
+				dependencyCount = 1,
+				pDependencies = &dependency
+			};
 
-		Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+			Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+		}
 	}
 
 	public unsafe RenderPass ( Device device, IEnumerable<IDeviceTexture2D> _attachments, IDeviceTexture2D? depthStencilAttachment ) {
@@ -135,33 +135,37 @@ public class RenderPass : DisposableVulkanObject<VkRenderPass> {
 			};
 		}
 
-		var subpass = new VkSubpassDescription() {
-			pipelineBindPoint = VkPipelineBindPoint.Graphics,
-			colorAttachmentCount = (uint)colorCount,
-			pColorAttachments = references.Data(),
-			pDepthStencilAttachment = depthStencilAttachment == null ? null : (VkAttachmentReference*)Unsafe.AsPointer( ref references[^1] )
-		};
+		fixed ( VkAttachmentReference* referencesPtr = references ) {
+			var subpass = new VkSubpassDescription() {
+				pipelineBindPoint = VkPipelineBindPoint.Graphics,
+				colorAttachmentCount = (uint)colorCount,
+				pColorAttachments = referencesPtr,
+				pDepthStencilAttachment = depthStencilAttachment == null ? null : (referencesPtr + references.Length - 1)
+			};
 
-		var dependency = new VkSubpassDependency() {
-			srcSubpass = ~0u,
-			dstSubpass = 0,
-			srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests,
-			srcAccessMask = 0,
-			dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests,
-			dstAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.DepthStencilAttachmentWrite
-		};
+			var dependency = new VkSubpassDependency() {
+				srcSubpass = ~0u,
+				dstSubpass = 0,
+				srcStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests,
+				srcAccessMask = 0,
+				dstStageMask = VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests,
+				dstAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.DepthStencilAttachmentWrite
+			};
 
-		var info = new VkRenderPassCreateInfo() {
-			sType = VkStructureType.RenderPassCreateInfo,
-			attachmentCount = (uint)attachments.Length,
-			pAttachments = attachments.Data(),
-			subpassCount = 1,
-			pSubpasses = &subpass,
-			dependencyCount = 1,
-			pDependencies = &dependency
-		};
+			fixed ( VkAttachmentDescription* attachmentsPtr = attachments ) {
+				var info = new VkRenderPassCreateInfo() {
+					sType = VkStructureType.RenderPassCreateInfo,
+					attachmentCount = (uint)attachments.Length,
+					pAttachments = attachmentsPtr,
+					subpassCount = 1,
+					pSubpasses = &subpass,
+					dependencyCount = 1,
+					pDependencies = &dependency
+				};
 
-		Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+				Vk.vkCreateRenderPass( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+			}
+		}
 	}
 
 	Dictionary<PipelineArgs, Pipeline> pipelines = new();

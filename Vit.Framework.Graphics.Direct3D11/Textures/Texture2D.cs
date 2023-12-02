@@ -1,5 +1,4 @@
 ﻿using Vit.Framework.Graphics.Rendering.Textures;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vortice.Direct3D11;
@@ -31,8 +30,8 @@ public unsafe class Texture2D : DisposableObject, IDeviceTexture2D, IStagingText
 		} );
 
 		if ( isStaging ) {
-			var map = device.ImmediateContext.Map<byte>( Texture, 0, 0, MapMode.Write );
-			data = map.Data();
+			var map = device.ImmediateContext.Map( Texture, 0, 0, MapMode.Write, MapFlags.None, out int _ ,out int _ );
+			data = (void*)map.DataPointer;
 		}
 	}
 

@@ -62,7 +62,9 @@ public class SpirvBytecode { // TODO dispose this at some point?
 
 		SPIRV.spvc_context_set_error_callback( context, callback, null );
 		spvc_parsed_ir ir;
-		validate( SPIRV.spvc_context_parse_spirv( context, MemoryMarshal.Cast<byte, SpvId>( Data ).Data(), (nuint)Data.Length / 4, &ir ) );
+		fixed ( byte* dataPtr = Data ) {
+			validate( SPIRV.spvc_context_parse_spirv( context, (SpvId*)dataPtr, (nuint)Data.Length / 4, &ir ) );
+		}
 		
 		spvc_compiler compiler;
 		validate( SPIRV.spvc_context_create_compiler( context, target switch {

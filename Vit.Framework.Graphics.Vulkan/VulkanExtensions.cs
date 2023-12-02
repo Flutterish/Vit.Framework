@@ -12,7 +12,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			Validate( enumerator( param, ref count, (T*)0 ) );
 			T[] array = new T[count];
-			Validate( enumerator( param, ref count, array.Data() ) );
+			fixed ( T* arrayPtr = array ) {
+				Validate( enumerator( param, ref count, arrayPtr ) );
+			}
 			return array;
 		}
 
@@ -21,7 +23,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			Validate( enumerator( param, ref count, (T*)0 ) );
 			T[] array = new T[count];
-			Validate( enumerator( param, ref count, array.Data() ) );
+			fixed ( T* arrayPtr = array ) {
+				Validate( enumerator( param, ref count, arrayPtr ) );
+			}
 			return array;
 		}
 
@@ -30,7 +34,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			enumerator( param, ref count, (T*)0 );
 			T[] array = new T[count];
-			enumerator( param, ref count, array.Data() );
+			fixed ( T* arrayPtr = array ) {
+				enumerator( param, ref count, arrayPtr );
+			}
 			return array;
 		}
 
@@ -39,7 +45,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			Validate( enumerator( ref count, (T*)0 ) );
 			T[] array = new T[count];
-			Validate( enumerator( ref count, array.Data() ) );
+			fixed ( T* arrayPtr = array ) {
+				Validate( enumerator( ref count, arrayPtr ) );
+			}
 			return array;
 		}
 
@@ -48,7 +56,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			Validate( enumerator( param, param2, ref count, (T*)0 ) );
 			T[] array = new T[count];
-			Validate( enumerator( param, param2, ref count, array.Data() ) );
+			fixed ( T* arrayPtr = array ) {
+				Validate( enumerator( param, param2, ref count, arrayPtr ) );
+			}
 			return array;
 		}
 
@@ -57,7 +67,9 @@ public static class VulkanExtensions {
 			uint count = 0;
 			Validate( enumerator( param, param2, ref count, (T*)0 ) );
 			T[] array = new T[count];
-			Validate( enumerator( param, param2, ref count, array.Data() ) );
+			fixed ( T* arrayPtr = array ) {
+				Validate( enumerator( param, param2, ref count, arrayPtr ) );
+			}
 			return array;
 		}
 	}

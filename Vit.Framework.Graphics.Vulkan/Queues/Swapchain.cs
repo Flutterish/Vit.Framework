@@ -1,6 +1,5 @@
 ﻿using Vit.Framework.Graphics.Vulkan.Rendering;
 using Vit.Framework.Graphics.Vulkan.Textures;
-using Vit.Framework.Interop;
 using Vit.Framework.Mathematics;
 using Vulkan;
 
@@ -42,15 +41,18 @@ public class Swapchain : DisposableVulkanObject<VkSwapchainKHR> {
 
 		if ( queues.Count > 1 ) {
 			queueIndices = queues.Select( x => x.Index ).ToArray();
-			info.imageSharingMode = VkSharingMode.Concurrent;
-			info.queueFamilyIndexCount = (uint)queueIndices.Length;
-			info.pQueueFamilyIndices = queueIndices.Data();
+			fixed ( uint* queueIndicesPtr = queueIndices ) {
+				info.imageSharingMode = VkSharingMode.Concurrent;
+				info.queueFamilyIndexCount = (uint)queueIndices.Length;
+				info.pQueueFamilyIndices = queueIndicesPtr;
+				Vk.vkCreateSwapchainKHR( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
+			}
 		}
 		else {
 			info.imageSharingMode = VkSharingMode.Exclusive;
+			Vk.vkCreateSwapchainKHR( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 		}
 
-		Vk.vkCreateSwapchainKHR( Device, &info, VulkanExtensions.TODO_Allocator, out Instance ).Validate();
 		createImageViews();
 	}
 

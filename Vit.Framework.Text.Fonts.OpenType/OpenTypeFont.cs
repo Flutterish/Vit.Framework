@@ -50,13 +50,13 @@ public class OpenTypeFont : Font {
 		loadGlyphId( 0, header.GetTable<HorizontalMetricsTable>( "hmtx" )! );
 	}
 
-	protected override void TryLoadGlyphFor ( UnicodeExtendedGraphemeCluster cluster ) {
+	protected unsafe override void TryLoadGlyphFor ( UnicodeExtendedGraphemeCluster cluster ) {
 		using var _ = open();
 
-		Span<byte> keyBytes = stackalloc byte[cluster.ByteLength];
-		cluster.Bytes.CopyTo( keyBytes );
-		var pageByteIndex = keyBytes.Length - 4;
-		var key = new UnicodeExtendedGraphemeCluster( keyBytes );
+		byte* keyBytes = stackalloc byte[cluster.ByteLength];
+		cluster.Bytes.CopyTo( new Span<byte>( keyBytes, cluster.ByteLength ) );
+		var pageByteIndex = cluster.ByteLength - 4;
+		var key = new UnicodeExtendedGraphemeCluster( keyBytes, cluster.ByteLength );
 
 		var cmap = header.GetTable<CharacterToGlyphIdTable>( "cmap" )!;
 		var hmtx = header.GetTable<HorizontalMetricsTable>( "hmtx" )!;

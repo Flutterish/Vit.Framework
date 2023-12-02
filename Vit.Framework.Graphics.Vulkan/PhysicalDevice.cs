@@ -28,7 +28,7 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 		QueueFamilies = VulkanExtensions.Out<VkQueueFamilyProperties>.Enumerate( Instance, Vk.vkGetPhysicalDeviceQueueFamilyProperties )
 			.Select( (x, i) => new QueueFamily( x, (uint)i ) ).ToArray();
 
-		Extensions = GetSupportedExtensions();
+		Extensions = GetSupportedExtensions( (CString)0 );
 	}
 
 	public unsafe SwapchainInfo? GetSwapchainInfo ( VkSurfaceKHR surface ) {
@@ -66,8 +66,8 @@ public class PhysicalDevice : VulkanObject<VkPhysicalDevice> {
 		return new Device( this, extensions, layers, queues );
 	}
 
-	public unsafe string[] GetSupportedExtensions ( string? layer = null ) {
-		var props = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( Instance, (byte*)(CString)layer, Vk.vkEnumerateDeviceExtensionProperties );
+	public unsafe string[] GetSupportedExtensions ( CString layer ) {
+		var props = VulkanExtensions.Out<VkExtensionProperties>.Enumerate( Instance, (byte*)layer, Vk.vkEnumerateDeviceExtensionProperties );
 		return props.Select( VulkanExtensions.GetName ).ToArray();
 	}
 
