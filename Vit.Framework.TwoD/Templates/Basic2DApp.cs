@@ -4,6 +4,7 @@ using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Pooling;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
+using Vit.Framework.Localisation;
 using Vit.Framework.Memory;
 using Vit.Framework.Platform;
 using Vit.Framework.Text.Fonts;
@@ -99,6 +100,10 @@ public abstract partial class Basic2DApp : App {
 			("TPS", MainUpdateThread.UpdateCounter),
 			("FPS", MainRenderThread.UpdateCounter)
 		) );
+
+		Dependencies.Cache( new StencilFontStore() );
+		Dependencies.Cache( new SpriteFontStore( pageSize: (16, 8), glyphSize: (32, 64), shaderStore ) );
+		Dependencies.Cache( new LocalisationStore() );
 
 		OnInitialized();
 		ThreadRunner.RegisterThread( MainUpdateThread );

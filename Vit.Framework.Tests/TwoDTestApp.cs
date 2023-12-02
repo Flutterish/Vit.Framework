@@ -82,9 +82,6 @@ public class TwoDTestApp : Basic2DApp {
 	protected override void OnInitialized () {
 		Window.Title = $"New Window [{Name}] [{GraphicsApiType}] (Testing {type})";
 
-		Dependencies.Cache( new StencilFontStore() );
-		Dependencies.Cache( new SpriteFontStore( pageSize: ( 16, 8 ), glyphSize: ( 32, 64 ), Dependencies.Resolve<ShaderStore>() ) );
-		Dependencies.Cache( new LocalisationStore() );
 		Dependencies.Cache( this );
 
 		Root.AddChild( new Box() { Tint = ColorRgb.DarkGray }, new() {
@@ -120,7 +117,6 @@ public class TwoDTestApp : Basic2DApp {
 
 	class TestUpdateThread : UpdateThread {
 		Dictionary<CursorState.Tracker, Visual<Sprite>> cursors = new();
-		HashSet<IInputTracker> otherInputTrackers = new();
 
 		UIEventSource uiEventSource;
 		Window window;
@@ -128,8 +124,37 @@ public class TwoDTestApp : Basic2DApp {
 		new protected ViewportContainer<UIComponent> Root => (ViewportContainer<UIComponent>)base.Root;
 		public TestUpdateThread ( DrawNodeRenderer drawNodeRenderer, RenderThreadScheduler disposeScheduler, Window window, IReadOnlyDependencyCache dependencies, string name ) : base( drawNodeRenderer, disposeScheduler, dependencies, name ) {
 			inputTrackers = window.CreateInputTrackers();
+			inputTrackers.BindTrackerState( detected: onTrackerDetected, lost: onTrackerLost );
 			uiEventSource = new( Root, dependencies );
 			this.window = window;
+		}
+
+		void onTrackerDetected ( IInputTracker detected ) {
+			if ( detected is CursorState.Tracker cursor ) {
+				var visual = new Visual<Sprite>( new() { Tint = ColorRgb.HotPink } );
+				cursors.Add( cursor, visual );
+				Root.AddChild( visual, new() {
+					Size = new( 18 ),
+					Origin = Anchor.Centre
+				} );
+
+				cursor.InputEventEmitted += onCursorInputEventEmitted;
+			}
+			else {
+				detected.InputEventEmitted += onInputEventEmitted;
+			}
+		}
+
+		void onTrackerLost ( IInputTracker lost ) {
+			if ( lost is CursorState.Tracker cursor ) {
+				cursors.Remove( cursor, out var visual );
+				Root.RemoveChild( visual! );
+
+				cursor.InputEventEmitted -= onCursorInputEventEmitted;
+			}
+			else {
+				lost.InputEventEmitted -= onInputEventEmitted;
+			}
 		}
 
 		protected override bool Initialize () {
@@ -143,39 +168,10 @@ public class TwoDTestApp : Basic2DApp {
 			if ( !Root.IsLoaded )
 				return;
 
-			inputTrackers.Update( detected => {
-				if ( detected is CursorState.Tracker cursor ) {
-					var visual = new Visual<Sprite>( new() { Tint = ColorRgb.HotPink } );
-					cursors.Add( cursor, visual );
-					Root.AddChild( visual, new() {
-						Size = new( 18 ),
-						Origin = Anchor.Centre
-					} );
-
-					cursor.InputEventEmitted += onCursorInputEventEmitted;
-				}
-				else {
-					otherInputTrackers.Add( detected );
-					detected.InputEventEmitted += onInputEventEmitted;
-				}
-			}, lost => {
-				if ( lost is CursorState.Tracker cursor ) {
-					cursors.Remove( cursor, out var visual );
-					Root.RemoveChild( visual! );
-
-					cursor.InputEventEmitted -= onCursorInputEventEmitted;
-				}
-				else {
-					otherInputTrackers.Remove( lost );
-					lost.InputEventEmitted -= onInputEventEmitted;
-				}
-			} );
+			inputTrackers.Update();
 
 			Root.Size = window.Size.Cast<float>();
-			foreach ( var i in cursors.Keys ) {
-				i.Update();
-			}
-			foreach ( var i in otherInputTrackers ) {
+			foreach ( var i in inputTrackers.Trackers ) {
 				i.Update();
 			}
 

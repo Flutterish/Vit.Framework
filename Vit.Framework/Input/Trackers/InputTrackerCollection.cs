@@ -21,7 +21,7 @@ public abstract class InputTrackerCollection : IDisposable {
 		}
 	}
 
-	public void Update ( Action<IInputTracker>? detected = null, Action<IInputTracker>? lost = null ) {
+	public void Update () {
 		if ( !anyChanges )
 			return;
 
@@ -30,11 +30,11 @@ public abstract class InputTrackerCollection : IDisposable {
 				var (tracker, isAlive) = update;
 				if ( isAlive ) {
 					inputTrackers.Add( tracker );
-					detected?.Invoke( tracker );
+					TrackerDetected?.Invoke( tracker );
 				}
 				else {
 					inputTrackers.Remove( tracker );
-					lost?.Invoke( tracker );
+					TrackerLost?.Invoke( tracker );
 				}
 			}
 
@@ -48,6 +48,17 @@ public abstract class InputTrackerCollection : IDisposable {
 			return inputTrackers;
 		}
 	}
+
+	public void BindTrackerState ( Action<IInputTracker> detected, Action<IInputTracker> lost ) {
+		TrackerDetected += detected;
+		TrackerLost += lost;
+		foreach ( var i in inputTrackers ) {
+			detected( i );
+		}
+	}
+
+	public event Action<IInputTracker>? TrackerDetected;
+	public event Action<IInputTracker>? TrackerLost;
 
 	public abstract void Dispose ();
 }
