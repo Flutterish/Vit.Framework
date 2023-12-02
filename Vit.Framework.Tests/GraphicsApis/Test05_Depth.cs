@@ -41,6 +41,7 @@ public class Test05_Depth : GenericRenderThread {
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	Texture texture = null!;
 	IUniformSet uniformSet = null!;
+	IUniformSetPool uniformSetPool = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -81,7 +82,7 @@ public class Test05_Depth : GenericRenderThread {
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
 
-		uniformSet = shaderSet.CreateUniformSet();
+		(uniformSet, uniformSetPool) = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
@@ -133,7 +134,7 @@ public class Test05_Depth : GenericRenderThread {
 		positions.Dispose();
 		uniformBuffer.Dispose();
 		texture.Dispose();
-		uniformSet.Dispose();
+		uniformSetPool.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

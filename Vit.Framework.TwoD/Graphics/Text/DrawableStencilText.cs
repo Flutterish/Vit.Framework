@@ -3,6 +3,7 @@ using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Pooling;
+using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
@@ -59,6 +60,7 @@ public class DrawableStencilText : DrawableText {
 		return new DrawNode( this, subtreeIndex );
 	}
 
+	IUniformSetPool? uniformSetPool;
 	IUniformSet? uniformSet;
 	DeviceBufferHeap.Allocation<uint> indices;
 	DeviceBufferHeap.Allocation<Vertex> vertices;
@@ -69,7 +71,7 @@ public class DrawableStencilText : DrawableText {
 		base.DisposeDrawNodes();
 
 		if ( uniformSet != null ) {
-			uniformSet!.Dispose();
+			uniformSetPool!.Dispose();
 			uniforms!.Dispose();
 		}
 		if ( indexCount != 0 ) {
@@ -120,10 +122,11 @@ public class DrawableStencilText : DrawableText {
 				return;
 
 			ref var uniformSet = ref Source.uniformSet;
+			ref var uniformSetPool = ref Source.uniformSetPool;
 			if ( uniformSet == null ) {
 				ref var uniforms = ref Source.uniforms;
 				uniforms = renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame ); // TODO no need to reallocate the uniforms
-				uniformSet = shaders.CreateUniformSet( set: 1 );
+				(uniformSet, uniformSetPool) = shaders.CreateUniformSet( set: 1 );
 
 				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
 				uniformSet.SetSampler( texture.View, texture.Sampler, binding: 1 );

@@ -218,15 +218,6 @@ public class ShaderSet : IShaderSet {
 	}
 
 	public Dictionary<uint, UniformSet> UniformSets = new();
-	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets.GetValueOrDefault( set );
-	}
-
-	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		var value = new UniformSet();
-		DebugMemoryAlignment.SetDebugData( value, set, this );
-		return value;
-	}
 
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
 		return new UniformSetPool( this.CreateUniformSetInfo( set ) );

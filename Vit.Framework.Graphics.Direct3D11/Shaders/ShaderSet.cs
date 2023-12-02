@@ -95,15 +95,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 
 	public UniformLayout[] UniformLayouts;
 	public UniformSet[] UniformSets;
-	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets[set];
-	}
-
-	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		var value = new UniformSet( UniformLayouts[set] );
-		DebugMemoryAlignment.SetDebugData( value, UniformLayouts[set].Type.Resources );
-		return value;
-	}
 
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
 		return new UniformSetPool( UniformLayouts[set] );

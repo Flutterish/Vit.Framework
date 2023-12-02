@@ -9,7 +9,7 @@ using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Uniforms;
 
-public class UniformSet : IDisposable, IUniformSet {
+public class UniformSet : IUniformSet {
 	UniformLayout layout;
 	public UniformSet ( UniformLayout layout ) {
 		this.layout = layout;
@@ -67,9 +67,5 @@ public class UniformSet : IDisposable, IUniformSet {
 		context.PSSetSamplers( layout.FirstSampler, SamplerStates );
 
 		context.PSSetShaderResources( layout.FirstStorageBuffer, layout.StorageBufferCount, StorageBufferResources );
-	}
-
-	public void Dispose () {
-		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }

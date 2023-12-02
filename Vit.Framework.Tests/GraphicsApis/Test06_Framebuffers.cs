@@ -45,6 +45,8 @@ public class Test06_Framebuffers : GenericRenderThread {
 	Texture texture = null!;
 	IUniformSet uniformSet = null!;
 	IUniformSet uniformSet2 = null!;
+	IUniformSetPool uniformSetPool = null!;
+	IUniformSetPool uniformSetPool2 = null!;
 
 	IDeviceTexture2D framebufferTexture = null!;
 	ITexture2DView framebufferTextureView = null!;
@@ -94,7 +96,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );
 
-		uniformSet = shaderSet.CreateUniformSet();
+		(uniformSet, uniformSetPool) = shaderSet.CreateUniformSet();
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
 			positions.Upload( commands, model.Vertices.Select( x => new Vertex {
@@ -123,7 +125,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 		framebufferDepthTexture = Renderer.CreateDeviceTexture( (256, 256), PixelFormat.D24S8ui );
 		framebuffer = Renderer.CreateFramebuffer( new[] { framebufferTexture }, framebufferDepthTexture );
 
-		uniformSet2 = shaderSet.CreateUniformSet();
+		(uniformSet2, uniformSetPool2) = shaderSet.CreateUniformSet();
 		uniformSet2.SetUniformBuffer( uniformBuffer2, binding: 0 );
 		uniformSet2.SetSampler( framebufferTextureView, texture.Sampler, binding: 1 );
 		return true;
@@ -193,8 +195,8 @@ public class Test06_Framebuffers : GenericRenderThread {
 		uniformBuffer.Dispose();
 		uniformBuffer2.Dispose();
 		texture.Dispose();
-		uniformSet.Dispose();
-		uniformSet2.Dispose();
+		uniformSetPool.Dispose();
+		uniformSetPool2.Dispose();
 
 		framebuffer.Dispose();
 		framebufferTextureView.Dispose();

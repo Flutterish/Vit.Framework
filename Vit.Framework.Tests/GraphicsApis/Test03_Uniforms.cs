@@ -33,6 +33,7 @@ public class Test03_Uniforms : GenericRenderThread {
 	StagedDeviceBuffer<uint> indices = null!;
 	IHostBuffer<Uniforms> uniformBuffer = null!;
 	IUniformSet uniformSet = null!;
+	IUniformSetPool uniformSetPool = null!;
 	protected override bool Initialize () {
 		if ( !base.Initialize() )
 			return false;
@@ -67,7 +68,7 @@ public class Test03_Uniforms : GenericRenderThread {
 		indices = new( Renderer, 3, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
 
-		uniformSet = shaderSet.CreateUniformSet();
+		(uniformSet, uniformSetPool) = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );
 		uniformSet.SetUniformBuffer( uniformBuffer, binding: 0 );
 		using ( var commands = Renderer.CreateImmediateCommandBuffer() ) {
@@ -115,7 +116,7 @@ public class Test03_Uniforms : GenericRenderThread {
 		indices.Dispose();
 		positions.Dispose();
 		uniformBuffer.Dispose();
-		uniformSet.Dispose();
+		uniformSetPool.Dispose();
 
 		shaderSet.Dispose();
 		vertex.Dispose();

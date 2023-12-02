@@ -9,7 +9,7 @@ using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.Software.Uniforms;
 
-public class UniformSet : DisposableObject, IUniformSet {
+public class UniformSet : IUniformSet {
 	public Dictionary<uint, (IByteBuffer buffer, uint stride, uint offset)> UniformBuffers = new();
 	public void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
 		//UniformBuffers[binding] = ((IByteBuffer)buffer, IBuffer<T>.Stride, offset * IBuffer<T>.Stride);
@@ -23,10 +23,6 @@ public class UniformSet : DisposableObject, IUniformSet {
 	public void Free () {
 		UniformBuffers.Clear();
 		Samplers.Clear();
-	}
-
-	protected override void Dispose ( bool disposing ) {
-		DebugMemoryAlignment.ClearDebugData( this );
 	}
 
 	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {

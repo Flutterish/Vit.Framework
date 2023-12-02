@@ -8,20 +8,13 @@ using Vit.Framework.Graphics.Rendering.Uniforms;
 namespace Vit.Framework.Graphics.Rendering.Validation;
 
 public static class DebugMemoryAlignment {
-	static Dictionary<IUniformSet, Dictionary<uint, DataTypeInfo>> debugInfo = new();
-	[Conditional( "DEBUG" )]
-	[Obsolete("Use the other ovaload")]
-	public static void SetDebugData ( IUniformSet set, uint id, IShaderSet shaders ) {
-		var parts = shaders.Parts.Select( x => x.ShaderInfo );
-		var uniforms = parts.SelectMany<ShaderInfo, UniformResourceInfo>( x => x.Uniforms.Sets.TryGetValue( id, out var info ) ? info.Resources : Array.Empty<UniformResourceInfo>() );
+	static Dictionary<IUniformSetPool, (List<IUniformSet> sets, Dictionary<uint, DataTypeInfo> dataTypeByBinding)> pools = new();
+	static Dictionary<IUniformSet, IUniformSetPool> poolBySet = new();
 
-		SetDebugData( set, uniforms );
-	}
-	[Conditional( "DEBUG" )]
-	public static void SetDebugData ( IUniformSet set, IEnumerable<UniformResourceInfo> uniforms ) {
+	public static void SetDebugData ( IUniformSetPool pool, IEnumerable<UniformResourceInfo> uniforms ) {
 		Dictionary<uint, DataTypeInfo> dict = new();
-		lock ( debugInfo ) {
-			debugInfo.Add( set, dict );
+		lock ( pools ) {
+			pools.Add( pool, (new(), dict) );
 		}
 
 		foreach ( var i in uniforms.GroupBy( x => x.Binding ) ) {
@@ -31,15 +24,26 @@ public static class DebugMemoryAlignment {
 	}
 
 	[Conditional( "DEBUG" )]
-	public static void ClearDebugData ( IUniformSet set ) {
-		lock ( debugInfo ) {
-			debugInfo.Remove( set );
+	public static void SetDebugData ( IUniformSetPool pool, IUniformSet set ) {
+		lock ( pools ) {
+			poolBySet.Add( set, pool );
+			pools[pool].sets.Add( set );
+		}
+	}
+
+	[Conditional( "DEBUG" )]
+	public static void ClearDebugData ( IUniformSetPool pool ) {
+		lock ( pools ) {
+			pools.Remove( pool, out var data );
+			foreach ( var i in data.sets ) {
+				poolBySet.Remove( i );
+			}
 		}
 	}
 
 	[Conditional( "DEBUG" )]
 	public static void AssertStructAlignment ( IUniformSet set, uint binding, Type type ) {
-		AssertStructAlignment( type, debugInfo[set][binding] );
+		AssertStructAlignment( type, pools[poolBySet[set]].dataTypeByBinding[binding] );
 	}
 
 	static HashSet<(Type, DataTypeInfo)> @checked = new();

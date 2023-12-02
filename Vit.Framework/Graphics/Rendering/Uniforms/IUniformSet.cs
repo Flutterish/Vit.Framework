@@ -11,7 +11,7 @@ namespace Vit.Framework.Graphics.Rendering.Uniforms;
 /// <remarks>
 /// In SPIR-V, this is bound to a given <c>layout(set = #)</c>, and its individual components are bound to <c>layout(binding = #)</c>.
 /// </remarks>
-public interface IUniformSet : IDisposable {
+public interface IUniformSet {
 	/// <summary>
 	/// Binds a uniform buffer to this uniform set.
 	/// </summary>

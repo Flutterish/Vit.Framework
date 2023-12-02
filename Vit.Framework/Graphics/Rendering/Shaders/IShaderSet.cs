@@ -10,20 +10,6 @@ public interface IShaderSet : IDisposable {
 	IEnumerable<IShaderPart> Parts { get; }
 
 	/// <summary>
-	/// Gets the currently bound uniform set.
-	/// </summary>
-	IUniformSet? GetUniformSet ( uint set = 0 );
-
-	/// <summary>
-	/// Creates a new uniform set appropriate for binding to this shader set.
-	/// </summary>
-	/// <remarks>
-	/// You should use a <see cref="IUniformSetPool"/> instead of creating a uniform set here. <br/>
-	/// Creating a uniform set gives you the ownership of it.
-	/// </remarks>
-	IUniformSet CreateUniformSet ( uint set = 0 );
-
-	/// <summary>
 	/// Creates a pool of <see cref="IUniformSet"/>s.
 	/// </summary>
 	IUniformSetPool CreateUniformSetPool ( uint set, uint size );
@@ -46,6 +32,11 @@ public static class IShaderSetExtensions {
 
 	public static IEnumerable<uint> GetUniformSetIndices ( this IShaderSet shaders ) {
 		return shaders.Parts.SelectMany( x => x.ShaderInfo.Uniforms.Sets.Keys ).Distinct().OrderBy( x => x );
+	}
+
+	public static (IUniformSet set, IUniformSetPool pool) CreateUniformSet ( this IShaderSet shaders, uint set = 0 ) {
+		var pool = shaders.CreateUniformSetPool( set, 1 );
+		return (pool.Rent(), pool);
 	}
 
 	public static UniformSetInfo CreateUniformSetInfo ( this IShaderSet shaders, uint set ) {

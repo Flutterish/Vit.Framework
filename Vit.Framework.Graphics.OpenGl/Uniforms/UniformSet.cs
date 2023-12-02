@@ -7,7 +7,7 @@ using Vit.Framework.Graphics.Rendering.Validation;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 
-public class UniformSet : IDisposable, IUniformSet {
+public class UniformSet : IUniformSet {
 	UniformLayout layout;
 	public UniformSet ( UniformLayout layout ) {
 		this.layout = layout;
@@ -61,9 +61,5 @@ public class UniformSet : IDisposable, IUniformSet {
 		GL.BindBuffersRange( BufferRangeTarget.ShaderStorageBuffer, layout.FirstSsbo, layout.SsboCount, SsboBuffers, SsboOffsets, SsboSizes );
 		GL.BindTextures( layout.FirstSampler, layout.SamplerCount, Textures );
 		GL.BindSamplers( layout.FirstSampler, layout.SamplerCount, Samplers );
-	}
-
-	public void Dispose () {
-		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }

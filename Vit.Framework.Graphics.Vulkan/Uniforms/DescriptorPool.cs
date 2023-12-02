@@ -30,11 +30,12 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 		}
 
 		created = new( (int)size );
+		DebugMemoryAlignment.SetDebugData( this, Layout.Type.Resources );
 	}
 
 	public DescriptorSet CreateSet () {
 		var value = new DescriptorSet( this, Layout );
-		DebugMemoryAlignment.SetDebugData( value, Layout.Type.Resources );
+		DebugMemoryAlignment.SetDebugData( this, value );
 		return value;
 	}
 
@@ -51,6 +52,7 @@ public class DescriptorPool : DisposableVulkanObject<VkDescriptorPool>, IUniform
 	}
 
 	protected override unsafe void Dispose ( bool disposing ) {
+		DebugMemoryAlignment.ClearDebugData( this );
 		Vk.vkDestroyDescriptorPool( Device, Instance, VulkanExtensions.TODO_Allocator );
 	}
 }

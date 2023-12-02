@@ -43,14 +43,6 @@ public class ShaderSet : DisposableObject, IShaderSet {
 	public VkVertexInputAttributeDescription[] Attributes;
 	public VkVertexInputBindingDescription[] AttributeSets;
 
-	public IUniformSet? GetUniformSet ( uint set = 0 ) {
-		return UniformSets[set]!;
-	}
-
-	public IUniformSet CreateUniformSet ( uint set = 0 ) {
-		return new StandaloneUniformSet( DescriptorSetLayouts[set] );
-	}
-
 	public IUniformSetPool CreateUniformSetPool ( uint set, uint size ) {
 		return new DescriptorPool( DescriptorSetLayouts[set], size );
 	}

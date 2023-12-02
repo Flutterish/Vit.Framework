@@ -92,39 +92,4 @@ public class DescriptorSet : VulkanObject<VkDescriptorSet>, IDescriptorSet {
 
 		Vk.vkUpdateDescriptorSets( imageTexture.Device, 1, &write, 0, 0 );
 	}
-
-	public void Dispose () {
-		DebugMemoryAlignment.ClearDebugData( this );
-	}
-}
-
-public class StandaloneUniformSet : DisposableObject, IDescriptorSet {
-	public readonly DescriptorPool DescriptorPool;
-	public readonly DescriptorSet DescriptorSet;
-	public VkDescriptorSetLayout Layout => DescriptorSet.Layout;
-	public VkDescriptorSet Handle => DescriptorSet.Handle;
-
-	public unsafe StandaloneUniformSet ( DescriptorSetLayout layout ) {
-		DescriptorPool = new DescriptorPool( layout, 1 );
-		DescriptorSet = DescriptorPool.CreateSet();
-		DebugMemoryAlignment.SetDebugData( this, layout.Type.Resources );
-	}
-
-	public void SetUniformBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
-		DescriptorSet.SetUniformBufferRaw( buffer, binding, size, offset );
-	}
-
-	public void SetStorageBufferRaw ( IBuffer buffer, uint binding, uint size, uint offset = 0 ) {
-		DescriptorSet.SetStorageBufferRaw( buffer, binding, size, offset );
-	}
-
-	public void SetSampler ( ITexture2DView texture, ISampler sampler, uint binding ) {
-		DescriptorSet.SetSampler( texture, sampler, binding );
-	}
-
-	protected override unsafe void Dispose ( bool disposing ) {
-		DescriptorSet.Dispose();
-		DescriptorPool.Dispose();
-		DebugMemoryAlignment.ClearDebugData( this );
-	}
 }

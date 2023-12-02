@@ -2,6 +2,7 @@
 using Vit.Framework.Graphics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
+using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Uniforms;
 using Vit.Framework.Graphics.Shaders;
 using Vit.Framework.Graphics.Textures;
@@ -220,6 +221,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			public Size2<uint> ScreenSize;
 		}
 		IUniformSet globalSet = null!;
+		IUniformSetPool globalSetPool = null!;
 		IHostBuffer<GlobalUniforms> globalUniformBuffer = null!;
 		public override bool InitializeGraphics () {
 			if ( !base.InitializeGraphics() )
@@ -250,7 +252,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 			} );
 
 			ShaderStore.CompileNew( Renderer );
-			globalSet = masked.Value.CreateUniformSet( 0 );
+			(globalSet, globalSetPool) = masked.Value.CreateUniformSet( 0 );
 			globalSet.SetUniformBuffer( globalUniformBuffer, binding: 0 );
 			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 1, size: MaskingData.ByteSize );
 			globalSet.SetStorageBufferRaw( MaskingData.StorageBuffer, binding: 2, size: MaskingData.ByteSize );
@@ -271,7 +273,7 @@ public class TwoDTestApp : Basic2DApp<ViewportContainer<UIComponent>> {
 		}
 
 		protected override void DisposeGraphics () {
-			globalSet.Dispose();
+			globalSetPool.Dispose();
 			globalUniformBuffer.Dispose();
 			base.DisposeGraphics();
 		}

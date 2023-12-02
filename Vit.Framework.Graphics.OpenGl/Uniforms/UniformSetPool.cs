@@ -9,12 +9,13 @@ public class UniformSetPool : DisposableObject, IUniformSetPool {
 	Stack<IUniformSet> uniforms = new();
 	public UniformSetPool ( UniformLayout layout ) {
 		this.layout = layout;
+		DebugMemoryAlignment.SetDebugData( this, layout.Type.Resources );
 	}
 
 	public IUniformSet Rent () {
 		if ( !uniforms.TryPop( out var set ) ) {
 			set = new UniformSet( layout );
-			DebugMemoryAlignment.SetDebugData( set, layout.Type.Resources );
+			DebugMemoryAlignment.SetDebugData( this, set );
 		}
 
 		return set;
@@ -25,8 +26,6 @@ public class UniformSetPool : DisposableObject, IUniformSetPool {
 	}
 
 	protected override void Dispose ( bool disposing ) {
-		foreach ( var i in uniforms ) {
-			i.Dispose();
-		}
+		DebugMemoryAlignment.ClearDebugData( this );
 	}
 }
