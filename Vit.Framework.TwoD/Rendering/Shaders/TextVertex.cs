@@ -63,6 +63,8 @@ public static class TextVertex {
 		(BufferInputRate.PerVertex, new uint[] { 3 })
 	);
 
+	public static VertexShaderDescription Description => new() { Input = InputDescription, Shader = Identifier };
+
 	/// <summary>
 	/// Per-instance data for a quad (binding 0)
 	/// </summary>

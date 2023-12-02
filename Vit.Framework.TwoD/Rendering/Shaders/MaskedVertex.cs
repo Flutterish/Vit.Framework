@@ -43,7 +43,7 @@ public static class MaskedVertex {
 		(BufferInputRate.PerVertex, new uint[] { 0, 1 }),
 		(BufferInputRate.PerInstance, new uint[] { 2, 5, 6 })
 	);
-
+	public static VertexShaderDescription Description => new() { Input = InputDescription, Shader = Identifier };
 	public struct Vertex {
 		public Point2<float> Position;
 		public Point2<float> UV;

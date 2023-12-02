@@ -44,10 +44,7 @@ public class DrawableStencilText : DrawableText {
 		base.OnLoad( deps );
 
 		shader = deps.Resolve<ShaderStore>().GetShader( new() {
-			Vertex = new() {
-				Shader = BasicVertex.Identifier,
-				Input = BasicVertex.InputDescription
-			},
+			Vertex = BasicVertex.Description,
 			Fragment = BasicFragment.Identifier
 		} );
 		texture = deps.Resolve<TextureStore>().GetTexture( TextureStore.WhitePixel );

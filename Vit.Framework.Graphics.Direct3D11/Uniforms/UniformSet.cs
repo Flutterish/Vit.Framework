@@ -4,7 +4,6 @@ using Vit.Framework.Graphics.Direct3D11.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Rendering.Validation;
 using Vortice.Direct3D11;
 
 namespace Vit.Framework.Graphics.Direct3D11.Uniforms;

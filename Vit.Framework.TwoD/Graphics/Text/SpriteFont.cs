@@ -26,10 +26,7 @@ public class SpriteFontStore : IDrawDependency {
 		GlyphSize = glyphSize;
 
 		shader = shaders.GetShader( new() {
-			Vertex = new() {
-				Shader = SvgVertex.Identifier,
-				Input = SvgVertex.InputDescription
-			},
+			Vertex = SvgVertex.Description,
 			Fragment = SvgFragment.Identifier
 		} );
 	}

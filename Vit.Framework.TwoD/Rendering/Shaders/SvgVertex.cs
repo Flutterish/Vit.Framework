@@ -23,6 +23,7 @@ public static class SvgVertex {
 
 	static VertexInputDescription? inputDescription;
 	public static VertexInputDescription InputDescription => inputDescription ??= VertexInputDescription.CreateSingle( Spirv.Reflections );
+	public static VertexShaderDescription Description => new() { Input = InputDescription, Shader = Identifier };
 
 	public struct Vertex {
 		public Point2<float> Position;

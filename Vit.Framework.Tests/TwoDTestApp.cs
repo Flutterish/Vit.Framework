@@ -232,24 +232,15 @@ public class TwoDTestApp : Basic2DApp {
 			globalUniformBuffer = Renderer.CreateUniformHostBuffer<GlobalUniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
 
 			var basic = ShaderStore.GetShader( new() {
-				Vertex = new() {
-					Shader = BasicVertex.Identifier,
-					Input = BasicVertex.InputDescription
-				},
+				Vertex = BasicVertex.Description,
 				Fragment = BasicFragment.Identifier
 			} );
 			var masked = ShaderStore.GetShader( new() {
-				Vertex = new() {
-					Shader = MaskedVertex.Identifier,
-					Input = MaskedVertex.InputDescription
-				},
+				Vertex = MaskedVertex.Description,
 				Fragment = MaskedFragment.Identifier
 			} );
 			var text = ShaderStore.GetShader( new() {
-				Vertex = new() {
-					Shader = TextVertex.Identifier,
-					Input = TextVertex.InputDescription
-				},
+				Vertex = TextVertex.Description,
 				Fragment = TextFragment.Identifier
 			} );
 

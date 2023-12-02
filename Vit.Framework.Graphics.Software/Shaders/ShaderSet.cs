@@ -3,7 +3,6 @@ using System.Diagnostics;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Graphics.Software.Spirv.Runtime;
 using Vit.Framework.Graphics.Software.Uniforms;
 using AddressLinkage = System.Collections.Generic.List<(int ptrAddress, int address)>;

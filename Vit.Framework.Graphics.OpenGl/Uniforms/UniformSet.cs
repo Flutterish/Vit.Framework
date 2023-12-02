@@ -3,7 +3,6 @@ using Vit.Framework.Graphics.OpenGl.Textures;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Textures;
 using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Rendering.Validation;
 
 namespace Vit.Framework.Graphics.OpenGl.Uniforms;
 

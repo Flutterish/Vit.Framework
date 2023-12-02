@@ -26,10 +26,7 @@ public abstract partial class TexturedQuad {
 			BatchAllocator = dependencies.Resolve<SingleUseBufferSectionStack>();
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
-				Vertex = new() {
-					Shader = MaskedVertex.Identifier,
-					Input = MaskedVertex.InputDescription
-				},
+				Vertex = MaskedVertex.Description,
 				Fragment = MaskedFragment.Identifier
 			} );
 			basicShader.Compile( renderer );

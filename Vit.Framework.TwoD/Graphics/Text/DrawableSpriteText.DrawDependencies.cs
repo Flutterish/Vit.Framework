@@ -38,10 +38,7 @@ public partial class DrawableSpriteText {
 			} );
 
 			var basicShader = dependencies.Resolve<ShaderStore>().GetShader( new() {
-				Vertex = new() {
-					Shader = TextVertex.Identifier,
-					Input = TextVertex.InputDescription
-				},
+				Vertex = TextVertex.Description,
 				Fragment = TextFragment.Identifier
 			} );
 			basicShader.Compile( renderer );

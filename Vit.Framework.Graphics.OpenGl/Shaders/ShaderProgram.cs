@@ -3,7 +3,6 @@ using Vit.Framework.Graphics.OpenGl.Uniforms;
 using Vit.Framework.Graphics.Rendering.Shaders;
 using Vit.Framework.Graphics.Rendering.Shaders.Descriptions;
 using Vit.Framework.Graphics.Rendering.Uniforms;
-using Vit.Framework.Graphics.Rendering.Validation;
 using Vit.Framework.Memory;
 
 namespace Vit.Framework.Graphics.OpenGl.Shaders;
