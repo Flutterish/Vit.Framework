@@ -10,3 +10,7 @@ Vit is focused on 4 things:
 * Freedom - the framework is a tool for you to use, not a guideline for how you should code. You are outside the framework, not inside it. There is no hidden "framework-internal" functionality, every single thing the framework can do, so can you. The only time you will see the "internal" keyword is when it should have been a "friend" keyword.
 * Reusability - both code and data is reusable. Take the 2D UI add-on for exaple - you can load and unload components at will, and the graphics backend can even switch the graphics API at runtime without needing to restart the app.
 * Performance - whether graphics or logic, you can expect performance and minimal allocations. We use structs, spans, pooling, pointers, JIT-time templates and even custom allocators when applicable.
+
+## Licensing
+The Vit framework itself is free to use under the MIT license, however add-ons which use licensed libraries might be subject to a separate license. The following add-ons use potentially licensed components (please read the original license, this is only a short summary):
+* Vit.Framework.Audio.Bass uses the BASS audio library, which is free to use for non-commercial and personal use, but requires a license, which you need to acquire yourself from [radio42](http://bass.radio42.com/bass_register.html) for commercial use.
