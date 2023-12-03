@@ -14,7 +14,7 @@ public class FaceTemplate : ClassTemplate<(int points, int size)> {
 
 	static readonly string[] Names = new[] { "Line", "Triangle", "Quad" };
 
-	static string GetPointName ( int points, int index ) {
+	public static string GetPointName ( int points, int index ) {
 		if ( points == 2 )
 			return index == 0 ? "Start": "End";
 		return $"Point{"ABCD"[index]}";
@@ -47,16 +47,30 @@ public class FaceTemplate : ClassTemplate<(int points, int size)> {
 
 		sb.AppendLine();
 		var name = Names[_.size - 2].ToLowerInvariant();
-		sb.AppendLine( $"public static {GetFullTypeName(_)} operator * ( {GetFullTypeName(_)} {name}, {MatrixTemplate.GetFullTypeName( (_.size, _.size) )} matrix ) {{" );
+		sb.AppendLine( $"public static {GetFullTypeName( _ )} operator * ( {GetFullTypeName( _ )} {name}, {MatrixTemplate.GetFullTypeName( (_.size, _.size) )} matrix ) {{" );
 		using ( sb.Indent() ) {
 			sb.AppendLine( "return new() {" );
 			using ( sb.Indent() ) {
-				sb.AppendLinePostJoin( ",", Enumerable.Range(0, _.points).Select( i => $"{GetPointName(_.points, i)} = {name}.{GetPointName(_.points, i)} * matrix" ) );
+				sb.AppendLinePostJoin( ",", Enumerable.Range( 0, _.points ).Select( i => $"{GetPointName( _.points, i )} = {name}.{GetPointName( _.points, i )} * matrix" ) );
 			}
 			sb.AppendLine();
 			sb.AppendLine( "};" );
 		}
 		sb.AppendLine( "}" );
+
+		if ( _.size < 4 ) { // NOTE we generate up to mat4
+			sb.AppendLine();
+			sb.AppendLine( $"public static {GetFullTypeName( _ )} operator * ( {GetFullTypeName( _ )} {name}, {MatrixTemplate.GetFullTypeName( (_.size + 1, _.size + 1) )} matrix ) {{" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( "return new() {" );
+				using ( sb.Indent() ) {
+					sb.AppendLinePostJoin( ",", Enumerable.Range( 0, _.points ).Select( i => $"{GetPointName( _.points, i )} = matrix.Apply( {name}.{GetPointName( _.points, i )} )" ) );
+				}
+				sb.AppendLine();
+				sb.AppendLine( "};" );
+			}
+			sb.AppendLine( "}" );
+		}
 
 		sb.AppendLine();
 		sb.AppendLine( $"public readonly {AxisAlignedBoxTemplate.GetFullTypeName(_.size)} BoundingBox => new() {{" );

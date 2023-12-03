@@ -67,6 +67,33 @@ public struct AxisAlignedBox4<T> where T : INumber<T> {
 		};
 	}
 	
+	public AxisAlignedBox4<T> Intersect ( AxisAlignedBox4<T> other ) {
+		return new() {
+			MinX = T.Max( MinX, other.MinX ),
+			MinY = T.Max( MinY, other.MinY ),
+			MinZ = T.Max( MinZ, other.MinZ ),
+			MinW = T.Max( MinW, other.MinW ),
+			MaxX = T.Min( MaxX, other.MaxX ),
+			MaxY = T.Min( MaxY, other.MaxY ),
+			MaxZ = T.Min( MaxZ, other.MaxZ ),
+			MaxW = T.Min( MaxW, other.MaxW )
+		};
+	}
+	
+	public bool Contains ( Point4<T> point )
+		=> MinX <= point.X && MaxX >= point.X
+		&& MinY <= point.Y && MaxY >= point.Y
+		&& MinZ <= point.Z && MaxZ >= point.Z
+		&& MinW <= point.W && MaxW >= point.W;
+	
+	public bool IntersectsWith ( AxisAlignedBox4<T> other ) {
+		var intersect = Intersect( other );
+		return intersect.Width >= T.Zero
+			&& intersect.Height >= T.Zero
+			&& intersect.Depth >= T.Zero
+			&& intersect.Anakata >= T.Zero;
+	}
+	
 	public static implicit operator AxisAlignedBox4<T> ( Size4<T> size ) => new( size );
 	
 	public static AxisAlignedBox4<T> operator + ( AxisAlignedBox4<T> left, Vector4<T> right ) => new() {

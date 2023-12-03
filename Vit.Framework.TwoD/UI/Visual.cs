@@ -22,6 +22,7 @@ public class Visual<T> : UIComponent, IViewableInDrawVisualiser, IDrawableParent
 	}
 
 	protected override void OnMatrixInvalidated () {
+		base.OnMatrixInvalidated();
 		InvalidateLayout( LayoutInvalidations.Self );
 	}
 

@@ -19,6 +19,15 @@ public struct Quad3<T> where T : INumber<T> {
 		};
 	}
 	
+	public static Quad3<T> operator * ( Quad3<T> triangle, Matrix4<T> matrix ) {
+		return new() {
+			PointA = matrix.Apply( triangle.PointA ),
+			PointB = matrix.Apply( triangle.PointB ),
+			PointC = matrix.Apply( triangle.PointC ),
+			PointD = matrix.Apply( triangle.PointD )
+		};
+	}
+	
 	public readonly AxisAlignedBox3<T> BoundingBox => new() {
 		MinX = T.Min( T.Min( T.Min( PointC.X, PointD.X ), PointA.X ), PointB.X ),
 		MaxX = T.Max( T.Max( T.Max( PointC.X, PointD.X ), PointA.X ), PointB.X ),

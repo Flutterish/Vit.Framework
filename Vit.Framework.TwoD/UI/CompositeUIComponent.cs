@@ -87,6 +87,20 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
+	public override void UpdateMasking ( AxisAlignedBox2<float> maskingBounds ) {
+		base.UpdateMasking( maskingBounds );
+		if ( !IsVisible )
+			return;
+
+		if ( IsMaskingActive ) {
+			maskingBounds = maskingBounds.Intersect( ScreenSpaceQuad.BoundingBox );
+		}
+
+		foreach ( var i in Children ) {
+			i.UpdateMasking( maskingBounds );
+		}
+	}
+
 	protected void AddInternalChild ( T child ) {
 		if ( child.Parent != null )
 			throw new InvalidOperationException( "Components may only have 1 parent" );
@@ -249,6 +263,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	protected override void OnMatrixInvalidated () {
+		base.OnMatrixInvalidated();
 		foreach ( var i in internalChildren ) {
 			i.OnParentMatrixInvalidated();
 		}
@@ -293,7 +308,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		else {
 			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
 			foreach ( var i in Children ) {
-				i.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection );
+				if ( i.IsVisible )
+					i.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection );
 			}
 		}
 	}
@@ -338,7 +354,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 			CornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
 			children.Clear();
 			foreach ( var i in Source.Children ) {
-				i.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children );
+				if ( i.IsVisible )
+					i.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children );
 			}
 			children.Compile();
 		}

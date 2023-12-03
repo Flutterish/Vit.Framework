@@ -34,6 +34,21 @@ public struct AxisAlignedBox1<T> where T : INumber<T> {
 		};
 	}
 	
+	public AxisAlignedBox1<T> Intersect ( AxisAlignedBox1<T> other ) {
+		return new() {
+			MinX = T.Max( MinX, other.MinX ),
+			MaxX = T.Min( MaxX, other.MaxX )
+		};
+	}
+	
+	public bool Contains ( Point1<T> point )
+		=> MinX <= point.X && MaxX >= point.X;
+	
+	public bool IntersectsWith ( AxisAlignedBox1<T> other ) {
+		var intersect = Intersect( other );
+		return intersect.Width >= T.Zero;
+	}
+	
 	public static implicit operator AxisAlignedBox1<T> ( Size1<T> size ) => new( size );
 	
 	public static AxisAlignedBox1<T> operator + ( AxisAlignedBox1<T> left, Vector1<T> right ) => new() {

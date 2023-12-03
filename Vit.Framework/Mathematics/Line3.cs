@@ -15,6 +15,13 @@ public struct Line3<T> where T : INumber<T> {
 		};
 	}
 	
+	public static Line3<T> operator * ( Line3<T> triangle, Matrix4<T> matrix ) {
+		return new() {
+			Start = matrix.Apply( triangle.Start ),
+			End = matrix.Apply( triangle.End )
+		};
+	}
+	
 	public readonly AxisAlignedBox3<T> BoundingBox => new() {
 		MinX = T.Min( Start.X, End.X ),
 		MaxX = T.Max( Start.X, End.X ),

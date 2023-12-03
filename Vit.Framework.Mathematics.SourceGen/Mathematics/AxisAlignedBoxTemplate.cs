@@ -1,4 +1,6 @@
-﻿namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
+﻿using Vit.Framework.Mathematics.SourceGen.Mathematics.LinearAlgebra;
+
+namespace Vit.Framework.Mathematics.SourceGen.Mathematics;
 
 public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 	protected override string Namespace => "Vit.Framework.Mathematics";
@@ -6,6 +8,26 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 	PointTemplate pointType = new() { Path = string.Empty };
 	VectorTemplate vectorType = new() { Path = string.Empty };
 	SizeTemplate sizeType = new() { Path = string.Empty };
+
+	FaceTemplate? faceTemplate;
+	FaceTemplate FaceTemplate => faceTemplate ??= new FaceTemplate() { Path = "" };
+
+	MatrixTemplate? matrixTemplate;
+	MatrixTemplate MatrixTemplate => matrixTemplate ??= new MatrixTemplate() { Path = "" };
+
+	static (string forward, string backward)[] Directions = new[] {
+		("Right", "Left"),
+		("Top", "Bottom"),
+		("Forward", "Backward"),
+		("Ana", "Kata")
+	};
+	static string GeneratePointName ( int index, int size ) {
+		string result = "";
+		for ( int i = size - 1; i >= 0; i-- ) {
+			result += (index & (1 << i)) == 0 ? Directions[i].forward : Directions[i].backward;
+		}
+		return result;
+	}
 
 	public override string GetTypeName ( int size ) {
 		return $"AxisAlignedBox{size}";
@@ -17,6 +39,7 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 
 	protected override void GenerateUsings ( int size, SourceStringBuilder sb ) {
 		sb.AppendLine( "using System.Numerics;" );
+		sb.AppendLine( "using Vit.Framework.Mathematics.LinearAlgebra;" );
 	}
 
 	protected override string ClassType => "struct";
@@ -97,6 +120,40 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 		sb.AppendLine( "}" );
 
 		sb.AppendLine();
+		sb.AppendLine( $"public {type} Intersect ( {type} other ) {{" );
+		using ( sb.Indent() ) {
+			sb.AppendLine( $"return new() {{" );
+			using ( sb.Indent() )
+				sb.AppendLinePostJoin( ",", elements.Select( x => $"Min{pointType.AxisNames[x]} = T.Max( Min{pointType.AxisNames[x]}, other.Min{pointType.AxisNames[x]} )" ) );
+			sb.AppendLine( "," );
+			using ( sb.Indent() )
+				sb.AppendLinePostJoin( ",", elements.Select( x => $"Max{pointType.AxisNames[x]} = T.Min( Max{pointType.AxisNames[x]}, other.Max{pointType.AxisNames[x]} )" ) );
+			sb.AppendLine();
+			sb.AppendLine( "};" );
+		}
+		sb.AppendLine( "}" );
+
+		sb.AppendLine();
+		sb.AppendLine( $"public bool Contains ( {pointType.GetFullTypeName(size)} point )" );
+		using ( sb.Indent() ) {
+			sb.Append( "=> " );
+			sb.AppendLinePreJoin( "&& ", elements.Select( x => $"Min{pointType.AxisNames[x]} <= point.{pointType.AxisNames[x]} && Max{pointType.AxisNames[x]} >= point.{pointType.AxisNames[x]}" ) );
+			sb.AppendLine( ";" );
+		}
+
+		sb.AppendLine();
+		sb.AppendLine( $"public bool IntersectsWith ( {GetFullTypeName( size )} other ) {{" );
+		using ( sb.Indent() ) {
+			sb.AppendLine( "var intersect = Intersect( other );" );
+			sb.Append( "return " );
+			using ( sb.Indent() ) {
+				sb.AppendLinePreJoin( "&& ", elements.Select( x => $"intersect.{sizeType.AxisNames[x]} >= T.Zero" ) );
+				sb.AppendLine( ";" );
+			}
+		}
+		sb.AppendLine( "}" );
+
+		sb.AppendLine();
 		sb.AppendLine( $"public static implicit operator {type} ( {sizeType.GetFullTypeName( size )} size ) => new( size );" );
 
 		var vectorTypeName = vectorType.GetFullTypeName( size );
@@ -119,6 +176,30 @@ public class AxisAlignedBoxTemplate : ClassTemplate<int> {
 			sb.AppendLinePostJoin( ",", elements.Select( x => $"Max{pointType.AxisNames[x]} = left.Max{pointType.AxisNames[x]} - right.{vectorType.AxisNames[x]}" ) );
 		sb.AppendLine();
 		sb.AppendLine( "};" );
+
+		if ( size == 2 ) {
+			sb.AppendLine();
+			sb.AppendLine( $"public static implicit operator {FaceTemplate.GetFullTypeName( (4, size) )} ( {type} box ) => new() {{" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( $"{FaceTemplate.GetPointName( 4, 0 )} = new( box.Min{pointType.AxisNames[0]}, box.Min{pointType.AxisNames[1]} )," );
+				sb.AppendLine( $"{FaceTemplate.GetPointName( 4, 1 )} = new( box.Max{pointType.AxisNames[0]}, box.Min{pointType.AxisNames[1]} )," );
+				sb.AppendLine( $"{FaceTemplate.GetPointName( 4, 2 )} = new( box.Max{pointType.AxisNames[0]}, box.Max{pointType.AxisNames[1]} )," );
+				sb.AppendLine( $"{FaceTemplate.GetPointName( 4, 3 )} = new( box.Min{pointType.AxisNames[0]}, box.Max{pointType.AxisNames[1]} )" );
+			}
+			sb.AppendLine( "};" );
+
+			sb.AppendLine();
+			sb.AppendLine( $"public static {FaceTemplate.GetFullTypeName( (4, size) )} operator * ( {type} box, {MatrixTemplate.GetFullTypeName( (3, 3) )} matrix )" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( $"=> (({FaceTemplate.GetFullTypeName( (4, size) )})box) * matrix;" );
+			}
+
+			sb.AppendLine();
+			sb.AppendLine( $"public static {FaceTemplate.GetFullTypeName( (4, size) )} operator * ( {type} box, {MatrixTemplate.GetFullTypeName( (2, 2) )} matrix )" );
+			using ( sb.Indent() ) {
+				sb.AppendLine( $"=> (({FaceTemplate.GetFullTypeName( (4, size) )})box) * matrix;" );
+			}
+		}
 
 		sb.AppendLine();
 		sb.AppendLine( "public override string ToString () {" );

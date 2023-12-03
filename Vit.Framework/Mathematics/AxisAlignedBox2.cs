@@ -1,5 +1,6 @@
 /// This file [AxisAlignedBox2.cs] was auto-generated with Vit.Framework.Mathematics.SourceGen.Mathematics.AxisAlignedBoxTemplate and parameter 2 (System.Int32)
 using System.Numerics;
+using Vit.Framework.Mathematics.LinearAlgebra;
 
 namespace Vit.Framework.Mathematics;
 
@@ -45,6 +46,25 @@ public struct AxisAlignedBox2<T> where T : INumber<T> {
 		};
 	}
 	
+	public AxisAlignedBox2<T> Intersect ( AxisAlignedBox2<T> other ) {
+		return new() {
+			MinX = T.Max( MinX, other.MinX ),
+			MinY = T.Max( MinY, other.MinY ),
+			MaxX = T.Min( MaxX, other.MaxX ),
+			MaxY = T.Min( MaxY, other.MaxY )
+		};
+	}
+	
+	public bool Contains ( Point2<T> point )
+		=> MinX <= point.X && MaxX >= point.X
+		&& MinY <= point.Y && MaxY >= point.Y;
+	
+	public bool IntersectsWith ( AxisAlignedBox2<T> other ) {
+		var intersect = Intersect( other );
+		return intersect.Width >= T.Zero
+			&& intersect.Height >= T.Zero;
+	}
+	
 	public static implicit operator AxisAlignedBox2<T> ( Size2<T> size ) => new( size );
 	
 	public static AxisAlignedBox2<T> operator + ( AxisAlignedBox2<T> left, Vector2<T> right ) => new() {
@@ -60,6 +80,19 @@ public struct AxisAlignedBox2<T> where T : INumber<T> {
 		MaxX = left.MaxX - right.X,
 		MaxY = left.MaxY - right.Y
 	};
+	
+	public static implicit operator Quad2<T> ( AxisAlignedBox2<T> box ) => new() {
+		PointA = new( box.MinX, box.MinY ),
+		PointB = new( box.MaxX, box.MinY ),
+		PointC = new( box.MaxX, box.MaxY ),
+		PointD = new( box.MinX, box.MaxY )
+	};
+	
+	public static Quad2<T> operator * ( AxisAlignedBox2<T> box, Matrix3<T> matrix )
+		=> ((Quad2<T>)box) * matrix;
+	
+	public static Quad2<T> operator * ( AxisAlignedBox2<T> box, Matrix2<T> matrix )
+		=> ((Quad2<T>)box) * matrix;
 	
 	public override string ToString () {
 		return $"{Size} at {Position}";

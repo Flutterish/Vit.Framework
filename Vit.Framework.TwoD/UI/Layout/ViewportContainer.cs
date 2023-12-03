@@ -42,6 +42,7 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IVie
 		InvalidateLayout( LayoutInvalidations.Self );
 	}
 
+	protected override Quad2<float> ComputeScreenSpaceQuad () => new AxisAlignedBox2<float>( new (Width / ScaleX, Height / ScaleY ) ) * UnitToGlobalMatrix;
 	public override bool ReceivesPositionalInputAt ( Point2<float> screenSpacePosition ) {
 		var localSpace = ScreenSpaceToLocalSpace( screenSpacePosition );
 

@@ -17,6 +17,14 @@ public struct Triangle3<T> where T : INumber<T> {
 		};
 	}
 	
+	public static Triangle3<T> operator * ( Triangle3<T> triangle, Matrix4<T> matrix ) {
+		return new() {
+			PointA = matrix.Apply( triangle.PointA ),
+			PointB = matrix.Apply( triangle.PointB ),
+			PointC = matrix.Apply( triangle.PointC )
+		};
+	}
+	
 	public readonly AxisAlignedBox3<T> BoundingBox => new() {
 		MinX = T.Min( T.Min( PointB.X, PointC.X ), PointA.X ),
 		MaxX = T.Max( T.Max( PointB.X, PointC.X ), PointA.X ),

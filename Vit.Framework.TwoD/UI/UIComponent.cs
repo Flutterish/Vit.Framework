@@ -32,6 +32,18 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 	}
 	#endregion
 	#region Layout
+	protected virtual Quad2<float> ComputeScreenSpaceQuad () => new AxisAlignedBox2<float>( Size ) * UnitToGlobalMatrix;
+	Quad2<float>? screenSpaceQuad;
+	public Quad2<float> ScreenSpaceQuad => screenSpaceQuad ??= ComputeScreenSpaceQuad();
+	protected virtual bool ComputeIsVisible ( AxisAlignedBox2<float> maskingBounds ) {
+		return maskingBounds.IntersectsWith( ScreenSpaceQuad.BoundingBox );
+	}
+
+	public bool IsVisible { get; private set; } = true;
+	public virtual void UpdateMasking ( AxisAlignedBox2<float> maskingBounds ) {
+		IsVisible = ComputeIsVisible( maskingBounds );
+	}
+
 	public LayoutInvalidations LayoutInvalidations { get; private set; } = LayoutInvalidations.Self;
 	public void InvalidateLayout ( LayoutInvalidations invalidations ) {
 		if ( IsComputingLayout && invalidations.HasFlag( LayoutInvalidations.Self ) ) {
@@ -187,7 +199,9 @@ public abstract class UIComponent : IUIComponent, IHasAnimationTimeline {
 		unitToGlobalInverse = null;
 		OnMatrixInvalidated();
 	}
-	protected virtual void OnMatrixInvalidated () { }
+	protected virtual void OnMatrixInvalidated () {
+		screenSpaceQuad = null;
+	}
 	internal void OnParentMatrixInvalidated () {
 		if ( unitToGlobal == null && unitToGlobalInverse == null )
 			return;

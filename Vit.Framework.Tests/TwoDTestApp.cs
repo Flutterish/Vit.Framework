@@ -175,6 +175,7 @@ public class TwoDTestApp : Basic2DApp {
 
 			Root.Update();
 			Root.ComputeLayout();
+			Root.UpdateMasking( new AxisAlignedBox2<float>( (-1, -1), window.Size.Cast<float>() ) );
 		}
 
 		void onInputEventEmitted ( IInputTracker src, TimestampedEvent e ) {
