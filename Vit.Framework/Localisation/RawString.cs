@@ -1,6 +1,6 @@
 ﻿namespace Vit.Framework.Localisation;
 
-public class RawString : LocalisableStringData {
+public class RawString : LocalisableString {
 	public string Data;
 
 	public RawString ( string data ) {

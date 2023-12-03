@@ -8,31 +8,22 @@ using Vit.Framework.TwoD.Graphics.Text;
 namespace Vit.Framework.TwoD.UI.Graphics;
 
 public abstract class TextVisual<T> : Visual<T> where T : DrawableText {
-	protected TextVisual ( T displayed ) : base( displayed ) { }
+	protected TextVisual ( T displayed ) : base( displayed ) {
+		localised.ValueChanged += text => {
+			Displayed.Text = text;
+			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
+		};
+	}
 
-	LocalisableString text;
-	LocalisationStore? localisationStore;
-	LocalisedString? localised;
+	LocalisationStore.LocalisedString localised = new();
 
 	public string RawText {
 		get => Displayed.Text;
-		set {
-			if ( localised != null ) {
-				localised.TextChanged -= onLocalisedTextChanged;
-				localised = null;
-				text = default;
-			}
-
-			Displayed.Text = value;
-			InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
-		}
+		set => localised.SetRaw( value );
 	}
-	public LocalisableString Text {
-		get => text;
-		set {
-			text = value;
-			updateLocalisedString();
-		}
+	public LocalisableString? Text {
+		get => localised.LocalisableString;
+		set => localised.LocalisableString = value;
 	}
 	public float FontSize {
 		get => Displayed.FontSize;
@@ -42,32 +33,18 @@ public abstract class TextVisual<T> : Visual<T> where T : DrawableText {
 		}
 	}
 
-	void updateLocalisedString () {
-		if ( localisationStore == null )
-			return;
-
-		if ( localised != null ) {
-			localised.TextChanged -= onLocalisedTextChanged;
-		}
-		if ( text.Data == null ) {
-			localised = null;
-			return;
-		}
-		localised = localisationStore.GetLocalised( text );
-		localised.BindTextChanged( onLocalisedTextChanged );
-	}
-
-	void onLocalisedTextChanged ( string value ) {
-		Displayed.Text = value;
-		InvalidateLayout( LayoutInvalidations.Self | LayoutInvalidations.RequiredSize );
-	}
-
 	FontStore fontStore = null!;
 	protected override void OnLoad ( IReadOnlyDependencyCache dependencies ) {
 		fontStore = dependencies.Resolve<FontStore>();
-		localisationStore = dependencies.Resolve<LocalisationStore>();
-		updateLocalisedString();
+		localised.Store = dependencies.Resolve<LocalisationStore>();
+
 		base.OnLoad( dependencies );
+	}
+
+	protected override void OnUnload () {
+		localised.Store = null;
+
+		base.OnUnload();
 	}
 
 	public FontCollection Font {

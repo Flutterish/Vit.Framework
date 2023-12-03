@@ -1,10 +1,10 @@
 ﻿namespace Vit.Framework.Localisation;
 
-public class FormattableString : LocalisableStringData {
-	public LocalisableStringData Source;
+public class FormattableString : LocalisableString {
+	public LocalisableString Source;
 	public object[] Data;
 
-	public FormattableString ( LocalisableStringData source, object[] data ) {
+	public FormattableString ( LocalisableString source, object[] data ) {
 		Source = source;
 		Data = data;
 	}

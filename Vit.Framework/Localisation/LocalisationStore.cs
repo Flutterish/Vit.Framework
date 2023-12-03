@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Vit.Framework.Localisation;
 
-public class LocalisationStore {
+public partial class LocalisationStore {
 	Dictionary<LanguageIdentifier, LanguageStore> stores = new();
 	public void Add ( LanguageIdentifier identifier, LanguageStore store ) {
 		stores.Add( identifier, store );
@@ -12,31 +12,7 @@ public class LocalisationStore {
 	LanguageStore language = EmptyInvariantLanguageStore.Instance;
 	public void SetLanguage ( LanguageIdentifier identifier ) {
 		language = stores[identifier];
-		foreach ( var (data, result) in localisedStrings ) {
-			updateString( data, result );
-		}
-	}
-
-	public LocalisedString GetLocalised ( LocalisableString data ) {
-		return GetLocalised( data.Data );
-	}
-	public LocalisedString GetLocalised ( LocalisableStringData data ) {
-		if ( !localisedStrings.TryGetValue( data, out var localised ) ) {
-			localisedStrings.Add( data, localised = new() );
-			updateString( data, localised );
-		}
-
-		return localised;
-	}
-
-	public void UpdateString ( LocalisableString data ) {
-		UpdateString( data.Data );
-	}
-	public void UpdateString ( LocalisableStringData data ) {
-		updateString( data, localisedStrings[data] );
-	}
-	void updateString ( LocalisableStringData data, LocalisedString result ) {
-		result.Text = data.Localise( this );
+		LocalisedString.updateAll( first );
 	}
 
 	public IFormatProvider GetFormatProvider () {
@@ -45,8 +21,6 @@ public class LocalisationStore {
 	public string? Lookup ( Assembly assembly, string key ) {
 		return language.Lookup( assembly, key );
 	}
-
-	Dictionary<LocalisableStringData, LocalisedString> localisedStrings = new(); // TODO we dont need to keep track of strings that are no longer in use
 }
 
 public class LanguageIdentifier {

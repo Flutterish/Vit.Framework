@@ -2,7 +2,7 @@
 
 namespace Vit.Framework.Localisation;
 
-public class TranslatableString : LocalisableStringData {
+public class TranslatableString : LocalisableString {
 	public string Fallback;
 
 	public Assembly Assembly;
