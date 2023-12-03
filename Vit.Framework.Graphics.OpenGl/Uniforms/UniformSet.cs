@@ -55,7 +55,7 @@ public class UniformSet : IUniformSet {
 		Samplers[binding] = ((Sampler)sampler).Handle;
 	}
 
-	public void Apply () {
+	public void Apply () { // TODO reduce calls by joining these into one array in shaderset
 		GL.BindBuffersRange( BufferRangeTarget.UniformBuffer, layout.FirstUbo, layout.UboCount, UboBuffers, UboOffsets, UboSizes );
 		GL.BindBuffersRange( BufferRangeTarget.ShaderStorageBuffer, layout.FirstSsbo, layout.SsboCount, SsboBuffers, SsboOffsets, SsboSizes );
 		GL.BindTextures( layout.FirstSampler, layout.SamplerCount, Textures );

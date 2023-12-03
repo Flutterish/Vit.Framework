@@ -33,5 +33,4 @@ public struct ByteArrayView<T> where T : unmanaged {
 		=> new() { Bytes = Bytes, ByteOffset = ByteOffset, ByteLength = ByteLength };
 
 	public ref T this[int i] => ref AsSpan()[i];
-	public ref T this[uint i] => ref AsSpan()[i];
 }

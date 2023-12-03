@@ -18,6 +18,7 @@ var point = new PointTemplate { Path = path };
 var vector = new VectorTemplate { Path = path };
 var size = new SizeTemplate { Path = path };
 var box = new AxisAlignedBoxTemplate { Path = path };
+var face = new FaceTemplate { Path = path };
 
 for ( int i = 1; i <= 4; i++ ) {
 	axis.Apply( i );
@@ -25,6 +26,12 @@ for ( int i = 1; i <= 4; i++ ) {
 	size.Apply( i );
 	box.Apply( i );
 	vector.Apply( i );
+}
+
+for ( int dims = 2; dims <= 4; dims++ ) {
+	for ( int points = 2; points <= 4; points++ ) {
+		face.Apply( (points, dims) );
+	}
 }
 
 path = "./../../../../Vit.Framework/Mathematics/LinearAlgebra";
