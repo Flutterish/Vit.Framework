@@ -5,7 +5,11 @@ using Vit.Framework.TwoD.Rendering.Masking;
 namespace Vit.Framework.TwoD.UI.Composite;
 
 public class Container : Container<UIComponent> { }
-public class Container<T> : CompositeUIComponent<T, ContainerChildData<T>> where T : UIComponent {
+public class Container<T> : Container<T, DefaultChildPolicy<T>> where T : UIComponent { }
+public class Container<T, TChildPolicy> : CompositeUIComponent<T, ContainerChildData<T>, TChildPolicy>
+	where T : UIComponent 
+	where TChildPolicy : struct, IChildPolicy<T> 
+{
 	new public IReadOnlyList<T> Children {
 		get => this;
 		init {

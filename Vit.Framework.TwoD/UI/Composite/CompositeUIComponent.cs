@@ -13,9 +13,10 @@ using Vit.Framework.TwoD.Rendering.Masking;
 
 namespace Vit.Framework.TwoD.UI.Composite;
 
-public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IReadOnlyList<TChild>, ICompositeUIComponent<TChild> 
+public abstract class CompositeUIComponent<TChild, TChildData, TChildPolicy> : UIComponent, IReadOnlyList<TChild>, ICompositeUIComponent<TChild> 
 	where TChild : UIComponent 
 	where TChildData : struct, IChildData<TChild>
+	where TChildPolicy : struct, IChildPolicy<TChild> 
 {
 	List<TChildData> internalChildren = new();
 	public IReadOnlyList<TChild> Children {
@@ -103,11 +104,10 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 		if ( !IsVisible )
 			return;
 
-		if ( IsMaskingActive ) maskingBounds = maskingBounds.Intersect( ScreenSpaceQuad.BoundingBox );
+		if ( IsMaskingActive ) 
+			maskingBounds = maskingBounds.Intersect( ScreenSpaceQuad.BoundingBox );
 
-		foreach ( var i in Children ) {
-			i.UpdateMasking( maskingBounds );
-		}
+		TChildPolicy.UpdateMasking( Children, maskingBounds );
 	}
 
 	protected void AddInternalChild ( TChildData data ) {
@@ -118,7 +118,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 		child.Parent = this;
 		child.Depth = internalChildren.Count;
 		internalChildren.Add( data );
-		if ( IsLoaded )
+		if ( TChildPolicy.LoadChildren && IsLoaded )
 			child.Load( Dependencies );
 		onChildAdded( child );
 	}
@@ -133,7 +133,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 			internalChildren[i].Child.Depth++;
 		}
 		internalChildren.Insert( index, data );
-		if ( IsLoaded )
+		if ( TChildPolicy.LoadChildren && IsLoaded )
 			child.Load( Dependencies );
 		onChildAdded( child );
 	}
@@ -153,7 +153,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 		for ( int i = index; i < internalChildren.Count; i++ ) {
 			internalChildren[i].Child.Depth--;
 		}
-		if ( child.IsLoaded )
+		if ( TChildPolicy.LoadChildren && child.IsLoaded )
 			child.Unload();
 		onChildRemoved( child );
 	}
@@ -197,10 +197,12 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 	}
 
 	void onChildAdded ( TChild child ) {
-		child.EventHandlerAdded += onChildEventHandlerAdded;
-		child.EventHandlerRemoved += onChildEventHandlerRemoved;
-		foreach ( var (type, tree) in child.HandledEventTypes ) {
-			onChildEventHandlerAdded( type, tree );
+		if ( TChildPolicy.ProcessChildEvents ) {
+			child.EventHandlerAdded += onChildEventHandlerAdded;
+			child.EventHandlerRemoved += onChildEventHandlerRemoved;
+			foreach ( var (type, tree) in child.HandledEventTypes ) {
+				onChildEventHandlerAdded( type, tree );
+			}
 		}
 		ChildAdded?.Invoke( this, child );
 		InvalidateLayout( LayoutInvalidations.Children );
@@ -208,10 +210,12 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 	}
 
 	void onChildRemoved ( TChild child ) {
-		child.EventHandlerAdded -= onChildEventHandlerAdded;
-		child.EventHandlerRemoved -= onChildEventHandlerRemoved;
-		foreach ( var (type, tree) in child.HandledEventTypes ) {
-			onChildEventHandlerRemoved( type, tree );
+		if ( TChildPolicy.ProcessChildEvents ) {
+			child.EventHandlerAdded -= onChildEventHandlerAdded;
+			child.EventHandlerRemoved -= onChildEventHandlerRemoved;
+			foreach ( var (type, tree) in child.HandledEventTypes ) {
+				onChildEventHandlerRemoved( type, tree );
+			}
 		}
 		ChildRemoved?.Invoke( this, child );
 		InvalidateLayout( LayoutInvalidations.Children );
@@ -240,7 +244,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 	}
 
 	void sortEventTree ( EventTree<UIComponent> tree ) {
-		tree.Sort( static ( a, b ) => b.Source.Depth - a.Source.Depth );
+		TChildPolicy.SortEventTree( tree );
 	}
 
 	protected virtual IReadOnlyDependencyCache CreateDependencies ( IReadOnlyDependencyCache parent ) {
@@ -251,32 +255,33 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 		base.OnLoad( dependencies );
 		maskingData = dependencies.Resolve<MaskingDataBuffer>();
 		Dependencies = CreateDependencies( dependencies );
-		foreach ( var i in internalChildren ) {
-			i.Child.Load( Dependencies );
+
+		if ( TChildPolicy.LoadChildren ) {
+			foreach ( var i in internalChildren ) {
+				i.Child.Load( Dependencies );
+			}
 		}
 	}
 	protected override void OnUnload () {
-		foreach ( var i in internalChildren.Reverse<TChildData>() ) {
-			i.Child.Unload();
+		if ( TChildPolicy.LoadChildren ) {
+			foreach ( var i in internalChildren.Reverse<TChildData>() ) {
+				i.Child.Unload();
+			}
 		}
 		Dependencies = null!;
 	}
 
 	public override void Update () {
 		base.Update();
-		updateSubtree();
-	}
-
-	void updateSubtree () {
-		foreach ( var i in internalChildren ) {
-			i.Child.Update();
-		}
+		TChildPolicy.UpdateSubtree( Children );
 	}
 
 	protected override void OnMatrixInvalidated () {
 		base.OnMatrixInvalidated();
-		foreach ( var i in internalChildren ) {
-			i.Child.OnParentMatrixInvalidated();
+		if ( TChildPolicy.InvalidateChildMatrices ) {
+			foreach ( var i in internalChildren ) {
+				i.Child.OnParentMatrixInvalidated();
+			}
 		}
 	}
 
@@ -285,7 +290,8 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 	}
 
 	protected sealed override void PerformLayout () {
-		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Self ) ) PerformSelfLayout();
+		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Self ) ) 
+			PerformSelfLayout();
 		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Children ) ) {
 			foreach ( var i in Children ) {
 				i.ComputeLayout();
@@ -316,10 +322,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 		}
 		else {
 			drawNodeInvalidations.ValidateDrawNode( subtreeIndex );
-			foreach ( var i in Children ) {
-				if ( i.IsVisible )
-					i.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection );
-			}
+			TChildPolicy.PopulateDrawNodes<TSpecialisation>( subtreeIndex, collection, Children );
 		}
 	}
 
@@ -341,8 +344,8 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 
 	MaskingDataBuffer maskingData = null!;
 	public class MaskingDrawNode<TSpecialisation> : DrawNode where TSpecialisation : unmanaged, IRendererSpecialisation {
-		protected readonly CompositeUIComponent<TChild, TChildData> Source;
-		public MaskingDrawNode ( CompositeUIComponent<TChild, TChildData> source, int subtreeIndex ) : base( subtreeIndex ) {
+		protected readonly CompositeUIComponent<TChild, TChildData, TChildPolicy> Source;
+		public MaskingDrawNode ( CompositeUIComponent<TChild, TChildData, TChildPolicy> source, int subtreeIndex ) : base( subtreeIndex ) {
 			Source = source;
 		}
 
@@ -362,10 +365,7 @@ public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IR
 			CornerExponents = Source.cornerExponents;
 			CornerRadii = MaskingData.NormalizeCornerRadii( Source.cornerRadii, Source.Size );
 			children.Clear();
-			foreach ( var i in Source.Children ) {
-				if ( i.IsVisible )
-					i.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children );
-			}
+			TChildPolicy.PopulateDrawNodes<TSpecialisation>( SubtreeIndex, children, Source.Children );
 			children.Compile();
 		}
 

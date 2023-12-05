@@ -6,7 +6,11 @@ using Vit.Framework.TwoD.UI.Composite;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class Flexbox : Flexbox<UIComponent> { }
-public class Flexbox<T> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T>.ChildArgs> where T : UIComponent {
+public class Flexbox<T> : Flexbox<T, DefaultChildPolicy<T>> where T : UIComponent { }
+public class Flexbox<T, TChildPolicy> : FlowingLayoutContainer<T, FlexboxParams, Flexbox<T, TChildPolicy>.ChildArgs, TChildPolicy> 
+	where T : UIComponent 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	Size2<float> gap;
 	/// <summary>
 	/// Gap between elements.

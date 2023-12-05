@@ -12,7 +12,12 @@ public interface IParametrizedContainer<in T, TParam> where TParam : unmanaged {
 	void UpdateLayoutParameters<TData> ( T child, TData data, Func<TParam, TData, TParam> transformer );
 }
 
-public abstract class ParametrizedContainer<T, TParam> : CompositeUIComponent<T, ParametrizedChildData<T, TParam>>, IParametrizedContainer<T, TParam> where T : UIComponent where TParam : unmanaged {
+public abstract class ParametrizedContainer<T, TParam> : ParametrizedContainer<T, TParam, DefaultChildPolicy<T>> where T : UIComponent where TParam : unmanaged { }
+public abstract class ParametrizedContainer<T, TParam, TChildPolicy> : CompositeUIComponent<T, ParametrizedChildData<T, TParam>, TChildPolicy>, IParametrizedContainer<T, TParam> 
+	where T : UIComponent 
+	where TParam : unmanaged 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	public IReadOnlyList<ParametrizedChildData<T, TParam>> LayoutChildren {
 		get => InternalChildren;
 		init => InternalChildren = value;

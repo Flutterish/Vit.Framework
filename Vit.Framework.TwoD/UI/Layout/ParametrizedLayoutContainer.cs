@@ -4,7 +4,12 @@ using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
-public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedContainer<T, TParam> where T : UIComponent where TParam : unmanaged {
+public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedLayoutContainer<T, TParam, DefaultChildPolicy<T>> where T : UIComponent where TParam : unmanaged { }
+public abstract class ParametrizedLayoutContainer<T, TParam, TChildPolicy> : ParametrizedContainer<T, TParam, TChildPolicy> 
+	where T : UIComponent 
+	where TParam : unmanaged 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	/// <summary>
 	/// The size available to lay out child elements in, in local space.
 	/// This accounts for <see cref="Padding"/>.

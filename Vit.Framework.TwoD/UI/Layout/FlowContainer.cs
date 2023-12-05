@@ -6,7 +6,11 @@ using Vit.Framework.TwoD.UI.Composite;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class FlowContainer : FlowContainer<UIComponent> { }
-public class FlowContainer<T> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T>.ChildArgs> where T : UIComponent {
+public class FlowContainer<T> : FlowContainer<T, DefaultChildPolicy<T>> where T : UIComponent { }
+public class FlowContainer<T, TChildPolicy> : FlowingLayoutContainer<T, FlowParams, FlowContainer<T, TChildPolicy>.ChildArgs, TChildPolicy> 
+	where T : UIComponent 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	bool collapseMargins = true;
 	public bool CollapseMargins {
 		get => collapseMargins;

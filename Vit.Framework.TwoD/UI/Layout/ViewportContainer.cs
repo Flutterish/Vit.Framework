@@ -8,7 +8,11 @@ using Vit.Framework.TwoD.UI.Composite;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class ViewportContainer : ViewportContainer<UIComponent> { }
-public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IViewableInDrawVisualiser where T : UIComponent {
+public class ViewportContainer<T> : ViewportContainer<T, DefaultChildPolicy<T>> where T : UIComponent { }
+public class ViewportContainer<T, TChildPolicy> : ParametrizedContainer<T, LayoutParams, TChildPolicy>, IViewableInDrawVisualiser 
+	where T : UIComponent 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	Size2<float> size;
 	/// <summary>
 	/// The size available to lay out child elements in, in local space.
@@ -127,8 +131,8 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IVie
 		return new( this, subtreeIndex );
 	}
 
-	new protected class MaskingDrawNode<TSpecialisation> : ParametrizedContainer<T, LayoutParams>.MaskingDrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
-		public MaskingDrawNode ( ViewportContainer<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+	new protected class MaskingDrawNode<TSpecialisation> : ParametrizedContainer<T, LayoutParams, TChildPolicy>.MaskingDrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
+		public MaskingDrawNode ( ViewportContainer<T, TChildPolicy> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override void UpdateState () {
 			base.UpdateState();

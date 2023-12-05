@@ -1,6 +1,6 @@
 ﻿namespace Vit.Framework.Hierarchy;
 
-public interface IComponent {
+public interface IComponent { // TODO do we really need this?
 	IReadOnlyCompositeComponent<IComponent>? Parent { get; }
 }
 

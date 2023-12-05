@@ -5,7 +5,11 @@ using Vit.Framework.TwoD.UI.Composite;
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class LayoutContainer : LayoutContainer<UIComponent> { }
-public class LayoutContainer<T> : ParametrizedLayoutContainer<T, LayoutParams> where T : UIComponent {
+public class LayoutContainer<T> : LayoutContainer<T, DefaultChildPolicy<T>> where T : UIComponent { }
+public class LayoutContainer<T, TChildPolicy> : ParametrizedLayoutContainer<T, LayoutParams, TChildPolicy> 
+	where T : UIComponent 
+	where TChildPolicy : struct, IChildPolicy<T>
+{
 	protected override void PerformSelfLayout () {
 		var size = ContentSize;
 		var offset = new Vector2<float>( Padding.Left, Padding.Bottom );
