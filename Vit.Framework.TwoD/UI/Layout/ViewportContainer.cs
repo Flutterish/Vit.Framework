@@ -3,6 +3,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
@@ -126,8 +127,8 @@ public class ViewportContainer<T> : ParametrizedContainer<T, LayoutParams>, IVie
 		return new( this, subtreeIndex );
 	}
 
-	new protected class MaskingDrawNode<TSpecialisation> : CompositeUIComponent<T>.MaskingDrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
-		public MaskingDrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
+	new protected class MaskingDrawNode<TSpecialisation> : ParametrizedContainer<T, LayoutParams>.MaskingDrawNode<TSpecialisation> where TSpecialisation : unmanaged, IRendererSpecialisation {
+		public MaskingDrawNode ( ViewportContainer<T> source, int subtreeIndex ) : base( source, subtreeIndex ) { }
 
 		protected override void UpdateState () {
 			base.UpdateState();

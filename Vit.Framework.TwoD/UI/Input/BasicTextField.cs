@@ -8,6 +8,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Layout;
 using Vit.Framework.TwoD.Graphics.Text;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Input.Events;
 using Vit.Framework.TwoD.UI.Layout;

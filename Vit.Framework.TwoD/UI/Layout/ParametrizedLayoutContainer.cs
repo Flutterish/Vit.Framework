@@ -1,9 +1,10 @@
 ﻿using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
-public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedContainer<T, TParam> where T : UIComponent where TParam : struct {
+public abstract class ParametrizedLayoutContainer<T, TParam> : ParametrizedContainer<T, TParam> where T : UIComponent where TParam : unmanaged {
 	/// <summary>
 	/// The size available to lay out child elements in, in local space.
 	/// This accounts for <see cref="Padding"/>.

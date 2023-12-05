@@ -1,11 +1,12 @@
 ﻿using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Input.Events;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 
 public class ScrollContainer : ScrollContainer<UIComponent> { }
-public class ScrollContainer<T> : CompositeUIComponent, IDraggable where T : UIComponent {
+public class ScrollContainer<T> : InternalContainer, IDraggable where T : UIComponent {
 	public ScrollContainer () {
 		IsMaskingActive = true;
 	}

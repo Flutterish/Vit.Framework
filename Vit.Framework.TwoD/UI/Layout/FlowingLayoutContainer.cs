@@ -1,10 +1,11 @@
 ﻿using Vit.Framework.Mathematics;
 using Vit.Framework.Memory;
 using Vit.Framework.TwoD.Layout;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI.Layout;
 // TODO grid, subgrid, masonry grid
-public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : ParametrizedLayoutContainer<T, TParam> where T : UIComponent where TParam : struct where TChildArgs : struct {
+public abstract class FlowingLayoutContainer<T, TParam, TChildArgs> : ParametrizedLayoutContainer<T, TParam> where T : UIComponent where TParam : unmanaged where TChildArgs : unmanaged {
 	RelativeAxes2<float> flowOrigin = Anchor.TopLeft;
 	/// <summary>
 	/// What point the flow elements are aligned to when there is unused space in a line.

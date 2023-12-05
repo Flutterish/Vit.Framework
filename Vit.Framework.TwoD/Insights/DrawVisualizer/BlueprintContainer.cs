@@ -1,11 +1,11 @@
 ﻿using Vit.Framework.DependencyInjection;
 using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Rendering;
-using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 
-public class BlueprintContainer : CompositeUIComponent<DrawVisualizerBlueprint> {
+public class BlueprintContainer : InternalContainer<DrawVisualizerBlueprint> {
 	DrawVisualizerBlueprint? blueprint;
 	public DrawVisualizerBlueprint? Blueprint {
 		get => blueprint;

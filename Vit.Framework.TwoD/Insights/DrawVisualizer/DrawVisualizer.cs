@@ -3,6 +3,7 @@ using Vit.Framework.Input.Events;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Input.Events;
 using Vit.Framework.TwoD.UI.Layout;
@@ -32,12 +33,12 @@ public class DrawVisualizer : LayoutContainer, IGlobalKeyBindingHandler<Input.Ke
 			AutoSizeDirection = LayoutDirection.Horizontal,
 			Content = new LayoutContainer {
 				AutoSizeDirection = LayoutDirection.Horizontal,
-				LayoutChildren = new (UIComponent, LayoutParams)[] {
+				LayoutChildren = new ParametrizedChildData<UIComponent, LayoutParams>[] {
 					(new Box { Tint = FrameworkUIScheme.Background }, new() { Size = new(1f.Relative()) }),
 					(new FlowContainer() {
 						AutoSizeDirection = LayoutDirection.Horizontal,
 						FlowDirection = FlowDirection.Right,
-						LayoutChildren = new (UIComponent, FlowParams)[] {
+						LayoutChildren = new ParametrizedChildData<UIComponent, FlowParams>[] {
 							(hierarchy = new(), new() {
 								Size = new() {
 									Base = new( 800, 1f.Relative() )

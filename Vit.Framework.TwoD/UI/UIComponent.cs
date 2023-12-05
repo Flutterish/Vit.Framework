@@ -11,6 +11,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.Timing;
 using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Input.Events;
 
 namespace Vit.Framework.TwoD.UI;

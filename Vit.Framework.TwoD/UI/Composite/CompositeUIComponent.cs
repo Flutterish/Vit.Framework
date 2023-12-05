@@ -1,4 +1,6 @@
-﻿using Vit.Framework.DependencyInjection;
+﻿using System.Collections;
+using System.Runtime.InteropServices;
+using Vit.Framework.DependencyInjection;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Specialisation;
 using Vit.Framework.Hierarchy;
@@ -9,23 +11,32 @@ using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Masking;
 
-namespace Vit.Framework.TwoD.UI;
+namespace Vit.Framework.TwoD.UI.Composite;
 
-public abstract class CompositeUIComponent : CompositeUIComponent<UIComponent> { }
-public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUIComponent<T> where T : UIComponent {
-	List<T> internalChildren = new();
-	public IReadOnlyList<T> Children {
+public abstract class CompositeUIComponent<TChild, TChildData> : UIComponent, IReadOnlyList<TChild>, ICompositeUIComponent<TChild> 
+	where TChild : UIComponent 
+	where TChildData : struct, IChildData<TChild>
+{
+	List<TChildData> internalChildren = new();
+	public IReadOnlyList<TChild> Children {
+		get => this;
+	}
+
+	protected IReadOnlyList<TChildData> InternalChildren {
 		get => internalChildren;
-		protected init {
+		init {
 			foreach ( var i in value )
 				AddInternalChild( i );
 		}
 	}
 
-	public T InternalChild {
+	protected TChildData InternalChild {
 		get => internalChildren.Single();
-		protected init => AddInternalChild( value );
+		init => AddInternalChild( value );
 	}
+
+	protected ref TChildData ChildDataAt ( int index )
+		=> ref CollectionsMarshal.AsSpan( internalChildren )[index];
 
 	public IReadOnlyDependencyCache Dependencies { get; private set; } = null!;
 
@@ -92,75 +103,75 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		if ( !IsVisible )
 			return;
 
-		if ( IsMaskingActive ) {
-			maskingBounds = maskingBounds.Intersect( ScreenSpaceQuad.BoundingBox );
-		}
+		if ( IsMaskingActive ) maskingBounds = maskingBounds.Intersect( ScreenSpaceQuad.BoundingBox );
 
 		foreach ( var i in Children ) {
 			i.UpdateMasking( maskingBounds );
 		}
 	}
 
-	protected void AddInternalChild ( T child ) {
+	protected void AddInternalChild ( TChildData data ) {
+		var child = data.Child;
 		if ( child.Parent != null )
 			throw new InvalidOperationException( "Components may only have 1 parent" );
 
 		child.Parent = this;
 		child.Depth = internalChildren.Count;
-		internalChildren.Add( child );
+		internalChildren.Add( data );
 		if ( IsLoaded )
 			child.Load( Dependencies );
 		onChildAdded( child );
 	}
-	protected void InsertInternalChild ( int index, T child ) {
+	protected void InsertInternalChild ( int index, TChildData data ) {
+		var child = data.Child;
 		if ( child.Parent != null )
 			throw new InvalidOperationException( "Components may only have 1 parent" );
 
 		child.Parent = this;
 		child.Depth = index;
 		for ( int i = index; i < internalChildren.Count; i++ ) {
-			internalChildren[i].Depth++;
+			internalChildren[i].Child.Depth++;
 		}
-		internalChildren.Insert( index, child );
+		internalChildren.Insert( index, data );
 		if ( IsLoaded )
 			child.Load( Dependencies );
 		onChildAdded( child );
 	}
 
-	protected void RemoveInternalChild ( T child ) {
+	protected void RemoveInternalChild ( TChild child ) {
 		var index = child.Depth;
-		if ( internalChildren[index] != child )
+		if ( internalChildren[index].Child != child )
 			throw new InvalidOperationException( "Child does not belong to this parent" );
 
 		RemoveInternalChildAt( index );
 	}
 	protected void RemoveInternalChildAt ( int index ) {
-		var child = internalChildren[index];
+		var child = internalChildren[index].Child;
 
 		child.Parent = null;
 		internalChildren.RemoveAt( index );
 		for ( int i = index; i < internalChildren.Count; i++ ) {
-			internalChildren[i].Depth--;
+			internalChildren[i].Child.Depth--;
 		}
 		if ( child.IsLoaded )
 			child.Unload();
 		onChildRemoved( child );
 	}
 
-	protected void NoUnloadRemoveInternalChild ( T child ) {
+	protected void NoUnloadRemoveInternalChild ( TChild child ) {
 		var index = child.Depth;
-		if ( internalChildren[index] != child )
+		if ( internalChildren[index].Child != child )
 			throw new InvalidOperationException( "Child does not belong to this parent" );
 
 		NoUnloadRemoveInternalChildAt( index );
 	}
 	protected void NoUnloadRemoveInternalChildAt ( int index ) {
-		var child = internalChildren[index];
+		var child = internalChildren[index].Child;
 
 		child.Parent = null;
 		internalChildren.RemoveAt( index );
 		for ( int i = index; i < internalChildren.Count; i++ ) {
-			internalChildren[i].Depth--;
+			internalChildren[i].Child.Depth--;
 		}
 		onChildRemoved( child );
 	}
@@ -179,13 +190,13 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 
 	protected void DisposeInternalChildren ( RenderThreadScheduler disposeScheduler ) {
 		while ( internalChildren.Count != 0 ) {
-			var child = internalChildren[^1];
+			var child = internalChildren[^1].Child;
 			RemoveInternalChildAt( internalChildren.Count - 1 );
 			child.Dispose( disposeScheduler );
 		}
 	}
 
-	void onChildAdded ( T child ) {
+	void onChildAdded ( TChild child ) {
 		child.EventHandlerAdded += onChildEventHandlerAdded;
 		child.EventHandlerRemoved += onChildEventHandlerRemoved;
 		foreach ( var (type, tree) in child.HandledEventTypes ) {
@@ -196,7 +207,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		invalidateDrawNodes();
 	}
 
-	void onChildRemoved ( T child ) {
+	void onChildRemoved ( TChild child ) {
 		child.EventHandlerAdded -= onChildEventHandlerAdded;
 		child.EventHandlerRemoved -= onChildEventHandlerRemoved;
 		foreach ( var (type, tree) in child.HandledEventTypes ) {
@@ -241,12 +252,12 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		maskingData = dependencies.Resolve<MaskingDataBuffer>();
 		Dependencies = CreateDependencies( dependencies );
 		foreach ( var i in internalChildren ) {
-			i.Load( Dependencies );
+			i.Child.Load( Dependencies );
 		}
 	}
 	protected override void OnUnload () {
-		foreach ( var i in internalChildren.Reverse<T>() ) {
-			i.Unload();
+		foreach ( var i in internalChildren.Reverse<TChildData>() ) {
+			i.Child.Unload();
 		}
 		Dependencies = null!;
 	}
@@ -258,14 +269,14 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 
 	void updateSubtree () {
 		foreach ( var i in internalChildren ) {
-			i.Update();
+			i.Child.Update();
 		}
 	}
 
 	protected override void OnMatrixInvalidated () {
 		base.OnMatrixInvalidated();
 		foreach ( var i in internalChildren ) {
-			i.OnParentMatrixInvalidated();
+			i.Child.OnParentMatrixInvalidated();
 		}
 	}
 
@@ -274,9 +285,7 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 	}
 
 	protected sealed override void PerformLayout () {
-		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Self ) ) {
-			PerformSelfLayout();
-		}
+		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Self ) ) PerformSelfLayout();
 		if ( LayoutInvalidations.HasFlag( LayoutInvalidations.Children ) ) {
 			foreach ( var i in Children ) {
 				i.ComputeLayout();
@@ -286,8 +295,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 
 	protected virtual void PerformSelfLayout () { }
 
-	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildAdded;
-	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<T>, T>? ChildRemoved;
+	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<TChild>, TChild>? ChildAdded;
+	public event HierarchyObserver.ChildObserver<ICompositeUIComponent<TChild>, TChild>? ChildRemoved;
 
 	void invalidateDrawNodes () {
 		if ( drawNodeInvalidations.InvalidateDrawNodes() )
@@ -332,8 +341,8 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 
 	MaskingDataBuffer maskingData = null!;
 	public class MaskingDrawNode<TSpecialisation> : DrawNode where TSpecialisation : unmanaged, IRendererSpecialisation {
-		protected readonly CompositeUIComponent<T> Source;
-		public MaskingDrawNode ( CompositeUIComponent<T> source, int subtreeIndex ) : base( subtreeIndex ) {
+		protected readonly CompositeUIComponent<TChild, TChildData> Source;
+		public MaskingDrawNode ( CompositeUIComponent<TChild, TChildData> source, int subtreeIndex ) : base( subtreeIndex ) {
 			Source = source;
 		}
 
@@ -375,11 +384,28 @@ public abstract class CompositeUIComponent<T> : UIComponent, ICompositeUICompone
 		}
 	}
 
-	public IReadOnlyList<IHasDrawNodes<Rendering.DrawNode>> CompositeDrawNodeSources => internalChildren;
 	string IViewableInDrawVisualiser.Name => $"{GetType().Name} ({Size}) [{Children.Count} Child{(Children.Count == 1 ? "" : "ren")}]";
 
 	public override string ToString () {
 		return $"{GetType().Name} ({Size}) [{Children.Count} Child{(Children.Count == 1 ? "" : "ren")}]";
+	}
+
+	TChild IReadOnlyList<TChild>.this[int index] => internalChildren[index].Child;
+
+	int IReadOnlyCollection<TChild>.Count => internalChildren.Count;
+
+	IEnumerator<TChild> IEnumerable<TChild>.GetEnumerator () {
+		var count = internalChildren.Count;
+		for ( int i = 0; i < count; i++ ) {
+			yield return internalChildren[i].Child;
+		}
+	}
+
+	IEnumerator IEnumerable.GetEnumerator () {
+		var count = internalChildren.Count;
+		for ( int i = 0; i < count; i++ ) {
+			yield return internalChildren[i].Child;
+		}
 	}
 }
 

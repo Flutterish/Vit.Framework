@@ -2,12 +2,23 @@
 using Vit.Framework.TwoD.Rendering;
 using Vit.Framework.TwoD.Rendering.Masking;
 
-namespace Vit.Framework.TwoD.UI;
+namespace Vit.Framework.TwoD.UI.Composite;
 
-public class Container<T> : CompositeUIComponent<T> where T : UIComponent {
+public class Container : Container<UIComponent> { }
+public class Container<T> : CompositeUIComponent<T, ContainerChildData<T>> where T : UIComponent {
 	new public IReadOnlyList<T> Children {
-		get => base.Children;
-		init => base.Children = value;
+		get => this;
+		init {
+			foreach ( var i in value )
+				AddInternalChild( i );
+		}
+	}
+	public IEnumerable<T> ChildrenEnumerable {
+		get => this;
+		init {
+			foreach ( var i in value )
+				AddInternalChild( i );
+		}
 	}
 
 	public void AddChild ( T child ) {
@@ -43,17 +54,17 @@ public class Container<T> : CompositeUIComponent<T> where T : UIComponent {
 		DisposeInternalChildren( disposeScheduler );
 	}
 
-	/// <inheritdoc cref="CompositeUIComponent{T}.IsMaskingActive"/>
+	/// <inheritdoc cref="InternalContainer{T}.IsMaskingActive"/>
 	new public bool IsMaskingActive {
 		get => base.IsMaskingActive;
 		set => base.IsMaskingActive = value;
 	}
-	/// <inheritdoc cref="CompositeUIComponent{T}.CornerExponents"/>
+	/// <inheritdoc cref="InternalContainer{T}.CornerExponents"/>
 	new public Corners<float> CornerExponents {
 		get => base.CornerExponents;
 		set => base.CornerExponents = value;
 	}
-	/// <inheritdoc cref="CompositeUIComponent{T}.CornerRadii"/>
+	/// <inheritdoc cref="InternalContainer{T}.CornerRadii"/>
 	new public Corners<Axes2<float>> CornerRadii {
 		get => base.CornerRadii;
 		set => base.CornerRadii = value;

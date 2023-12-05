@@ -3,6 +3,7 @@ using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Layout;
 using Vit.Framework.TwoD.UI;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 
@@ -18,7 +19,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 		} );
 		AddChild( new LayoutContainer {
 			Padding = new( padding ),
-			LayoutChildren = new (UIComponent, LayoutParams)[] {
+			LayoutChildren = new ParametrizedChildData<UIComponent, LayoutParams>[] {
 				(new Box { Tint = ColorRgb.Green }, new() { Size = new( 1f.Relative() ) })
 			}
 		}, new() {
@@ -41,7 +42,7 @@ public class FlowContainerTest : LayoutContainer<UIComponent> {
 		for ( int i = 0; i < 30; i++ ) {
 			container.AddChild( new LayoutContainer<Visual<Sprite>> {
 				Padding = new( -margin ),
-				LayoutChildren = new (Visual<Sprite>, LayoutParams)[] {
+				LayoutChildren = new ParametrizedChildData<Visual<Sprite>, LayoutParams>[] {
 					(new Box { Tint = ColorRgb.White }, new() { Size = new( 1f.Relative() ) }),
 					(new Box { Tint = new ColorHsv<Radians<float>, float>( (i / 5f).Radians(), 1, 1 ).ToRgb() }, new() {
 						Origin = Anchor.Centre,

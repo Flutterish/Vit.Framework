@@ -3,6 +3,7 @@ using Vit.Framework.Mathematics.LinearAlgebra;
 using Vit.Framework.TwoD.Graphics;
 using Vit.Framework.TwoD.Insights.DrawVisualizer;
 using Vit.Framework.TwoD.Rendering;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI;
 

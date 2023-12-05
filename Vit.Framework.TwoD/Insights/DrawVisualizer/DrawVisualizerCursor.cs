@@ -2,14 +2,14 @@
 using Vit.Framework.Graphics.Animations;
 using Vit.Framework.Mathematics;
 using Vit.Framework.TwoD.Layout;
-using Vit.Framework.TwoD.UI;
 using Vit.Framework.TwoD.UI.Animations;
+using Vit.Framework.TwoD.UI.Composite;
 using Vit.Framework.TwoD.UI.Graphics;
 using Vit.Framework.TwoD.UI.Layout;
 
 namespace Vit.Framework.TwoD.Insights.DrawVisualizer;
 
-public class DrawVisualizerCursor : CompositeUIComponent {
+public class DrawVisualizerCursor : InternalContainer {
 	BoxCursor cursor = new();
 	public DrawVisualizerCursor () {
 		AddInternalChild( cursor );

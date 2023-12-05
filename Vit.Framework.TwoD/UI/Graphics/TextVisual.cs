@@ -4,6 +4,7 @@ using Vit.Framework.Localisation;
 using Vit.Framework.Mathematics;
 using Vit.Framework.Text.Fonts;
 using Vit.Framework.TwoD.Graphics.Text;
+using Vit.Framework.TwoD.UI.Composite;
 
 namespace Vit.Framework.TwoD.UI.Graphics;
 
