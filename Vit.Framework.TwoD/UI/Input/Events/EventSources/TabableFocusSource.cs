@@ -11,14 +11,15 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 	bool isTabFocused;
 
 	public THandler? TabForward ( Millis timestamp ) {
-		return tab( timestamp, forward: true );
+		return tab( timestamp, forward: false ); // the forward is reversed because events are ordered in reverse order
 	}
 	public THandler? TabBackward ( Millis timestamp ) {
-		return tab( timestamp, forward: false );
+		return tab( timestamp, forward: true );
 	}
 
 	THandler? tab ( Millis timestamp, bool forward ) {
-		if ( currentTabIndex != null && isTabFocused ) currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
+		if ( currentTabIndex != null && isTabFocused ) 
+			currentTabIndex = forward ? currentTabIndex.NextWithHandler : currentTabIndex.PreviousWithHandler;
 
 		if ( currentTabIndex == null ) {
 			if ( !Root.HandledEventTypes.TryGetValue( typeof( TabbedOverEvent ), out var tabTree ) )
@@ -59,15 +60,14 @@ public class TabableFocusSource<THandler> where THandler : class, IHasEventTrees
 public static class TabFocusExtensions {
 	public static void FindClosestTabIndex<THandler> ( this TabableFocusSource<THandler> @this, THandler? element ) where THandler : class, IHasEventTrees<THandler>, IComponent<THandler> {
 		while ( element != null ) {
-			if ( element.HandledEventTypes.TryGetValue( typeof( TabbedOverEvent ), out var tabIndex ) ) {
-				if ( tabIndex.Handler == null )
-					@this.SetTabIndex( tabIndex.NextWithHandler ?? tabIndex.PreviousWithHandler );
-				else
-					@this.SetTabIndex( tabIndex );
+			if ( element.HandledEventTypes.TryGetValue( typeof( TabbedOverEvent ), out var tabIndex ) && tabIndex.Handler != null ) {
+				@this.SetTabIndex( tabIndex );
 				return;
 			}
 
 			element = (THandler?)element.Parent;
 		}
+
+		@this.SetTabIndex( null );
 	}
 }
