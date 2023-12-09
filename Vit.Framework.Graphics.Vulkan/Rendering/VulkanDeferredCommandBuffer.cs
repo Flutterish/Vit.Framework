@@ -37,62 +37,62 @@ public class VulkanDeferredCommandBuffer : BasicCommandBuffer<VulkanRenderer, Fr
 		Buffer.FinishRenderPass();
 	}
 
-	public unsafe override void ClearColor<T> ( T _color ) {
+	VkClearValue colorClearValue;
+	public unsafe override void SetClearColor<T> ( T _color ) {
 		var span = _color.AsSpan();
-		var value = new VkClearValue() {
-			color = new(
-				span.Length >= 1 ? span[0] : 0,
-				span.Length >= 2 ? span[1] : 0,
-				span.Length >= 3 ? span[2] : 0,
-				span.Length >= 4 ? span[3] : 1
-			)
-		};
-
-		VkClearAttachment attachment = new() {
-			aspectMask = VkImageAspectFlags.Color,
-			clearValue = value,
-			colorAttachment = 0
-		};
-		VkClearRect rect = new() {
-			baseArrayLayer = 0,
-			layerCount = 1,
-			rect = { extent = Framebuffer!.Size }
-		};
-		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
+		colorClearValue.color = new(
+			span.Length >= 1 ? span[0] : 0,
+			span.Length >= 2 ? span[1] : 0,
+			span.Length >= 3 ? span[2] : 0,
+			span.Length >= 4 ? span[3] : 1
+		);
 	}
 
-	public unsafe override void ClearDepth ( float depth ) {
-		var value = new VkClearValue() {
-			depthStencil = new( depth, 0 )
-		};
-
-		VkClearAttachment attachment = new() {
-			aspectMask = VkImageAspectFlags.Depth,
-			clearValue = value
-		};
-		VkClearRect rect = new() {
-			baseArrayLayer = 0,
-			layerCount = 1,
-			rect = { extent = Framebuffer!.Size }
-		};
-		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
+	VkClearValue depthStencilClearValue;
+	public unsafe override void SetClearDepth ( float depth ) {
+		depthStencilClearValue.depthStencil.depth = depth;
 	}
 
-	public unsafe override void ClearStencil ( uint stencil ) {
-		var value = new VkClearValue() {
-			depthStencil = new( 0, stencil )
-		};
+	public unsafe override void SetClearStencil ( uint stencil ) {
+		depthStencilClearValue.depthStencil.stencil = stencil;
+	}
 
-		VkClearAttachment attachment = new() {
-			aspectMask = VkImageAspectFlags.Stencil,
-			clearValue = value
-		};
+	public unsafe override void Clear ( ClearFlags flags ) {
+		uint count = 0;
 		VkClearRect rect = new() {
 			baseArrayLayer = 0,
 			layerCount = 1,
 			rect = { extent = Framebuffer!.Size }
 		};
-		Vk.vkCmdClearAttachments( Buffer, 1, &attachment, 1, &rect );
+		VkClearAttachment* attachments = stackalloc VkClearAttachment[2];
+
+		if ( flags.HasFlag( ClearFlags.Color ) ) {
+			attachments[count] = new() {
+				aspectMask = VkImageAspectFlags.Color,
+				clearValue = colorClearValue,
+				colorAttachment = 0
+			};
+			count++;
+		}
+		if ( (flags & (ClearFlags.Depth | ClearFlags.Stencil)) != 0 ) {
+			VkImageAspectFlags mask;
+			if ( flags.HasFlag( ClearFlags.Depth ) ) {
+				mask = VkImageAspectFlags.Depth;
+				if ( flags.HasFlag( ClearFlags.Stencil ) )
+					mask |= VkImageAspectFlags.Stencil;
+			}
+			else {
+				mask = VkImageAspectFlags.Stencil;
+			}
+			attachments[count] = new() {
+				aspectMask = mask,
+				clearValue = depthStencilClearValue,
+				colorAttachment = 0
+			};
+			count++;
+		}
+
+		Vk.vkCmdClearAttachments( Buffer, count, attachments, 1, &rect );
 	}
 
 	protected override unsafe void CopyTexture ( IVulkanTexture source, IVulkanTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

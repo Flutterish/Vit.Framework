@@ -135,12 +135,13 @@ public class Test06_Framebuffers : GenericRenderThread {
 	bool even = true;
 	protected override void Render ( IFramebuffer windowFramebuffer, ICommandBuffer commands ) {
 		using ( commands.RenderTo( framebuffer ) ) {
-			commands.ClearColor( new ColorHsv<Radians<float>, float> {
+			commands.SetClearColor( new ColorHsv<Radians<float>, float> {
 				H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
 				S = 1,
 				V = 1
 			}.ToRgb().ToSRgb() );
-			commands.ClearDepth( 1 );
+			commands.SetClearDepth( 1 );
+			commands.Clear( ClearFlags.Color | ClearFlags.Depth );
 
 			shaderSet.SetUniformSet( uniformSet );
 			commands.SetShaders( shaderSet );
@@ -164,12 +165,13 @@ public class Test06_Framebuffers : GenericRenderThread {
 		}
 
 		using ( commands.RenderTo( windowFramebuffer ) ) {
-			commands.ClearColor( new ColorHsv<Radians<float>, float> {
+			commands.SetClearColor( new ColorHsv<Radians<float>, float> {
 				H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
 				S = 1,
 				V = 1
 			}.ToRgb().ToSRgb() );
-			commands.ClearDepth( 1 );
+			commands.SetClearDepth( 1 );
+			commands.Clear( ClearFlags.Color | ClearFlags.Depth );
 
 			shaderSet.SetUniformSet( uniformSet2 );
 			commands.SetShaders( shaderSet );

@@ -12,6 +12,7 @@ public class Test00_ClearScreen : GenericRenderThread {
 
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
 		using var _ = commands.RenderTo( framebuffer );
-		commands.ClearColor( ColorSRgba.HotPink );
+		commands.SetClearColor( ColorSRgba.HotPink );
+		commands.Clear( ClearFlags.Color );
 	}
 }

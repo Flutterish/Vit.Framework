@@ -127,9 +127,10 @@ public abstract partial class Basic2DApp {
 			BeforeRender();
 			using ( var commands = Swapchain.CreateImmediateCommandBufferForPresentation() ) {
 				using var _ = commands.RenderTo( frame );
-				commands.ClearColor( ColorSRgba.Blue );
-				commands.ClearDepth( 1 );
-				commands.ClearStencil( 0 );
+				commands.SetClearColor( ColorSRgba.Blue );
+				commands.SetClearDepth( 1 );
+				commands.SetClearStencil( 0 );
+				commands.Clear( ClearFlags.Color | ClearFlags.Depth | ClearFlags.Stencil );
 
 				commands.SetTopology( Topology.Triangles );
 				commands.SetBlending( BlendState.PremultipliedAlpha );

@@ -40,32 +40,50 @@ public class Direct3D11ImmediateCommandBuffer : BasicCommandBuffer<Direct3D11Ren
 		);
 	}
 
-	public override void ClearColor<T> ( T color ) {
+	Color4 clearColor;
+	public override void SetClearColor<T> ( T color ) {
 		var span = color.AsSpan();
-		Color4 _color = new(
+		clearColor = new(
 			red: span.Length >= 1 ? span[0] : 0,
 			green: span.Length >= 2 ? span[1] : 0,
 			blue: span.Length >= 3 ? span[2] : 0,
 			alpha: span.Length >= 4 ? span[3] : 1
 		);
+	}
 
-		foreach ( var i in Framebuffer!.ColorAttachments ) {
-			Context.ClearRenderTargetView( i, _color );
+	float clearDepth;
+	public override void SetClearDepth ( float depth ) {
+		clearDepth = depth;
+	}
+
+	byte clearStencil;
+	public override void SetClearStencil ( uint stencil ) {
+		clearStencil = (byte)stencil;
+	}
+
+	public override void Clear ( ClearFlags flags ) {
+		if ( flags.HasFlag( ClearFlags.Color ) ) {
+			foreach ( var i in Framebuffer!.ColorAttachments ) {
+				Context.ClearRenderTargetView( i, clearColor );
+			}
 		}
-	}
 
-	public override void ClearDepth ( float depth ) {
 		if ( Framebuffer!.DepthStencil is not ID3D11DepthStencilView depthStencil )
 			return;
 
-		Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Depth, depth, 0 );
-	}
-
-	public override void ClearStencil ( uint stencil ) {
-		if ( Framebuffer!.DepthStencil is not ID3D11DepthStencilView depthStencil )
-			return;
-
-		Context.ClearDepthStencilView( depthStencil, DepthStencilClearFlags.Stencil, 0, (byte)stencil );
+		if ( (flags & (ClearFlags.Depth | ClearFlags.Stencil)) != 0 ) {
+			DepthStencilClearFlags mask;
+			if ( flags.HasFlag( ClearFlags.Depth ) ) {
+				mask = DepthStencilClearFlags.Depth;
+				if ( flags.HasFlag( ClearFlags.Stencil ) ) {
+					mask |= DepthStencilClearFlags.Stencil;
+				}
+			}
+			else {
+				mask = DepthStencilClearFlags.Stencil;
+			}
+			Context.ClearDepthStencilView( depthStencil, mask, clearDepth, clearStencil );
+		}
 	}
 
 	protected override void CopyTexture ( Texture2D source, Texture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

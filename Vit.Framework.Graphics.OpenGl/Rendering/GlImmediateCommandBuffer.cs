@@ -31,8 +31,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 		GL.BindFramebuffer( FramebufferTarget.DrawFramebuffer, currentFrameBuffer = previousFrameBuffer );
 	}
 
-	public override void ClearColor<T> ( T color ) {
-		GL.Disable( EnableCap.ScissorTest );
+	public override void SetClearColor<T> ( T color ) {
 		var span = color.AsSpan();
 		GL.ClearColor(
 			span.Length >= 1 ? span[0] : 0,
@@ -40,21 +39,26 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 			span.Length >= 3 ? span[2] : 0,
 			span.Length >= 4 ? span[3] : 1
 		);
-		GL.Clear( ClearBufferMask.ColorBufferBit );
-		GL.Enable( EnableCap.ScissorTest );
 	}
 
-	public override void ClearDepth ( float depth ) {
-		GL.Disable( EnableCap.ScissorTest );
+	public override void SetClearDepth ( float depth ) {
 		GL.ClearDepth( depth );
-		GL.Clear( ClearBufferMask.DepthBufferBit );
-		GL.Enable( EnableCap.ScissorTest );
 	}
 
-	public override void ClearStencil ( uint stencil ) {
-		GL.Disable( EnableCap.ScissorTest );
+	public override void SetClearStencil ( uint stencil ) {
 		GL.ClearStencil( (int)stencil );
-		GL.Clear( ClearBufferMask.StencilBufferBit );
+	}
+
+	public override void Clear ( ClearFlags flags ) {
+		GL.Disable( EnableCap.ScissorTest );
+		ClearBufferMask mask = 0;
+		if ( flags.HasFlag( ClearFlags.Color ) )
+			mask |= ClearBufferMask.ColorBufferBit;
+		if ( flags.HasFlag( ClearFlags.Depth ) )
+			mask |= ClearBufferMask.DepthBufferBit;
+		if ( flags.HasFlag( ClearFlags.Stencil ) )
+			mask |= ClearBufferMask.StencilBufferBit;
+		GL.Clear( mask );
 		GL.Enable( EnableCap.ScissorTest );
 	}
 

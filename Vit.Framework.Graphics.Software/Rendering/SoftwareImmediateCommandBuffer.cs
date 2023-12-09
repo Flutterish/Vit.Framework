@@ -20,7 +20,8 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 
 	protected override void FinishRendering () { }
 
-	public override void ClearColor<T> ( T color ) {
+	public override void SetClearColor<T> ( T color ) {
+		throw new NotImplementedException();
 		var span = color.AsSpan();
 		Framebuffer!.AsSpan().Fill( new(
 			r: span.Length >= 1 ? span[0] : 0,
@@ -30,17 +31,23 @@ public class SoftwareImmadiateCommandBuffer : BasicCommandBuffer<SoftwareRendere
 		) );
 	}
 
-	public override void ClearDepth ( float depth ) {
+	public override void SetClearDepth ( float depth ) {
+		throw new NotImplementedException();
 		foreach ( ref var i in Framebuffer!.DepthStencilAsSpan() ) {
 			i.Depth = depth;
 		}
 	}
 
-	public override void ClearStencil ( uint _stencil ) {
+	public override void SetClearStencil ( uint _stencil ) {
+		throw new NotImplementedException();
 		var stencil = (byte)_stencil;
 		foreach ( ref var i in Framebuffer!.DepthStencilAsSpan() ) {
 			i.Stencil = stencil;
 		}
+	}
+
+	public override void Clear ( ClearFlags flags ) {
+		throw new NotImplementedException();
 	}
 
 	protected override void CopyTexture ( ISoftwareTexture source, ISoftwareTexture destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {

@@ -22,18 +22,23 @@ public interface ICommandBuffer {
 	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer );
 
 	/// <summary>
-	/// Clears the color of the whole render target.
+	/// Sets the clear color used by <see cref="Clear(ClearFlags)"/>.
 	/// </summary>
-	void ClearColor<T> ( T color ) where T : IUnlabelledColor<float>; // TODO these may be combined into one operation
+	void SetClearColor<T> ( T color ) where T : IUnlabelledColor<float>; // TODO these may be combined into one operation
 	/// <summary>
-	/// Clears the depth of the whole render target.
+	/// Sets the clear depth used by <see cref="Clear(ClearFlags)"/>.
 	/// </summary>
-	void ClearDepth ( float depth );
+	void SetClearDepth ( float depth );
 	/// <summary>
-	/// Clears the stencil of the whole render target.
+	/// Sets the clear stencil used by <see cref="Clear(ClearFlags)"/>.
 	/// </summary>
-	void ClearStencil ( uint stencil );
+	void SetClearStencil ( uint stencil );
 
+	/// <summary>
+	/// Clears the whole render target.
+	/// </summary>
+	/// <param name="flags">The parts of the render target to clear</param>
+	void Clear ( ClearFlags flags );
 
 	/// <summary>
 	/// Copies data from one texture to another.
@@ -261,9 +266,10 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	protected abstract void RenderTo ( TFramebuffer framebuffer );
 	protected abstract void FinishRendering ();
 
-	public abstract void ClearColor<T> ( T color ) where T : IUnlabelledColor<float>;
-	public abstract void ClearDepth ( float depth );
-	public abstract void ClearStencil ( uint stencil );
+	public abstract void SetClearColor<T> ( T color ) where T : IUnlabelledColor<float>;
+	public abstract void SetClearDepth ( float depth );
+	public abstract void SetClearStencil ( uint stencil );
+	public abstract void Clear ( ClearFlags flags );
 
 	public abstract void CopyBufferRaw ( IBuffer source, IBuffer destination, uint length, uint sourceOffset = 0, uint destinationOffset = 0 );
 

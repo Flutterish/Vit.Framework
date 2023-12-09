@@ -176,7 +176,8 @@ public class SpriteFontPage : IDisposable { // TODO maybe we should also use a t
 		commands.SetTopology( Topology.Triangles );
 		commands.SetViewport( size );
 		commands.SetScissors( size );
-		commands.ClearColor( ColorSRgba.Transparent );
+		commands.SetClearColor( ColorSRgba.Transparent );
+		commands.Clear( ClearFlags.Color );
 		commands.SetDepthTest( new() { IsEnabled = false }, new() { WriteOnPass = false } );
 
 		void renderOutline ( IEnumerable<Spline2<double>> outline, AxisAlignedBox2<double> glyphBounds, AxisAlignedBox2<float> bounds, ColorSRgba<float> color ) {

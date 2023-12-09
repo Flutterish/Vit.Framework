@@ -103,12 +103,13 @@ public class Test04_Samplers : GenericRenderThread {
 	DateTime start = DateTime.Now;
 	protected override void Render ( IFramebuffer framebuffer, ICommandBuffer commands ) {
 		using var _ = commands.RenderTo( framebuffer );
-		commands.ClearColor( new ColorHsv<Radians<float>, float> {
+		commands.SetClearColor( new ColorHsv<Radians<float>, float> {
 			H = ((float)(DateTime.Now - start).TotalSeconds).Radians(),
 			S = 1,
 			V = 1
 		}.ToRgb().ToSRgb() );
-		commands.ClearDepth( 1 );
+		commands.SetClearDepth( 1 );
+		commands.Clear( ClearFlags.Color | ClearFlags.Depth );
 
 		commands.SetShaders( shaderSet );
 		commands.SetViewport( Swapchain.BackbufferSize );
