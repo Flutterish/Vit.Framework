@@ -10,19 +10,30 @@ public class StagingBuffer<T> : DisposableObject, IStagingBuffer<T>, ID3D11Buffe
 	public readonly ID3D11DeviceContext Context;
 	public ID3D11Buffer Handle { get; private set; }
 	public ID3D11ShaderResourceView? ResourceView => null;
-	public StagingBuffer ( ID3D11Device device, ID3D11DeviceContext context, uint size ) {
+	public StagingBuffer ( ID3D11Device device, ID3D11DeviceContext context, uint size, BufferUsage usage ) {
 		Device = device;
 		Context = context;
+
+		CpuAccessFlags flags = 0;
+		MapMode mapMode = 0;
+		if ( usage.HasFlag( BufferUsage.CpuRead ) ) {
+			flags |= CpuAccessFlags.Read;
+			mapMode |= MapMode.Read;
+		}
+		if ( usage.HasFlag( BufferUsage.CpuWrite ) ) {
+			flags |= CpuAccessFlags.Write;
+			mapMode |= MapMode.Write;
+		}
 
 		Device.CreateBuffer( new BufferDescription {
 			ByteWidth = (int)size,
 			Usage = ResourceUsage.Staging,
 			BindFlags = BindFlags.None,
-			CPUAccessFlags = CpuAccessFlags.Write
+			CPUAccessFlags = flags
 		}, null, out var handle ).Validate();
 		Handle = handle;
 
-		data = Context.Map( handle, MapMode.Write );
+		data = Context.Map( handle, mapMode );
 	}
 
 	MappedSubresource data;

@@ -47,7 +47,7 @@ public class GlRenderer : IRenderer {
 			BufferType.Uniform => BufferTarget.UniformBuffer,
 			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
-		} );
+		}, usage );
 	}
 
 	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
@@ -57,11 +57,11 @@ public class GlRenderer : IRenderer {
 			BufferType.Uniform => BufferTarget.UniformBuffer,
 			BufferType.ReadonlyStorage => BufferTarget.ShaderStorageBuffer,
 			_ => throw new ArgumentException( $"Unsupported buffer type: {type}", nameof( type ) )
-		} );
+		}, usage );
 	}
 
 	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
-		return new HostBuffer<T>( size, BufferTarget.CopyReadBuffer );
+		return new HostBuffer<T>( size, BufferTarget.CopyReadBuffer, usage );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) {

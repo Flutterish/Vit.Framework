@@ -86,12 +86,12 @@ public class Test06_Framebuffers : GenericRenderThread {
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-		positions = new( Renderer, (uint)model.Vertices.Count, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices = new( Renderer, indexCount = (uint)model.Indices.Count, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		positions2 = new( Renderer, 4, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices2 = new( Renderer, 6, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer2 = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions = new( Renderer, (uint)model.Vertices.Count, BufferType.Vertex );
+		indices = new( Renderer, indexCount = (uint)model.Indices.Count, BufferType.Index );
+		positions2 = new( Renderer, 4, BufferType.Vertex );
+		indices2 = new( Renderer, 6, BufferType.Index );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
+		uniformBuffer2 = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );

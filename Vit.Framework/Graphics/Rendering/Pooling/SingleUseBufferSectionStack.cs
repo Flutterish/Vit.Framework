@@ -11,30 +11,29 @@ public class SingleUseBufferSectionStack : IDisposable {
 	IRenderer Renderer = null!;
 	public SingleUseBufferSectionStack ( uint bufferLength ) {
 		BufferLength = bufferLength;
-
-		stagingBuffers = new( bufferLength, length => {
-			return Renderer.CreateStagingBuffer<byte>( length, BufferUsage.GpuRead | BufferUsage.CpuWrite );
-		} );
 	}
 
 	public void Initialize ( IRenderer renderer ) {
 		Renderer = renderer;
 	}
 
-	Dictionary<BufferType, Buffers> buffersByType = new();
-	AllocationStack<IStagingBuffer> stagingBuffers;
+	Dictionary<(BufferType, BufferUsage), Buffers> buffersByType = new();
 	struct Buffers {
-		public Buffers ( SingleUseBufferSectionStack stack, BufferType type ) {
+		public Buffers ( SingleUseBufferSectionStack stack, BufferType type, BufferUsage usage ) {
 			DeviceBuffers = new( stack.BufferLength, length => {
-				return stack.Renderer.CreateDeviceBuffer<byte>( length, type, BufferUsage.GpuRead | BufferUsage.GpuWrite );
+				return stack.Renderer.CreateDeviceBuffer<byte>( length, type, usage );
 			} );
 			HostBuffers = new( stack.BufferLength, length => {
-				return stack.Renderer.CreateHostBuffer<byte>( length, type, BufferUsage.GpuRead | BufferUsage.CpuWrite );
+				return stack.Renderer.CreateHostBuffer<byte>( length, type, usage );
+			} );
+			StagingBuffers = new( stack.BufferLength, length => {
+				return stack.Renderer.CreateStagingBuffer<byte>( length, usage );
 			} );
 		}
 
 		public AllocationStack<IDeviceBuffer> DeviceBuffers;
 		public AllocationStack<IHostBuffer> HostBuffers;
+		public AllocationStack<IStagingBuffer> StagingBuffers;
 	}
 
 	public struct Allocation<TBuffer, T> : IBufferSection<TBuffer, T> where TBuffer : IBuffer where T : unmanaged {
@@ -46,19 +45,23 @@ public class SingleUseBufferSectionStack : IDisposable {
 		readonly uint IBufferSection<TBuffer>.ByteOffset => Offset;
 		readonly uint IBufferSection<TBuffer>.ByteLength => Length;
 	}
-	public Allocation<IStagingBuffer, T> AllocateStagingBuffer<T> ( uint length ) where T : unmanaged {
-		return stagingBuffers.Allocate<T>( length );
+	public Allocation<IStagingBuffer, T> AllocateStagingBuffer<T> ( uint length, BufferUsage usage = BufferUsage.CpuWrite | BufferUsage.CopySource ) where T : unmanaged {
+		if ( !buffersByType.TryGetValue( (0, usage), out var buffers ) ) {
+			buffersByType.Add( (0, usage), buffers = new( this, 0, usage ) );
+		}
+
+		return buffers.StagingBuffers.Allocate<T>( length );
 	}
-	public Allocation<IHostBuffer, T> AllocateHostBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
-		if ( !buffersByType.TryGetValue( type, out var buffers ) ) {
-			buffersByType.Add( type, buffers = new( this, type ) );
+	public Allocation<IHostBuffer, T> AllocateHostBuffer<T> ( uint length, BufferType type, BufferUsage usage = BufferUsage.Default ) where T : unmanaged {
+		if ( !buffersByType.TryGetValue( (type, usage), out var buffers ) ) {
+			buffersByType.Add( (type, usage), buffers = new( this, type, usage ) );
 		}
 
 		return buffers.HostBuffers.Allocate<T>( length );
 	}
-	public Allocation<IDeviceBuffer, T> AllocateDeviceBuffer<T> ( uint length, BufferType type ) where T : unmanaged {
-		if ( !buffersByType.TryGetValue( type, out var buffers ) ) {
-			buffersByType.Add( type, buffers = new( this, type ) );
+	public Allocation<IDeviceBuffer, T> AllocateDeviceBuffer<T> ( uint length, BufferType type, BufferUsage usage = BufferUsage.Default ) where T : unmanaged {
+		if ( !buffersByType.TryGetValue( (type, usage), out var buffers ) ) {
+			buffersByType.Add( (type, usage), buffers = new( this, type, usage ) );
 		}
 
 		return buffers.DeviceBuffers.Allocate<T>( length );
@@ -123,18 +126,18 @@ public class SingleUseBufferSectionStack : IDisposable {
 	/// Marks all buffers as free.
 	/// </summary>
 	public void EndFrame () {
-		stagingBuffers.EndFrame();
 		foreach ( var i in buffersByType.Values ) {
 			i.HostBuffers.EndFrame();
 			i.DeviceBuffers.EndFrame();
+			i.StagingBuffers.EndFrame();
 		}
 	}
 
 	public void Dispose () {
-		stagingBuffers.Dispose();
 		foreach ( var i in buffersByType.Values ) {
 			i.HostBuffers.Dispose();
 			i.DeviceBuffers.Dispose();
+			i.StagingBuffers.Dispose();
 		}
 	}
 }

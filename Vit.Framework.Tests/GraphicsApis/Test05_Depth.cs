@@ -75,9 +75,9 @@ public class Test05_Depth : GenericRenderThread {
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
 		var model = SimpleObjModel.FromLines( File.ReadLines( "./viking_room.obj" ) );
-		positions = new( Renderer, (uint)model.Vertices.Count, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices = new( Renderer, indexCount = (uint)model.Indices.Count, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions = new( Renderer, (uint)model.Vertices.Count, BufferType.Vertex );
+		indices = new( Renderer, indexCount = (uint)model.Indices.Count, BufferType.Index );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
 		using var image = Image.Load<Rgba32>( "./viking_room.png" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );

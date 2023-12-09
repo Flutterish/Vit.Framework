@@ -6,7 +6,7 @@ namespace Vit.Framework.Graphics.OpenGl.Buffers;
 
 public class DeviceBuffer<T> : DisposableObject, IDeviceBuffer<T>, IGlBuffer where T : unmanaged {
 	public int Handle { get; private set; }
-	public DeviceBuffer ( uint size, BufferTarget type ) {
+	public DeviceBuffer ( uint size, BufferTarget type, BufferUsage usage ) {
 		GL.CreateBuffers( 1, out int handle );
 		GL.NamedBufferStorage( handle, (int)size, (nint)null, BufferStorageFlags.None );
 		Handle = handle;

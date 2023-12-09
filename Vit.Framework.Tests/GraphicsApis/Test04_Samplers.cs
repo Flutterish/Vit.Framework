@@ -71,9 +71,9 @@ public class Test04_Samplers : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = new( Renderer, 4, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices = new( Renderer, 6, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions = new( Renderer, 4, BufferType.Vertex );
+		indices = new( Renderer, 6, BufferType.Index );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
 		using var image = Image.Load<Rgba32>( "./texture.jpg" );
 		image.Mutate( x => x.Flip( FlipMode.Vertical ) );
 		texture = new( image );

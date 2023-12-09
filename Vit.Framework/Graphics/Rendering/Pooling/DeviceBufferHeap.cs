@@ -21,14 +21,15 @@ public class DeviceBufferHeap : IDisposable {
 		this.renderer = renderer;
 	}
 
-	Dictionary<BufferType, List<(IDeviceBuffer buffer, DecoupledHeapAllocator allocator)>> buffersByType = new();
+	Dictionary<(BufferType, BufferUsage), List<(IDeviceBuffer buffer, DecoupledHeapAllocator allocator)>> buffersByType = new();
 	public struct Allocation<T> : IBufferSection<IDeviceBuffer, T>, IDisposable where T : unmanaged {
-		public IDeviceBuffer Buffer;
-		public uint Offset;
-		public uint Length;
-
-		public DecoupledHeapAllocator Heap;
-		public BufferType Type;
+		public required IDeviceBuffer Buffer;
+		public required uint Offset;
+		public required uint Length;
+			   
+		public required DecoupledHeapAllocator Heap;
+		public required BufferType Type;
+		public required BufferUsage Usage;
 
 		readonly IDeviceBuffer IBufferSection<IDeviceBuffer>.Buffer => Buffer;
 		readonly uint IBufferSection<IDeviceBuffer>.ByteOffset => Offset;
@@ -45,10 +46,10 @@ public class DeviceBufferHeap : IDisposable {
 		}
 	}
 
-	public Allocation<T> Allocate<T> ( BufferType type, uint length ) where T : unmanaged {
+	public Allocation<T> Allocate<T> ( BufferType type, uint length, BufferUsage usage ) where T : unmanaged {
 		length *= SizeOfHelper<T>.Size;
-		if ( !buffersByType.TryGetValue( type, out var buffers ) ) {
-			buffersByType.Add( type, buffers = new() );
+		if ( !buffersByType.TryGetValue( (type, usage), out var buffers ) ) {
+			buffersByType.Add( (type, usage), buffers = new() );
 		}
 
 		for ( int i = 0; i < buffers.Count; i++ ) {
@@ -65,18 +66,19 @@ public class DeviceBufferHeap : IDisposable {
 				Offset = (uint)allocation.Pointer,
 				Length = (uint)allocation.Bytes,
 				Heap = buffer.allocator,
-				Type = type
+				Type = type,
+				Usage = usage
 			};
 		}
 
 		while ( length > (bufferLength << buffers.Count) ) {
 			var nextBufferLength = bufferLength << buffers.Count;
-			var nextBuffer = renderer.CreateDeviceBuffer<byte>( nextBufferLength, type, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+			var nextBuffer = renderer.CreateDeviceBuffer<byte>( nextBufferLength, type, usage );
 			buffers.Add(( nextBuffer, new DecoupledHeapAllocator( nextBufferLength, expectedSize << buffers.Count ) ));
 		}
 
 		var newBufferLength = bufferLength << buffers.Count;
-		var newBuffer = renderer.CreateDeviceBuffer<byte>( newBufferLength, type, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+		var newBuffer = renderer.CreateDeviceBuffer<byte>( newBufferLength, type, usage );
 		var allocator = new DecoupledHeapAllocator( newBufferLength, expectedSize << buffers.Count );
 		buffers.Add( (newBuffer, allocator) );
 		var newAllocation = allocator.Allocate( length );
@@ -85,7 +87,8 @@ public class DeviceBufferHeap : IDisposable {
 			Offset = (uint)newAllocation.Pointer,
 			Length = (uint)newAllocation.Bytes,
 			Heap = allocator,
-			Type = type
+			Type = type,
+			Usage = usage
 		};
 	}
 
@@ -101,7 +104,7 @@ public class DeviceBufferHeap : IDisposable {
 
 		moved = true;
 		allocation.Dispose();
-		return Allocate<T>( allocation.Type, size );
+		return Allocate<T>( allocation.Type, size, allocation.Usage );
 	}
 
 	public void Dispose () {

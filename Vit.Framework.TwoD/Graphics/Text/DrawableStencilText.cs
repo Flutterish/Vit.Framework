@@ -122,7 +122,7 @@ public class DrawableStencilText : DrawableText {
 			ref var uniformSetPool = ref Source.uniformSetPool;
 			if ( uniformSet == null ) {
 				ref var uniforms = ref Source.uniforms;
-				uniforms = renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame ); // TODO no need to reallocate the uniforms
+				uniforms = renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite ); // TODO no need to reallocate the uniforms
 				(uniformSet, uniformSetPool) = shaders.CreateUniformSet( set: 1 );
 
 				uniformSet.SetUniformBuffer( uniforms, binding: 0 );
@@ -150,8 +150,8 @@ public class DrawableStencilText : DrawableText {
 				}
 			}
 
-			indices = Source.bufferHeap.Allocate<uint>( BufferType.Index, (uint)indexCount );
-			vertices = Source.bufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)vertexCount );
+			indices = Source.bufferHeap.Allocate<uint>( BufferType.Index, (uint)indexCount, BufferUsage.CopyDestination );
+			vertices = Source.bufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)vertexCount, BufferUsage.CopyDestination );
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 			copy.CopyBufferRaw( indexStaging.Buffer, indices.Buffer, indexStaging.Length, sourceOffset: indexStaging.Offset, destinationOffset: indices.Offset );

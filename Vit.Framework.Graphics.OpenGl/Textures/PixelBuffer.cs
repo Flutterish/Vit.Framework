@@ -10,7 +10,7 @@ public class PixelBuffer : HostBuffer<byte>, IStagingTexture2D, IGlTexture2D {
 	public Size2<uint> Size { get; }
 	public Graphics.Rendering.Textures.PixelFormat Format { get; }
 
-	public PixelBuffer ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) : base( sizeof( byte ) * 4 * size.Width * size.Height, BufferTarget.PixelUnpackBuffer ) {
+	public PixelBuffer ( Size2<uint> size, Graphics.Rendering.Textures.PixelFormat format ) : base( sizeof( byte ) * 4 * size.Width * size.Height, BufferTarget.PixelUnpackBuffer, Graphics.Rendering.Buffers.BufferUsage.CpuWrite | Graphics.Rendering.Buffers.BufferUsage.CopySource ) {
 		Debug.Assert( format == Graphics.Rendering.Textures.PixelFormat.Rgba8 );
 		
 		Size = size;

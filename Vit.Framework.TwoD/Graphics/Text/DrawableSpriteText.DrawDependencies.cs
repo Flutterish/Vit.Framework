@@ -33,7 +33,7 @@ public partial class DrawableSpriteText {
 			Masking = dependencies.Resolve<MaskingDataBuffer>();
 
 			UniformAllocator = new( regionSize: 256, slabSize: 1, renderer, static ( r, s ) => {
-				var buffer = r.CreateUniformHostBuffer<Uniforms>( s, BufferType.Uniform, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame | BufferUsage.CpuPerFrame );
+				var buffer = r.CreateUniformHostBuffer<Uniforms>( s, BufferType.Uniform, BufferUsage.CpuWrite );
 				return buffer;
 			} );
 
@@ -46,8 +46,8 @@ public partial class DrawableSpriteText {
 
 			UniformSetAllocator = new( Shader, set: 1, poolSize: 256 );
 
-			CornerBuffer = renderer.CreateDeviceBuffer<TextVertex.Corner>( 4, BufferType.Vertex, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
-			IndexBuffer = renderer.CreateDeviceBuffer<ushort>( 6, BufferType.Index, BufferUsage.GpuRead | BufferUsage.GpuWrite | BufferUsage.GpuPerFrame );
+			CornerBuffer = renderer.CreateDeviceBuffer<TextVertex.Corner>( 4, BufferType.Vertex, BufferUsage.CopyDestination );
+			IndexBuffer = renderer.CreateDeviceBuffer<ushort>( 6, BufferType.Index, BufferUsage.CopyDestination );
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 			var cornerStaging = SingleUseBuffers.AllocateStagingBuffer<TextVertex.Corner>( 4 );

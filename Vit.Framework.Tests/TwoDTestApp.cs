@@ -224,7 +224,7 @@ public class TwoDTestApp : Basic2DApp {
 			if ( !base.InitializeGraphics() )
 				return false;
 
-			globalUniformBuffer = Renderer.CreateUniformHostBuffer<GlobalUniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.CpuPerFrame | BufferUsage.GpuPerFrame );
+			globalUniformBuffer = Renderer.CreateUniformHostBuffer<GlobalUniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
 
 			var basic = ShaderStore.GetShader( new() {
 				Vertex = BasicVertex.Description,

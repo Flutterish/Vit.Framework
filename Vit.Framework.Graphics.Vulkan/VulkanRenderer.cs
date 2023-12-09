@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Vit.Framework.Graphics.Rendering;
 using Vit.Framework.Graphics.Rendering.Buffers;
 using Vit.Framework.Graphics.Rendering.Shaders;
@@ -60,28 +61,37 @@ public class VulkanRenderer : DisposableObject, IRenderer {
 		return new ShaderSet( parts.Select( x => (ShaderModule)x ), vertexInput );
 	}
 
-	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
-		return new HostBuffer<T>( Device, size, type switch {
+	static VkBufferUsageFlags usageFlags ( BufferUsage usage ) {
+		VkBufferUsageFlags result = 0;
+		if ( usage.HasFlag( BufferUsage.CopySource ) )
+			result |= VkBufferUsageFlags.TransferSrc;
+		if ( usage.HasFlag( BufferUsage.CopyDestination ) )
+			result |= VkBufferUsageFlags.TransferDst;
+		return result;
+	}
+
+	static VkBufferUsageFlags bufferType ( BufferType type ) {
+		return type switch {
 			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
 			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
 			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
 			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
 			_ => throw new ArgumentException( "Buffer type not supported", nameof( type ) )
-		} );
+		};
+	}
+
+	public IHostBuffer<T> CreateHostBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
+		return new HostBuffer<T>( Device, size, usageFlags(usage) | bufferType( type ) );
 	}
 
 	public IDeviceBuffer<T> CreateDeviceBufferRaw<T> ( uint size, BufferType type, BufferUsage usage ) where T : unmanaged {
-		return new DeviceBuffer<T>( Device, size, type switch {
-			BufferType.Vertex => VkBufferUsageFlags.VertexBuffer,
-			BufferType.Index => VkBufferUsageFlags.IndexBuffer,
-			BufferType.Uniform => VkBufferUsageFlags.UniformBuffer,
-			BufferType.ReadonlyStorage => VkBufferUsageFlags.StorageBuffer,
-			_ => throw new ArgumentException( "Buffer type not supported", nameof( type ) )
-		} );
+		Debug.Assert( !usage.HasFlag( BufferUsage.CpuWrite ) && !usage.HasFlag( BufferUsage.CpuRead ), "Device buffers can not be host-coherent" );
+		return new DeviceBuffer<T>( Device, size, usageFlags( usage ) | bufferType( type ) );
 	}
 
 	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
-		return new HostBuffer<T>( Device, size, VkBufferUsageFlags.TransferSrc );
+		Debug.Assert( usage != BufferUsage.Default, "Staging buffer must have at least 1 usage flag" );
+		return new HostBuffer<T>( Device, size, usageFlags( usage ) );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {

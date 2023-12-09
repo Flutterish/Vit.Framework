@@ -182,8 +182,8 @@ public class SpriteFontPage : IDisposable { // TODO maybe we should also use a t
 		void renderOutline ( IEnumerable<Spline2<double>> outline, AxisAlignedBox2<double> glyphBounds, AxisAlignedBox2<float> bounds, ColorSRgba<float> color ) {
 			var stencil = new StencilGlyph( outline ); // TODO generate this on the fly
 
-			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index );
-			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex );
+			var indices = font.SingleUseBuffers.AllocateHostBuffer<uint>( (uint)stencil.Indices.Count, BufferType.Index, BufferUsage.CpuWrite );
+			var vertices = font.SingleUseBuffers.AllocateHostBuffer<Vertex>( (uint)stencil.Vertices.Count, BufferType.Vertex, BufferUsage.CpuWrite );
 			var vertexPtr = vertices.Map();
 
 			foreach ( var i in stencil.Vertices ) {

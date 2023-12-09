@@ -49,10 +49,10 @@ public abstract partial class TexturedQuad {
 			} );
 
 			using ( var copy = renderer.CreateImmediateCommandBuffer() ) {
-				Indices = renderer.CreateDeviceBuffer<ushort>( 6, BufferType.Index, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				Indices = renderer.CreateDeviceBuffer<ushort>( 6, BufferType.Index, BufferUsage.CopyDestination );
 				copy.CopyBufferRaw( indices.Buffer, Indices, 6 * SizeOfHelper<ushort>.Size, sourceOffset: indices.Offset );
 
-				Vertices = renderer.CreateDeviceBuffer<Vertex>( 4, BufferType.Vertex, BufferUsage.GpuRead | BufferUsage.CpuWrite | BufferUsage.GpuPerFrame );
+				Vertices = renderer.CreateDeviceBuffer<Vertex>( 4, BufferType.Vertex, BufferUsage.CopyDestination );
 				copy.CopyBufferRaw( vertices.Buffer, Vertices, 4 * SizeOfHelper<Vertex>.Size, sourceOffset: vertices.Offset );
 			}
 		}

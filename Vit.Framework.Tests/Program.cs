@@ -41,7 +41,7 @@ public partial class Program : App {
 
 	async void initGraphics () {
 		List<GraphicsApiType> apis = new() {
-			CursesApi.GraphicsApiType,
+			//CursesApi.GraphicsApiType,
 			Direct3D11Api.GraphicsApiType,
 			VulkanApi.GraphicsApiType,
 			OpenGlApi.GraphicsApiType

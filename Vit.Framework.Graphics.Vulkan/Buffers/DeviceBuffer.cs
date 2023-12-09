@@ -4,7 +4,7 @@ using Vulkan;
 namespace Vit.Framework.Graphics.Vulkan.Buffers;
 
 public class DeviceBuffer<T> : Buffer, IDeviceBuffer<T> where T : unmanaged {
-	public DeviceBuffer ( Device device, uint size, VkBufferUsageFlags flags ) : base( device, size, flags | VkBufferUsageFlags.TransferDst ) {
+	public DeviceBuffer ( Device device, uint size, VkBufferUsageFlags flags ) : base( device, size, flags ) {
 		
 	}
 

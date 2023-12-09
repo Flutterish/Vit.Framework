@@ -64,9 +64,9 @@ public class Test03_Uniforms : GenericRenderThread {
 		", ShaderLanguage.GLSL, ShaderPartType.Fragment ) );
 		shaderSet = Renderer.CreateShaderSet( new[] { vertex, fragment }, VertexInputDescription.CreateSingle( vertex.ShaderInfo ) );
 
-		positions = new( Renderer, 3, BufferType.Vertex, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		indices = new( Renderer, 3, BufferType.Index, stagingHint: BufferUsage.None, deviceHint: BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
-		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		positions = new( Renderer, 3, BufferType.Vertex );
+		indices = new( Renderer, 3, BufferType.Index );
+		uniformBuffer = Renderer.CreateUniformHostBuffer<Uniforms>( 1, BufferType.Uniform, BufferUsage.CpuWrite );
 
 		(uniformSet, uniformSetPool) = shaderSet.CreateUniformSet();
 		shaderSet.SetUniformSet( uniformSet );

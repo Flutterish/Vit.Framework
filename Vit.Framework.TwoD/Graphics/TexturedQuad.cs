@@ -73,7 +73,7 @@ public abstract partial class TexturedQuad : Drawable {
 			var indices = deps.Indices;
 			var shader = deps.Shader;
 
-			var instance = deps.BatchAllocator.AllocateHostBuffer<InstanceData>( (uint)drawNodes.Length, BufferType.Vertex );
+			var instance = deps.BatchAllocator.AllocateHostBuffer<InstanceData>( (uint)drawNodes.Length, BufferType.Vertex, BufferUsage.CpuWrite );
 			var dataPtr = instance.Map();
 
 			commands.SetShaders( shader );

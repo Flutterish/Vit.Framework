@@ -142,7 +142,7 @@ public partial class DrawableSpriteText : DrawableText {
 
 			using var copy = renderer.CreateImmediateCommandBuffer();
 
-			Source.vertices = Source.drawDependencies.BufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)glyphCount * 4 );
+			Source.vertices = Source.drawDependencies.BufferHeap.Allocate<Vertex>( BufferType.Vertex, (uint)glyphCount * 4, BufferUsage.CopyDestination );
 			copy.CopyBufferRaw( vertexStaging.Buffer, Source.vertices.Buffer, vertexStaging.Length, sourceOffset: vertexStaging.Offset, destinationOffset: Source.vertices.Offset );
 
 			foreach ( var (page, offset) in groupOffsets ) {

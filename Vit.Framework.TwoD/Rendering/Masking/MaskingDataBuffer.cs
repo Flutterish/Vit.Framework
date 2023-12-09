@@ -19,7 +19,7 @@ public class MaskingDataBuffer : IDisposable {
 	uint stackPtr;
 	public void Initialize ( IRenderer renderer ) {
 		this.renderer = renderer;
-		stack = renderer.CreateHostBufferRaw<byte>( length * 16, BufferType.ReadonlyStorage, BufferUsage.CpuWrite | BufferUsage.CpuPerFrame | BufferUsage.GpuRead | BufferUsage.GpuPerFrame );
+		stack = renderer.CreateHostBufferRaw<byte>( length * 16, BufferType.ReadonlyStorage, BufferUsage.CpuWrite );
 	}
 
 	unsafe void ensureCapacity ( uint size ) {

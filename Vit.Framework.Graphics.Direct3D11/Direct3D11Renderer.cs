@@ -85,7 +85,7 @@ public class Direct3D11Renderer : DisposableObject, IRenderer {
 	}
 
 	public IStagingBuffer<T> CreateStagingBufferRaw<T> ( uint size, BufferUsage usage ) where T : unmanaged {
-		return new StagingBuffer<T>( Device, Context, size );
+		return new StagingBuffer<T>( Device, Context, size, usage );
 	}
 
 	public IDeviceTexture2D CreateDeviceTexture ( Size2<uint> size, PixelFormat format ) {

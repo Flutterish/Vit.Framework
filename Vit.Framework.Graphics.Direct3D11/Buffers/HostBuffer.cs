@@ -26,7 +26,6 @@ public class HostBuffer<T> : DisposableObject, IHostBuffer<T>, ID3D11BufferHandl
 		if ( usage.HasFlag( BufferUsage.CpuWrite ) )
 			flags |= CpuAccessFlags.Write;
 
-
 		Device.CreateBuffer( new BufferDescription {
 			ByteWidth = type == BindFlags.ConstantBuffer ? ((int)size + 15) / 16 * 16 : (int)size,
 			Usage = ResourceUsage.Dynamic,
