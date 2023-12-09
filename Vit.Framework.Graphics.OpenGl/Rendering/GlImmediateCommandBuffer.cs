@@ -15,6 +15,8 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	public GlImmediateCommandBuffer ( GlRenderer renderer ) : base( renderer ) {
 		activeState?.InvalidateAll();
 		activeState = this;
+
+		GL.Enable( EnableCap.ScissorTest );
 	}
 
 	[ThreadStatic]
@@ -30,6 +32,7 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 	}
 
 	public override void ClearColor<T> ( T color ) {
+		GL.Disable( EnableCap.ScissorTest );
 		var span = color.AsSpan();
 		GL.ClearColor(
 			span.Length >= 1 ? span[0] : 0,
@@ -38,16 +41,21 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 			span.Length >= 4 ? span[3] : 1
 		);
 		GL.Clear( ClearBufferMask.ColorBufferBit );
+		GL.Enable( EnableCap.ScissorTest );
 	}
 
 	public override void ClearDepth ( float depth ) {
+		GL.Disable( EnableCap.ScissorTest );
 		GL.ClearDepth( depth );
 		GL.Clear( ClearBufferMask.DepthBufferBit );
+		GL.Enable( EnableCap.ScissorTest );
 	}
 
 	public override void ClearStencil ( uint stencil ) {
+		GL.Disable( EnableCap.ScissorTest );
 		GL.ClearStencil( (int)stencil );
 		GL.Clear( ClearBufferMask.StencilBufferBit );
+		GL.Enable( EnableCap.ScissorTest );
 	}
 
 	protected override void CopyTexture ( IGlTexture2D source, IGlTexture2D destination, AxisAlignedBox2<uint> sourceRect, Point2<uint> destinationOffset ) {
@@ -84,11 +92,11 @@ public class GlImmediateCommandBuffer : BasicCommandBuffer<GlRenderer, IGlFrameb
 			ShaderSet.InputLayout!.BindVAO();
 		}
 
-		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) )
+		if ( invalidations.HasFlag( PipelineInvalidations.Viewport ) ) {
 			GL.Viewport( (int)Viewport.MinX, (int)Viewport.MinY, (int)Viewport.Width, (int)Viewport.Height );
+		}
 
 		if ( invalidations.HasFlag( PipelineInvalidations.Scissors ) ) {
-			GL.Enable( EnableCap.ScissorTest );
 			GL.Scissor( (int)Scissors.MinX, (int)Scissors.MinY, (int)Scissors.Width, (int)Scissors.Height );
 		}
 

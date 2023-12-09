@@ -132,6 +132,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 	}
 
 	DateTime start = DateTime.Now;
+	bool even = true;
 	protected override void Render ( IFramebuffer windowFramebuffer, ICommandBuffer commands ) {
 		using ( commands.RenderTo( framebuffer ) ) {
 			commands.ClearColor( new ColorHsv<Radians<float>, float> {
@@ -182,7 +183,7 @@ public class Test06_Framebuffers : GenericRenderThread {
 			} );
 
 			commands.SetTopology( Topology.Triangles );
-			commands.SetDepthTest( new( CompareOperation.LessThan ), new() { WriteOnPass = true } );
+			commands.SetDepthTest( new() { IsEnabled = false }, new() { WriteOnPass = true } );
 			commands.DrawIndexed( 6 );
 		}
 	}

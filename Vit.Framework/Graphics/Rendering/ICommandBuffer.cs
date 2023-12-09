@@ -22,17 +22,18 @@ public interface ICommandBuffer {
 	DisposeAction<ICommandBuffer> RenderTo ( IFramebuffer framebuffer );
 
 	/// <summary>
-	/// Clears the color of the render target.
+	/// Clears the color of the whole render target.
 	/// </summary>
-	void ClearColor<T> ( T color ) where T : IUnlabeledColor<float>; // TODO these may be combined into one operation
+	void ClearColor<T> ( T color ) where T : IUnlabelledColor<float>; // TODO these may be combined into one operation
 	/// <summary>
-	/// Clears the depth of the render target.
+	/// Clears the depth of the whole render target.
 	/// </summary>
 	void ClearDepth ( float depth );
 	/// <summary>
-	/// Clears the stencil of the render target.
+	/// Clears the stencil of the whole render target.
 	/// </summary>
 	void ClearStencil ( uint stencil );
+
 
 	/// <summary>
 	/// Copies data from one texture to another.
@@ -260,7 +261,7 @@ public abstract class BasicCommandBuffer<TRenderer, TFramebuffer, TTexture, TSha
 	protected abstract void RenderTo ( TFramebuffer framebuffer );
 	protected abstract void FinishRendering ();
 
-	public abstract void ClearColor<T> ( T color ) where T : IUnlabeledColor<float>;
+	public abstract void ClearColor<T> ( T color ) where T : IUnlabelledColor<float>;
 	public abstract void ClearDepth ( float depth );
 	public abstract void ClearStencil ( uint stencil );
 
