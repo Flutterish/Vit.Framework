@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -24,7 +25,7 @@ public static class InteropExtensions {
 		=> CollectionsMarshal.AsSpan( list );
 
 	public unsafe static TTo BitCast<TFrom, TTo> ( this TFrom from ) where TTo : unmanaged where TFrom : unmanaged {
-		return MemoryMarshal.Cast<TFrom, TTo>( MemoryMarshal.CreateSpan( ref from, 1 ) )[0];
+		return Unsafe.As<TFrom, TTo>( ref from );
 	}
 
 	public unsafe static Span<byte> ToBytes<T> ( ref this T self ) where T : unmanaged {
