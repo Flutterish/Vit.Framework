@@ -237,7 +237,7 @@ public static class ExpressionEvaluator {
 				i = stack;
 				return null;
 			}
-			if ( !functions.TryGetValue( name.Slice( span ), out var function ) ) {
+			if ( !functions.TryGetValue( name.Slice( span ).ToString().ToLowerInvariant(), out var function ) ) {
 				i = stack;
 				return null;
 			}
@@ -294,7 +294,7 @@ public static class ExpressionEvaluator {
 				i = stack;
 				return null;
 			}
-			if ( !symbols.TryGetValue( symbol.Slice( span ), out var value ) ) {
+			if ( !symbols.TryGetValue( symbol.Slice( span ).ToString().ToLowerInvariant(), out var value ) ) {
 				i = stack;
 				return null;
 			}
